@@ -41,7 +41,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   onInit(){
-
+    Countly.init("https://try.count.ly", "0e8a00e8c01395a0af8be0e55da05a404bb23c3e");
   }
   @override
   Widget build(BuildContext context) {
@@ -53,7 +53,7 @@ class _MyAppState extends State<MyApp> {
         body: Center(
           child: Column(children: <Widget>[
             MyButton(text: "init", color: Colors.white, onPressed: onInit),
-            MyButton(text: "init", color: Colors.white, onPressed: onInit),
+            MyButton(text: "start", color: Colors.white, onPressed: onInit),
           ],),
         ),
       ),
@@ -73,10 +73,13 @@ class MyButton extends StatelessWidget{
 
   @override
   Widget build(BuildContext context){
-    return new FlatButton(
+    return new OutlineButton(
       onPressed: _onPressed,
       color: _color,
-      child: Text(_text, style: new TextStyle(color: _color))
+      child: SizedBox(
+        width: double.maxFinite,
+        child: Text(_text, style: new TextStyle(color: Colors.black),textAlign: TextAlign.center)
+        )
     );
   }
 }
