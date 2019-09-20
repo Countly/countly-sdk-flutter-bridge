@@ -48,7 +48,21 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Countly SDK Dart Demo'),
         ),
         body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+          child: Column(children: <Widget>[
+            RaisedButton(
+              child: new Text(
+                  "init",
+                  style: new TextStyle(
+                    color: Colors.white,
+                  )
+              ),
+              colorBrightness: Brightness.dark,
+              onPressed: () {
+                print('init');
+              },
+              color: Colors.blue,
+            )
+          ],),
         ),
       ),
     );

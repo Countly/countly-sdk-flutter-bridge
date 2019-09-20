@@ -1,0 +1,22 @@
+PODS:
+  - countly (0.0.1):
+    - Flutter
+  - Flutter (1.0.0)
+
+DEPENDENCIES:
+  - countly (from `.symlinks/plugins/countly/ios`)
+  - Flutter (from `.symlinks/flutter/ios`)
+
+EXTERNAL SOURCES:
+  countly:
+    :path: ".symlinks/plugins/countly/ios"
+  Flutter:
+    :path: ".symlinks/flutter/ios"
+
+SPEC CHECKSUMS:
+  countly: 6bf0c14cc81de03189e54a65553b936ed6739adb
+  Flutter: 58dd7d1b27887414a370fcccb9e645c08ffd7a6a
+
+PODFILE CHECKSUM: 81d9101721a74b9b88ddd9e9dfe15eec968bc82e
+
+COCOAPODS: 1.7.5
