@@ -40,6 +40,9 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  onInit(){
+
+  }
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -49,22 +52,31 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Center(
           child: Column(children: <Widget>[
-            RaisedButton(
-              child: new Text(
-                  "init",
-                  style: new TextStyle(
-                    color: Colors.white,
-                  )
-              ),
-              colorBrightness: Brightness.dark,
-              onPressed: () {
-                print('init');
-              },
-              color: Colors.blue,
-            )
+            MyButton(text: "init", color: Colors.white, onPressed: onInit),
+            MyButton(text: "init", color: Colors.white, onPressed: onInit),
           ],),
         ),
       ),
+    );
+  }
+}
+
+class MyButton extends StatelessWidget{
+  String _text;
+  Color _color;
+  Function _onPressed;
+  MyButton({Color color, String text, Function onPressed}){
+    _text = text;
+    _color = color;
+    _onPressed = onPressed;
+  }
+
+  @override
+  Widget build(BuildContext context){
+    return new FlatButton(
+      onPressed: _onPressed,
+      color: _color,
+      child: Text(_text, style: new TextStyle(color: _color))
     );
   }
 }
