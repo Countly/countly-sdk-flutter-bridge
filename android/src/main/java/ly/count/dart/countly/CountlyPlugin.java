@@ -16,34 +16,43 @@ import android.app.Activity;
 import android.content.Context;
 import org.json.JSONArray;
 import org.json.JSONException;
+import android.util.Log;
 
 /** CountlyPlugin */
 public class CountlyPlugin implements MethodCallHandler {
   /** Plugin registration. */
+  Context context;
+  Activity activity;
   public static void registerWith(Registrar registrar) {
+    final Activity __activity  = registrar.activity();
+    final Context __context = registrar.context();
+
     final MethodChannel channel = new MethodChannel(registrar.messenger(), "countly");
-    channel.setMethodCallHandler(new CountlyPlugin());
+    channel.setMethodCallHandler(new CountlyPlugin(__activity, __context));
+  }
+
+  public CountlyPlugin(Activity _activity, Context _context){
+    this.activity = _activity;
+    this.context= _context;
   }
 
   @Override
   public void onMethodCall(MethodCall call, Result result) {
-      Context context = null;
-      Activity activity = null;
       String argsString = (String)call.argument("data");
       JSONArray args = null;
       try{
-          args = new JSONArray(argsString);
 
 
 
       if ("init".equals(call.method)) {
+        args = new JSONArray(argsString);
 
         String serverUrl = args.getString(0);
         String appKey = args.getString(1);
-
+        Log.i("Nicolson", serverUrl);
+        Log.i("Nicolson", appKey);
         if(args.length() == 2){
-            Countly.sharedInstance()
-                .init(context, serverUrl, appKey,null,DeviceId.Type.OPEN_UDID);
+            Countly.sharedInstance().init(context, serverUrl, appKey,null,DeviceId.Type.OPEN_UDID);
         }else if(args.length() == 3){
             String yourDeviceID = args.getString(3);
             Countly.sharedInstance()
@@ -388,16 +397,20 @@ public class CountlyPlugin implements MethodCallHandler {
     else if("askForFeedback".equals(call.method)){
         String widgetId = args.getString(0);
         // result.success(Countly.sharedInstance().getFeedbackWidget(widgetId));
+    }else if (call.method.equals("getPlatformVersion")) {
+      result.success("Android " + android.os.Build.VERSION.RELEASE);
     }
     else{
         result.notImplemented();
     }
 
-    if (call.method.equals("getPlatformVersion")) {
-      result.success("Android " + android.os.Build.VERSION.RELEASE);
-    } else {
-      result.notImplemented();
+    // if (call.method.equals("getPlatformVersion")) {
+    //   result.success("Android " + android.os.Build.VERSION.RELEASE);
+    // } else {
+    //   result.notImplemented();
+    // }
+    }catch (JSONException jsonException){
+        result.success(jsonException.toString());
     }
-    }catch (JSONException jsonException){}
   }
 }

@@ -16,7 +16,6 @@ CountlyConfig* config = nil;
     if([@"init" isEqualToString:call.method]){
 
         NSString* commandString = call.arguments[@"data"];
-        NSLog(commandString);
         NSData* data = [commandString dataUsingEncoding:NSUTF8StringEncoding];
         NSError *e;
         NSArray *command = [NSJSONSerialization JSONObjectWithData:data options:nil error:&e];

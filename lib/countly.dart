@@ -18,11 +18,26 @@ class Countly {
     if(deviceId != null){
       arg.add(deviceId);
     }
-    print(arg.toString());
+    // print("json");
+    // print(json(arg));
     final String result = await _channel.invokeMethod('init', <String, dynamic>{
-        'data': arg.toString(),
+        'data': json(arg)// '["https://try.count.ly", "0e8a00e8c01395a0af8be0e55da05a404bb23c3e"]',
       });
     print(result);
     return result;
+  }
+
+  static String json(List <String> list){
+    String j = '[';
+    int i = 0;
+    list.forEach((v){
+      j+= '"' +v.replaceAll('"', '\\"') +'"';
+      i++;
+      if(list.length != i){
+        j+=',';
+      }
+    });
+    j+=']';
+    return j;
   }
 }
