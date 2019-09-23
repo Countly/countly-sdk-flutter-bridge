@@ -75,7 +75,7 @@ class _MyAppState extends State<MyApp> {
             "eventName": "event_segment",
             "eventCount": 1
         };
-        events.segments = {
+        events["segments"] = {
             "Country": "Turkey",
             "Age": "28"
         };
