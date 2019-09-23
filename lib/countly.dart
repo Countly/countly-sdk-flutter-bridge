@@ -182,7 +182,7 @@ static Future<String> changeDeviceId(String newDeviceID ,bool onServer) async {
     return result;
   }
 
-static Future<String> addCrashLog(Map<String, Object> newDeviceID) async {
+static Future<String> addCrashLog(String newDeviceID) async {
     List <String> arg = [];
    
     final String result = await _channel.invokeMethod('addCrashLog', <String, dynamic>{
@@ -191,6 +191,26 @@ static Future<String> addCrashLog(Map<String, Object> newDeviceID) async {
     print(result);
     return result;
   }
+
+static Future<String> enableParameterTamperingProtection(String salt) async {
+    List <String> arg = [];
+   
+    final String result = await _channel.invokeMethod('enableParameterTamperingProtection', <String, dynamic>{
+        'data': json(arg)
+    });
+    print(result);
+    return result;
+  }
+static Future<String> setProperty(String keyName , String keyValue) async {
+    List <String> arg = [];
+   
+    final String result = await _channel.invokeMethod('setProperty', <String, dynamic>{
+        'data': json(arg)
+    });
+    print(result);
+    return result;
+  }
+
 
   static String json(List <String> list){
     String j = '[';
