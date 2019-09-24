@@ -2,17 +2,22 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'dart:convert';
+import 'dart:io' show Platform;
 
 class Countly {
   static const MethodChannel _channel =
-    const MethodChannel('countly');
+  const MethodChannel('countly');
 
-  static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
-  }
+
+  // static variable
   static bool isDebug = false;
+  static Map<String, Object> messagingMode = {"DEVELOPMENT": 1, "PRODUCTION": 0, "ADHOC": 2};
+
+
   static Future<String> init(String serverUrl, String appKey, [String deviceId]) async {
+    if (Platform.isAndroid) {
+        messagingMode = {"DEVELOPMENT": 2, "PRODUCTION": 0};
+    }
     List <String> arg = [];
     arg.add(serverUrl);
     arg.add(appKey);
