@@ -39,13 +39,15 @@ public class CountlyPlugin implements MethodCallHandler {
   @Override
   public void onMethodCall(MethodCall call, Result result) {
       String argsString = (String)call.argument("data");
+      if(argsString == null){
+        argsString = "[]";
+      }
       JSONArray args = null;
       try{
-
+      args = new JSONArray(argsString);
 
 
       if ("init".equals(call.method)) {
-        args = new JSONArray(argsString);
 
         String serverUrl = args.getString(0);
         String appKey = args.getString(1);
