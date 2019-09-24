@@ -282,10 +282,10 @@ static Future<String> setProperty(String keyName , String keyValue) async {
     }
     return result;
   }
-  static Future<String> incrementBy(String keyName, String keyIncrement) async {
+  static Future<String> incrementBy(String keyName, int keyIncrement) async {
     List <String> arg = [];
     arg.add(keyName);
-    arg.add(keyIncrement);
+    arg.add(keyIncrement.toString());
     final String result = await _channel.invokeMethod('incrementBy', <String, dynamic>{
         'data': json.encode(arg)
     });
@@ -294,10 +294,10 @@ static Future<String> setProperty(String keyName , String keyValue) async {
     }
     return result;
   }
-  static Future<String> multiply(String keyName, String multiplyValue) async {
+  static Future<String> multiply(String keyName, int multiplyValue) async {
     List <String> arg = [];
     arg.add(keyName);
-    arg.add(multiplyValue);
+    arg.add(multiplyValue.toString());
     final String result = await _channel.invokeMethod('multiply', <String, dynamic>{
         'data': json.encode(arg)
     });
@@ -307,10 +307,10 @@ static Future<String> setProperty(String keyName , String keyValue) async {
     return result;
   }
 
-  static Future<String> saveMax(String keyName, String saveMax) async {
+  static Future<String> saveMax(String keyName, int saveMax) async {
     List <String> arg = [];
     arg.add(keyName);
-    arg.add(saveMax);
+    arg.add(saveMax.toString());
     final String result = await _channel.invokeMethod('saveMax', <String, dynamic>{
         'data': json.encode(arg)
     });
@@ -331,10 +331,10 @@ static Future<String> saveMin(String keyName, int saveMin) async {
     }
     return result;
   }
-static Future<String> setOnce(String keyName, String setOnce) async {
+static Future<String> setOnce(String keyName, int setOnce) async {
     List <String> arg = [];
     arg.add(keyName);
-    arg.add(setOnce);
+    arg.add(setOnce.toString());
     final String result = await _channel.invokeMethod('setOnce', <String, dynamic>{
         'data': json.encode(arg)
     });

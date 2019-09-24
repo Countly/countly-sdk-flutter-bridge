@@ -79,45 +79,45 @@ class _MyAppState extends State<MyApp> {
         // }, 1000);
   }
   endEventBasic(){
-    Countly.startEvent("Timed Event");
+    // Countly.startEvent("Timed Event");
         // setTimeout(function() {
-            Countly.endEvent({ "eventName": "Timed Event" });
+            // Countly.endEvent({ "eventName": "Timed Event" });
         // }, 1000);
   }
 endEventWithSum(){
-     Countly.startEvent("Timed Event With Sum");
+    //  Countly.startEvent("Timed Event With Sum");
         // setTimeout(function() {
-            Countly.endEvent({ "eventName": "Timed Event With Sum", "eventSum": "0.99" });
+            // Countly.endEvent({ "eventName": "Timed Event With Sum", "eventSum": "0.99" });
         // }, 1000);
   }
   endEventWithSegment(){
-    Countly.startEvent("Timed Event With Segment");
-        // setTimeout(function() {
+    // Countly.startEvent("Timed Event With Segment");
+    //     // setTimeout(function() {
 
-            var events = {
-                "eventName": "Timed Event With Segment"
-            };
-            events["segments"] = {
-                "Country": "Turkey",
-                "Age": "28"
-            };
-            Countly.endEvent(events);
-        // }, 1000);
+    //         var events = {
+    //             "eventName": "Timed Event With Segment"
+    //         };
+    //         events["segments"] = {
+    //             "Country": "Turkey",
+    //             "Age": "28"
+    //         };
+    //         Countly.endEvent(events);
+    //     // }, 1000);
   }
   endEventWithSumSegment(){
-    Countly.startEvent("Timed Event With Segment, Sum and Count");
-        setTimeout(function() {
-            var events = {
-                "eventName": "Timed Event With Segment, Sum and Count",
-                "eventCount": 1,
-                "eventSum": "0.99"
-            };
-            events["segments"] = {
-                "Country": "Turkey",
-                "Age": "28"
-            };
-            Countly.endEvent(events);
-        }, 1000);
+    // Countly.startEvent("Timed Event With Segment, Sum and Count");
+    //     setTimeout(function() {
+    //         var events = {
+    //             "eventName": "Timed Event With Segment, Sum and Count",
+    //             "eventCount": 1,
+    //             "eventSum": "0.99"
+    //         };
+    //         events["segments"] = {
+    //             "Country": "Turkey",
+    //             "Age": "28"
+    //         };
+    //         Countly.endEvent(events);
+    //     }, 1000);
   }
   recordViewHome(){
     Countly.recordView("Home");
@@ -144,7 +144,7 @@ endEventWithSum(){
         "gender": "M", // "F"
         "byear": "1989",
         };
-        
+
         Countly.setUserData(options);
   }
   setIronManData(){
@@ -163,7 +163,7 @@ endEventWithSum(){
         "gender": "M", // "F"
         "byear": "1989",
         };
-        
+
         Countly.setUserData(options);
         Countly.start();
   }
@@ -182,7 +182,7 @@ endEventWithSum(){
         "gender": "M", // "F"
         "byear": "1989"
        };
-        
+
         Countly.setUserData(options);
         Countly.start();
   }
@@ -199,7 +199,7 @@ endEventWithSum(){
         "gender": "M", // "F"
         "byear": "1989",
       };
-     
+
         Countly.setUserData(options);
   }
   setProperty(){
@@ -304,24 +304,24 @@ endEventWithSum(){
       Countly.setOptionalParametersForInitialization(options);
   }
   addCrashLog(){
-      Countly.enableCrashReporting();
-        Countly.addCrashLog("User Performed Step A");
-        // setTimeout(function() {
-            Countly.addCrashLog("User Performed Step B");
-        // }, 1000);
-        // setTimeout(function() {
-            Countly.addCrashLog("User Performed Step C");
-            // console.log("Opps found and error");
-            // a();
-        // }, 1000);
+      // Countly.enableCrashReporting();
+      //   Countly.addCrashLog("User Performed Step A");
+      //   // setTimeout(function() {
+      //       Countly.addCrashLog("User Performed Step B");
+      //   // }, 1000);
+      //   // setTimeout(function() {
+      //       Countly.addCrashLog("User Performed Step C");
+      //       // console.log("Opps found and error");
+      //       // a();
+      //   // }, 1000);
   }
   sendRating(){
     Countly.sendRating(5);
   }
   askForStarRating(){
-    Countly.askForStarRating(function(ratingResult){
-            console.log(ratingResult);
-        });
+    // Countly.askForStarRating(function(ratingResult){
+    //         console.log(ratingResult);
+    //     });
   }
 
 
