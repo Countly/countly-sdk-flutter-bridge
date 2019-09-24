@@ -54,7 +54,7 @@ public class CountlyPlugin implements MethodCallHandler {
         if(args.length() == 2){
             Countly.sharedInstance().init(context, serverUrl, appKey,null,DeviceId.Type.OPEN_UDID);
         }else if(args.length() == 3){
-            String yourDeviceID = args.getString(3);
+            String yourDeviceID = args.getString(2);
             Countly.sharedInstance()
                 .init(context, serverUrl, appKey,yourDeviceID,null);
         }else{

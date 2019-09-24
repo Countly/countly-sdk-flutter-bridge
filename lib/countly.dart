@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'dart:convert';
 
 class Countly {
   static const MethodChannel _channel =
@@ -10,7 +11,7 @@ class Countly {
     final String version = await _channel.invokeMethod('getPlatformVersion');
     return version;
   }
-
+  static bool isDebug = false;
   static Future<String> init(String serverUrl, String appKey, [String deviceId]) async {
     List <String> arg = [];
     arg.add(serverUrl);
@@ -18,26 +19,44 @@ class Countly {
     if(deviceId != null){
       arg.add(deviceId);
     }
-    // print("json");
-    // print(json(arg));
+
     final String result = await _channel.invokeMethod('init', <String, dynamic>{
-        'data': json(arg)// '["https://try.count.ly", "0e8a00e8c01395a0af8be0e55da05a404bb23c3e"]',
-      });
-    print(result);
+        'data': json.encode(arg)
+    });
+    if(isDebug){
+      print(result);
+    }
     return result;
   }
 
-  static String json(List <String> list){
-    String j = '[';
-    int i = 0;
-    list.forEach((v){
-      j+= '"' +v.replaceAll('"', '\\"') +'"';
-      i++;
-      if(list.length != i){
-        j+=',';
-      }
+  static Future<String> sendEvent(String serverUrl, String appKey, [String deviceId]) async {
+    List <String> arg = [];
+    arg.add(serverUrl);
+    arg.add(appKey);
+    if(deviceId != null){
+      arg.add(deviceId);
+    }
+
+    final String result = await _channel.invokeMethod('event', <String, dynamic>{
+        'data': json.encode(arg)
     });
-    j+=']';
-    return j;
+    if(isDebug){
+      print(result);
+    }
+    return result;
   }
+
+  // static String toJSON(List <String> list){
+  //   String j = '[';
+  //   int i = 0;
+  //   list.forEach((v){
+  //     j+= '"' +v.replaceAll('"', '\\"') +'"';
+  //     i++;
+  //     if(list.length != i){
+  //       j+=',';
+  //     }
+  //   });
+  //   j+=']';
+  //   return j;
+  // }
 }
