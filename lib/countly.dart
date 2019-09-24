@@ -138,10 +138,8 @@ static Future<String> setUserData(Map<String, Object> options) async {
   }
 static Future<String> sendPushToken(Map<String, Object> options) async {
     List <String> arg = [];
-    var args = [];
-    args.add(options["token"] || "");
-    args.add(options["messagingMode"] || Countly.messagingMode["PRODUCTION"]);
-
+    // arg.add(options["token"] || "");
+    // arg.add(options["messagingMode"] || Countly.messagingMode["PRODUCTION"]);
 
     final String result = await _channel.invokeMethod('sendPushToken', <String, dynamic>{
         'data': json.encode(arg)
@@ -182,12 +180,12 @@ static Future<String> setOptionalParametersForInitialization(Map<String, Object>
     String ipAddress = options["ipAddress"];
     options["latitude"] = options["latitude"].toString();
     options["longitude"] = options["longitude"].toString();
-    if(options["latitude && !options.latitude"].match('\\.')){
-        options["latitude"] =   + ".00";
-    }
-    if(optionslongitude && !options["longitude"].match('\\.')){
-        options["longitude"] = latitude + ".00";
-    }
+    // if(options["latitude && !options.latitude"].match('\\.')){
+    //     options["latitude"] =   + ".00";
+    // }
+    // if(optionslongitude && !options["longitude"].match('\\.')){
+    //     options["longitude"] = latitude + ".00";
+    // }
     if(options["city"] == null){
       options["city"] = "";
     }
@@ -207,7 +205,7 @@ static Future<String> setOptionalParametersForInitialization(Map<String, Object>
     args.add(options["country"]);
     args.add(options["latitude"]);
     args.add(options["longitude"]);
-    args.add(options["ipAddress"] || "0.0.0.0");
+    // args.add(options["ipAddress"] || "0.0.0.0");
     final String result = await _channel.invokeMethod('setOptionalParametersForInitialization', <String, dynamic>{
         'data': json.encode(arg)
     });
@@ -219,14 +217,15 @@ static Future<String> setOptionalParametersForInitialization(Map<String, Object>
 
 static Future<String> changeDeviceId(String newDeviceID ,bool onServer) async {
     List <String> arg = [];
-    arg.add(newDeviceID);
-    arg.add(onServer.toString());
+    String onServerString;
     if(onServer == false){
-        onServer = "0";
+        onServerString = "0";
     }else{
-        onServer = "1";
+        onServerString = "1";
     }
     newDeviceID = newDeviceID.toString();
+    arg.add(newDeviceID);
+    arg.add(onServerString);
     final String result = await _channel.invokeMethod('changeDeviceId', <String, dynamic>{
         'data': json.encode(arg)
     });
