@@ -6,12 +6,8 @@ import 'dart:io' show Platform;
 
 class Countly {
   static const MethodChannel _channel =
-      const MethodChannel('countly');
+  const MethodChannel('countly');
 
-  static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
-  }
 
   // static variable
   static bool isDebug = false;
