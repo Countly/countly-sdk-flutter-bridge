@@ -65,7 +65,7 @@ class Countly {
     }
 
     final String result = await _channel.invokeMethod('event', <String, dynamic>{
-        'data': json(arg)
+        'data': json.encode(arg)
       });
     print(result);
     return result;
@@ -76,7 +76,7 @@ class Countly {
   static Future<String> recordViewHome() async {
     List <String> arg = [];
     final String result = await _channel.invokeMethod('recordView', <String, dynamic>{
-        'data': json(arg)
+        'data': json.encode(arg)
     });
     print(result);
     return result;
