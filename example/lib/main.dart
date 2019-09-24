@@ -55,10 +55,10 @@ class _MyAppState extends State<MyApp> {
   basicEvent(){
     // example for basic event
     var events = {
-            "eventName": "basic_event",
-            "eventCount": 1
-        };
-        Countly.sendEvent(events);
+        "eventName": "basic_event",
+        "eventCount": 1
+    };
+    Countly.sendEvent(events);
   }
   eventWithSum(){
     // example for event with sum
@@ -81,6 +81,7 @@ class _MyAppState extends State<MyApp> {
         };
         Countly.sendEvent(events);
   }
+
   eventWithSum_Segment(){
     // example for event with segment and sum
         var events = {
@@ -95,25 +96,25 @@ class _MyAppState extends State<MyApp> {
         Countly.sendEvent(events);
   }
   event(){
-    setInterval(function() {
-            app.sendSampleEvent();
-        }, 1000);
+    // setInterval(function() {
+            // app.sendSampleEvent();
+        // }, 1000);
   }
   endEventBasic(){
     Countly.startEvent("Timed Event");
-        setTimeout(function() {
+        // setTimeout(function() {
             Countly.endEvent({ "eventName": "Timed Event" });
-        }, 1000);
+        // }, 1000);
   }
 endEventWithSum(){
      Countly.startEvent("Timed Event With Sum");
-        setTimeout(function() {
+        // setTimeout(function() {
             Countly.endEvent({ "eventName": "Timed Event With Sum", "eventSum": "0.99" });
-        }, 1000);
+        // }, 1000);
   }
   endEventWithSegment(){
     Countly.startEvent("Timed Event With Segment");
-        setTimeout(function() {
+        // setTimeout(function() {
 
             var events = {
                 "eventName": "Timed Event With Segment"
@@ -123,7 +124,7 @@ endEventWithSum(){
                 "Age": "28"
             };
             Countly.endEvent(events);
-        }, 1000);
+        // }, 1000);
   }
   endEventWithSumSegment(){
     Countly.startEvent("Timed Event With Segment, Sum and Count");
@@ -141,16 +142,19 @@ endEventWithSum(){
         }, 1000);
   }
   recordViewHome(){
-    Countly.recordView(viewName);
+    Countly.recordView("Home");
   }
   recordViewDashboard(){
-    Countly.recordView(viewName);
+    Countly.recordView("Dashboard");
+  }
+  String makeid(){
+    return "124556";
   }
   setCaptianAmericaData(){
      // example for setCaptianAmericaData
         var deviceId = makeid();
         Countly.changeDeviceId(deviceId, false);
-        
+
         var options = {};
         options.name = "Captian America";
         options.username = "captianamerica";
@@ -164,10 +168,10 @@ endEventWithSum(){
         Countly.setUserData(options);
   }
   setIronManData(){
-      // example for setIronManData 
+      // example for setIronManData
         var deviceId = makeid();
         Countly.changeDeviceId(deviceId, false);
-        
+
         var options = {};
         options.name = "Iron Man";
         options.username = "ironman";
@@ -184,7 +188,7 @@ endEventWithSum(){
   setSpiderManData(){
        var deviceId = makeid();
         Countly.changeDeviceId(deviceId, false);
-        
+
         var options = {};
         options.name = "Spider-Man";
         options.username = "spiderman";
@@ -213,10 +217,10 @@ endEventWithSum(){
         Countly.setUserData(options);
   }
   setProperty(){
-      Countly.userData.setProperty("setProperty", "My Property");
+      Countly.userData_setProperty("setProperty", "My Property");
   }
   increment(){
-      Countly.userData.increment("increment");
+      Countly.userData_increment("increment");
   }
   incrementBy(){
       Countly.userData.incrementBy("incrementBy", 10);
@@ -234,33 +238,33 @@ endEventWithSum(){
        Countly.userData.setOnce("setOnce", 200);
   }
   sendPushToken(){
-       var push = PushNotification.init({
-            android: {sound: true},
-            ios: {
-                alert: "true",
-                badge: "true",
-                sound: "true"
-            },
-            windows: {}
-        });
+      //  var push = PushNotification.init({
+      //       android: {sound: true},
+      //       ios: {
+      //           alert: "true",
+      //           badge: "true",
+      //           sound: "true"
+      //       },
+      //       windows: {}
+      //   });
 
-        push.on('registration', function(data) {
-            alert('Token received: '+data.registrationId);
-            Countly.sendPushToken({
-                "token": data.registrationId,
-                "messagingMode": Countly.messagingMode.DEVELOPMENT
-            });
-        });
+      //   push.on('registration', function(data) {
+      //       alert('Token received: '+data.registrationId);
+      //       Countly.sendPushToken({
+      //           "token": data.registrationId,
+      //           "messagingMode": Countly.messagingMode.DEVELOPMENT
+      //       });
+      //   });
 
-        push.on('notification', function(data) {
-            alert(JSON.stringify(data));
-            // data.message,
-            // data.title,
-            // data.count,
-            // data.sound,
-            // data.image,
-            // data.additionalData
-        });
+      //   push.on('notification', function(data) {
+      //       alert(JSON.stringify(data));
+      //       // data.message,
+      //       // data.title,
+      //       // data.count,
+      //       // data.sound,
+      //       // data.image,
+      //       // data.additionalData
+      //   });
 
         // // Test android 8.0 and 9.0
         // push.subscribe('myTopic', function(n){
@@ -269,9 +273,9 @@ endEventWithSum(){
         //     alert(JSON.stringify(e));
         // });
 
-        push.on('error', function(e) {
-            // e.message
-        });
+        // push.on('error', function(e) {
+        //     // e.message
+        // });
         // Countly.messagingMode.DEVELOPMENT
         // Countly.messagingMode.PRODUCTION
         // Countly.messagingMode.ADHOC
@@ -294,9 +298,9 @@ endEventWithSum(){
   }
   testiOSPush(){
     Countly.sendPushToken({
-            "token": "1234567890",
-            "messagingMode": Countly.messagingMode.DEVELOPMENT
-        });
+        "token": "1234567890",
+        "messagingMode": Countly.messagingMode.DEVELOPMENT
+    });
   }
   changeDeviceId(){
     Countly.changeDeviceId("123456", true);
@@ -305,24 +309,25 @@ endEventWithSum(){
     Countly.enableParameterTamperingProtection("salt");
   }
    setOptionalParametersForInitialization(){
-      Countly.setOptionalParametersForInitialization({
-            city: "Tampa",
-            country: "US",
-            latitude: "28.006324",
-            longitude: "-82.7166183"
-        });
+     Map<String, Object> options = {
+          "city": "Tampa",
+          "country": "US",
+          "latitude": "28.006324",
+          "longitude": "-82.7166183"
+      };
+      Countly.setOptionalParametersForInitialization(options);
   }
   addCrashLog(){
       Countly.enableCrashReporting();
         Countly.addCrashLog("User Performed Step A");
-        setTimeout(function() {
+        // setTimeout(function() {
             Countly.addCrashLog("User Performed Step B");
-        }, 1000);
-        setTimeout(function() {
+        // }, 1000);
+        // setTimeout(function() {
             Countly.addCrashLog("User Performed Step C");
             // console.log("Opps found and error");
-            a();
-        }, 1000);
+            // a();
+        // }, 1000);
   }
   sendRating(){
     Countly.sendRating(5);
@@ -332,7 +337,7 @@ endEventWithSum(){
             console.log(ratingResult);
         });
   }
-  
+
 
   @override
   Widget build(BuildContext context) {
@@ -349,7 +354,7 @@ endEventWithSum(){
             MyButton(text: "Stop", color: "green", onPressed: stop),
             MyButton(text: "Basic Events", color: "default", onPressed: basicEvent),
             MyButton(text: "Event with Sum", color: "default", onPressed: eventWithSum),
-            MyButton(text: "Event with Segment", color: "default", onPressed: eventWithSegment),  
+            MyButton(text: "Event with Segment", color: "default", onPressed: eventWithSegment),
             MyButton(text: "Even with Sum and Segment", color: "", onPressed: eventWithSum_Segment),
             MyButton(text: "All Events", color: "black", onPressed: event),
             MyButton(text: "Timed event: Start / Stop", color: "default", onPressed: endEventBasic),
@@ -378,7 +383,7 @@ endEventWithSum(){
             MyButton(text: "Send Crash Report", color: "default", onPressed: addCrashLog),
             MyButton(text: "Send 5 star rating!!", color: "default", onPressed: sendRating),
             MyButton(text: "Open rating modal", color: "default", onPressed: askForStarRating),
-            
+
           ],),
         ),
       ),

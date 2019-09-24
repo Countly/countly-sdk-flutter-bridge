@@ -28,7 +28,7 @@ class Countly {
     }
     return result;
   }
-  
+
 
   static Future<String> sendEvent( Map<String, Object> options) async {
     List <String> arg = [];
@@ -67,24 +67,19 @@ class Countly {
     final String result = await _channel.invokeMethod('event', <String, dynamic>{
         'data': json.encode(arg)
       });
-    print(result);
+    if(isDebug){
+      print(result);
+    }
     return result;
   }
 
 
   ////// 001
-  static Future<String> recordViewHome() async {
+  static Future<String> recordView(String view) async {
     List <String> arg = [];
+    arg.add(view);
     final String result = await _channel.invokeMethod('recordView', <String, dynamic>{
         'data': json.encode(arg)
-    });
-    print(result);
-    return result;
-  }
-  static Future<String> recordViewDashboard() async {
-    List <String> arg = [];
-    final String result = await _channel.invokeMethod('recordView', <String, dynamic>{
-        'data': json(arg)
     });
     print(result);
     return result;
@@ -114,7 +109,7 @@ static Future<String> setUserData(Map<String, Object> options) async {
     if(options["picturePath"] == null){
       options["picturePath"] = "";
     }
-    
+
     args.add(options["name"]);
     args.add(options["username"]);
     args.add(options["email"]);
@@ -125,7 +120,7 @@ static Future<String> setUserData(Map<String, Object> options) async {
     args.add(options["gender"]);
     args.add(options["byear"]);
 
-    
+
     final String result = await _channel.invokeMethod('setUserData', <String, dynamic>{
         'data': json(arg)
     });
@@ -137,7 +132,7 @@ static Future<String> sendPushToken(Map<String, Object> options) async {
     var args = [];
     args.add(options["token"] || "");
     args.add(options["messagingMode"] || Countly.messagingMode["PRODUCTION"]);
-    
+
 
     final String result = await _channel.invokeMethod('sendPushToken', <String, dynamic>{
         'data': json(arg)
@@ -207,7 +202,7 @@ static Future<String> changeDeviceId(String newDeviceID ,bool onServer) async {
 
 static Future<String> addCrashLog(String newDeviceID) async {
     List <String> arg = [];
-   
+
     final String result = await _channel.invokeMethod('addCrashLog', <String, dynamic>{
         'data': json(arg)
     });
@@ -217,7 +212,7 @@ static Future<String> addCrashLog(String newDeviceID) async {
 
 static Future<String> enableParameterTamperingProtection(String salt) async {
     List <String> arg = [];
-   
+
     final String result = await _channel.invokeMethod('enableParameterTamperingProtection', <String, dynamic>{
         'data': json(arg)
     });
@@ -226,7 +221,7 @@ static Future<String> enableParameterTamperingProtection(String salt) async {
   }
 static Future<String> setProperty(String keyName , String keyValue) async {
     List <String> arg = [];
-   
+
     final String result = await _channel.invokeMethod('setProperty', <String, dynamic>{
         'data': json(arg)
     });
@@ -235,7 +230,7 @@ static Future<String> setProperty(String keyName , String keyValue) async {
   }
   static Future<String> increment(String keyName) async {
     List <String> arg = [];
-   
+
     final String result = await _channel.invokeMethod('increment', <String, dynamic>{
         'data': json(arg)
     });
@@ -244,7 +239,7 @@ static Future<String> setProperty(String keyName , String keyValue) async {
   }
   static Future<String> incrementBy(String keyName, String keyIncrement) async {
     List <String> arg = [];
-   
+
     final String result = await _channel.invokeMethod('incrementBy', <String, dynamic>{
         'data': json(arg)
     });
@@ -253,17 +248,17 @@ static Future<String> setProperty(String keyName , String keyValue) async {
   }
   static Future<String> multiply(String keyName, String multiplyValue) async {
     List <String> arg = [];
-   
+
     final String result = await _channel.invokeMethod('multiply', <String, dynamic>{
         'data': json(arg)
     });
     print(result);
     return result;
   }
-  
+
   static Future<String> saveMax(String keyName, String saveMax) async {
     List <String> arg = [];
-   
+
     final String result = await _channel.invokeMethod('saveMax', <String, dynamic>{
         'data': json(arg)
     });
@@ -272,7 +267,7 @@ static Future<String> setProperty(String keyName , String keyValue) async {
   }
 static Future<String> saveMin(String keyName, String saveMin) async {
     List <String> arg = [];
-   
+
     final String result = await _channel.invokeMethod('saveMin', <String, dynamic>{
         'data': json(arg)
     });
@@ -281,16 +276,16 @@ static Future<String> saveMin(String keyName, String saveMin) async {
   }
 static Future<String> setOnce(String keyName, String setOnce) async {
     List <String> arg = [];
-   
+
     final String result = await _channel.invokeMethod('setOnce', <String, dynamic>{
         'data': json(arg)
     });
     print(result);
     return result;
   }
-  static Future<String> sendRating(String sendRating) async {
+  static Future<String> sendRating(int sendRating) async {
     List <String> arg = [];
-   
+    arg.add(sendRating.toString());
     final String result = await _channel.invokeMethod('sendRating', <String, dynamic>{
         'data': json(arg)
     });
