@@ -82,14 +82,14 @@ class _MyAppState extends State<MyApp> {
         Countly.sendEvent(events);
   }
 
-  eventWithSum_Segment(){
+  eventWithSumSegment(){
     // example for event with segment and sum
         var events = {
             "eventName": "event_segment_sum",
             "eventCount": 1,
             "eventSum": "0.99"
         };
-        events.segments = {
+        events["segments"] = {
             "Country": "Turkey",
             "Age": "28"
         };
@@ -119,7 +119,7 @@ endEventWithSum(){
             var events = {
                 "eventName": "Timed Event With Segment"
             };
-            events.segments = {
+            events["segments"] = {
                 "Country": "Turkey",
                 "Age": "28"
             };
@@ -134,7 +134,7 @@ endEventWithSum(){
                 "eventCount": 1,
                 "eventSum": "0.99"
             };
-            events.segments = {
+            events["segments"] = {
                 "Country": "Turkey",
                 "Age": "28"
             };
@@ -155,16 +155,18 @@ endEventWithSum(){
         var deviceId = makeid();
         Countly.changeDeviceId(deviceId, false);
 
-        var options = {};
-        options.name = "Captian America";
-        options.username = "captianamerica";
-        options.email = "captianamerica@avengers.com";
-        options.organization = "Avengers";
-        options.phone = "+91 555 555 5555";
-        options.picture = "http://icons.iconarchive.com/icons/hopstarter/superhero-avatar/256/Avengers-Captain-America-icon.png";
-        options.picturePath = "";
-        options.gender = "M"; // "F"
-        options.byear = 1989;
+        Map<String, Object> options = {
+          "name": "Captian America",
+        "username": "captianamerica",
+        "email": "captianamerica@avengers.com",
+        "organization": "Avengers",
+        "phone": "+91 555 555 5555",
+        "picture": "http://icons.iconarchive.com/icons/hopstarter/superhero-avatar/256/Avengers-Captain-America-icon.png",
+        "picturePath": "",
+        "gender": "M", // "F"
+        "byear": "1989",
+        };
+        
         Countly.setUserData(options);
   }
   setIronManData(){
@@ -172,16 +174,18 @@ endEventWithSum(){
         var deviceId = makeid();
         Countly.changeDeviceId(deviceId, false);
 
-        var options = {};
-        options.name = "Iron Man";
-        options.username = "ironman";
-        options.email = "ironman@avengers.com";
-        options.organization = "Avengers";
-        options.phone = "+91 555 555 5555";
-        options.picture = "http://icons.iconarchive.com/icons/hopstarter/superhero-avatar/256/Avengers-Iron-Man-icon.png";
-        options.picturePath = "";
-        options.gender = "M"; // "F"
-        options.byear = 1989;
+        Map<String, Object> options = {
+          "name": "Iron Man",
+        "username": "ironman",
+        "email": "ironman@avengers.com",
+        "organization": "Avengers",
+        "phone": "+91 555 555 5555",
+        "picture": "http://icons.iconarchive.com/icons/hopstarter/superhero-avatar/256/Avengers-Iron-Man-icon.png",
+        "picturePath": "",
+        "gender": "M", // "F"
+        "byear": "1989",
+        };
+        
         Countly.setUserData(options);
         Countly.start();
   }
@@ -189,53 +193,57 @@ endEventWithSum(){
        var deviceId = makeid();
         Countly.changeDeviceId(deviceId, false);
 
-        var options = {};
-        options.name = "Spider-Man";
-        options.username = "spiderman";
-        options.email = "spiderman@avengers.com";
-        options.organization = "Avengers";
-        options.phone = "+91 555 555 5555";
-        options.picture = "http://icons.iconarchive.com/icons/mattahan/ultrabuuf/512/Comics-Spiderman-Morales-icon.png";
-        options.picturePath = "";
-        options.gender = "M"; // "F"
-        options.byear = 1989;
+       Map<String, Object> options = {
+        "name": "Spider-Man",
+        "username": "spiderman",
+        "email": "spiderman@avengers.com",
+        "organization": "Avengers",
+        "phone": "+91 555 555 5555",
+        "picture": "http://icons.iconarchive.com/icons/mattahan/ultrabuuf/512/Comics-Spiderman-Morales-icon.png",
+        "picturePath": "",
+        "gender": "M", // "F"
+        "byear": "1989"
+       };
+        
         Countly.setUserData(options);
         Countly.start();
   }
   setUserData(){
-      // example for setUserData
-        var options = {};
-        options.name = "Trinisoft Technologies";
-        options.username = "trinisofttechnologies";
-        options.email = "trinisofttechnologies@gmail.com";
-        options.organization = "Trinisoft Technologies Pvt. Ltd.";
-        options.phone = "+91 812 840 2946";
-        options.picture = "https://avatars0.githubusercontent.com/u/10754117?s=400&u=fe019f92d573ac76cbfe7969dde5e20d7206975a&v=4";
-        options.picturePath = "";
-        options.gender = "M"; // "F"
-        options.byear = 1989;
+
+      Map<String, Object> options = {
+        "name": "Trinisoft Technologies",
+        "username": "trinisofttechnologies",
+        "email": "trinisofttechnologies@gmail.com",
+        "organization": "Trinisoft Technologies Pvt. Ltd.",
+        "phone": "+91 812 840 2946",
+        "picture": "https://avatars0.githubusercontent.com/u/10754117?s=400&u=fe019f92d573ac76cbfe7969dde5e20d7206975a&v=4",
+        "picturePath": "",
+        "gender": "M", // "F"
+        "byear": "1989",
+      };
+     
         Countly.setUserData(options);
   }
   setProperty(){
-      Countly.userData_setProperty("setProperty", "My Property");
+      Countly.setProperty("setProperty", "My Property");
   }
   increment(){
-      Countly.userData_increment("increment");
+      Countly.increment("increment");
   }
   incrementBy(){
-      Countly.userData.incrementBy("incrementBy", 10);
+      Countly.incrementBy("incrementBy", 10);
   }
   multiply(){
-       Countly.userData.multiply("multiply", 20);
+       Countly.multiply("multiply", 20);
   }
    saveMax(){
-       Countly.userData.saveMax("saveMax", 100);
+       Countly.saveMax("saveMax", 100);
   }
   saveMin(){
-       Countly.userData.saveMin("saveMin", 50);
+       Countly.saveMin("saveMin", 50);
   }
   setOnce(){
-       Countly.userData.setOnce("setOnce", 200);
+       Countly.setOnce("setOnce", 200);
   }
   sendPushToken(){
       //  var push = PushNotification.init({
@@ -351,11 +359,11 @@ endEventWithSum(){
             MyButton(text: "Init", color: "green", onPressed: onInit),
             MyButton(text: "Init with ID", color: "green", onPressed: initWithID),
             MyButton(text: "Start", color: "green", onPressed: start),
-            MyButton(text: "Stop", color: "green", onPressed: stop),
+            MyButton(text: "Stop", color: "red", onPressed: stop),
             MyButton(text: "Basic Events", color: "default", onPressed: basicEvent),
             MyButton(text: "Event with Sum", color: "default", onPressed: eventWithSum),
             MyButton(text: "Event with Segment", color: "default", onPressed: eventWithSegment),
-            MyButton(text: "Even with Sum and Segment", color: "", onPressed: eventWithSum_Segment),
+            MyButton(text: "Even with Sum and Segment", color: "", onPressed: eventWithSumSegment),
             MyButton(text: "All Events", color: "black", onPressed: event),
             MyButton(text: "Timed event: Start / Stop", color: "default", onPressed: endEventBasic),
             MyButton(text: "Timed event Sum: Start / Stop", color: "default", onPressed: endEventWithSum),
