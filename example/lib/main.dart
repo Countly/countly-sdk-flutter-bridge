@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/services.dart';
 import 'package:countly/countly.dart';
@@ -125,7 +126,7 @@ endEventWithSum(){
     Countly.recordView("Dashboard");
   }
   String makeid(){
-    return "124556";
+    return new Random().toString();
   }
   setCaptianAmericaData(){
      // example for setCaptianAmericaData
@@ -332,7 +333,7 @@ endEventWithSum(){
             MyButton(text: "Basic Events", color: "default", onPressed: basicEvent),
             MyButton(text: "Event with Sum", color: "default", onPressed: eventWithSum),
             MyButton(text: "Event with Segment", color: "default", onPressed: eventWithSegment),
-            MyButton(text: "Even with Sum and Segment", color: "", onPressed: eventWithSum_Segment),
+            MyButton(text: "Even with Sum and Segment", color: "default", onPressed: eventWithSum_Segment),
             MyButton(text: "All Events", color: "black", onPressed: event),
             MyButton(text: "Timed event: Start / Stop", color: "default", onPressed: endEventBasic),
             MyButton(text: "Timed event Sum: Start / Stop", color: "default", onPressed: endEventWithSum),
@@ -368,13 +369,32 @@ endEventWithSum(){
   }
 }
 
+Map<String, Object> theColor = {
+  "default": {
+    "button": Color(0xffe0e0e0),
+    "text": Color(0xff000000)
+  },
+  "green": {
+    "button": Color(0xffe0e0e0),
+    "text": Color(0xff000000)
+  }
+};
+
 class MyButton extends StatelessWidget{
   String _text;
-  String _color;
+  Color _button;
+  Color _textC;
   Function _onPressed;
   MyButton({String color, String text, Function onPressed}){
     _text = text;
-    _color = color;
+    if(theColor[color] == null){
+      color = "default";
+    }
+
+    Map<String, Object> tColor = theColor[color];
+    _button = tColor["button"];
+    _textC = tColor["text"];
+
     _onPressed = onPressed;
   }
 
@@ -382,10 +402,10 @@ class MyButton extends StatelessWidget{
   Widget build(BuildContext context){
     return new OutlineButton(
       onPressed: _onPressed,
-      color: Colors.white,
+      color: _button,
       child: SizedBox(
         width: double.maxFinite,
-        child: Text(_text, style: new TextStyle(color: Colors.black),textAlign: TextAlign.center)
+        child: Text(_text, style: new TextStyle(color: _textC),textAlign: TextAlign.center)
         )
     );
   }
