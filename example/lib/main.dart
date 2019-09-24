@@ -293,13 +293,13 @@ endEventWithSum(){
   testAndroidPush(){
         Countly.sendPushToken({
             "token": "1234567890",
-            "messagingMode": Countly.messagingMode.DEVELOPMENT
+            "messagingMode": Countly.messagingMode["DEVELOPMENT"]
         });
   }
   testiOSPush(){
     Countly.sendPushToken({
         "token": "1234567890",
-        "messagingMode": Countly.messagingMode.DEVELOPMENT
+        "messagingMode": Countly.messagingMode["DEVELOPMENT"]
     });
   }
   changeDeviceId(){
