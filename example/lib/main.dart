@@ -79,19 +79,19 @@ class _MyAppState extends State<MyApp> {
         // }, 1000);
   }
   endEventBasic(){
-    // Countly.startEvent("Timed Event");
+    Countly.startEvent("Timed Event");
         // setTimeout(function() {
             // Countly.endEvent({ "eventName": "Timed Event" });
         // }, 1000);
   }
 endEventWithSum(){
-    //  Countly.startEvent("Timed Event With Sum");
+     Countly.startEvent("Timed Event With Sum");
         // setTimeout(function() {
             // Countly.endEvent({ "eventName": "Timed Event With Sum", "eventSum": "0.99" });
         // }, 1000);
   }
   endEventWithSegment(){
-    // Countly.startEvent("Timed Event With Segment");
+    Countly.startEvent("Timed Event With Segment");
     //     // setTimeout(function() {
 
     //         var events = {
@@ -105,7 +105,7 @@ endEventWithSum(){
     //     // }, 1000);
   }
   endEventWithSumSegment(){
-    // Countly.startEvent("Timed Event With Segment, Sum and Count");
+    Countly.startEvent("Timed Event With Segment, Sum and Count");
     //     setTimeout(function() {
     //         var events = {
     //             "eventName": "Timed Event With Segment, Sum and Count",
@@ -350,20 +350,20 @@ endEventWithSum(){
               MyButton(text: "Timed event Sum Segment: Start / Stop", color: "default", onPressed: endEventWithSumSegment),
               MyButton(text: "Record View: 'HomePage'", color: "default", onPressed: recordViewHome),
               MyButton(text: "Record View: 'Dashboard'", color: "default", onPressed: recordViewDashboard),
-              MyButton(text: "Send Captian America Data", color: "default", onPressed: setCaptianAmericaData),
-              MyButton(text: "Send Iron Man Data", color: "default", onPressed: setIronManData),
-              MyButton(text: "Send Spider-Man Data", color: "default", onPressed: setSpiderManData),
-              MyButton(text: "Send Users Data", color: "default", onPressed: setUserData),
-              MyButton(text: "UserData.setProperty", color: "default", onPressed: setProperty),
-              MyButton(text: "UserData.increment", color: "default", onPressed: increment),
-              MyButton(text: "UserData.incrementBy", color: "default", onPressed: incrementBy),
-              MyButton(text: "UserData.multiply", color: "default", onPressed: multiply),
-              MyButton(text: "UserData.saveMax", color: "default", onPressed: saveMax),
-              MyButton(text: "UserData.saveMin", color: "default", onPressed: saveMin),
-              MyButton(text: "UserData.setOnce", color: "default", onPressed: setOnce),
-              MyButton(text: "Push Message", color: "default", onPressed: sendPushToken),
-              MyButton(text: "Push Test Android", color: "default", onPressed: testAndroidPush),
-              MyButton(text: "Push Test iOS", color: "default", onPressed: testiOSPush),
+              MyButton(text: "Send Captian America Data", color: "teal", onPressed: setCaptianAmericaData),
+              MyButton(text: "Send Iron Man Data", color: "teal", onPressed: setIronManData),
+              MyButton(text: "Send Spider-Man Data", color: "teal", onPressed: setSpiderManData),
+              MyButton(text: "Send Users Data", color: "teal", onPressed: setUserData),
+              MyButton(text: "UserData.setProperty", color: "teal", onPressed: setProperty),
+              MyButton(text: "UserData.increment", color: "teal", onPressed: increment),
+              MyButton(text: "UserData.incrementBy", color: "teal", onPressed: incrementBy),
+              MyButton(text: "UserData.multiply", color: "teal", onPressed: multiply),
+              MyButton(text: "UserData.saveMax", color: "teal", onPressed: saveMax),
+              MyButton(text: "UserData.saveMin", color: "teal", onPressed: saveMin),
+              MyButton(text: "UserData.setOnce", color: "teal", onPressed: setOnce),
+              MyButton(text: "Push Message", color: "teal", onPressed: sendPushToken),
+              MyButton(text: "Push Test Android", color: "teal", onPressed: testAndroidPush),
+              MyButton(text: "Push Test iOS", color: "teal", onPressed: testiOSPush),
               MyButton(text: "Change Device ID", color: "default", onPressed: changeDeviceId),
               MyButton(text: "Enable Parameter Tapmering Protection", color: "default", onPressed: enableParameterTamperingProtection),
               MyButton(text: "City, State, and Location", color: "default", onPressed: setOptionalParametersForInitialization),

@@ -198,14 +198,14 @@ static Future<String> setOptionalParametersForInitialization(Map<String, Object>
     if(options["longitude"] == null){
       options["longitude"] = "";
     }
-    // if(options["ipAddress"] == null){
-    //   options["ipAddress"] = "";
-    // }
+    if(options["ipAddress"] == null){
+      options["ipAddress"] = "";
+    }
     args.add(options["city"]);
     args.add(options["country"]);
     args.add(options["latitude"]);
     args.add(options["longitude"]);
-    // args.add(options["ipAddress"] || "0.0.0.0");
+    args.add(options["ipAddress"]);
     final String result = await _channel.invokeMethod('setOptionalParametersForInitialization', <String, dynamic>{
         'data': json.encode(arg)
     });
@@ -360,6 +360,18 @@ static Future<String> setOnce(String keyName, int setOnce) async {
     // Countly.rating.callback = callback;
     // query('countly-rating-modal').classList.add('open');
     final String result = await _channel.invokeMethod('askForStarRating', <String, dynamic>{
+        'data': json.encode(arg)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+
+  static Future<String> startEvent(String eventName) async {
+    List <String> arg = [];
+    arg.add(eventName);
+    final String result = await _channel.invokeMethod('startEvent', <String, dynamic>{
         'data': json.encode(arg)
     });
     if(isDebug){
