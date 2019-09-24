@@ -19,7 +19,10 @@ class Countly {
     if(deviceId != null){
       arg.add(deviceId);
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> e1434d8da93156c83e1b006986f236da07d03f52
     final String result = await _channel.invokeMethod('init', <String, dynamic>{
         'data': json.encode(arg)
     });
