@@ -34,7 +34,7 @@ class _MyAppState extends State<MyApp> {
     // example for basic event
     var events = {
         "key": "basic_event",
-        "eventCount": 1
+        "count": 1
     };
     Countly.sendEvent(events);
   }
@@ -42,8 +42,8 @@ class _MyAppState extends State<MyApp> {
     // example for event with sum
      var events = {
             "key": "event_sum",
-            "eventCount": 1,
-            "eventSum": "0.99"
+            "count": 1,
+            "sum": "0.99"
         };
         Countly.sendEvent(events);
   }
@@ -51,9 +51,9 @@ class _MyAppState extends State<MyApp> {
      // example for event with segment
         var events = {
             "key": "event_segment",
-            "eventCount": 1
+            "count": 1
         };
-        events["segments"] = {
+        events["segment"] = {
             "Country": "Turkey",
             "Age": "28"
         };
@@ -64,10 +64,10 @@ class _MyAppState extends State<MyApp> {
     // example for event with segment and sum
         var events = {
             "key": "event_segment_sum",
-            "eventCount": 1,
-            "eventSum": "0.99"
+            "count": 1,
+            "sum": "0.99"
         };
-        events["segments"] = {
+        events["segment"] = {
             "Country": "Turkey",
             "Age": "28"
         };
@@ -87,7 +87,7 @@ class _MyAppState extends State<MyApp> {
 endEventWithSum(){
      Countly.startEvent("Timed Event With Sum");
         // setTimeout(function() {
-            // Countly.endEvent({ "key": "Timed Event With Sum", "eventSum": "0.99" });
+            // Countly.endEvent({ "key": "Timed Event With Sum", "sum": "0.99" });
         // }, 1000);
   }
   endEventWithSegment(){
@@ -97,7 +97,7 @@ endEventWithSum(){
     //         var events = {
     //             "key": "Timed Event With Segment"
     //         };
-    //         events["segments"] = {
+    //         events["segment"] = {
     //             "Country": "Turkey",
     //             "Age": "28"
     //         };
@@ -109,10 +109,10 @@ endEventWithSum(){
     //     setTimeout(function() {
     //         var events = {
     //             "key": "Timed Event With Segment, Sum and Count",
-    //             "eventCount": 1,
-    //             "eventSum": "0.99"
+    //             "count": 1,
+    //             "sum": "0.99"
     //         };
-    //         events["segments"] = {
+    //         events["segment"] = {
     //             "Country": "Turkey",
     //             "Age": "28"
     //         };
@@ -120,13 +120,16 @@ endEventWithSum(){
     //     }, 1000);
   }
   recordViewHome(){
-    Countly.recordView("Home");
+    Countly.recordView("HomePage");
   }
   recordViewDashboard(){
     Countly.recordView("Dashboard");
   }
   String makeid(){
-    return new Random().toString();
+    int code = new Random().nextInt(999999);
+    String random = code.toString();
+    print(random);
+    return random;
   }
   setCaptianAmericaData(){
      // example for setCaptianAmericaData
