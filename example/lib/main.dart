@@ -33,7 +33,7 @@ class _MyAppState extends State<MyApp> {
   basicEvent(){
     // example for basic event
     var events = {
-        "eventName": "basic_event",
+        "key": "basic_event",
         "eventCount": 1
     };
     Countly.sendEvent(events);
@@ -41,7 +41,7 @@ class _MyAppState extends State<MyApp> {
   eventWithSum(){
     // example for event with sum
      var events = {
-            "eventName": "event_sum",
+            "key": "event_sum",
             "eventCount": 1,
             "eventSum": "0.99"
         };
@@ -50,7 +50,7 @@ class _MyAppState extends State<MyApp> {
   eventWithSegment(){
      // example for event with segment
         var events = {
-            "eventName": "event_segment",
+            "key": "event_segment",
             "eventCount": 1
         };
         events["segments"] = {
@@ -63,7 +63,7 @@ class _MyAppState extends State<MyApp> {
   eventWithSumSegment(){
     // example for event with segment and sum
         var events = {
-            "eventName": "event_segment_sum",
+            "key": "event_segment_sum",
             "eventCount": 1,
             "eventSum": "0.99"
         };
@@ -81,13 +81,13 @@ class _MyAppState extends State<MyApp> {
   endEventBasic(){
     Countly.startEvent("Timed Event");
         // setTimeout(function() {
-            // Countly.endEvent({ "eventName": "Timed Event" });
+            // Countly.endEvent({ "key": "Timed Event" });
         // }, 1000);
   }
 endEventWithSum(){
      Countly.startEvent("Timed Event With Sum");
         // setTimeout(function() {
-            // Countly.endEvent({ "eventName": "Timed Event With Sum", "eventSum": "0.99" });
+            // Countly.endEvent({ "key": "Timed Event With Sum", "eventSum": "0.99" });
         // }, 1000);
   }
   endEventWithSegment(){
@@ -95,7 +95,7 @@ endEventWithSum(){
     //     // setTimeout(function() {
 
     //         var events = {
-    //             "eventName": "Timed Event With Segment"
+    //             "key": "Timed Event With Segment"
     //         };
     //         events["segments"] = {
     //             "Country": "Turkey",
@@ -108,7 +108,7 @@ endEventWithSum(){
     Countly.startEvent("Timed Event With Segment, Sum and Count");
     //     setTimeout(function() {
     //         var events = {
-    //             "eventName": "Timed Event With Segment, Sum and Count",
+    //             "key": "Timed Event With Segment, Sum and Count",
     //             "eventCount": 1,
     //             "eventSum": "0.99"
     //         };

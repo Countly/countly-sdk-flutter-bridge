@@ -50,8 +50,8 @@ class Countly {
 
     args.add(eventType);
 
-    if(options["eventName"])
-        args.add(options["eventName"].toString());
+    if(options["key"])
+        args.add(options["key"].toString());
     if(options["eventCount"]){
         args.add(options["eventCount"].toString());
     }else{
@@ -368,9 +368,9 @@ static Future<String> setOnce(String keyName, int setOnce) async {
     return result;
   }
 
-  static Future<String> startEvent(String eventName) async {
+  static Future<String> startEvent(String key) async {
     List <String> arg = [];
-    arg.add(eventName);
+    arg.add(key);
     final String result = await _channel.invokeMethod('startEvent', <String, dynamic>{
         'data': json.encode(arg)
     });
