@@ -380,7 +380,63 @@ static Future<String> setOnce(String keyName, int setOnce) async {
     }
     return result;
   }
+  
+  static Future<String> endEvent(Map<String, Object> options) async {
+  List <String> arg = [];
+  if(typeof options == "string")  
+        options = {"eventName": options};
+    var args = [];
+    var eventType = "event"; //event, eventWithSum, eventWithSegment, eventWithSumSegment
+    var segments = {};
 
+    if(options["eventSum"])
+        eventType = "eventWithSum";
+    if(options["segments"])
+        eventType = "eventWithSegment";
+    if(options["segments"] && options["eventSum"])
+        eventType = "eventWithSumSegment";
+
+    arg.add(eventType);
+
+    if(!options["eventName"])
+        options["eventName"] = "";
+    arg.add(options["eventName"].toString());
+
+    if(!options["eventCount"])
+        options["eventCount"] = "1";
+    arg.add(options["eventCount"].toString());
+
+    if(!options["eventSum"])
+        options["eventSum"] = "0";
+    arg.add(options["eventSum"].toString());
+
+    if(options["segments"])
+        segments = options["segments"];
+    for (var event in ["segments"]) {
+        arg.add(event);
+        arg.add(segments[event]);
+    }
+  final String result = await _channel.invokeMethod('endEvent', <String, dynamic>{
+      'data': json.encode(arg)
+  });
+  if(isDebug){
+    print(result);
+  }
+  return result;
+}
+
+
+  static Future<String> enableCrashReporting() async {
+    List <String> arg = [];
+  //  Countly.isCrashReportingEnabled = true;
+    final String result = await _channel.invokeMethod('enableCrashReporting', <String, dynamic>{
+        'data': json.encode(arg)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
   // static Future<String> sendEvent(String serverUrl, String appKey, [String deviceId]) async {
   //   List <String> args = [];
   //   args.add(serverUrl);
