@@ -81,6 +81,7 @@ class _MyAppState extends State<MyApp> {
   endEventBasic(){
     Countly.startEvent("Timed Event");
         // setTimeout(function() {
+<<<<<<< HEAD
         Timer timer;
         timer = new Timer(new Duration(seconds: 5), () {
           Countly.endEvent({ "eventName": "Timed Event" });
@@ -88,22 +89,30 @@ class _MyAppState extends State<MyApp> {
         });
 
 
+=======
+            // Countly.endEvent({ "key": "Timed Event" });
+>>>>>>> 894374ff76b6b76b92ce55082b704e99899afd74
         // }, 1000);
   }
 endEventWithSum(){
-     Countly.startEvent("Timed Event With Sum");
+    Countly.startEvent("Timed Event With Sum");
         // setTimeout(function() {
+<<<<<<< HEAD
         Timer timer;
         timer = new Timer(new Duration(seconds: 5), () {
           Countly.endEvent({ "eventName": "Timed Event With Sum", "eventSum": "0.99" });
           timer.cancel();
         });
             
+=======
+            // Countly.endEvent({ "key": "Timed Event With Sum", "sum": "0.99" });
+>>>>>>> 894374ff76b6b76b92ce55082b704e99899afd74
         // }, 1000);
   }
   endEventWithSegment(){
     Countly.startEvent("Timed Event With Segment");
     //     // setTimeout(function() {
+<<<<<<< HEAD
       Timer timer;
       timer = new Timer(new Duration(seconds: 5), () {
         var events = {
@@ -117,11 +126,23 @@ endEventWithSum(){
         timer.cancel();
       });
           
+=======
+
+    //         var events = {
+    //             "key": "Timed Event With Segment"
+    //         };
+    //         events["segment"] = {
+    //             "Country": "Turkey",
+    //             "Age": "28"
+    //         };
+    //         Countly.endEvent(events);
+>>>>>>> 894374ff76b6b76b92ce55082b704e99899afd74
     //     // }, 1000);
   }
   endEventWithSumSegment(){
     Countly.startEvent("Timed Event With Segment, Sum and Count");
     //     setTimeout(function() {
+<<<<<<< HEAD
       Timer timer;
       timer = new Timer(new Duration(seconds: 5), () {
         var events = {
@@ -137,6 +158,18 @@ endEventWithSum(){
         timer.cancel();
       });
           
+=======
+    //         var events = {
+    //             "key": "Timed Event With Segment, Sum and Count",
+    //             "count": 1,
+    //             "sum": "0.99"
+    //         };
+    //         events["segment"] = {
+    //             "Country": "Turkey",
+    //             "Age": "28"
+    //         };
+    //         Countly.endEvent(events);
+>>>>>>> 894374ff76b6b76b92ce55082b704e99899afd74
     //     }, 1000);
   }
   recordViewHome(){

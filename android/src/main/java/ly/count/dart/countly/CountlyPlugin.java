@@ -42,6 +42,8 @@ public class CountlyPlugin implements MethodCallHandler {
       if(argsString == null){
         argsString = "[]";
       }
+      Log.w("Nicolson", call.method);
+      Log.w("Nicolson", argsString);
       JSONArray args = null;
       try{
       args = new JSONArray(argsString);

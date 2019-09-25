@@ -10,7 +10,7 @@ class Countly {
 
 
   // static variable
-  static bool isDebug = false;
+  static bool isDebug = true;
   static Map<String, Object> messagingMode = {"DEVELOPMENT": 1, "PRODUCTION": 0, "ADHOC": 2};
 
 
@@ -18,15 +18,15 @@ class Countly {
     if (Platform.isAndroid) {
         messagingMode = {"DEVELOPMENT": 2, "PRODUCTION": 0};
     }
-    List <String> arg = [];
-    arg.add(serverUrl);
-    arg.add(appKey);
+    List <String> args = [];
+    args.add(serverUrl);
+    args.add(appKey);
     if(deviceId != null){
-      arg.add(deviceId);
+      args.add(deviceId);
     }
 
     final String result = await _channel.invokeMethod('init', <String, dynamic>{
-        'data': json.encode(arg)
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -36,43 +36,46 @@ class Countly {
 
 
   static Future<String> sendEvent( Map<String, Object> options) async {
-    List <String> arg = [];
-    var args = [];
+    if(isDebug){
+      print('sendEvent');
+    }
+    List <String> args = [];
     var eventType = "event"; //event, eventWithSum, eventWithSegment, eventWithSumSegment
-    var segments = {};
+    var segment = {};
 
-    if(options["eventSum"])
+    if(options["sum"] != null)
         eventType = "eventWithSum";
-    if(options["segments"])
+    if(options["segment"] != null)
         eventType = "eventWithSegment";
-    if(options["segments"] && options["eventSum"])
+    if((options["segment"] != null) && (options["sum"] != null))
         eventType = "eventWithSumSegment";
 
     args.add(eventType);
 
-    if(options["eventName"])
-        args.add(options["eventName"].toString());
-    if(options["eventCount"]){
-        args.add(options["eventCount"].toString());
+    if(options["key"] != null)
+        args.add(options["key"].toString());
+    if(options["count"] != null){
+        args.add(options["count"].toString());
     }else{
         args.add("1");
     }
-    if(options["eventSum"]){
-        args.add(options["eventSum"].toString());
+    if(options["sum"] != null){
+        args.add(options["sum"].toString());
     }
 
-    if(options["segments"]){
-        segments = options["segments"];
-    }
-    for (var event in ["segments"]) {
-        args.add(event);
-        args.add(segments[event]);
+    if(options["segment"] != null){
+        segment = options["segment"];
+        segment.forEach((k, v){
+          args.add(k.toString());
+          args.add(v.toString());
+        });
     }
 
     final String result = await _channel.invokeMethod('event', <String, dynamic>{
-        'data': json.encode(arg)
-      });
+        'data': json.encode(args)
+    });
     if(isDebug){
+      print(json.encode(args));
       print(result);
     }
     return result;
@@ -81,10 +84,10 @@ class Countly {
 
   ////// 001
   static Future<String> recordView(String view) async {
-    List <String> arg = [];
-    arg.add(view);
+    List <String> args = [];
+    args.add(view);
     final String result = await _channel.invokeMethod('recordView', <String, dynamic>{
-        'data': json.encode(arg)
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -93,8 +96,7 @@ class Countly {
   }
 ///
 static Future<String> setUserData(Map<String, Object> options) async {
-    List <String> arg = [];
-     var args = [];
+    List <String> args = [];
     if(options["name"] == null){
       options["name"] = "";
     }
@@ -128,8 +130,8 @@ static Future<String> setUserData(Map<String, Object> options) async {
     args.add(options["byear"]);
 
 
-    final String result = await _channel.invokeMethod('setUserData', <String, dynamic>{
-        'data': json.encode(arg)
+    final String result = await _channel.invokeMethod('setuserdata', <String, dynamic>{
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -137,12 +139,12 @@ static Future<String> setUserData(Map<String, Object> options) async {
     return result;
   }
 static Future<String> sendPushToken(Map<String, Object> options) async {
-    List <String> arg = [];
-    // arg.add(options["token"] || "");
-    // arg.add(options["messagingMode"] || Countly.messagingMode["PRODUCTION"]);
+    List <String> args = [];
+    // args.add(options["token"] || "");
+    // args.add(options["messagingMode"] || Countly.messagingMode["PRODUCTION"]);
 
     final String result = await _channel.invokeMethod('sendPushToken', <String, dynamic>{
-        'data': json.encode(arg)
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -152,9 +154,9 @@ static Future<String> sendPushToken(Map<String, Object> options) async {
 
 
 static Future<String> start() async {
-    List <String> arg = [];
+    List <String> args = [];
     final String result = await _channel.invokeMethod('start', <String, dynamic>{
-        'data': json.encode(arg)
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -163,9 +165,9 @@ static Future<String> start() async {
   }
 
   static Future<String> stop() async {
-    List <String> arg = [];
+    List <String> args = [];
     final String result = await _channel.invokeMethod('stop', <String, dynamic>{
-        'data': json.encode(arg)
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -174,8 +176,7 @@ static Future<String> start() async {
   }
 
 static Future<String> setOptionalParametersForInitialization(Map<String, Object> options) async {
-    List <String> arg = [];
-     var args = [];
+    List <String> args = [];
     String latitude = options["latitude"];
     String ipAddress = options["ipAddress"];
     options["latitude"] = options["latitude"].toString();
@@ -207,7 +208,7 @@ static Future<String> setOptionalParametersForInitialization(Map<String, Object>
     args.add(options["longitude"]);
     args.add(options["ipAddress"]);
     final String result = await _channel.invokeMethod('setOptionalParametersForInitialization', <String, dynamic>{
-        'data': json.encode(arg)
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -216,7 +217,7 @@ static Future<String> setOptionalParametersForInitialization(Map<String, Object>
   }
 
 static Future<String> changeDeviceId(String newDeviceID ,bool onServer) async {
-    List <String> arg = [];
+    List <String> args = [];
     String onServerString;
     if(onServer == false){
         onServerString = "0";
@@ -224,10 +225,10 @@ static Future<String> changeDeviceId(String newDeviceID ,bool onServer) async {
         onServerString = "1";
     }
     newDeviceID = newDeviceID.toString();
-    arg.add(newDeviceID);
-    arg.add(onServerString);
+    args.add(newDeviceID);
+    args.add(onServerString);
     final String result = await _channel.invokeMethod('changeDeviceId', <String, dynamic>{
-        'data': json.encode(arg)
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -236,10 +237,10 @@ static Future<String> changeDeviceId(String newDeviceID ,bool onServer) async {
   }
 
 static Future<String> addCrashLog(String newDeviceID) async {
-    List <String> arg = [];
-    arg.add(newDeviceID);
+    List <String> args = [];
+    args.add(newDeviceID);
     final String result = await _channel.invokeMethod('addCrashLog', <String, dynamic>{
-        'data': json.encode(arg)
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -248,10 +249,10 @@ static Future<String> addCrashLog(String newDeviceID) async {
   }
 
 static Future<String> enableParameterTamperingProtection(String salt) async {
-    List <String> arg = [];
-    arg.add(salt);
+    List <String> args = [];
+    args.add(salt);
     final String result = await _channel.invokeMethod('enableParameterTamperingProtection', <String, dynamic>{
-        'data': json.encode(arg)
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -259,11 +260,11 @@ static Future<String> enableParameterTamperingProtection(String salt) async {
     return result;
   }
 static Future<String> setProperty(String keyName , String keyValue) async {
-    List <String> arg = [];
-    arg.add(keyName);
-    arg.add(keyValue);
-    final String result = await _channel.invokeMethod('setProperty', <String, dynamic>{
-        'data': json.encode(arg)
+    List <String> args = [];
+    args.add(keyName);
+    args.add(keyValue);
+    final String result = await _channel.invokeMethod('userData_setProperty', <String, dynamic>{
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -271,10 +272,10 @@ static Future<String> setProperty(String keyName , String keyValue) async {
     return result;
   }
   static Future<String> increment(String keyName) async {
-    List <String> arg = [];
-    arg.add(keyName);
-    final String result = await _channel.invokeMethod('increment', <String, dynamic>{
-        'data': json.encode(arg)
+    List <String> args = [];
+    args.add(keyName);
+    final String result = await _channel.invokeMethod('userData_increment', <String, dynamic>{
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -282,11 +283,11 @@ static Future<String> setProperty(String keyName , String keyValue) async {
     return result;
   }
   static Future<String> incrementBy(String keyName, int keyIncrement) async {
-    List <String> arg = [];
-    arg.add(keyName);
-    arg.add(keyIncrement.toString());
-    final String result = await _channel.invokeMethod('incrementBy', <String, dynamic>{
-        'data': json.encode(arg)
+    List <String> args = [];
+    args.add(keyName);
+    args.add(keyIncrement.toString());
+    final String result = await _channel.invokeMethod('userData_incrementBy', <String, dynamic>{
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -294,11 +295,11 @@ static Future<String> setProperty(String keyName , String keyValue) async {
     return result;
   }
   static Future<String> multiply(String keyName, int multiplyValue) async {
-    List <String> arg = [];
-    arg.add(keyName);
-    arg.add(multiplyValue.toString());
-    final String result = await _channel.invokeMethod('multiply', <String, dynamic>{
-        'data': json.encode(arg)
+    List <String> args = [];
+    args.add(keyName);
+    args.add(multiplyValue.toString());
+    final String result = await _channel.invokeMethod('userData_multiply', <String, dynamic>{
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -307,11 +308,11 @@ static Future<String> setProperty(String keyName , String keyValue) async {
   }
 
   static Future<String> saveMax(String keyName, int saveMax) async {
-    List <String> arg = [];
-    arg.add(keyName);
-    arg.add(saveMax.toString());
-    final String result = await _channel.invokeMethod('saveMax', <String, dynamic>{
-        'data': json.encode(arg)
+    List <String> args = [];
+    args.add(keyName);
+    args.add(saveMax.toString());
+    final String result = await _channel.invokeMethod('userData_saveMax', <String, dynamic>{
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -319,11 +320,11 @@ static Future<String> setProperty(String keyName , String keyValue) async {
     return result;
   }
 static Future<String> saveMin(String keyName, int saveMin) async {
-    List <String> arg = [];
-    arg.add(keyName);
-    arg.add(saveMin.toString());
-    final String result = await _channel.invokeMethod('saveMin', <String, dynamic>{
-        'data': json.encode(arg)
+    List <String> args = [];
+    args.add(keyName);
+    args.add(saveMin.toString());
+    final String result = await _channel.invokeMethod('userData_saveMin', <String, dynamic>{
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -331,11 +332,11 @@ static Future<String> saveMin(String keyName, int saveMin) async {
     return result;
   }
 static Future<String> setOnce(String keyName, int setOnce) async {
-    List <String> arg = [];
-    arg.add(keyName);
-    arg.add(setOnce.toString());
-    final String result = await _channel.invokeMethod('setOnce', <String, dynamic>{
-        'data': json.encode(arg)
+    List <String> args = [];
+    args.add(keyName);
+    args.add(setOnce.toString());
+    final String result = await _channel.invokeMethod('userData_setOnce', <String, dynamic>{
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -343,10 +344,10 @@ static Future<String> setOnce(String keyName, int setOnce) async {
     return result;
   }
   static Future<String> sendRating(int sendRating) async {
-    List <String> arg = [];
-    arg.add(sendRating.toString());
+    List <String> args = [];
+    args.add(sendRating.toString());
     final String result = await _channel.invokeMethod('sendRating', <String, dynamic>{
-        'data': json.encode(arg)
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -354,13 +355,13 @@ static Future<String> setOnce(String keyName, int setOnce) async {
     return result;
   }
   static Future<String> askForStarRating(callback) async {
-    List <String> arg = [];
+    List <String> args = [];
     // Countly.rating.create();
     // Countly.rating.set(0);
     // Countly.rating.callback = callback;
     // query('countly-rating-modal').classList.add('open');
     final String result = await _channel.invokeMethod('askForStarRating', <String, dynamic>{
-        'data': json.encode(arg)
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -368,11 +369,11 @@ static Future<String> setOnce(String keyName, int setOnce) async {
     return result;
   }
 
-  static Future<String> startEvent(String eventName) async {
-    List <String> arg = [];
-    arg.add(eventName);
+  static Future<String> startEvent(String key) async {
+    List <String> args = [];
+    args.add(key);
     final String result = await _channel.invokeMethod('startEvent', <String, dynamic>{
-        'data': json.encode(arg)
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -381,15 +382,15 @@ static Future<String> setOnce(String keyName, int setOnce) async {
   }
 
   // static Future<String> sendEvent(String serverUrl, String appKey, [String deviceId]) async {
-  //   List <String> arg = [];
-  //   arg.add(serverUrl);
-  //   arg.add(appKey);
+  //   List <String> args = [];
+  //   args.add(serverUrl);
+  //   args.add(appKey);
   //   if(deviceId != null){
-  //     arg.add(deviceId);
+  //     args.add(deviceId);
   //   }
 
   //   final String result = await _channel.invokeMethod('event', <String, dynamic>{
-  //       'data': json.encode(arg)
+  //       'data': json.encode(args)
   //   });
   //   if(isDebug){
   //     print(result);
