@@ -400,11 +400,17 @@ class MyButton extends StatelessWidget{
   Function _onPressed;
   MyButton({String color, String text, Function onPressed}){
     _text = text;
-    if(theColor[color] == null){
-      color = "default";
+
+    Map<String, Object> tColor;
+    theColor.forEach((k, v){
+      if(k == color){
+        tColor = v;
+      }
+    });
+    if(tColor == null){
+      tColor = theColor["default"];
     }
 
-    Map<String, Object> tColor = theColor[color];
     _button = tColor["button"];
     _textC = tColor["text"];
 
