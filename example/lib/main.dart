@@ -81,42 +81,62 @@ class _MyAppState extends State<MyApp> {
   endEventBasic(){
     Countly.startEvent("Timed Event");
         // setTimeout(function() {
-            // Countly.endEvent({ "eventName": "Timed Event" });
+        Timer timer;
+        timer = new Timer(new Duration(seconds: 5), () {
+          Countly.endEvent({ "eventName": "Timed Event" });
+          timer.cancel();
+        });
+
+
         // }, 1000);
   }
 endEventWithSum(){
-     Countly.startEvent("Timed Event With Sum");
+    Countly.startEvent("Timed Event With Sum");
         // setTimeout(function() {
-            // Countly.endEvent({ "eventName": "Timed Event With Sum", "eventSum": "0.99" });
+        Timer timer;
+        timer = new Timer(new Duration(seconds: 5), () {
+          Countly.endEvent({ "eventName": "Timed Event With Sum", "eventSum": "0.99" });
+          timer.cancel();
+        });
+            
         // }, 1000);
   }
   endEventWithSegment(){
     Countly.startEvent("Timed Event With Segment");
     //     // setTimeout(function() {
-
-    //         var events = {
-    //             "eventName": "Timed Event With Segment"
-    //         };
-    //         events["segments"] = {
-    //             "Country": "Turkey",
-    //             "Age": "28"
-    //         };
-    //         Countly.endEvent(events);
+      Timer timer;
+      timer = new Timer(new Duration(seconds: 5), () {
+        var events = {
+            "eventName": "Timed Event With Segment"
+        };
+        events["segments"] = {
+            "Country": "Turkey",
+            "Age": "28"
+        };
+        Countly.endEvent(events);
+        timer.cancel();
+      });
+          
     //     // }, 1000);
   }
   endEventWithSumSegment(){
     Countly.startEvent("Timed Event With Segment, Sum and Count");
     //     setTimeout(function() {
-    //         var events = {
-    //             "eventName": "Timed Event With Segment, Sum and Count",
-    //             "eventCount": 1,
-    //             "eventSum": "0.99"
-    //         };
-    //         events["segments"] = {
-    //             "Country": "Turkey",
-    //             "Age": "28"
-    //         };
-    //         Countly.endEvent(events);
+      Timer timer;
+      timer = new Timer(new Duration(seconds: 5), () {
+        var events = {
+            "eventName": "Timed Event With Segment, Sum and Count",
+            "eventCount": 1,
+            "eventSum": "0.99"
+        };
+        events["segments"] = {
+            "Country": "Turkey",
+            "Age": "28"
+        };
+        Countly.endEvent(events);
+        timer.cancel();
+      });
+          
     //     }, 1000);
   }
   recordViewHome(){
@@ -304,7 +324,7 @@ endEventWithSum(){
       Countly.setOptionalParametersForInitialization(options);
   }
   addCrashLog(){
-      // Countly.enableCrashReporting();
+      Countly.enableCrashReporting();
       //   Countly.addCrashLog("User Performed Step A");
       //   // setTimeout(function() {
       //       Countly.addCrashLog("User Performed Step B");
