@@ -380,42 +380,41 @@ static Future<String> setOnce(String keyName, int setOnce) async {
     }
     return result;
   }
-  
-  static Future<String> endEvent(Map<String, Object> options) async {
-  List <String> arg = [];
-  if(typeof options == "string")  
-        options = {"eventName": options};
-    var args = [];
-    var eventType = "event"; //event, eventWithSum, eventWithSegment, eventWithSumSegment
-    var segments = {};
 
-    if(options["eventSum"])
+  static Future<String> endEvent(Map<String, Object> options) async {
+  List <String> args = [];
+        // options = {"eventName": options};
+    var eventType = "event"; //event, eventWithSum, eventWithSegment, eventWithSumSegment
+    var segment = {};
+
+    if(options["sum"] != null)
         eventType = "eventWithSum";
-    if(options["segments"])
+    if(options["segment"] != null)
         eventType = "eventWithSegment";
-    if(options["segments"] && options["eventSum"])
+    if((options["segment"] != null) && (options["sum"] != null))
         eventType = "eventWithSumSegment";
 
-    arg.add(eventType);
+    args.add(eventType);
 
-    if(!options["eventName"])
-        options["eventName"] = "";
-    arg.add(options["eventName"].toString());
-
-    if(!options["eventCount"])
-        options["eventCount"] = "1";
-    arg.add(options["eventCount"].toString());
-
-    if(!options["eventSum"])
-        options["eventSum"] = "0";
-    arg.add(options["eventSum"].toString());
-
-    if(options["segments"])
-        segments = options["segments"];
-    for (var event in ["segments"]) {
-        arg.add(event);
-        arg.add(segments[event]);
+    if(options["key"] != null)
+        args.add(options["key"].toString());
+    if(options["count"] != null){
+        args.add(options["count"].toString());
+    }else{
+        args.add("1");
     }
+    if(options["sum"] != null){
+        args.add(options["sum"].toString());
+    }
+
+    if(options["segment"] != null){
+        segment = options["segment"];
+        segment.forEach((k, v){
+          args.add(k.toString());
+          args.add(v.toString());
+        });
+    }
+    
   final String result = await _channel.invokeMethod('endEvent', <String, dynamic>{
       'data': json.encode(arg)
   });
