@@ -13,13 +13,17 @@ CountlyConfig* config = nil;
   [registrar addMethodCallDelegate:instance channel:channel];
 }
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
+    NSString* commandString = call.arguments[@"data"];
+    NSData* data = [commandString dataUsingEncoding:NSUTF8StringEncoding];
+    NSError *e;
+    if(data == nil){
+        data = @"[]";
+    }
+    NSArray *command = [NSJSONSerialization JSONObjectWithData:data options:nil error:&e];
+
     if([@"init" isEqualToString:call.method]){
 
-        NSString* commandString = call.arguments[@"data"];
-        NSData* data = [commandString dataUsingEncoding:NSUTF8StringEncoding];
-        NSError *e;
-        NSArray *command = [NSJSONSerialization JSONObjectWithData:data options:nil error:&e];
-
+        
         NSString* serverurl = [command  objectAtIndex:0];
         NSString* appkey = [command objectAtIndex:1];
         NSString* deviceID = @"";
@@ -47,7 +51,10 @@ CountlyConfig* config = nil;
             deviceID = [command objectAtIndex:2];
             [Countly.sharedInstance setNewDeviceID:deviceID onServer:YES];   //replace and merge on server
         }
-  }else if ([@"getPlatformVersion" isEqualToString:call.method]) {
+    }else if ([@"start" isEqualToString:call.method]) {
+        [Countly.sharedInstance beginSession];
+        result(@"start!");
+    }else if ([@"getPlatformVersion" isEqualToString:call.method]) {
                 result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
   }
   else {

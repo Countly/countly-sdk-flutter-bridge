@@ -479,7 +479,7 @@ static Future<String> setOnce(String keyName, int setOnce) async {
     }
     
   final String result = await _channel.invokeMethod('endEvent', <String, dynamic>{
-      'data': json.encode(arg)
+      'data': json.encode(args)
   });
   if(isDebug){
     print(result);
@@ -489,10 +489,10 @@ static Future<String> setOnce(String keyName, int setOnce) async {
 
 
   static Future<String> enableCrashReporting() async {
-    List <String> arg = [];
+    List <String> args = [];
   //  Countly.isCrashReportingEnabled = true;
     final String result = await _channel.invokeMethod('enableCrashReporting', <String, dynamic>{
-        'data': json.encode(arg)
+        'data': json.encode(args)
     });
     if(isDebug){
       print(result);

@@ -32,46 +32,46 @@ class _MyAppState extends State<MyApp> {
   }
   basicEvent(){
     // example for basic event
-    var events = {
+    var event = {
         "key": "basic_event",
         "count": 1
     };
-    Countly.sendEvent(events);
+    Countly.sendEvent(event);
   }
   eventWithSum(){
     // example for event with sum
-     var events = {
+     var event = {
             "key": "event_sum",
             "count": 1,
             "sum": "0.99"
         };
-        Countly.sendEvent(events);
+        Countly.sendEvent(event);
   }
   eventWithSegment(){
      // example for event with segment
-        var events = {
+        var event = {
             "key": "event_segment",
             "count": 1
         };
-        events["segment"] = {
+        event["segment"] = {
             "Country": "Turkey",
             "Age": "28"
         };
-        Countly.sendEvent(events);
+        Countly.sendEvent(event);
   }
 
   eventWithSumSegment(){
     // example for event with segment and sum
-        var events = {
+        var event = {
             "key": "event_segment_sum",
             "count": 1,
             "sum": "0.99"
         };
-        events["segment"] = {
+        event["segment"] = {
             "Country": "Turkey",
             "Age": "28"
         };
-        Countly.sendEvent(events);
+        Countly.sendEvent(event);
   }
   event(){
     // setInterval(function() {
@@ -83,7 +83,7 @@ class _MyAppState extends State<MyApp> {
         // setTimeout(function() {
         Timer timer;
         timer = new Timer(new Duration(seconds: 5), () {
-          Countly.endEvent({ "eventName": "Timed Event" });
+          Countly.endEvent({ "key": "Timed Event" });
           timer.cancel();
         });
 
@@ -95,7 +95,7 @@ endEventWithSum(){
         // setTimeout(function() {
         Timer timer;
         timer = new Timer(new Duration(seconds: 5), () {
-          Countly.endEvent({ "eventName": "Timed Event With Sum", "eventSum": "0.99" });
+          Countly.endEvent({ "key": "Timed Event With Sum", "sum": "0.99" });
           timer.cancel();
         });
             
@@ -106,14 +106,15 @@ endEventWithSum(){
     //     // setTimeout(function() {
       Timer timer;
       timer = new Timer(new Duration(seconds: 5), () {
-        var events = {
-            "eventName": "Timed Event With Segment"
+        var event = {
+            "key": "Timed Event With Segment"
         };
-        events["segments"] = {
-            "Country": "Turkey",
-            "Age": "28"
-        };
-        Countly.endEvent(events);
+        
+        // event["segment"] = {
+        //     "Country": "Turkey",
+        //     "Age": "28"
+        // };
+        Countly.endEvent(event);
         timer.cancel();
       });
           
@@ -124,16 +125,16 @@ endEventWithSum(){
     //     setTimeout(function() {
       Timer timer;
       timer = new Timer(new Duration(seconds: 5), () {
-        var events = {
-            "eventName": "Timed Event With Segment, Sum and Count",
-            "eventCount": 1,
-            "eventSum": "0.99"
+        var event = {
+            "key": "Timed Event With Segment, Sum and Count",
+            "count": 1,
+            "sum": "0.99"
         };
-        events["segments"] = {
+        event["segment"] = {
             "Country": "Turkey",
             "Age": "28"
         };
-        Countly.endEvent(events);
+        Countly.endEvent(event);
         timer.cancel();
       });
           
@@ -387,9 +388,9 @@ endEventWithSum(){
     Countly.sendRating(5);
   }
   askForStarRating(){
-    Countly.askForStarRating(function(ratingResult){
+    // Countly.askForStarRating(function(ratingResult){
       // console.log(ratingResult);
-    });
+    // });
   }
   askForFeedback(){
     // Countly.askForFeedback("5d80915a31ec7124c86df698", function(url){
@@ -414,11 +415,11 @@ endEventWithSum(){
               MyButton(text: "Init with ID", color: "green", onPressed: initWithID),
               MyButton(text: "Start", color: "green", onPressed: start),
               MyButton(text: "Stop", color: "red", onPressed: stop),
-              MyButton(text: "Basic Events", color: "default", onPressed: basicEvent),
+              MyButton(text: "Basic event", color: "default", onPressed: basicEvent),
               MyButton(text: "Event with Sum", color: "default", onPressed: eventWithSum),
               MyButton(text: "Event with Segment", color: "default", onPressed: eventWithSegment),
               MyButton(text: "Even with Sum and Segment", color: "", onPressed: eventWithSumSegment),
-              MyButton(text: "All Events", color: "black", onPressed: event),
+              MyButton(text: "All event", color: "black", onPressed: event),
               MyButton(text: "Timed event: Start / Stop", color: "default", onPressed: endEventBasic),
               MyButton(text: "Timed event Sum: Start / Stop", color: "default", onPressed: endEventWithSum),
               MyButton(text: "Timed event Segment: Start / Stop", color: "default", onPressed: endEventWithSegment),
