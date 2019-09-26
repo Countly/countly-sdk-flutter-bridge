@@ -299,12 +299,57 @@ endEventWithSum(){
         // Tesing purpose only
 
   }
-  testAndroidPush(){
-        Countly.sendPushToken({
-            "token": "1234567890",
-            "messagingMode": Countly.messagingMode["DEVELOPMENT"]
-        });
+  setRemoteConfigAutomaticDownload(){
+    Countly.setRemoteConfigAutomaticDownload((r){
+        print(r);
+    });
   }
+  remoteConfigUpdate(){
+    Countly.remoteConfigUpdate((r){
+       print(r);
+    },(r){
+      print(r);
+    });
+  }
+  updateRemoteConfigForKeysOnly(){
+    Countly.updateRemoteConfigForKeysOnly(["name"],(r){
+        print(r);
+    }, (r){
+        print(r);
+    });
+  }
+  updateRemoteConfigExceptKeys(){
+    Countly.updateRemoteConfigExceptKeys(["url"],(r){
+        print(r);
+    },(r){
+        print(r);
+    });
+  }
+
+  remoteConfigClearValues(){
+    Countly.remoteConfigClearValues((r){
+        print(r);
+    }, (r){
+        print(r);
+    });
+  }
+
+  getRemoteConfigValueForKey(){
+    Countly.getRemoteConfigValueForKey("name", (r){
+        print(r);
+    },(r){
+        print(r);
+    });
+  }
+  
+  testAndroidPush(){
+    Countly.sendPushToken({
+        "token": "1234567890",
+        "messagingMode": Countly.messagingMode["DEVELOPMENT"]
+    });
+  }
+
+  
   testiOSPush(){
     Countly.sendPushToken({
         "token": "1234567890",
@@ -342,8 +387,15 @@ endEventWithSum(){
     Countly.sendRating(5);
   }
   askForStarRating(){
-    // Countly.askForStarRating(function(ratingResult){
-    //         console.log(ratingResult);
+    Countly.askForStarRating(function(ratingResult){
+      // console.log(ratingResult);
+    });
+  }
+  askForFeedback(){
+    // Countly.askForFeedback("5d80915a31ec7124c86df698", function(url){
+    //         //
+    //         url = "https://try.count.ly/feedback?widget_id=5d80915a31ec7124c86df698&device_id=a02cee5e35b6b8e8&app_key=0e8a00e8c01395a0af8be0e55da05a404bb23c3e";
+    //         // open modal + close button with iframe.
     //     });
   }
 
@@ -371,8 +423,10 @@ endEventWithSum(){
               MyButton(text: "Timed event Sum: Start / Stop", color: "default", onPressed: endEventWithSum),
               MyButton(text: "Timed event Segment: Start / Stop", color: "default", onPressed: endEventWithSegment),
               MyButton(text: "Timed event Sum Segment: Start / Stop", color: "default", onPressed: endEventWithSumSegment),
+
               MyButton(text: "Record View: 'HomePage'", color: "default", onPressed: recordViewHome),
               MyButton(text: "Record View: 'Dashboard'", color: "default", onPressed: recordViewDashboard),
+
               MyButton(text: "Send Captian America Data", color: "teal", onPressed: setCaptianAmericaData),
               MyButton(text: "Send Iron Man Data", color: "teal", onPressed: setIronManData),
               MyButton(text: "Send Spider-Man Data", color: "teal", onPressed: setSpiderManData),
@@ -384,6 +438,14 @@ endEventWithSum(){
               MyButton(text: "UserData.saveMax", color: "teal", onPressed: saveMax),
               MyButton(text: "UserData.saveMin", color: "teal", onPressed: saveMin),
               MyButton(text: "UserData.setOnce", color: "teal", onPressed: setOnce),
+              
+              MyButton(text: "Countly.setRemoteConfigAutomaticDownload", color: "black", onPressed: setRemoteConfigAutomaticDownload),
+              MyButton(text: "Countly.remoteConfigUpdate", color: "grey", onPressed: remoteConfigUpdate),
+              MyButton(text: "Countly.updateRemoteConfigForKeysOnly", color: "brown", onPressed: updateRemoteConfigForKeysOnly),
+              MyButton(text: "Countly.updateRemoteConfigExceptKeys", color: "pink", onPressed: updateRemoteConfigExceptKeys),
+              MyButton(text: "Countly.remoteConfigClearValues", color: "purple", onPressed: remoteConfigClearValues),
+              MyButton(text: "Countly.getRemoteConfigValueForKey", color: "violet", onPressed: getRemoteConfigValueForKey),
+
               MyButton(text: "Push Message", color: "teal", onPressed: sendPushToken),
               MyButton(text: "Push Test Android", color: "teal", onPressed: testAndroidPush),
               MyButton(text: "Push Test iOS", color: "teal", onPressed: testiOSPush),
@@ -393,6 +455,7 @@ endEventWithSum(){
               MyButton(text: "Send Crash Report", color: "default", onPressed: addCrashLog),
               MyButton(text: "Send 5 star rating!!", color: "default", onPressed: sendRating),
               MyButton(text: "Open rating modal", color: "default", onPressed: askForStarRating),
+              MyButton(text: "Open feedback modal", color: "default", onPressed: askForFeedback),
 
             ],),
           )
