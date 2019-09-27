@@ -533,6 +533,34 @@ Map<String, Object> theColor = {
   "violet": {
     "button": Color(0xff6435c9),
     "text": Color(0xff000000)
+  },
+  "teal": {
+    "button": Color(0xff00b5ad),
+    "text": Color(0xff000000)
+  },
+  "blue": {
+    "button": Color(0xff00b5ad),
+    "text": Color(0xff000000)
+  },
+  "primary": {
+    "button": Color(0xff54c8ff),
+    "text": Color(0xff000000)
+  },
+  "grey": {
+    "button": Color(0xff767676),
+    "text": Color(0xff000000)
+  },
+  "brown": {
+    "button": Color(0xffa5673f),
+    "text": Color(0xff000000)
+  },
+  "purple": {
+    "button": Color(0xffa333c8),
+    "text": Color(0xff000000)
+  },
+  "violet": {
+    "button": Color(0xff6435c9),
+    "text": Color(0xff000000)
   }
   
 };
