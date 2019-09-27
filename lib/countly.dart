@@ -343,6 +343,126 @@ static Future<String> setOnce(String keyName, int setOnce) async {
     }
     return result;
   }
+
+//setRequiresConsent
+static Future<String> setRequiresConsent(bool flag) async {
+  List <String> args = [];
+  args.add(flag.toString());
+  final String result = await _channel.invokeMethod('setRequiresConsent', <String, dynamic>{
+      'data': json.encode(args)
+  });
+  if(isDebug){
+    print(result);
+  }
+  return result;
+}
+static Future<String> giveConsent(List <String> consent) async {
+  List <String> args = consent;
+  final String result = await _channel.invokeMethod('giveConsent', <String, dynamic>{
+      'data': json.encode(args)
+  });
+  if(isDebug){
+    print(result);
+  }
+  return result;
+}
+static Future<String> removeConsent(List <String> consent) async {
+  List <String> args = consent;
+  
+  final String result = await _channel.invokeMethod('removeConsent', <String, dynamic>{
+      'data': json.encode(args)
+  });
+  if(isDebug){
+    print(result);
+  }
+  return result;
+}
+static Future<String> giveAllConsent() async {
+  List <String> args = [];
+  
+  final String result = await _channel.invokeMethod('giveAllConsent', <String, dynamic>{
+      'data': json.encode(args)
+  });
+  if(isDebug){
+    print(result);
+  }
+  return result;
+}
+static Future<String> removeAllConsent() async {
+  List <String> args = [];
+  
+  final String result = await _channel.invokeMethod('removeAllConsent', <String, dynamic>{
+      'data': json.encode(args)
+  });
+  if(isDebug){
+    print(result);
+  }
+  return result;
+}
+
+  static Future<String> setRemoteConfigAutomaticDownload(Function onSuccess) async {
+    List <String> args = [];
+    final String result = await _channel.invokeMethod('setRemoteConfigAutomaticDownload', <String, dynamic>{
+        'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> remoteConfigUpdate(Function onSuccess, Function onError) async {
+    List <String> args = [];
+    
+    final String result = await _channel.invokeMethod('remoteConfigUpdate', <String, dynamic>{
+        'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> updateRemoteConfigForKeysOnly(Object keys, Function onSuccess, Function onError) async {
+    List <String> args = [];
+    
+    final String result = await _channel.invokeMethod('updateRemoteConfigForKeysOnly', <String, dynamic>{
+        'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> updateRemoteConfigExceptKeys(Object keys, Function onSuccess, Function onError) async {
+    List <String> args = [];
+    
+    final String result = await _channel.invokeMethod('updateRemoteConfigExceptKeys', <String, dynamic>{
+        'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> remoteConfigClearValues(Function onSuccess, Function onError) async {
+    List <String> args = [];
+    final String result = await _channel.invokeMethod('remoteConfigClearValues', <String, dynamic>{
+        'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> getRemoteConfigValueForKey(String key, Function onSuccess, Function onError) async {
+    List <String> args = [];
+    final String result = await _channel.invokeMethod('getRemoteConfigValueForKey', <String, dynamic>{
+        'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
   static Future<String> sendRating(int sendRating) async {
     List <String> args = [];
     args.add(sendRating.toString());
@@ -369,6 +489,21 @@ static Future<String> setOnce(String keyName, int setOnce) async {
     return result;
   }
 
+  static Future<String> askForFeedback(callback) async {
+    List <String> args = [];
+    // Countly.rating.create();
+    // Countly.rating.set(0);
+    // Countly.rating.callback = callback;
+    // query('countly-rating-modal').classList.add('open');
+    final String result = await _channel.invokeMethod('askForFeedback', <String, dynamic>{
+        'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+
   static Future<String> startEvent(String key) async {
     List <String> args = [];
     args.add(key);
@@ -381,6 +516,61 @@ static Future<String> setOnce(String keyName, int setOnce) async {
     return result;
   }
 
+  static Future<String> endEvent(Map<String, Object> options) async {
+  List <String> args = [];
+        // options = {"eventName": options};
+    var eventType = "event"; //event, eventWithSum, eventWithSegment, eventWithSumSegment
+    var segment = {};
+
+    if(options["sum"] != null)
+        eventType = "eventWithSum";
+    if(options["segment"] != null)
+        eventType = "eventWithSegment";
+    if((options["segment"] != null) && (options["sum"] != null))
+        eventType = "eventWithSumSegment";
+
+    args.add(eventType);
+
+    if(options["key"] != null)
+        args.add(options["key"].toString());
+    if(options["count"] != null){
+        args.add(options["count"].toString());
+    }else{
+        args.add("1");
+    }
+    if(options["sum"] != null){
+        args.add(options["sum"].toString());
+    }
+
+    if(options["segment"] != null){
+        segment = options["segment"];
+        segment.forEach((k, v){
+          args.add(k.toString());
+          args.add(v.toString());
+        });
+    }
+    
+  final String result = await _channel.invokeMethod('endEvent', <String, dynamic>{
+      'data': json.encode(args)
+  });
+  if(isDebug){
+    print(result);
+  }
+  return result;
+}
+
+
+  static Future<String> enableCrashReporting() async {
+    List <String> args = [];
+  //  Countly.isCrashReportingEnabled = true;
+    final String result = await _channel.invokeMethod('enableCrashReporting', <String, dynamic>{
+        'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
   // static Future<String> sendEvent(String serverUrl, String appKey, [String deviceId]) async {
   //   List <String> args = [];
   //   args.add(serverUrl);

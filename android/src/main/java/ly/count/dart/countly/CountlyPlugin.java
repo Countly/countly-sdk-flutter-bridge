@@ -300,6 +300,50 @@ public class CountlyPlugin implements MethodCallHandler {
         Countly.userData.save();
         result.success("userData_setOnce success!");
     }
+//setRequiresConsent
+    else if ("setRequiresConsent".equals(call.method)) {
+        Boolean consentFlag = args.getBoolean(0);
+        Countly.sharedInstance().setRequiresConsent(consentFlag);
+        result.success("setRequiresConsent!");
+    }
+    else if ("giveConsent".equals(call.method)) {
+        List<String> features = new ArrayList<>();
+        for (int i = 0; i < args.length i++) {
+            String featureName = args.getString(i);
+            if (validConsentFeatureNames.contains(featureName)) {
+               features.add(featureName);
+            }
+            else {
+               Log.d(Countly.TAG, "Not a valid consent feature to add: " + featureName);
+            }
+        }
+        Countly.sharedInstance().giveConsent(features.toArray(new String[features.size()]));
+        result.success("giveConsent!");
+    }
+    else if ("removeConsent".equals(call.method)) {
+        List<String> features = new ArrayList<>();
+        for (int i = 0; i < args.length i++) {
+            String featureName = args.getString(i);
+            if (validConsentFeatureNames.contains(featureName)) {
+               features.add(featureName);
+            }
+            else {
+               Log.d(Countly.TAG, "Not a valid consent feature to remove: " + featureName);
+            }
+        }
+        Countly.sharedInstance().removeConsent(features.toArray(new String[features.size()]));
+        result.success("removeConsent!");
+    }
+    else if ("giveAllConsent".equals(call.method)) {
+        Countly.sharedInstance().giveConsent(validConsentFeatureNames.toArray(new String[validConsentFeatureNames.size()]));
+        result.success("giveAllConsent!");
+    }
+    else if ("removeAllConsent".equals(call.method)) {
+        Countly.sharedInstance().removeConsent(validConsentFeatureNames.toArray(new String[validConsentFeatureNames.size()]));
+        result.success("removeAllConsent!");
+    }
+
+
     else if("getDeviceID".equals(call.method)){
         result.success(Countly.sharedInstance().getDeviceID());
     }
