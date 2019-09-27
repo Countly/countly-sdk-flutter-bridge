@@ -247,6 +247,22 @@ endEventWithSum(){
   setOnce(){
        Countly.setOnce("setOnce", 200);
   }
+  //
+  setRequiresConsent(){
+    Countly.setRequiresConsent(true);
+  }
+  giveMultipleConsent(){
+    Countly.giveConsent(["events", "views", "star-rating", "crashes"]);
+  }
+  removeMultipleConsent(){
+    Countly.removeConsent(["events", "views", "star-rating", "crashes"]);
+  }
+  giveAllConsent(){
+    Countly.giveAllConsent();
+  }
+  removeAllConsent(){
+    Countly.removeAllConsent();
+  }
   sendPushToken(){
       //  var push = PushNotification.init({
       //       android: {sound: true},
@@ -415,18 +431,21 @@ endEventWithSum(){
               MyButton(text: "Init with ID", color: "green", onPressed: initWithID),
               MyButton(text: "Start", color: "green", onPressed: start),
               MyButton(text: "Stop", color: "red", onPressed: stop),
-              MyButton(text: "Basic event", color: "default", onPressed: basicEvent),
-              MyButton(text: "Event with Sum", color: "default", onPressed: eventWithSum),
-              MyButton(text: "Event with Segment", color: "default", onPressed: eventWithSegment),
-              MyButton(text: "Even with Sum and Segment", color: "", onPressed: eventWithSumSegment),
-              MyButton(text: "All event", color: "black", onPressed: event),
-              MyButton(text: "Timed event: Start / Stop", color: "default", onPressed: endEventBasic),
-              MyButton(text: "Timed event Sum: Start / Stop", color: "default", onPressed: endEventWithSum),
-              MyButton(text: "Timed event Segment: Start / Stop", color: "default", onPressed: endEventWithSegment),
-              MyButton(text: "Timed event Sum Segment: Start / Stop", color: "default", onPressed: endEventWithSumSegment),
 
-              MyButton(text: "Record View: 'HomePage'", color: "default", onPressed: recordViewHome),
-              MyButton(text: "Record View: 'Dashboard'", color: "default", onPressed: recordViewDashboard),
+              MyButton(text: "Basic event", color: "brown", onPressed: basicEvent),
+              MyButton(text: "Event with Sum", color: "brown", onPressed: eventWithSum),
+              MyButton(text: "Event with Segment", color: "brown", onPressed: eventWithSegment),
+              MyButton(text: "Even with Sum and Segment", color: "brown", onPressed: eventWithSumSegment),
+              
+              MyButton(text: "All event", color: "black", onPressed: event),
+              
+              MyButton(text: "Timed event: Start / Stop", color: "grey", onPressed: endEventBasic),
+              MyButton(text: "Timed event Sum: Start / Stop", color: "grey", onPressed: endEventWithSum),
+              MyButton(text: "Timed event Segment: Start / Stop", color: "grey", onPressed: endEventWithSegment),
+              MyButton(text: "Timed event Sum Segment: Start / Stop", color: "grey", onPressed: endEventWithSumSegment),
+
+              MyButton(text: "Record View: 'HomePage'", color: "grey", onPressed: recordViewHome),
+              MyButton(text: "Record View: 'Dashboard'", color: "grey", onPressed: recordViewDashboard),
 
               MyButton(text: "Send Captian America Data", color: "teal", onPressed: setCaptianAmericaData),
               MyButton(text: "Send Iron Man Data", color: "teal", onPressed: setIronManData),
@@ -439,24 +458,32 @@ endEventWithSum(){
               MyButton(text: "UserData.saveMax", color: "teal", onPressed: saveMax),
               MyButton(text: "UserData.saveMin", color: "teal", onPressed: saveMin),
               MyButton(text: "UserData.setOnce", color: "teal", onPressed: setOnce),
-              
-              MyButton(text: "Countly.setRemoteConfigAutomaticDownload", color: "black", onPressed: setRemoteConfigAutomaticDownload),
-              MyButton(text: "Countly.remoteConfigUpdate", color: "grey", onPressed: remoteConfigUpdate),
-              MyButton(text: "Countly.updateRemoteConfigForKeysOnly", color: "brown", onPressed: updateRemoteConfigForKeysOnly),
-              MyButton(text: "Countly.updateRemoteConfigExceptKeys", color: "pink", onPressed: updateRemoteConfigExceptKeys),
-              MyButton(text: "Countly.remoteConfigClearValues", color: "purple", onPressed: remoteConfigClearValues),
-              MyButton(text: "Countly.getRemoteConfigValueForKey", color: "violet", onPressed: getRemoteConfigValueForKey),
 
-              MyButton(text: "Push Message", color: "teal", onPressed: sendPushToken),
-              MyButton(text: "Push Test Android", color: "teal", onPressed: testAndroidPush),
-              MyButton(text: "Push Test iOS", color: "teal", onPressed: testiOSPush),
-              MyButton(text: "Change Device ID", color: "default", onPressed: changeDeviceId),
-              MyButton(text: "Enable Parameter Tapmering Protection", color: "default", onPressed: enableParameterTamperingProtection),
-              MyButton(text: "City, State, and Location", color: "default", onPressed: setOptionalParametersForInitialization),
-              MyButton(text: "Send Crash Report", color: "default", onPressed: addCrashLog),
-              MyButton(text: "Send 5 star rating!!", color: "default", onPressed: sendRating),
-              MyButton(text: "Open rating modal", color: "default", onPressed: askForStarRating),
-              MyButton(text: "Open feedback modal", color: "default", onPressed: askForFeedback),
+              MyButton(text: "Init Consent", color: "blue", onPressed: setRequiresConsent),
+              MyButton(text: "Give multiple consent", color: "blue", onPressed: giveMultipleConsent),
+              MyButton(text: "Remove multiple consent", color: "blue", onPressed: removeMultipleConsent),
+              MyButton(text: "Give all Consent", color: "blue", onPressed: giveAllConsent),
+              MyButton(text: "Remove all Consent", color: "blue", onPressed: removeAllConsent),
+              
+              MyButton(text: "Countly.setRemoteConfigAutomaticDownload", color: "purple", onPressed: setRemoteConfigAutomaticDownload),
+              MyButton(text: "Countly.remoteConfigUpdate", color: "purple", onPressed: remoteConfigUpdate),
+              MyButton(text: "Countly.updateRemoteConfigForKeysOnly", color: "purple", onPressed: updateRemoteConfigForKeysOnly),
+              MyButton(text: "Countly.updateRemoteConfigExceptKeys", color: "purple", onPressed: updateRemoteConfigExceptKeys),
+              MyButton(text: "Countly.remoteConfigClearValues", color: "purple", onPressed: remoteConfigClearValues),
+              MyButton(text: "Countly.getRemoteConfigValueForKey", color: "purple", onPressed: getRemoteConfigValueForKey),
+
+              MyButton(text: "Push Message", color: "primary", onPressed: sendPushToken),
+              MyButton(text: "Push Test Android", color: "primary", onPressed: testAndroidPush),
+              MyButton(text: "Push Test iOS", color: "primary", onPressed: testiOSPush),
+              
+              MyButton(text: "Change Device ID", color: "violet", onPressed: changeDeviceId),
+              MyButton(text: "Enable Parameter Tapmering Protection", color: "violet", onPressed: enableParameterTamperingProtection),
+              MyButton(text: "City, State, and Location", color: "violet", onPressed: setOptionalParametersForInitialization),
+              MyButton(text: "Send Crash Report", color: "violet", onPressed: addCrashLog),
+              
+              MyButton(text: "Send 5 star rating!!", color: "violet", onPressed: sendRating),
+              MyButton(text: "Open rating modal", color: "violet", onPressed: askForStarRating),
+              MyButton(text: "Open feedback modal", color: "violet", onPressed: askForFeedback),
 
             ],),
           )
@@ -471,10 +498,43 @@ Map<String, Object> theColor = {
     "button": Color(0xffe0e0e0),
     "text": Color(0xff000000)
   },
+  "red": {
+    "button": Color(0xffdb2828),
+    "text": Color(0xff000000)
+  },
   "green": {
     "button": Color(0xffe0e0e0),
     "text": Color(0xff000000)
+  },
+  "teal": {
+    "button": Color(0xff00b5ad),
+    "text": Color(0xff000000)
+  },
+  "blue": {
+    "button": Color(0xff00b5ad),
+    "text": Color(0xff000000)
+  },
+  "primary": {
+    "button": Color(0xff54c8ff),
+    "text": Color(0xff000000)
+  },
+  "grey": {
+    "button": Color(0xff767676),
+    "text": Color(0xff000000)
+  },
+  "brown": {
+    "button": Color(0xffa5673f),
+    "text": Color(0xff000000)
+  },
+  "purple": {
+    "button": Color(0xffa333c8),
+    "text": Color(0xff000000)
+  },
+  "violet": {
+    "button": Color(0xff6435c9),
+    "text": Color(0xff000000)
   }
+  
 };
 
 class MyButton extends StatelessWidget{

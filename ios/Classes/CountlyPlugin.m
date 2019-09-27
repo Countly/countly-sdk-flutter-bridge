@@ -351,7 +351,32 @@ CountlyConfig* config = nil;
         [Countly.user save];
 
         result(@"userData_setOnce!");
-        
+//setRequiresConsent
+    }else if ([@"setRequiresConsent" isEqualToString:call.method]) {
+        if (config == nil){
+            config = CountlyConfig.new;
+        }
+        BOOL consentFlag = [[command objectAtIndex:0] boolValue];
+        config.requiresConsent = consentFlag;
+        result(@"setRequiresConsent!");
+
+    }else if ([@"giveConsent" isEqualToString:call.method]) {
+        [Countly.sharedInstance giveConsentForFeatures:command];
+        result(@"giveConsent!");
+
+    }else if ([@"removeConsent" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"removeConsent!");
+
+    }else if ([@"giveAllConsent" isEqualToString:call.method]) {
+        [Countly.sharedInstance giveConsentForAllFeatures];
+        result(@"giveAllConsent!");   
+
+    }else if ([@"removeAllConsent" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForAllFeatures];
+        result(@"removeAllConsent!");
+
+
     }else if ([@"setOptionalParametersForInitialization" isEqualToString:call.method]) {
         NSString* city = [command objectAtIndex:0];
         NSString* country = [command objectAtIndex:1];
@@ -433,7 +458,7 @@ CountlyConfig* config = nil;
         if(!value){
             value = @"Default Value";
         }
-        result(@"default!");
+        result(@"getRemoteConfigValueForKey!");
         
     }else if ([@"askForFeedback" isEqualToString:call.method]) {
         NSString* widgetId = [command objectAtIndex:0];

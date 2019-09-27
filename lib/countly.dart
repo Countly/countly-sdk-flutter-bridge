@@ -343,6 +343,63 @@ static Future<String> setOnce(String keyName, int setOnce) async {
     }
     return result;
   }
+
+//setRequiresConsent
+static Future<String> setRequiresConsent(bool flag) async {
+  List <String> args = [];
+  args.add(flag.toString());
+  final String result = await _channel.invokeMethod('setRequiresConsent', <String, dynamic>{
+      'data': json.encode(args)
+  });
+  if(isDebug){
+    print(result);
+  }
+  return result;
+}
+static Future<String> giveConsent(List <String> consent) async {
+  List <String> args = consent;
+  final String result = await _channel.invokeMethod('giveConsent', <String, dynamic>{
+      'data': json.encode(args)
+  });
+  if(isDebug){
+    print(result);
+  }
+  return result;
+}
+static Future<String> removeConsent(List <String> consent) async {
+  List <String> args = consent;
+  
+  final String result = await _channel.invokeMethod('removeConsent', <String, dynamic>{
+      'data': json.encode(args)
+  });
+  if(isDebug){
+    print(result);
+  }
+  return result;
+}
+static Future<String> giveAllConsent() async {
+  List <String> args = [];
+  
+  final String result = await _channel.invokeMethod('giveAllConsent', <String, dynamic>{
+      'data': json.encode(args)
+  });
+  if(isDebug){
+    print(result);
+  }
+  return result;
+}
+static Future<String> removeAllConsent() async {
+  List <String> args = [];
+  
+  final String result = await _channel.invokeMethod('removeAllConsent', <String, dynamic>{
+      'data': json.encode(args)
+  });
+  if(isDebug){
+    print(result);
+  }
+  return result;
+}
+
   static Future<String> setRemoteConfigAutomaticDownload(Function onSuccess) async {
     List <String> args = [];
     final String result = await _channel.invokeMethod('setRemoteConfigAutomaticDownload', <String, dynamic>{
@@ -424,6 +481,21 @@ static Future<String> setOnce(String keyName, int setOnce) async {
     // Countly.rating.callback = callback;
     // query('countly-rating-modal').classList.add('open');
     final String result = await _channel.invokeMethod('askForStarRating', <String, dynamic>{
+        'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+
+  static Future<String> askForFeedback(callback) async {
+    List <String> args = [];
+    // Countly.rating.create();
+    // Countly.rating.set(0);
+    // Countly.rating.callback = callback;
+    // query('countly-rating-modal').classList.add('open');
+    final String result = await _channel.invokeMethod('askForFeedback', <String, dynamic>{
         'data': json.encode(args)
     });
     if(isDebug){
