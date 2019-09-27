@@ -437,15 +437,15 @@ endEventWithSum(){
               MyButton(text: "Event with Segment", color: "brown", onPressed: eventWithSegment),
               MyButton(text: "Even with Sum and Segment", color: "brown", onPressed: eventWithSumSegment),
               
-              MyButton(text: "All event", color: "black", onPressed: event),
+              MyButton(text: "All event", color: "default", onPressed: event),
               
               MyButton(text: "Timed event: Start / Stop", color: "grey", onPressed: endEventBasic),
               MyButton(text: "Timed event Sum: Start / Stop", color: "grey", onPressed: endEventWithSum),
               MyButton(text: "Timed event Segment: Start / Stop", color: "grey", onPressed: endEventWithSegment),
               MyButton(text: "Timed event Sum Segment: Start / Stop", color: "grey", onPressed: endEventWithSumSegment),
 
-              MyButton(text: "Record View: 'HomePage'", color: "grey", onPressed: recordViewHome),
-              MyButton(text: "Record View: 'Dashboard'", color: "grey", onPressed: recordViewDashboard),
+              MyButton(text: "Record View: 'HomePage'", color: "olive", onPressed: recordViewHome),
+              MyButton(text: "Record View: 'Dashboard'", color: "olive", onPressed: recordViewDashboard),
 
               MyButton(text: "Send Captian America Data", color: "teal", onPressed: setCaptianAmericaData),
               MyButton(text: "Send Iron Man Data", color: "teal", onPressed: setIronManData),
@@ -481,9 +481,9 @@ endEventWithSum(){
               MyButton(text: "City, State, and Location", color: "violet", onPressed: setOptionalParametersForInitialization),
               MyButton(text: "Send Crash Report", color: "violet", onPressed: addCrashLog),
               
-              MyButton(text: "Send 5 star rating!!", color: "violet", onPressed: sendRating),
-              MyButton(text: "Open rating modal", color: "violet", onPressed: askForStarRating),
-              MyButton(text: "Open feedback modal", color: "violet", onPressed: askForFeedback),
+              MyButton(text: "Send 5 star rating!!", color: "orange", onPressed: sendRating),
+              MyButton(text: "Open rating modal", color: "orange", onPressed: askForStarRating),
+              MyButton(text: "Open feedback modal", color: "orange", onPressed: askForFeedback),
 
             ],),
           )
@@ -561,6 +561,14 @@ Map<String, Object> theColor = {
   "violet": {
     "button": Color(0xff6435c9),
     "text": Color(0xff000000)
+  },
+  "olive": {
+    "button": Color(0xffd9e778),
+    "text": Color(0xff000000)
+  },
+  "orange": {
+    "button": Color(0xffff851b),
+    "text": Color(0xff000000)
   }
   
 };
@@ -584,7 +592,11 @@ Map<String, Object> getColor(color){
   }else if(color == "violet"){
     return theColor["violet"];            
   }else if(color == "black"){
-    return theColor["black"];                            
+    return theColor["black"];
+  }else if(color == "olive"){
+    return theColor["olive"];     
+  }else if(color == "orange"){
+    return theColor["orange"];                                                                                                                 
   }else{
     return theColor["default"];
   }
