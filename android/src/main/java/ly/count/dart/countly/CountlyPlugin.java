@@ -17,12 +17,29 @@ import android.content.Context;
 import org.json.JSONArray;
 import org.json.JSONException;
 import android.util.Log;
+import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Arrays;
+import java.util.ArrayList;
 
 /** CountlyPlugin */
 public class CountlyPlugin implements MethodCallHandler {
   /** Plugin registration. */
   Context context;
   Activity activity;
+    private final Set<String> validConsentFeatureNames = new HashSet<String>(Arrays.asList(
+            Countly.CountlyFeatureNames.sessions,
+            Countly.CountlyFeatureNames.events,
+            Countly.CountlyFeatureNames.views,
+            Countly.CountlyFeatureNames.location,
+            Countly.CountlyFeatureNames.crashes,
+            Countly.CountlyFeatureNames.attribution,
+            Countly.CountlyFeatureNames.users,
+            Countly.CountlyFeatureNames.push,
+            Countly.CountlyFeatureNames.starRating
+    ));
+
   public static void registerWith(Registrar registrar) {
     final Activity __activity  = registrar.activity();
     final Context __context = registrar.context();
@@ -306,42 +323,42 @@ public class CountlyPlugin implements MethodCallHandler {
         Countly.sharedInstance().setRequiresConsent(consentFlag);
         result.success("setRequiresConsent!");
     }
-    else if ("giveConsent".equals(call.method)) {
-        List<String> features = new ArrayList<>();
-        for (int i = 0; i < args.length i++) {
-            String featureName = args.getString(i);
-            if (validConsentFeatureNames.contains(featureName)) {
-               features.add(featureName);
-            }
-            else {
-               Log.d(Countly.TAG, "Not a valid consent feature to add: " + featureName);
-            }
-        }
-        Countly.sharedInstance().giveConsent(features.toArray(new String[features.size()]));
-        result.success("giveConsent!");
-    }
-    else if ("removeConsent".equals(call.method)) {
-        List<String> features = new ArrayList<>();
-        for (int i = 0; i < args.length i++) {
-            String featureName = args.getString(i);
-            if (validConsentFeatureNames.contains(featureName)) {
-               features.add(featureName);
-            }
-            else {
-               Log.d(Countly.TAG, "Not a valid consent feature to remove: " + featureName);
-            }
-        }
-        Countly.sharedInstance().removeConsent(features.toArray(new String[features.size()]));
-        result.success("removeConsent!");
-    }
-    else if ("giveAllConsent".equals(call.method)) {
-        Countly.sharedInstance().giveConsent(validConsentFeatureNames.toArray(new String[validConsentFeatureNames.size()]));
-        result.success("giveAllConsent!");
-    }
-    else if ("removeAllConsent".equals(call.method)) {
-        Countly.sharedInstance().removeConsent(validConsentFeatureNames.toArray(new String[validConsentFeatureNames.size()]));
-        result.success("removeAllConsent!");
-    }
+     else if ("giveConsent".equals(call.method)) {
+         List<String> features = new ArrayList<>();
+         for (int i = 0; i < args.length(); i++) {
+             String featureName = args.getString(i);
+             if (validConsentFeatureNames.contains(featureName)) {
+                features.add(featureName);
+             }
+             else {
+                Log.d(Countly.TAG, "Not a valid consent feature to add: " + featureName);
+             }
+         }
+         Countly.sharedInstance().giveConsent(features.toArray(new String[features.size()]));
+         result.success("giveConsent!");
+     }
+     else if ("removeConsent".equals(call.method)) {
+         List<String> features = new ArrayList<>();
+         for (int i = 0; i < args.length(); i++) {
+             String featureName = args.getString(i);
+             if (validConsentFeatureNames.contains(featureName)) {
+                features.add(featureName);
+             }
+             else {
+                Log.d(Countly.TAG, "Not a valid consent feature to remove: " + featureName);
+             }
+         }
+         Countly.sharedInstance().removeConsent(features.toArray(new String[features.size()]));
+         result.success("removeConsent!");
+     }
+     else if ("giveAllConsent".equals(call.method)) {
+         Countly.sharedInstance().giveConsent(validConsentFeatureNames.toArray(new String[validConsentFeatureNames.size()]));
+         result.success("giveAllConsent!");
+     }
+     else if ("removeAllConsent".equals(call.method)) {
+         Countly.sharedInstance().removeConsent(validConsentFeatureNames.toArray(new String[validConsentFeatureNames.size()]));
+         result.success("removeAllConsent!");
+     }
 
 
     else if("getDeviceID".equals(call.method)){

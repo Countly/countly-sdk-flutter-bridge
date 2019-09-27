@@ -534,16 +534,16 @@ Map<String, Object> theColor = {
     "button": Color(0xff6435c9),
     "text": Color(0xff000000)
   },
-  "teal": {
-    "button": Color(0xff00b5ad),
-    "text": Color(0xff000000)
-  },
+  // "teal": {
+  //   "button": Color(0xff00b5ad),
+  //   "text": Color(0xff000000)
+  // },
   "blue": {
     "button": Color(0xff00b5ad),
     "text": Color(0xff000000)
   },
-  "primary": {
-    "button": Color(0xff54c8ff),
+  "black": {
+    "button": Color(0xff1b1c1d),
     "text": Color(0xff000000)
   },
   "grey": {
@@ -568,7 +568,23 @@ Map<String, Object> getColor(color){
   if(color == "green"){
     return theColor["green"];
   }else if(color == "teal"){
-    return theColor["default"];
+    return theColor["teal"];
+  }else if(color == "red"){
+    return theColor["red"];
+  }else if(color == "brown"){
+    return theColor["brown"];
+  }else if(color == "grey"){
+    return theColor["grey"];
+  }else if(color == "blue"){
+    return theColor["blue"];        
+  }else if(color == "purple"){
+    return theColor["purple"];          
+  }else if(color == "primary"){
+    return theColor["primary"];
+  }else if(color == "violet"){
+    return theColor["violet"];            
+  }else if(color == "black"){
+    return theColor["black"];                            
   }else{
     return theColor["default"];
   }
