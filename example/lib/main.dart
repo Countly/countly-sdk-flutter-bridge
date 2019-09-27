@@ -388,11 +388,19 @@ Map<String, Object> theColor = {
     "text": Color(0xff000000)
   },
   "green": {
-    "button": Color(0xffe0e0e0),
-    "text": Color(0xff000000)
+    "button": Colors.green,
+    "text": Color(0xffffffff)
   }
 };
-
+Map<String, Object> getColor(color){
+  if(color == "green"){
+    return theColor["green"];
+  }else if(color == "teal"){
+    return theColor["default"];
+  }else{
+    return theColor["default"];
+  }
+}
 class MyButton extends StatelessWidget{
   String _text;
   Color _button;
@@ -402,15 +410,30 @@ class MyButton extends StatelessWidget{
     _text = text;
 
     Map<String, Object> tColor;
-    theColor.forEach((k, v){
-      if(k == color){
-        tColor = v;
-      }
-    });
+    // if(theColor.containsKey(color)){
+    //   tColor = theColor[color];
+    //   print('mathc');
+    // }
+    // void forEach(k, v) {
+    //   if(k == color){
+    //     print("match");
+    //     tColor = v;
+    //   }
+    // }
+    // for(var key in theColor){
+    //   if(key == color){
+    //     print('match');
+    //     tColor = theColor[key];
+    //   }
+    // }
+    // theColor.forEach(forEach);
+    // tColor = theColor.get(color);
+    tColor = getColor(color);
+    // print(color);
+    // print(tColor);
     if(tColor == null){
       tColor = theColor["default"];
     }
-
     _button = tColor["button"];
     _textC = tColor["text"];
 
@@ -419,7 +442,7 @@ class MyButton extends StatelessWidget{
 
   @override
   Widget build(BuildContext context){
-    return new OutlineButton(
+    return new RaisedButton(
       onPressed: _onPressed,
       color: _button,
       child: SizedBox(
