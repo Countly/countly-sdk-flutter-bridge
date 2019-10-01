@@ -259,6 +259,17 @@ static Future<String> enableParameterTamperingProtection(String salt) async {
     }
     return result;
   }
+  static Future<String> setHttpPostForced(int isEnabled) async {
+    List <String> args = [];
+    args.add(isEnabled.toString());
+    final String result = await _channel.invokeMethod('setHttpPostForced', <String, dynamic>{
+        'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
 static Future<String> setProperty(String keyName , String keyValue) async {
     List <String> args = [];
     args.add(keyName);

@@ -428,6 +428,11 @@ endEventWithSum(){
     Countly.logException();
   }
 
+  setHttpPostForced(){
+    Countly.setHttpPostForced();
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
