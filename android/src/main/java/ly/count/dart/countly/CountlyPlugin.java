@@ -317,6 +317,27 @@ public class CountlyPlugin implements MethodCallHandler {
         Countly.userData.save();
         result.success("userData_setOnce success!");
     }
+    else if ("userData_pushUniqueValue".equals(call.method)) {
+        String type = args.getString(0);
+        String pushUniqueValue = args.getString(1);
+        Countly.userData.pushUniqueValue(type, pushUniqueValue);
+        Countly.userData.save();
+        result.success("userData_pushUniqueValue success!");
+    }
+    else if ("userData_pushValue".equals(call.method)) {
+        String type = args.getString(0);
+        String pushValue = args.getString(1);
+        Countly.userData.pushValue(type, pushValue);
+        Countly.userData.save();
+        result.success("userData_pushValue success!");
+    }
+    else if ("userData_pullValue".equals(call.method)) {
+        String type = args.getString(0);
+        String pullValue = args.getString(1);
+        Countly.userData.pullValue(type, pullValue);
+        Countly.userData.save();
+        result.success("userData_pullValue success!");
+    }
 //setRequiresConsent
     else if ("setRequiresConsent".equals(call.method)) {
         Boolean consentFlag = args.getBoolean(0);

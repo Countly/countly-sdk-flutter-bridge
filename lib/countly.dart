@@ -344,6 +344,45 @@ static Future<String> setOnce(String keyName, int setOnce) async {
     return result;
   }
 
+  static Future<String> pushUniqueValue(String type, String pushUniqueValue) async {
+    List <String> args = [];
+    args.add(type);
+    args.add(pushUniqueValue);
+    final String result = await _channel.invokeMethod('userData_pushUniqueValue', <String, dynamic>{
+        'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+
+  static Future<String> pushValue(String type, String pushValue) async {
+    List <String> args = [];
+    args.add(type);
+    args.add(pushValue);
+    final String result = await _channel.invokeMethod('userData_pushValue', <String, dynamic>{
+        'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+
+  static Future<String> pullValue(String type, String pullValue) async {
+    List <String> args = [];
+    args.add(type);
+    args.add(pullValue);
+    final String result = await _channel.invokeMethod('userData_pullValue', <String, dynamic>{
+        'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+
 //setRequiresConsent
 static Future<String> setRequiresConsent(bool flag) async {
   List <String> args = [];
@@ -564,6 +603,18 @@ static Future<String> removeAllConsent() async {
     List <String> args = [];
   //  Countly.isCrashReportingEnabled = true;
     final String result = await _channel.invokeMethod('enableCrashReporting', <String, dynamic>{
+        'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+
+  static Future<String> logException() async {
+    List <String> args = [];
+  
+    final String result = await _channel.invokeMethod('logException', <String, dynamic>{
         'data': json.encode(args)
     });
     if(isDebug){

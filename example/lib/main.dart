@@ -247,6 +247,15 @@ endEventWithSum(){
   setOnce(){
        Countly.setOnce("setOnce", 200);
   }
+  pushUniqueValue(){
+      Countly.pushUniqueValue("type", "morning");
+  }
+  pushValue(){
+       Countly.pushValue("type", "morning");
+  }
+  pullValue(){
+       Countly.pullValue("type", "morning");
+  }
   //
   setRequiresConsent(){
     Countly.setRequiresConsent(true);
@@ -415,6 +424,9 @@ endEventWithSum(){
     //         // open modal + close button with iframe.
     //     });
   }
+  logException(){
+    Countly.logException();
+  }
 
 
   @override
@@ -458,6 +470,9 @@ endEventWithSum(){
               MyButton(text: "UserData.saveMax", color: "teal", onPressed: saveMax),
               MyButton(text: "UserData.saveMin", color: "teal", onPressed: saveMin),
               MyButton(text: "UserData.setOnce", color: "teal", onPressed: setOnce),
+              MyButton(text: "UserData.pushUniqueValue", color: "teal", onPressed: pushUniqueValue),
+              MyButton(text: "UserData.pushValue", color: "teal", onPressed: pushValue),
+              MyButton(text: "UserData.pullValue", color: "teal", onPressed: pullValue),
 
               MyButton(text: "Init Consent", color: "blue", onPressed: setRequiresConsent),
               MyButton(text: "Give multiple consent", color: "blue", onPressed: giveMultipleConsent),
