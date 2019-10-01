@@ -171,7 +171,7 @@ public class CountlyPlugin implements MethodCallHandler {
         else if ("eventWithSegment".equals(eventType)) {
             String eventName = args.getString(1);
             HashMap<String, String> segmentation = new HashMap<String, String>();
-            for(int i=4,il=args.length();i<il;i+=2){
+            for(int i=3,il=args.length();i<il;i+=2){
                 segmentation.put(args.getString(i), args.getString(i+1));
             }
             Countly.sharedInstance().endEvent(eventName, segmentation, 1,0);

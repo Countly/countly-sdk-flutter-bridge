@@ -354,9 +354,9 @@ CountlyConfig* config = nil;
 
     }else if ([@"userData_pushUniqueValue" isEqualToString:call.method]) {
         NSString* type = [command objectAtIndex:0];
-        NSString* pushUniqueValue = [command objectAtIndex:1];
+        NSString* pushUniqueValueString = [command objectAtIndex:1];
         
-        [Countly.user pushUniqueValue:type value:pushUniqueValue];
+        [Countly.user pushUnique:type value:pushUniqueValueString];
         [Countly.user save];
 
         result(@"userData_pushUniqueValue!");
@@ -365,7 +365,7 @@ CountlyConfig* config = nil;
         NSString* type = [command objectAtIndex:0];
         NSString* pushValue = [command objectAtIndex:1];
         
-        [Countly.user pushValue:type value:pushValue];
+        [Countly.user push:type value:pushValue];
         [Countly.user save];
 
         result(@"userData_pushValue!");
@@ -374,11 +374,12 @@ CountlyConfig* config = nil;
         NSString* type = [command objectAtIndex:0];
         NSString* pullValue = [command objectAtIndex:1];
         
-        [Countly.user pullValue:type value:pullValue];
+        [Countly.user pull:type value:pullValue];
         [Countly.user save];
 
-        result(@"userData_pullValue!");            
-//setRequiresConsent
+        result(@"userData_pullValue!");
+        
+    //setRequiresConsent
     }else if ([@"setRequiresConsent" isEqualToString:call.method]) {
         if (config == nil){
             config = CountlyConfig.new;

@@ -98,26 +98,26 @@ endEventWithSum(){
           Countly.endEvent({ "key": "Timed Event With Sum", "sum": "0.99" });
           timer.cancel();
         });
-            
+
         // }, 1000);
   }
   endEventWithSegment(){
     Countly.startEvent("Timed Event With Segment");
     //     // setTimeout(function() {
       Timer timer;
+      var event = {
+          "key": "Timed Event With Segment",
+          "segment": {
+              "Country": "Turkey",
+              "Age": "28"
+          }
+      };
+
       timer = new Timer(new Duration(seconds: 5), () {
-        var event = {
-            "key": "Timed Event With Segment"
-        };
-        
-        // event["segment"] = {
-        //     "Country": "Turkey",
-        //     "Age": "28"
-        // };
         Countly.endEvent(event);
         timer.cancel();
       });
-          
+
     //     // }, 1000);
   }
   endEventWithSumSegment(){
@@ -137,7 +137,7 @@ endEventWithSum(){
         Countly.endEvent(event);
         timer.cancel();
       });
-          
+
     //     }, 1000);
   }
   recordViewHome(){
@@ -248,13 +248,13 @@ endEventWithSum(){
        Countly.setOnce("setOnce", 200);
   }
   pushUniqueValue(){
-      Countly.pushUniqueValue("type", "morning");
+      Countly.pushUniqueValue("pushUniqueValue", "morning");
   }
   pushValue(){
-       Countly.pushValue("type", "morning");
+       Countly.pushValue("pushValue", "morning");
   }
   pullValue(){
-       Countly.pullValue("type", "morning");
+       Countly.pullValue("pushValue", "morning");
   }
   //
   setRequiresConsent(){
@@ -367,7 +367,7 @@ endEventWithSum(){
         print(r);
     });
   }
-  
+
   testAndroidPush(){
     Countly.sendPushToken({
         "token": "1234567890",
@@ -375,7 +375,7 @@ endEventWithSum(){
     });
   }
 
-  
+
   testiOSPush(){
     Countly.sendPushToken({
         "token": "1234567890",
@@ -429,7 +429,7 @@ endEventWithSum(){
   }
 
   setHttpPostForced(){
-    Countly.setHttpPostForced();
+    // Countly.setHttpPostForced(true);
   }
 
 
@@ -453,9 +453,9 @@ endEventWithSum(){
               MyButton(text: "Event with Sum", color: "brown", onPressed: eventWithSum),
               MyButton(text: "Event with Segment", color: "brown", onPressed: eventWithSegment),
               MyButton(text: "Even with Sum and Segment", color: "brown", onPressed: eventWithSumSegment),
-              
+
               MyButton(text: "All event", color: "default", onPressed: event),
-              
+
               MyButton(text: "Timed event: Start / Stop", color: "grey", onPressed: endEventBasic),
               MyButton(text: "Timed event Sum: Start / Stop", color: "grey", onPressed: endEventWithSum),
               MyButton(text: "Timed event Segment: Start / Stop", color: "grey", onPressed: endEventWithSegment),
@@ -484,7 +484,7 @@ endEventWithSum(){
               MyButton(text: "Remove multiple consent", color: "blue", onPressed: removeMultipleConsent),
               MyButton(text: "Give all Consent", color: "blue", onPressed: giveAllConsent),
               MyButton(text: "Remove all Consent", color: "blue", onPressed: removeAllConsent),
-              
+
               MyButton(text: "Countly.setRemoteConfigAutomaticDownload", color: "purple", onPressed: setRemoteConfigAutomaticDownload),
               MyButton(text: "Countly.remoteConfigUpdate", color: "purple", onPressed: remoteConfigUpdate),
               MyButton(text: "Countly.updateRemoteConfigForKeysOnly", color: "purple", onPressed: updateRemoteConfigForKeysOnly),
@@ -495,12 +495,12 @@ endEventWithSum(){
               MyButton(text: "Push Message", color: "primary", onPressed: sendPushToken),
               MyButton(text: "Push Test Android", color: "primary", onPressed: testAndroidPush),
               MyButton(text: "Push Test iOS", color: "primary", onPressed: testiOSPush),
-              
+
               MyButton(text: "Change Device ID", color: "violet", onPressed: changeDeviceId),
               MyButton(text: "Enable Parameter Tapmering Protection", color: "violet", onPressed: enableParameterTamperingProtection),
               MyButton(text: "City, State, and Location", color: "violet", onPressed: setOptionalParametersForInitialization),
               MyButton(text: "Send Crash Report", color: "violet", onPressed: addCrashLog),
-              
+
               MyButton(text: "Send 5 star rating!!", color: "orange", onPressed: sendRating),
               MyButton(text: "Open rating modal", color: "orange", onPressed: askForStarRating),
               MyButton(text: "Open feedback modal", color: "orange", onPressed: askForFeedback),
@@ -590,7 +590,7 @@ Map<String, Object> theColor = {
     "button": Color(0xffff851b),
     "text": Color(0xff000000)
   }
-  
+
 };
 Map<String, Object> getColor(color){
   if(color == "green"){
@@ -604,19 +604,19 @@ Map<String, Object> getColor(color){
   }else if(color == "grey"){
     return theColor["grey"];
   }else if(color == "blue"){
-    return theColor["blue"];        
+    return theColor["blue"];
   }else if(color == "purple"){
-    return theColor["purple"];          
+    return theColor["purple"];
   }else if(color == "primary"){
     return theColor["primary"];
   }else if(color == "violet"){
-    return theColor["violet"];            
+    return theColor["violet"];
   }else if(color == "black"){
     return theColor["black"];
   }else if(color == "olive"){
-    return theColor["olive"];     
+    return theColor["olive"];
   }else if(color == "orange"){
-    return theColor["orange"];                                                                                                                 
+    return theColor["orange"];
   }else{
     return theColor["default"];
   }
