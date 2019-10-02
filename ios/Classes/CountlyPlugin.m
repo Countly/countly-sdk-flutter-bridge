@@ -453,7 +453,7 @@ CountlyConfig* config = nil;
             if (!error){
                 result(@"Success!");
             } else {
-                result(@"Error!");
+                result([@"Error :" stringByAppendingString: error.localizedDescription]);
             }
         };
 
@@ -463,7 +463,7 @@ CountlyConfig* config = nil;
              if (!error){
                  result(@"Success!");
              } else {
-                 result(@"Error!");
+                 result([@"Error :" stringByAppendingString: error.localizedDescription]);
              }
          }];
 
@@ -477,7 +477,7 @@ CountlyConfig* config = nil;
              if (!error){
                 result(@"Success!");
              } else {
-                 result(@"Error!");
+                 result([@"Error :" stringByAppendingString: error.localizedDescription]);
              }
          }];
 
@@ -491,7 +491,7 @@ CountlyConfig* config = nil;
              if (!error){
                  result(@"Success!");
              } else {
-                 result(@"Error!");
+                 result([@"Error :" stringByAppendingString: error.localizedDescription]);
              }
          }];
 
@@ -513,17 +513,10 @@ CountlyConfig* config = nil;
 
     }else if ([@"getPlatformVersion" isEqualToString:call.method]) {
         result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
-  }
-  else {
-    result(FlutterMethodNotImplemented);
-  }
-
-//    if ([@"getPlatformVersion" isEqualToString:call.method]) {
-//        result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
-//    } else {
-//        result(FlutterMethodNotImplemented);
-//    }
-
+    }
+    else {
+        result(FlutterMethodNotImplemented);
+    }
 }
 
 @end

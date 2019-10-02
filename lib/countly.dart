@@ -472,7 +472,7 @@ static Future<String> removeAllConsent() async {
   return result;
 }
 
-  static Future<String> setRemoteConfigAutomaticDownload(Function onSuccess) async {
+  static Future<String> setRemoteConfigAutomaticDownload(Function callback) async {
     List <String> args = [];
     final String result = await _channel.invokeMethod('setRemoteConfigAutomaticDownload', <String, dynamic>{
         'data': json.encode(args)
@@ -480,9 +480,10 @@ static Future<String> removeAllConsent() async {
     if(isDebug){
       print(result);
     }
+    callback(result);
     return result;
   }
-  static Future<String> remoteConfigUpdate(Function onSuccess, Function onError) async {
+  static Future<String> remoteConfigUpdate(Function callback) async {
     List <String> args = [];
 
     final String result = await _channel.invokeMethod('remoteConfigUpdate', <String, dynamic>{
@@ -491,9 +492,10 @@ static Future<String> removeAllConsent() async {
     if(isDebug){
       print(result);
     }
+    callback(result);
     return result;
   }
-  static Future<String> updateRemoteConfigForKeysOnly(Object keys, Function onSuccess, Function onError) async {
+  static Future<String> updateRemoteConfigForKeysOnly(Object keys, Function callback) async {
     List <String> args = [];
 
     final String result = await _channel.invokeMethod('updateRemoteConfigForKeysOnly', <String, dynamic>{
@@ -502,9 +504,10 @@ static Future<String> removeAllConsent() async {
     if(isDebug){
       print(result);
     }
+    callback(result);
     return result;
   }
-  static Future<String> updateRemoteConfigExceptKeys(Object keys, Function onSuccess, Function onError) async {
+  static Future<String> updateRemoteConfigExceptKeys(Object keys, Function callback) async {
     List <String> args = [];
 
     final String result = await _channel.invokeMethod('updateRemoteConfigExceptKeys', <String, dynamic>{
@@ -513,9 +516,10 @@ static Future<String> removeAllConsent() async {
     if(isDebug){
       print(result);
     }
+    callback(result);
     return result;
   }
-  static Future<String> remoteConfigClearValues(Function onSuccess, Function onError) async {
+  static Future<String> remoteConfigClearValues(Function callback) async {
     List <String> args = [];
     final String result = await _channel.invokeMethod('remoteConfigClearValues', <String, dynamic>{
         'data': json.encode(args)
@@ -523,9 +527,10 @@ static Future<String> removeAllConsent() async {
     if(isDebug){
       print(result);
     }
+    callback(result);
     return result;
   }
-  static Future<String> getRemoteConfigValueForKey(String key, Function onSuccess, Function onError) async {
+  static Future<String> getRemoteConfigValueForKey(String key, Function callback) async {
     List <String> args = [];
     final String result = await _channel.invokeMethod('getRemoteConfigValueForKey', <String, dynamic>{
         'data': json.encode(args)
@@ -533,6 +538,7 @@ static Future<String> removeAllConsent() async {
     if(isDebug){
       print(result);
     }
+    callback(result);
     return result;
   }
   static Future<String> sendRating(int sendRating) async {

@@ -28,6 +28,7 @@ public class CountlyPlugin implements MethodCallHandler {
   /** Plugin registration. */
     private Context context;
     private Activity activity;
+    private Boolean isDebug = false;
     private final Set<String> validConsentFeatureNames = new HashSet<String>(Arrays.asList(
             Countly.CountlyFeatureNames.sessions,
             Countly.CountlyFeatureNames.events,
@@ -54,7 +55,7 @@ public class CountlyPlugin implements MethodCallHandler {
   }
 
   @Override
-  public void onMethodCall(MethodCall call, Result result) {
+  public void onMethodCall(MethodCall call, final Result result) {
       String argsString = (String)call.argument("data");
       if(argsString == null){
         argsString = "[]";
@@ -63,6 +64,10 @@ public class CountlyPlugin implements MethodCallHandler {
       try{
       args = new JSONArray(argsString);
 
+      if(isDebug){
+          Log.i("Countly", "Method name: " +call.method);
+          Log.i("Countly", "Method arguments: " +argsString);
+      }
 
       if ("init".equals(call.method)) {
 
@@ -97,8 +102,10 @@ public class CountlyPlugin implements MethodCallHandler {
     else if ("setHttpPostForced".equals(call.method)){
         int isEnabled = Integer.parseInt(args.getString(0));
         if(isEnabled == 1){
+            isDebug = true;
             Countly.sharedInstance().setHttpPostForced(true);
         }else{
+            isDebug = false;
             Countly.sharedInstance().setHttpPostForced(false);
         }
         result.success("setHttpPostForced This method doesn't exists!");
@@ -442,9 +449,9 @@ public class CountlyPlugin implements MethodCallHandler {
             @Override
             public void callback(String error) {
                 if(error == null) {
-                    // result.success("Success");
+                    result.success("Success");
                 } else {
-                    // callbackContext.error(error);
+                    result.success("Error: " +error.toString());
                 }
             }
         });
@@ -455,9 +462,9 @@ public class CountlyPlugin implements MethodCallHandler {
             @Override
             public void callback(String error) {
                 if(error == null) {
-                    // result.success("Success");
+                    result.success("Success");
                 } else {
-                    // callbackContext.error(error);
+                    result.success("Error: " +error.toString());
                 }
             }
         });
@@ -472,9 +479,9 @@ public class CountlyPlugin implements MethodCallHandler {
             @Override
             public void callback(String error) {
                 if(error == null) {
-                    // result.success("Success");
+                    result.success("Success");
                 } else {
-                    // callbackContext.error(error);
+                    result.success("Error: " +error.toString());
                 }
             }
         });
@@ -489,20 +496,20 @@ public class CountlyPlugin implements MethodCallHandler {
             @Override
             public void callback(String error) {
                 if(error == null) {
-                    // result.success("Success");
+                    result.success("Success");
                 } else {
-                    // callbackContext.error(error);
+                    result.success("Error: " +error.toString());
                 }
             }
         });
     }
     else if("remoteConfigClearValues".equals(call.method)){
         Countly.sharedInstance().remoteConfigClearValues();
-        result.success("Success");
+        result.success("remoteConfigClearValues: success");
     }
     else if("getRemoteConfigValueForKey".equals(call.method)){
         String getRemoteConfigValueForKeyResult = (String)Countly.sharedInstance().getRemoteConfigValueForKey(args.getString(0));
-        result.success(result);
+        result.success(getRemoteConfigValueForKeyResult);
     }
     else if("askForFeedback".equals(call.method)){
         String widgetId = args.getString(0);

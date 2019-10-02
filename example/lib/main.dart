@@ -327,45 +327,35 @@ endEventWithSum(){
 
   }
   setRemoteConfigAutomaticDownload(){
-    Countly.setRemoteConfigAutomaticDownload((r){
-        print(r);
+    Countly.setRemoteConfigAutomaticDownload((result){
+      print(result);
     });
   }
   remoteConfigUpdate(){
-    Countly.remoteConfigUpdate((r){
-       print(r);
-    },(r){
-      print(r);
+    Countly.remoteConfigUpdate((result){
+       print(result);
     });
   }
   updateRemoteConfigForKeysOnly(){
-    Countly.updateRemoteConfigForKeysOnly(["name"],(r){
-        print(r);
-    }, (r){
-        print(r);
+    Countly.updateRemoteConfigForKeysOnly(["name"],(result){
+       print(result);
     });
   }
   updateRemoteConfigExceptKeys(){
-    Countly.updateRemoteConfigExceptKeys(["url"],(r){
-        print(r);
-    },(r){
-        print(r);
+    Countly.updateRemoteConfigExceptKeys(["url"],(result){
+       print(result);
     });
   }
 
   remoteConfigClearValues(){
-    Countly.remoteConfigClearValues((r){
-        print(r);
-    }, (r){
-        print(r);
+    Countly.remoteConfigClearValues((result){
+       print(result);
     });
   }
 
   getRemoteConfigValueForKey(){
-    Countly.getRemoteConfigValueForKey("name", (r){
-        print(r);
-    },(r){
-        print(r);
+    Countly.getRemoteConfigValueForKey("name", (result){
+       print(result);
     });
   }
 
