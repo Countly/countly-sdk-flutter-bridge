@@ -495,9 +495,7 @@ static Future<String> removeAllConsent() async {
     callback(result);
     return result;
   }
-  static Future<String> updateRemoteConfigForKeysOnly(Object keys, Function callback) async {
-    List <String> args = [];
-
+  static Future<String> updateRemoteConfigForKeysOnly(List<String> args, Function callback) async {
     final String result = await _channel.invokeMethod('updateRemoteConfigForKeysOnly', <String, dynamic>{
         'data': json.encode(args)
     });
@@ -532,6 +530,7 @@ static Future<String> removeAllConsent() async {
   }
   static Future<String> getRemoteConfigValueForKey(String key, Function callback) async {
     List <String> args = [];
+    args.add(key);
     final String result = await _channel.invokeMethod('getRemoteConfigValueForKey', <String, dynamic>{
         'data': json.encode(args)
     });
