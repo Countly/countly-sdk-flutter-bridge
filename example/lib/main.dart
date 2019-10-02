@@ -22,6 +22,7 @@ class _MyAppState extends State<MyApp> {
 
   onInit(){
     Countly.init("https://try.count.ly", "0e8a00e8c01395a0af8be0e55da05a404bb23c3e");
+    Countly.setLoggingEnabled(true);
   }
   initWithID(){
     Countly.init("https://try.count.ly", "0e8a00e8c01395a0af8be0e55da05a404bb23c3e", "1234567890");

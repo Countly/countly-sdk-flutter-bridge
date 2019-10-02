@@ -4,9 +4,11 @@
 #import "CountlyDeviceInfo.h"
 #import "CountlyRemoteConfig.h"
 
-CountlyConfig* config = nil;
 
 @implementation CountlyPlugin
+
+CountlyConfig* config = nil;
+
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   FlutterMethodChannel* channel = [FlutterMethodChannel
       methodChannelWithName:@"countly"
@@ -14,6 +16,7 @@ CountlyConfig* config = nil;
   CountlyPlugin* instance = [[CountlyPlugin alloc] init];
   [registrar addMethodCallDelegate:instance channel:channel];
 }
+
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
     NSString* commandString = call.arguments[@"data"];
     if(commandString == nil){
@@ -22,6 +25,11 @@ CountlyConfig* config = nil;
     NSData* data = [commandString dataUsingEncoding:NSUTF8StringEncoding];
     NSError *e;
     NSArray *command = [NSJSONSerialization JSONObjectWithData:data options:nil error:&e];
+
+    if(config == nil){
+        config = CountlyConfig.new;
+    }
+
     if([@"init" isEqualToString:call.method]){
 
 
@@ -497,14 +505,14 @@ CountlyConfig* config = nil;
 
     }else if ([@"remoteConfigClearValues" isEqualToString:call.method]) {
         [CountlyRemoteConfig.sharedInstance clearCachedRemoteConfig];
-        result(@"Pending!");
+        result(@"Success!");
 
     }else if ([@"getRemoteConfigValueForKey" isEqualToString:call.method]) {
         id value = [Countly.sharedInstance remoteConfigValueForKey:[command objectAtIndex:0]];
         if(!value){
             value = @"Default Value";
         }
-        result(@"getRemoteConfigValueForKey!");
+        result(value);
 
     }else if ([@"askForFeedback" isEqualToString:call.method]) {
         NSString* widgetId = [command objectAtIndex:0];
