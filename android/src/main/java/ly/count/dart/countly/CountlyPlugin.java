@@ -147,7 +147,7 @@ public class CountlyPlugin implements MethodCallHandler {
         }else{
             // Countly.sharedInstance().sendPushToken(token, Countly.CountlyMessagingMode.TEST);
         }
-        result.success("setloggingenabled success!");
+        result.success(" success!");
     }
 
 

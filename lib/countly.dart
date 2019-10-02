@@ -10,7 +10,7 @@ class Countly {
 
 
   // static variable
-  static bool isDebug = true;
+  static bool isDebug = false;
   static Map<String, Object> messagingMode = {"DEVELOPMENT": 1, "PRODUCTION": 0, "ADHOC": 2};
 
 
@@ -35,19 +35,19 @@ class Countly {
   }
 
 
-  static Future<String> sendEvent( Map<String, Object> options) async {
+  static Future<String> recordEvent( Map<String, Object> options) async {
     if(isDebug){
-      print('sendEvent');
+      print('recordEvent');
     }
     List <String> args = [];
     var eventType = "event"; //event, eventWithSum, eventWithSegment, eventWithSumSegment
-    var segment = {};
+    var segmentation = {};
 
     if(options["sum"] != null)
         eventType = "eventWithSum";
-    if(options["segment"] != null)
+    if(options["segmentation"] != null)
         eventType = "eventWithSegment";
-    if((options["segment"] != null) && (options["sum"] != null))
+    if((options["segmentation"] != null) && (options["sum"] != null))
         eventType = "eventWithSumSegment";
 
     args.add(eventType);
@@ -63,9 +63,9 @@ class Countly {
         args.add(options["sum"].toString());
     }
 
-    if(options["segment"] != null){
-        segment = options["segment"];
-        segment.forEach((k, v){
+    if(options["segmentation"] != null){
+        segmentation = options["segmentation"];
+        segmentation.forEach((k, v){
           args.add(k.toString());
           args.add(v.toString());
         });
@@ -259,10 +259,22 @@ static Future<String> enableParameterTamperingProtection(String salt) async {
     }
     return result;
   }
-  static Future<String> setHttpPostForced(int isEnabled) async {
+  static Future<String> setHttpPostForced(bool isEnabled) async {
     List <String> args = [];
     args.add(isEnabled.toString());
     final String result = await _channel.invokeMethod('setHttpPostForced', <String, dynamic>{
+        'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> setLocation(String latitude, String longitude) async {
+    List <String> args = [];
+    args.add(latitude);
+    args.add(longitude);
+    final String result = await _channel.invokeMethod('setLocation', <String, dynamic>{
         'data': json.encode(args)
     });
     if(isDebug){
@@ -570,31 +582,35 @@ static Future<String> removeAllConsent() async {
   List <String> args = [];
         // options = {"eventName": options};
     var eventType = "event"; //event, eventWithSum, eventWithSegment, eventWithSumSegment
-    var segment = {};
+    var segmentation = {};
 
     if(options["sum"] != null)
         eventType = "eventWithSum";
-    if(options["segment"] != null)
+    if(options["segmentation"] != null)
         eventType = "eventWithSegment";
-    if((options["segment"] != null) && (options["sum"] != null))
+    if((options["segmentation"] != null) && (options["sum"] != null))
         eventType = "eventWithSumSegment";
 
     args.add(eventType);
 
-    if(options["key"] != null)
-        args.add(options["key"].toString());
-    if(options["count"] != null){
-        args.add(options["count"].toString());
-    }else{
-        args.add("1");
+    if(options["key"] == null){
+      options["key"] = "default";
     }
-    if(options["sum"] != null){
-        args.add(options["sum"].toString());
+    args.add(options["key"].toString());
+    
+    if(options["count"] == null){
+      options["count"] = 1;
     }
+    args.add(options["count"].toString());
+    
+    if(options["sum"] == null){
+      options["sum"] = "0";
+    }
+    args.add(options["sum"].toString());
 
-    if(options["segment"] != null){
-        segment = options["segment"];
-        segment.forEach((k, v){
+    if(options["segmentation"] != null){
+        segmentation = options["segmentation"];
+        segmentation.forEach((k, v){
           args.add(k.toString());
           args.add(v.toString());
         });
@@ -633,7 +649,7 @@ static Future<String> removeAllConsent() async {
     }
     return result;
   }
-  // static Future<String> sendEvent(String serverUrl, String appKey, [String deviceId]) async {
+  // static Future<String> recordEvent(String serverUrl, String appKey, [String deviceId]) async {
   //   List <String> args = [];
   //   args.add(serverUrl);
   //   args.add(appKey);

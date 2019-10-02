@@ -33,45 +33,45 @@ class _MyAppState extends State<MyApp> {
   basicEvent(){
     // example for basic event
     var event = {
-        "key": "basic_event",
+        "key": "Basic Event",
         "count": 1
     };
-    Countly.sendEvent(event);
+    Countly.recordEvent(event);
   }
   eventWithSum(){
     // example for event with sum
      var event = {
-            "key": "event_sum",
+            "key": "Event With Sum",
             "count": 1,
             "sum": "0.99"
         };
-        Countly.sendEvent(event);
+        Countly.recordEvent(event);
   }
   eventWithSegment(){
      // example for event with segment
         var event = {
-            "key": "event_segment",
+            "key": "Event With Segment",
             "count": 1
         };
-        event["segment"] = {
+        event["segmentation"] = {
             "Country": "Turkey",
             "Age": "28"
         };
-        Countly.sendEvent(event);
+        Countly.recordEvent(event);
   }
 
   eventWithSumSegment(){
     // example for event with segment and sum
         var event = {
-            "key": "event_segment_sum",
+            "key": "Event With Sum And Segment",
             "count": 1,
             "sum": "0.99"
         };
-        event["segment"] = {
+        event["segmentation"] = {
             "Country": "Turkey",
             "Age": "28"
         };
-        Countly.sendEvent(event);
+        Countly.recordEvent(event);
   }
   event(){
     // setInterval(function() {
@@ -104,20 +104,19 @@ endEventWithSum(){
   endEventWithSegment(){
     Countly.startEvent("Timed Event With Segment");
     //     // setTimeout(function() {
-      Timer timer;
-      var event = {
-          "key": "Timed Event With Segment",
-          "segment": {
-              "Country": "Turkey",
-              "Age": "28"
-          }
-      };
-
+     Timer timer;
       timer = new Timer(new Duration(seconds: 5), () {
+        var event = {
+            "key": "Timed Event With Segment",
+            "count": 1,
+        };
+        event["segmentation"] = {
+            "Country": "Turkey",
+            "Age": "28"
+        };
         Countly.endEvent(event);
         timer.cancel();
       });
-
     //     // }, 1000);
   }
   endEventWithSumSegment(){
@@ -130,7 +129,7 @@ endEventWithSum(){
             "count": 1,
             "sum": "0.99"
         };
-        event["segment"] = {
+        event["segmentation"] = {
             "Country": "Turkey",
             "Age": "28"
         };
@@ -429,9 +428,11 @@ endEventWithSum(){
   }
 
   setHttpPostForced(){
-    // Countly.setHttpPostForced(true);
+    Countly.setHttpPostForced(true);
   }
-
+  setLocation(){
+      Countly.setLocation("latitude","longitude");
+  }
 
 
   @override
