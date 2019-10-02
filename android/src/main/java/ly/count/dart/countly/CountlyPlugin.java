@@ -160,7 +160,7 @@ public class CountlyPlugin implements MethodCallHandler {
     }else if("endEvent".equals(call.method)){
         String key = args.getString(0);
         int count = Integer.parseInt(args.getString(1));
-        float sum = new Float(args.getString(2)).floatValue();
+        float sum = Float.valueOf(args.getString(2)); // new Float(args.getString(2)).floatValue();
         HashMap<String, String> segmentation = new HashMap<String, String>();
         if(args.length() > 3){
             for(int i=3,il=args.length();i<il;i+=2){
@@ -213,7 +213,7 @@ public class CountlyPlugin implements MethodCallHandler {
     else if ("recordEvent".equals(call.method)) {
         String key = args.getString(0);
         int count = Integer.parseInt(args.getString(1));
-        float sum = new Float(args.getString(2)).floatValue();
+        float sum = Float.valueOf(args.getString(2)); // new Float(args.getString(2)).floatValue();
         HashMap<String, String> segmentation = new HashMap<String, String>();
         if(args.length() > 3){
             for(int i=3,il=args.length();i<il;i+=2){
