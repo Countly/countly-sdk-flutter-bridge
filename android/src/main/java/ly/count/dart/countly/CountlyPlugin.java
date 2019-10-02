@@ -162,86 +162,109 @@ public class CountlyPlugin implements MethodCallHandler {
         String startEvent = args.getString(0);
         Countly.sharedInstance().startEvent(startEvent);
     }else if("endEvent".equals(call.method)){
-        String eventType = args.getString(0);
-        if("event".equals(eventType)){
-            String eventName = args.getString(1);
-            Countly.sharedInstance().endEvent(eventName);
-            result.success("event sent");
-        }
-        else if ("eventWithSegment".equals(eventType)) {
-            String eventName = args.getString(1);
-            HashMap<String, String> segmentation = new HashMap<String, String>();
+        String key = args.getString(0);
+        int count = Integer.parseInt(args.getString(1));
+        float sum = new Float(args.getString(2)).floatValue();
+        HashMap<String, String> segmentation = new HashMap<String, String>();
+        if(args.length() > 3){
             for(int i=3,il=args.length();i<il;i+=2){
                 segmentation.put(args.getString(i), args.getString(i+1));
             }
-            Countly.sharedInstance().endEvent(eventName, segmentation, 1,0);
-            result.success("eventWithSumSegment sent");
         }
-        else if ("eventWithSum".equals(eventType)) {
-            String eventName = args.getString(1);
-            int eventCount= Integer.parseInt(args.getString(2));
-            float eventSum= new Float(args.getString(3)).floatValue();
-            HashMap<String, String> segmentation = new HashMap<String, String>();
-            for(int i=4,il=args.length();i<il;i+=2){
-                segmentation.put(args.getString(i), args.getString(i+1));
-            }
-            Countly.sharedInstance().endEvent(eventName, segmentation, eventCount,eventSum);
-            result.success("eventWithSumSegment sent");
-        }
-        else if ("eventWithSumSegment".equals(eventType)) {
-            String eventName = args.getString(1);
-            int eventCount= Integer.parseInt(args.getString(2));
-            float eventSum= new Float(args.getString(3)).floatValue();
-            HashMap<String, String> segmentation = new HashMap<String, String>();
-            for(int i=4,il=args.length();i<il;i+=2){
-                segmentation.put(args.getString(i), args.getString(i+1));
-            }
-            Countly.sharedInstance().endEvent(eventName, segmentation, eventCount,eventSum);
-            result.success("eventWithSumSegment sent");
-        }
-        else{
-            result.success("event sent");
-        }
+        Countly.sharedInstance().endEvent(key, segmentation, count, sum);
+        result.success("endEvent for: "+key);
+
+        // if("event".equals(eventType)){
+        //     String eventName = args.getString(1);
+        //     Countly.sharedInstance().endEvent(eventName);
+        //     result.success("event sent");
+        // }
+        // else if ("eventWithSegment".equals(eventType)) {
+        //     String eventName = args.getString(1);
+        //     HashMap<String, String> segmentation = new HashMap<String, String>();
+        //     for(int i=3,il=args.length();i<il;i+=2){
+        //         segmentation.put(args.getString(i), args.getString(i+1));
+        //     }
+        //     Countly.sharedInstance().endEvent(eventName, segmentation, 1,0);
+        //     result.success("eventWithSumSegment sent");
+        // }
+        // else if ("eventWithSum".equals(eventType)) {
+        //     String eventName = args.getString(1);
+        //     int eventCount= Integer.parseInt(args.getString(2));
+        //     float eventSum= new Float(args.getString(3)).floatValue();
+        //     HashMap<String, String> segmentation = new HashMap<String, String>();
+        //     for(int i=4,il=args.length();i<il;i+=2){
+        //         segmentation.put(args.getString(i), args.getString(i+1));
+        //     }
+        //     Countly.sharedInstance().endEvent(eventName, segmentation, eventCount,eventSum);
+        //     result.success("eventWithSumSegment sent");
+        // }
+        // else if ("eventWithSumSegment".equals(eventType)) {
+        //     String eventName = args.getString(1);
+        //     int eventCount= Integer.parseInt(args.getString(2));
+        //     float eventSum= new Float(args.getString(3)).floatValue();
+        //     HashMap<String, String> segmentation = new HashMap<String, String>();
+        //     for(int i=4,il=args.length();i<il;i+=2){
+        //         segmentation.put(args.getString(i), args.getString(i+1));
+        //     }
+        //     Countly.sharedInstance().endEvent(eventName, segmentation, eventCount,eventSum);
+        //     result.success("eventWithSumSegment sent");
+        // }
+        // else{
+        //     result.success("event sent");
+        // }
     }
-    else if ("event".equals(call.method)) {
-        String eventType = args.getString(0);
-        if("event".equals(eventType)){
-            String eventName = args.getString(1);
-            int eventCount= Integer.parseInt(args.getString(2));
-            Countly.sharedInstance().recordEvent(eventName, eventCount);
-            result.success("event sent");
-        }
-        else if ("eventWithSum".equals(eventType)) {
-            String eventName = args.getString(1);
-            int eventCount= Integer.parseInt(args.getString(2));
-            float eventSum= new Float(args.getString(3)).floatValue();
-            Countly.sharedInstance().recordEvent(eventName, eventCount, eventSum);
-            result.success("eventWithSum sent");
-        }
-        else if ("eventWithSegment".equals(eventType)) {
-            String eventName = args.getString(1);
-            int eventCount= Integer.parseInt(args.getString(2));
-            HashMap<String, String> segmentation = new HashMap<String, String>();
+    else if ("recordEvent".equals(call.method)) {
+        String key = args.getString(0);
+        int count = Integer.parseInt(args.getString(1));
+        float sum = new Float(args.getString(2)).floatValue();
+        HashMap<String, String> segmentation = new HashMap<String, String>();
+        if(args.length() > 3){
             for(int i=3,il=args.length();i<il;i+=2){
                 segmentation.put(args.getString(i), args.getString(i+1));
             }
-            Countly.sharedInstance().recordEvent(eventName, segmentation, eventCount);
-            result.success("eventWithSegment sent");
         }
-        else if ("eventWithSumSegment".equals(eventType)) {
-            String eventName = args.getString(1);
-            int eventCount= Integer.parseInt(args.getString(2));
-            float eventSum= new Float(args.getString(3)).floatValue();
-            HashMap<String, String> segmentation = new HashMap<String, String>();
-            for(int i=4,il=args.length();i<il;i+=2){
-                segmentation.put(args.getString(i), args.getString(i+1));
-            }
-            Countly.sharedInstance().recordEvent(eventName, segmentation, eventCount,eventSum);
-            result.success("eventWithSumSegment sent");
-        }
-        else{
-            result.success("event sent");
-        }
+        Countly.sharedInstance().recordEvent(key, segmentation, count, sum);
+        result.success("recordEvent for: "+key);
+
+        // String eventType = args.getString(0);
+        // if("event".equals(eventType)){
+        //     String eventName = args.getString(1);
+        //     int eventCount= Integer.parseInt(args.getString(2));
+        //     Countly.sharedInstance().recordEvent(eventName, eventCount);
+        //     result.success("event sent");
+        // }
+        // else if ("eventWithSum".equals(eventType)) {
+        //     String eventName = args.getString(1);
+        //     int eventCount= Integer.parseInt(args.getString(2));
+        //     float eventSum= new Float(args.getString(3)).floatValue();
+        //     Countly.sharedInstance().recordEvent(eventName, eventCount, eventSum);
+        //     result.success("eventWithSum sent");
+        // }
+        // else if ("eventWithSegment".equals(eventType)) {
+        //     String eventName = args.getString(1);
+        //     int eventCount= Integer.parseInt(args.getString(2));
+        //     HashMap<String, String> segmentation = new HashMap<String, String>();
+        //     for(int i=3,il=args.length();i<il;i+=2){
+        //         segmentation.put(args.getString(i), args.getString(i+1));
+        //     }
+        //     Countly.sharedInstance().recordEvent(eventName, segmentation, eventCount);
+        //     result.success("eventWithSegment sent");
+        // }
+        // else if ("eventWithSumSegment".equals(eventType)) {
+        //     String eventName = args.getString(1);
+        //     int eventCount= Integer.parseInt(args.getString(2));
+        //     float eventSum= new Float(args.getString(3)).floatValue();
+        //     HashMap<String, String> segmentation = new HashMap<String, String>();
+        //     for(int i=4,il=args.length();i<il;i+=2){
+        //         segmentation.put(args.getString(i), args.getString(i+1));
+        //     }
+        //     Countly.sharedInstance().recordEvent(eventName, segmentation, eventCount,eventSum);
+        //     result.success("eventWithSumSegment sent");
+        // }
+        // else{
+        //     result.success("event sent");
+        // }
     }
     else if ("setloggingenabled".equals(call.method)) {
         Countly.sharedInstance().setLoggingEnabled(true);

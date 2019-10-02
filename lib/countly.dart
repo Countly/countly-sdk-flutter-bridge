@@ -36,32 +36,23 @@ class Countly {
 
 
   static Future<String> recordEvent( Map<String, Object> options) async {
-    if(isDebug){
-      print('recordEvent');
-    }
     List <String> args = [];
-    var eventType = "event"; //event, eventWithSum, eventWithSegment, eventWithSumSegment
     var segmentation = {};
 
-    if(options["sum"] != null)
-        eventType = "eventWithSum";
-    if(options["segmentation"] != null)
-        eventType = "eventWithSegment";
-    if((options["segmentation"] != null) && (options["sum"] != null))
-        eventType = "eventWithSumSegment";
-
-    args.add(eventType);
-
-    if(options["key"] != null)
-        args.add(options["key"].toString());
-    if(options["count"] != null){
-        args.add(options["count"].toString());
-    }else{
-        args.add("1");
+    if(options["key"] == null){
+      options["key"] = "default";
     }
-    if(options["sum"] != null){
-        args.add(options["sum"].toString());
+    args.add(options["key"].toString());
+
+    if(options["count"] == null){
+      options["count"] = 1;
     }
+    args.add(options["count"].toString());
+
+    if(options["sum"] == null){
+      options["sum"] = "0";
+    }
+    args.add(options["sum"].toString());
 
     if(options["segmentation"] != null){
         segmentation = options["segmentation"];
@@ -71,7 +62,7 @@ class Countly {
         });
     }
 
-    final String result = await _channel.invokeMethod('event', <String, dynamic>{
+    final String result = await _channel.invokeMethod('recordEvent', <String, dynamic>{
         'data': json.encode(args)
     });
     if(isDebug){
@@ -430,7 +421,7 @@ static Future<String> giveConsent(List <String> consent) async {
 }
 static Future<String> removeConsent(List <String> consent) async {
   List <String> args = consent;
-  
+
   final String result = await _channel.invokeMethod('removeConsent', <String, dynamic>{
       'data': json.encode(args)
   });
@@ -441,7 +432,7 @@ static Future<String> removeConsent(List <String> consent) async {
 }
 static Future<String> giveAllConsent() async {
   List <String> args = [];
-  
+
   final String result = await _channel.invokeMethod('giveAllConsent', <String, dynamic>{
       'data': json.encode(args)
   });
@@ -452,7 +443,7 @@ static Future<String> giveAllConsent() async {
 }
 static Future<String> removeAllConsent() async {
   List <String> args = [];
-  
+
   final String result = await _channel.invokeMethod('removeAllConsent', <String, dynamic>{
       'data': json.encode(args)
   });
@@ -474,7 +465,7 @@ static Future<String> removeAllConsent() async {
   }
   static Future<String> remoteConfigUpdate(Function onSuccess, Function onError) async {
     List <String> args = [];
-    
+
     final String result = await _channel.invokeMethod('remoteConfigUpdate', <String, dynamic>{
         'data': json.encode(args)
     });
@@ -485,7 +476,7 @@ static Future<String> removeAllConsent() async {
   }
   static Future<String> updateRemoteConfigForKeysOnly(Object keys, Function onSuccess, Function onError) async {
     List <String> args = [];
-    
+
     final String result = await _channel.invokeMethod('updateRemoteConfigForKeysOnly', <String, dynamic>{
         'data': json.encode(args)
     });
@@ -496,7 +487,7 @@ static Future<String> removeAllConsent() async {
   }
   static Future<String> updateRemoteConfigExceptKeys(Object keys, Function onSuccess, Function onError) async {
     List <String> args = [];
-    
+
     final String result = await _channel.invokeMethod('updateRemoteConfigExceptKeys', <String, dynamic>{
         'data': json.encode(args)
     });
@@ -579,30 +570,19 @@ static Future<String> removeAllConsent() async {
   }
 
   static Future<String> endEvent(Map<String, Object> options) async {
-  List <String> args = [];
-        // options = {"eventName": options};
-    var eventType = "event"; //event, eventWithSum, eventWithSegment, eventWithSumSegment
+    List <String> args = [];
     var segmentation = {};
-
-    if(options["sum"] != null)
-        eventType = "eventWithSum";
-    if(options["segmentation"] != null)
-        eventType = "eventWithSegment";
-    if((options["segmentation"] != null) && (options["sum"] != null))
-        eventType = "eventWithSumSegment";
-
-    args.add(eventType);
 
     if(options["key"] == null){
       options["key"] = "default";
     }
     args.add(options["key"].toString());
-    
+
     if(options["count"] == null){
       options["count"] = 1;
     }
     args.add(options["count"].toString());
-    
+
     if(options["sum"] == null){
       options["sum"] = "0";
     }
@@ -615,7 +595,7 @@ static Future<String> removeAllConsent() async {
           args.add(v.toString());
         });
     }
-    
+
   final String result = await _channel.invokeMethod('endEvent', <String, dynamic>{
       'data': json.encode(args)
   });
@@ -640,7 +620,7 @@ static Future<String> removeAllConsent() async {
 
   static Future<String> logException() async {
     List <String> args = [];
-  
+
     final String result = await _channel.invokeMethod('logException', <String, dynamic>{
         'data': json.encode(args)
     });
