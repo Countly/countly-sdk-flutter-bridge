@@ -26,8 +26,8 @@ import java.util.ArrayList;
 /** CountlyPlugin */
 public class CountlyPlugin implements MethodCallHandler {
   /** Plugin registration. */
-  Context context;
-  Activity activity;
+    private Context context;
+    private Activity activity;
     private final Set<String> validConsentFeatureNames = new HashSet<String>(Arrays.asList(
             Countly.CountlyFeatureNames.sessions,
             Countly.CountlyFeatureNames.events,
@@ -59,8 +59,6 @@ public class CountlyPlugin implements MethodCallHandler {
       if(argsString == null){
         argsString = "[]";
       }
-      Log.w("Nicolson", call.method);
-      Log.w("Nicolson", argsString);
       JSONArray args = null;
       try{
       args = new JSONArray(argsString);
@@ -70,8 +68,6 @@ public class CountlyPlugin implements MethodCallHandler {
 
         String serverUrl = args.getString(0);
         String appKey = args.getString(1);
-        Log.i("Nicolson", serverUrl);
-        Log.i("Nicolson", appKey);
         if(args.length() == 2){
             Countly.sharedInstance().init(context, serverUrl, appKey,null,DeviceId.Type.OPEN_UDID);
         }else if(args.length() == 3){
@@ -268,7 +264,6 @@ public class CountlyPlugin implements MethodCallHandler {
     }
     else if ("setloggingenabled".equals(call.method)) {
         String loggingEnable = args.getString(0);
-        Log.w("Nicolson", loggingEnable);
         if(loggingEnable.equals("true")){
             Countly.sharedInstance().setLoggingEnabled(true);
         }else{
