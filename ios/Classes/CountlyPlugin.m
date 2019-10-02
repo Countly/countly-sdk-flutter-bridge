@@ -434,6 +434,7 @@ CountlyConfig* config = nil;
 
         NSString* latitudeString = [command objectAtIndex:2];
         NSString* longitudeString = [command objectAtIndex:3];
+        NSString* ipAddress = [command objectAtIndex:3];
 
         double latitudeDouble = [latitudeString doubleValue];
         double longitudeDouble = [longitudeString doubleValue];
@@ -441,6 +442,7 @@ CountlyConfig* config = nil;
         config.ISOCountryCode = country;
         config.city = city;
         config.location = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
+        config.IP = ipAddress;
 
         result(@"setOptionalParametersForInitialization!");
 

@@ -168,36 +168,42 @@ static Future<String> start() async {
 
 static Future<String> setOptionalParametersForInitialization(Map<String, Object> options) async {
     List <String> args = [];
+
+    String city = options["city"];
+    String country = options["country"];
     String latitude = options["latitude"];
+    String longitude = options["longitude"];
     String ipAddress = options["ipAddress"];
-    options["latitude"] = options["latitude"].toString();
-    options["longitude"] = options["longitude"].toString();
-    // if(options["latitude && !options.latitude"].match('\\.')){
-    //     options["latitude"] =   + ".00";
-    // }
-    // if(optionslongitude && !options["longitude"].match('\\.')){
-    //     options["longitude"] = latitude + ".00";
-    // }
-    if(options["city"] == null){
-      options["city"] = "";
+
+    if(city == null){
+      city = "";
     }
-    if(options["country"] == null){
-      options["country"] = "";
+    if(country == null){
+      country = "";
     }
-    if(options["latitude"] == null){
-      options["latitude"] = "";
+    if(latitude == null){
+      latitude = "";
     }
-    if(options["longitude"] == null){
-      options["longitude"] = "";
+    if(longitude == null){
+      longitude = "0.00";
     }
-    if(options["ipAddress"] == null){
-      options["ipAddress"] = "";
+    if(ipAddress == null){
+      ipAddress = "0.00";
     }
-    args.add(options["city"]);
-    args.add(options["country"]);
-    args.add(options["latitude"]);
-    args.add(options["longitude"]);
-    args.add(options["ipAddress"]);
+
+    if(!latitude.contains(".")){
+        latitude =  latitude + ".00";
+    }
+    if(!latitude.contains(".")){
+        latitude =  latitude + ".00";
+    }
+
+    args.add(city);
+    args.add(country);
+    args.add(latitude);
+    args.add(longitude);
+    args.add(ipAddress);
+
     final String result = await _channel.invokeMethod('setOptionalParametersForInitialization', <String, dynamic>{
         'data': json.encode(args)
     });

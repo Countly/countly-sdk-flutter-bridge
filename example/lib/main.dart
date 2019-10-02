@@ -42,24 +42,24 @@ class _MyAppState extends State<MyApp> {
   }
   eventWithSum(){
     // example for event with sum
-     var event = {
-            "key": "Event With Sum",
-            "count": 1,
-            "sum": "0.99"
-        };
-        Countly.recordEvent(event);
+    var event = {
+        "key": "Event With Sum",
+        "count": 1,
+        "sum": "0.99"
+    };
+    Countly.recordEvent(event);
   }
   eventWithSegment(){
-     // example for event with segment
-        var event = {
-            "key": "Event With Segment",
-            "count": 1
-        };
-        event["segmentation"] = {
-            "Country": "Turkey",
-            "Age": "28"
-        };
-        Countly.recordEvent(event);
+      // example for event with segment
+      var event = {
+          "key": "Event With Segment",
+          "count": 1
+      };
+      event["segmentation"] = {
+          "Country": "Turkey",
+          "Age": "28"
+      };
+      Countly.recordEvent(event);
   }
 
   eventWithSumSegment(){
@@ -394,7 +394,8 @@ endEventWithSum(){
           "city": "Tampa",
           "country": "US",
           "latitude": "28.006324",
-          "longitude": "-82.7166183"
+          "longitude": "-82.7166183",
+          "ipAddress": "255.255.255.255"
       };
       Countly.setOptionalParametersForInitialization(options);
   }
