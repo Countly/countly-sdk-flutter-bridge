@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
@@ -408,6 +410,9 @@ endEventWithSum(){
       //       // a();
       //   // }, 1000);
   }
+  setLoggingEnabled(){
+    Countly.setLoggingEnabled(true);
+  }
   sendRating(){
     Countly.sendRating(5);
   }
@@ -501,6 +506,7 @@ endEventWithSum(){
               MyButton(text: "Enable Parameter Tapmering Protection", color: "violet", onPressed: enableParameterTamperingProtection),
               MyButton(text: "City, State, and Location", color: "violet", onPressed: setOptionalParametersForInitialization),
               MyButton(text: "Send Crash Report", color: "violet", onPressed: addCrashLog),
+              MyButton(text: "Enabling logging", color: "violet", onPressed: setLoggingEnabled),
 
               MyButton(text: "Send 5 star rating!!", color: "orange", onPressed: sendRating),
               MyButton(text: "Open rating modal", color: "orange", onPressed: askForStarRating),

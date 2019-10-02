@@ -22,7 +22,6 @@ CountlyConfig* config = nil;
     NSData* data = [commandString dataUsingEncoding:NSUTF8StringEncoding];
     NSError *e;
     NSArray *command = [NSJSONSerialization JSONObjectWithData:data options:nil error:&e];
-
     if([@"init" isEqualToString:call.method]){
 
 
@@ -30,9 +29,6 @@ CountlyConfig* config = nil;
         NSString* appkey = [command objectAtIndex:1];
         NSString* deviceID = @"";
 
-        if(config == nil){
-            config = CountlyConfig.new;
-        }
         config.appKey = appkey;
         config.host = serverurl;
 
@@ -411,9 +407,6 @@ CountlyConfig* config = nil;
 
     //setRequiresConsent
     }else if ([@"setRequiresConsent" isEqualToString:call.method]) {
-        if (config == nil){
-            config = CountlyConfig.new;
-        }
         BOOL consentFlag = [[command objectAtIndex:0] boolValue];
         config.requiresConsent = consentFlag;
         result(@"setRequiresConsent!");
@@ -445,10 +438,6 @@ CountlyConfig* config = nil;
         double latitudeDouble = [latitudeString doubleValue];
         double longitudeDouble = [longitudeString doubleValue];
 
-        if(config == nil){
-            config = CountlyConfig.new;
-        }
-
         config.ISOCountryCode = country;
         config.city = city;
         config.location = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
@@ -456,9 +445,6 @@ CountlyConfig* config = nil;
         result(@"setOptionalParametersForInitialization!");
 
     }else if ([@"setRemoteConfigAutomaticDownload" isEqualToString:call.method]) {
-        if(config == nil){
-            config = CountlyConfig.new;
-        }
         config.enableRemoteConfig = YES;
         config.remoteConfigCompletionHandler = ^(NSError * error)
         {

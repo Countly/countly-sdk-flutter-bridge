@@ -225,7 +225,7 @@ static Future<String> changeDeviceId(String newDeviceID ,bool onServer) async {
       print(result);
     }
     return result;
-  }
+}
 
 static Future<String> addCrashLog(String newDeviceID) async {
     List <String> args = [];
@@ -237,7 +237,20 @@ static Future<String> addCrashLog(String newDeviceID) async {
       print(result);
     }
     return result;
-  }
+}
+
+static Future<String> setLoggingEnabled(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('setloggingenabled', <String, dynamic>{
+        'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+}
 
 static Future<String> enableParameterTamperingProtection(String salt) async {
     List <String> args = [];
