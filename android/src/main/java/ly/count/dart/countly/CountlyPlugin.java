@@ -413,6 +413,56 @@ public class CountlyPlugin implements MethodCallHandler {
          Countly.sharedInstance().removeConsent(validConsentFeatureNames.toArray(new String[validConsentFeatureNames.size()]));
          result.success("removeAllConsent!");
      }
+<<<<<<< HEAD
+
+     else if ("enableSession".equals(call.method)) {
+        String sessionEnable = args.getString(0);
+        if(loggingEnable.equals("true")){
+            Countly.sharedInstance().enableSession(true);
+        }else{
+            Countly.sharedInstance().enableSession(false);
+        }
+        result.success("enableSession success!");
+    }
+    else if ("giveConsentEvents".equals(call.method)) {
+        result.success("giveConsentEvents success!");
+    }
+    else if ("giveConsentViews".equals(call.method)) {
+        result.success("giveConsentViews success!");
+    }
+    else if ("giveConsentstarRating".equals(call.method)) {
+        result.success("giveConsentstarRating success!");
+    }
+    else if ("giveConsentCrashes".equals(call.method)) {
+        result.success("giveConsentCrashes success!");
+    }
+    
+    else if ("removeConsentEvents".equals(call.method)) {
+        result.success("removeConsentEvents success!");
+    }
+    else if ("removeConsentViews".equals(call.method)) {
+        result.success("removeConsentViews success!");
+    }
+    else if ("removeConsentstarRating".equals(call.method)) {
+        result.success("removeConsentstarRating success!");
+    }
+    else if ("removeConsentCrashes".equals(call.method)) {
+        result.success("removeConsentCrashes success!");
+    }
+
+    else if ("disableSession".equals(call.method)) {
+        String locationEnable = args.getString(0);
+        if(loggingEnable.equals("true")){
+            Countly.sharedInstance().disableSession(true);
+        }else{
+            Countly.sharedInstance().disableSession(false);
+        }
+        result.success("disableSession success!");
+    }
+
+
+=======
+>>>>>>> 7aa1eaf229f28b44f8b2ff01172aa4261f9e5373
     else if("getDeviceID".equals(call.method)){
         result.success(Countly.sharedInstance().getDeviceID());
     }

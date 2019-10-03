@@ -258,6 +258,7 @@ class _MyAppState extends State<MyApp> {
     Countly.removeAllConsent();
   }
 
+<<<<<<< HEAD
   giveConsentEvents(){
     Countly.giveConsent(["events"]);
   }
@@ -284,6 +285,58 @@ class _MyAppState extends State<MyApp> {
     Countly.removeConsent(["crashes"]);
   }
   
+=======
+  // enableSession(){
+  //   Countly.enableSession(true);
+  // }
+  // enableEvents(){
+  //   Countly.enableEvents(true);
+  // }
+  // enableViews(){
+  //   Countly.enableViews(true);
+  // }
+  // enableLocation(){
+  //   Countly.enableLocation(true);
+  // }
+  // enableCrashes(){
+  //   Countly.enableCrashes(true);
+  // }
+  // enableAttribution(){
+  //   Countly.enableAttribution(true);
+  // }
+  // enableUsers(){
+  //   Countly.enableUsers(true);
+  // }
+  // enablePush(){
+  //   Countly.enablePush(true);
+  // }
+
+  // disableSession(){
+  //   Countly.disableSession(true);
+  // }
+  // disableEvents(){
+  //   Countly.disableEvents(true);
+  // }
+  // disableViews(){
+  //   Countly.disableViews(true);
+  // }
+  // disableLocation(){
+  //   Countly.disableLocation(true);
+  // }
+  // disableCrashes(){
+  //   Countly.disableCrashes(true);
+  // }
+  // disableAttribution(){
+  //   Countly.disableAttribution(true);
+  // }
+  // disableUsers(){
+  //   Countly.disableUsers(true);
+  // }
+  // disablePush(){
+  //   Countly.disablePush(true);
+  // }
+
+>>>>>>> 7aa1eaf229f28b44f8b2ff01172aa4261f9e5373
   sendPushToken(){
     //  var push = PushNotification.init({
     //       android: {sound: true},
@@ -418,13 +471,16 @@ class _MyAppState extends State<MyApp> {
     Countly.sendRating(5);
   }
   askForStarRating(){
-    Countly.askForStarRating();
     // Countly.askForStarRating(function(ratingResult){
       // console.log(ratingResult);
     // });
   }
   askForFeedback(){
-    Countly.askForFeedback("5d95c48805c90924dae7df80", "Close");
+    // Countly.askForFeedback("5d80915a31ec7124c86df698", function(url){
+    //         //
+    //         url = "https://try.count.ly/feedback?widget_id=5d80915a31ec7124c86df698&device_id=a02cee5e35b6b8e8&app_key=0e8a00e8c01395a0af8be0e55da05a404bb23c3e";
+    //         // open modal + close button with iframe.
+    //     });
   }
   logException(){
     Countly.logException();
@@ -489,6 +545,7 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Remove all Consent", color: "blue", onPressed: removeAllConsent),
 
               // MyButton(text: "Enable Sessions", color: "blue", onPressed: enableSession),
+<<<<<<< HEAD
               MyButton(text: "Give Consent Events", color: "blue", onPressed:giveConsentEvents),
               MyButton(text: "Give Consent Views", color: "blue", onPressed: giveConsentViews),
               MyButton(text: "Give starRating", color: "blue", onPressed: giveConsentstarRating),
@@ -500,6 +557,27 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Remove Consent Crashes", color: "blue", onPressed: removeConsentCrashes),
 
               
+=======
+              // MyButton(text: "Enable Events", color: "blue", onPressed: enableEvents),
+              // MyButton(text: "Enable Views", color: "blue", onPressed: enableViews),
+              // MyButton(text: "Enable Location", color: "blue", onPressed: enableLocation),
+              // MyButton(text: "Enable Crashes", color: "blue", onPressed: enableCrashes),
+              // MyButton(text: "Enable Attribution", color: "blue", onPressed: enableAttribution),
+              // MyButton(text: "Enable users", color: "blue", onPressed: enableUsers),
+              // MyButton(text: "Enable push", color: "blue", onPressed: enablePush),
+
+              // MyButton(text: "Disable Sessions", color: "blue", onPressed: disableSession),
+              // MyButton(text: "Disable Events", color: "blue", onPressed: disableEvents),
+              // MyButton(text: "Disable Views", color: "blue", onPressed: disableViews),
+              // MyButton(text: "Disable Location", color: "blue", onPressed: disableLocation),
+              // MyButton(text: "Disable Crashes", color: "blue", onPressed: disableCrashes),
+              // MyButton(text: "Disable Attribution", color: "blue", onPressed: disableAttribution),
+              // MyButton(text: "Disable users", color: "blue", onPressed: disableUsers),
+              // MyButton(text: "Disable push", color: "blue", onPressed: disablePush),
+
+
+
+>>>>>>> 7aa1eaf229f28b44f8b2ff01172aa4261f9e5373
 
               MyButton(text: "Countly.setRemoteConfigAutomaticDownload", color: "purple", onPressed: setRemoteConfigAutomaticDownload),
               MyButton(text: "Countly.remoteConfigUpdate", color: "purple", onPressed: remoteConfigUpdate),

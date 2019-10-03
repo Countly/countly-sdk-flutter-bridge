@@ -469,7 +469,12 @@ class Countly {
     }
     return result;
   }
+<<<<<<< HEAD
   /// button 
+  
+  static Future<String> giveConsentEvents(bool flag) async {
+=======
+  /// button
   static Future<String> enableSession(bool flag) async {
     List <String> args = [];
     isDebug = flag;
@@ -518,14 +523,64 @@ class Countly {
     }
     return result;
   }
+  static Future<String> enableCrashes(bool flag) async {
+>>>>>>> 7aa1eaf229f28b44f8b2ff01172aa4261f9e5373
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('giveConsentEvents', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> giveConsentViews(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('giveConsentViews', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> giveConsentstarRating(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('giveConsentstarRating', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> giveConsentCrashes(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('giveConsentCrashes', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
   
   
 
-  static Future<String> disableSession(bool flag) async {
+  
+  static Future<String> removeConsentEvents(bool flag) async {
     List <String> args = [];
     isDebug = flag;
     args.add(flag.toString());
-    final String result = await _channel.invokeMethod('disableSession', <String, dynamic>{
+    final String result = await _channel.invokeMethod('removeConsentEvents', <String, dynamic>{
       'data': json.encode(args)
     });
     if(isDebug){
@@ -533,11 +588,11 @@ class Countly {
     }
     return result;
   }
-  static Future<String> disableEvents(bool flag) async {
+  static Future<String> removeConsentViews(bool flag) async {
     List <String> args = [];
     isDebug = flag;
     args.add(flag.toString());
-    final String result = await _channel.invokeMethod('disableEvents', <String, dynamic>{
+    final String result = await _channel.invokeMethod('removeConsentViews', <String, dynamic>{
       'data': json.encode(args)
     });
     if(isDebug){
@@ -545,11 +600,12 @@ class Countly {
     }
     return result;
   }
-  static Future<String> disableViews(bool flag) async {
+  
+  static Future<String> removeConsentstarRating(bool flag) async {
     List <String> args = [];
     isDebug = flag;
     args.add(flag.toString());
-    final String result = await _channel.invokeMethod('disableViews', <String, dynamic>{
+    final String result = await _channel.invokeMethod('removeConsentstarRating', <String, dynamic>{
       'data': json.encode(args)
     });
     if(isDebug){
@@ -557,7 +613,7 @@ class Countly {
     }
     return result;
   }
-  static Future<String> disableLocation(bool flag) async {
+  static Future<String> removeConsentCrashes(bool flag) async {
     List <String> args = [];
     isDebug = flag;
     args.add(flag.toString());
@@ -569,7 +625,7 @@ class Countly {
     }
     return result;
   }
-  
+
 
   static Future<String> setRemoteConfigAutomaticDownload(Function callback) async {
     List <String> args = [];
@@ -650,8 +706,12 @@ class Countly {
     }
     return result;
   }
-  static Future<String> askForStarRating() async {
+  static Future<String> askForStarRating(callback) async {
     List <String> args = [];
+    // Countly.rating.create();
+    // Countly.rating.set(0);
+    // Countly.rating.callback = callback;
+    // query('countly-rating-modal').classList.add('open');
     final String result = await _channel.invokeMethod('askForStarRating', <String, dynamic>{
       'data': json.encode(args)
     });
@@ -661,10 +721,12 @@ class Countly {
     return result;
   }
 
-  static Future<String> askForFeedback(String widgetId, String closeButtonText) async {
+  static Future<String> askForFeedback(callback) async {
     List <String> args = [];
-    args.add(widgetId);
-    args.add(closeButtonText);
+    // Countly.rating.create();
+    // Countly.rating.set(0);
+    // Countly.rating.callback = callback;
+    // query('countly-rating-modal').classList.add('open');
     final String result = await _channel.invokeMethod('askForFeedback', <String, dynamic>{
       'data': json.encode(args)
     });
