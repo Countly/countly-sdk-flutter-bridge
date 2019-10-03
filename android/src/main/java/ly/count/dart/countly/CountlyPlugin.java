@@ -413,62 +413,6 @@ public class CountlyPlugin implements MethodCallHandler {
          Countly.sharedInstance().removeConsent(validConsentFeatureNames.toArray(new String[validConsentFeatureNames.size()]));
          result.success("removeAllConsent!");
      }
-
-    else if ("giveConsentSession".equals(call.method)) {
-        result.success("giveConsentSession success!");
-    }
-    else if ("giveConsentEvents".equals(call.method)) {
-        result.success("giveConsentEvents success!");
-    }
-    else if ("giveConsentViews".equals(call.method)) {
-        result.success("giveConsentViews success!");
-    }
-    else if ("giveConsentLocation".equals(call.method)) {
-        result.success("giveConsentLocation success!");
-    } 
-    else if ("giveConsentCrashes".equals(call.method)) {
-        result.success("giveConsentCrashes success!");
-    }
-    else if ("giveConsentattribution".equals(call.method)) {
-        result.success("giveConsentattribution success!");
-    }
-    else if ("giveConsentusers".equals(call.method)) {
-        result.success("giveConsentusers success!");
-    }
-    else if ("giveConsentpush".equals(call.method)) {
-        result.success("giveConsentpush success!");
-    }
-    else if ("giveConsentstarRating".equals(call.method)) {
-        result.success("giveConsentstarRating success!");
-    }
-    
-    else if ("removeConsentSession".equals(call.method)) {
-        result.success("removeConsentSession success!");
-    }
-    else if ("removeConsentEvents".equals(call.method)) {
-        result.success("removeConsentEvents success!");
-    }
-    else if ("removeConsentViews".equals(call.method)) {
-        result.success("removeConsentViews success!");
-    }
-    else if ("removeConsentLocation".equals(call.method)) {
-        result.success("removeConsentLocation success!");
-    } 
-    else if ("removeConsentCrashes".equals(call.method)) {
-        result.success("removeConsentCrashes success!");
-    }
-    else if ("removeConsentattribution".equals(call.method)) {
-        result.success("removeConsentattribution success!");
-    }
-    else if ("removeConsentusers".equals(call.method)) {
-        result.success("removeConsentusers success!");
-    }
-    else if ("removeConsentpush".equals(call.method)) {
-        result.success("removeConsentpush success!");
-    }
-    else if ("removeConsentstarRating".equals(call.method)) {
-        result.success("removeConsentstarRating success!");
-    }
     
 
 

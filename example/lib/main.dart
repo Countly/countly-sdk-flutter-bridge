@@ -443,7 +443,7 @@ class _MyAppState extends State<MyApp> {
     //   // }, 1000);
   }
   setLoggingEnabled(){
-    Countly.setLoggingEnabled(true);
+    Countly.setLoggingEnabled(false);
   }
   sendRating(){
     Countly.sendRating(5);
