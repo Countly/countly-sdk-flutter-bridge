@@ -769,12 +769,8 @@ class Countly {
     }
     return result;
   }
-  static Future<String> askForStarRating(callback) async {
+  static Future<String> askForStarRating() async {
     List <String> args = [];
-    // Countly.rating.create();
-    // Countly.rating.set(0);
-    // Countly.rating.callback = callback;
-    // query('countly-rating-modal').classList.add('open');
     final String result = await _channel.invokeMethod('askForStarRating', <String, dynamic>{
       'data': json.encode(args)
     });
@@ -784,12 +780,10 @@ class Countly {
     return result;
   }
 
-  static Future<String> askForFeedback(callback) async {
+  static Future<String> askForFeedback(String widgetId, String closeButtonText) async {
     List <String> args = [];
-    // Countly.rating.create();
-    // Countly.rating.set(0);
-    // Countly.rating.callback = callback;
-    // query('countly-rating-modal').classList.add('open');
+    args.add(widgetId);
+    args.add(closeButtonText);
     final String result = await _channel.invokeMethod('askForFeedback', <String, dynamic>{
       'data': json.encode(args)
     });

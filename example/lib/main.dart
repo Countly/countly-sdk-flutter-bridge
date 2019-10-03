@@ -449,16 +449,13 @@ class _MyAppState extends State<MyApp> {
     Countly.sendRating(5);
   }
   askForStarRating(){
+    Countly.askForStarRating();
     // Countly.askForStarRating(function(ratingResult){
       // console.log(ratingResult);
     // });
   }
   askForFeedback(){
-    // Countly.askForFeedback("5d80915a31ec7124c86df698", function(url){
-    //         //
-    //         url = "https://try.count.ly/feedback?widget_id=5d80915a31ec7124c86df698&device_id=a02cee5e35b6b8e8&app_key=0e8a00e8c01395a0af8be0e55da05a404bb23c3e";
-    //         // open modal + close button with iframe.
-    //     });
+    Countly.askForFeedback("5d95c48805c90924dae7df80", "Close");
   }
   logException(){
     Countly.logException();

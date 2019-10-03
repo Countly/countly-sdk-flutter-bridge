@@ -588,10 +588,23 @@ CountlyConfig* config = nil;
         result(value);
 
     }else if ([@"askForFeedback" isEqualToString:call.method]) {
-        NSString* widgetId = [command objectAtIndex:0];
-        NSString* URL = [Countly.sharedInstance getFeedbackWidget: widgetId];
-        result(@"default!");
+         NSString* widgetId = [command objectAtIndex:0];
+         [Countly.sharedInstance presentFeedbackWidgetWithID:widgetId completionHandler:^(NSError* error){
+            if (error){
+                NSString *theError = [@"Feedback widget presentation failed: " stringByAppendingString: error.localizedDescription];
+                result(theError);
+            }
+            else{
+                result(@"Feedback widget presented successfully");
+            }
+        }];
 
+
+    }else if ([@"askForStarRating" isEqualToString:call.method]) {
+        [Countly.sharedInstance askForStarRating:^(NSInteger rating){
+
+        }];
+        result(@"Done");
     }else if ([@"getPlatformVersion" isEqualToString:call.method]) {
         result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
     }
