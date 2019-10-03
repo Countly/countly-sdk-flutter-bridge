@@ -242,7 +242,7 @@ class Countly {
       print(result);
     }
     return result;
-  } 
+  }
 
   static Future<String> setLoggingEnabled(bool flag) async {
     List <String> args = [];
@@ -427,8 +427,8 @@ class Countly {
     }
     return result;
   }
-  static Future<String> giveConsent(List <String> consent) async {
-    List <String> args = consent;
+  static Future<String> giveConsent(List <String> consents) async {
+    List <String> args = consents;
     final String result = await _channel.invokeMethod('giveConsent', <String, dynamic>{
       'data': json.encode(args)
     });
@@ -437,9 +437,8 @@ class Countly {
     }
     return result;
   }
-  static Future<String> removeConsent(List <String> consent) async {
-    List <String> args = consent;
-
+  static Future<String> removeConsent(List <String> consents) async {
+    List <String> args = consents;
     final String result = await _channel.invokeMethod('removeConsent', <String, dynamic>{
       'data': json.encode(args)
     });
@@ -470,7 +469,7 @@ class Countly {
     }
     return result;
   }
-  /// button 
+  /// button
   static Future<String> enableSession(bool flag) async {
     List <String> args = [];
     isDebug = flag;
@@ -664,7 +663,7 @@ class Countly {
     }
     return result;
   }
-  
+
 
   static Future<String> setRemoteConfigAutomaticDownload(Function callback) async {
     List <String> args = [];

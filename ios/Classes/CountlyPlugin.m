@@ -435,42 +435,6 @@ CountlyConfig* config = nil;
         [Countly.sharedInstance cancelConsentForAllFeatures];
         result(@"removeAllConsent!");
 
-    }else if ([@"enableSession" isEqualToString:call.method]) {
-        config.enableDebug = YES;
-        result(@"enableSession!");
-
-    }else if ([@"enableEvents" isEqualToString:call.method]) {
-        config.enableDebug = YES;
-        result(@"enableEvents!");
-
-    }else if ([@"enableViews" isEqualToString:call.method]) {
-        config.enableDebug = YES;
-        result(@"enableViews!");
-
-    }else if ([@"enableLocation" isEqualToString:call.method]) {
-        config.enableDebug = YES;
-        result(@"enableLocation!");
-
-    }else if ([@"enableCrashes" isEqualToString:call.method]) {
-        config.enableDebug = YES;
-        result(@"enableCrashes!");
-
-    }else if ([@"enableAttribution" isEqualToString:call.method]) {
-        config.enableDebug = YES;
-        result(@"enableAttribution!");
-
-    }else if ([@"enableUsers" isEqualToString:call.method]) {
-        config.enableDebug = YES;
-        result(@"enableUsers!");
-
-    }else if ([@"enablePush" isEqualToString:call.method]) {
-        config.enableDebug = YES;
-        result(@"enablePush!");                
-
-    }else if ([@"disableSession" isEqualToString:call.method]) {
-        config.enableDebug = YES;
-        result(@"disableSession!");                    
-
     }else if ([@"setOptionalParametersForInitialization" isEqualToString:call.method]) {
         NSString* city = [command objectAtIndex:0];
         NSString* country = [command objectAtIndex:1];

@@ -82,7 +82,7 @@ class _MyAppState extends State<MyApp> {
         // }, 1000);
   }
   endEventBasic(){
-    Countly.startEvent("Timed Event"); 
+    Countly.startEvent("Timed Event");
     Timer timer;
     timer = new Timer(new Duration(seconds: 5), () {
       Countly.endEvent({ "key": "Timed Event" });
@@ -90,7 +90,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
   endEventWithSum(){
-    Countly.startEvent("Timed Event With Sum");    
+    Countly.startEvent("Timed Event With Sum");
     Timer timer;
     timer = new Timer(new Duration(seconds: 5), () {
       Countly.endEvent({ "key": "Timed Event With Sum", "sum": "0.99" });
@@ -98,7 +98,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
   endEventWithSegment(){
-    Countly.startEvent("Timed Event With Segment");     
+    Countly.startEvent("Timed Event With Segment");
     Timer timer;
     timer = new Timer(new Duration(seconds: 5), () {
       var event = {
@@ -258,56 +258,56 @@ class _MyAppState extends State<MyApp> {
     Countly.removeAllConsent();
   }
 
-  enableSession(){
-    Countly.enableSession(true);
-  }
-  enableEvents(){
-    Countly.enableEvents(true);
-  }
-  enableViews(){
-    Countly.enableViews(true);
-  }
-  enableLocation(){
-    Countly.enableLocation(true);
-  }
-  enableCrashes(){
-    Countly.enableCrashes(true);
-  }
-  enableAttribution(){
-    Countly.enableAttribution(true);
-  }
-  enableUsers(){
-    Countly.enableUsers(true);
-  }
-  enablePush(){
-    Countly.enablePush(true);
-  }
+  // enableSession(){
+  //   Countly.enableSession(true);
+  // }
+  // enableEvents(){
+  //   Countly.enableEvents(true);
+  // }
+  // enableViews(){
+  //   Countly.enableViews(true);
+  // }
+  // enableLocation(){
+  //   Countly.enableLocation(true);
+  // }
+  // enableCrashes(){
+  //   Countly.enableCrashes(true);
+  // }
+  // enableAttribution(){
+  //   Countly.enableAttribution(true);
+  // }
+  // enableUsers(){
+  //   Countly.enableUsers(true);
+  // }
+  // enablePush(){
+  //   Countly.enablePush(true);
+  // }
 
-  disableSession(){
-    Countly.disableSession(true);
-  }
-  disableEvents(){
-    Countly.disableEvents(true);
-  }
-  disableViews(){
-    Countly.disableViews(true);
-  }
-  disableLocation(){
-    Countly.disableLocation(true);
-  }
-  disableCrashes(){
-    Countly.disableCrashes(true);
-  }
-  disableAttribution(){
-    Countly.disableAttribution(true);
-  }
-  disableUsers(){
-    Countly.disableUsers(true);
-  }
-  disablePush(){
-    Countly.disablePush(true);
-  }
-  
+  // disableSession(){
+  //   Countly.disableSession(true);
+  // }
+  // disableEvents(){
+  //   Countly.disableEvents(true);
+  // }
+  // disableViews(){
+  //   Countly.disableViews(true);
+  // }
+  // disableLocation(){
+  //   Countly.disableLocation(true);
+  // }
+  // disableCrashes(){
+  //   Countly.disableCrashes(true);
+  // }
+  // disableAttribution(){
+  //   Countly.disableAttribution(true);
+  // }
+  // disableUsers(){
+  //   Countly.disableUsers(true);
+  // }
+  // disablePush(){
+  //   Countly.disablePush(true);
+  // }
+
   sendPushToken(){
     //  var push = PushNotification.init({
     //       android: {sound: true},
@@ -426,7 +426,7 @@ class _MyAppState extends State<MyApp> {
   addCrashLog(){
     Countly.enableCrashReporting();
     //   Countly.addCrashLog("User Performed Step A");
-    //   
+    //
     //       Countly.addCrashLog("User Performed Step B");
     //   // }, 1000);
     //   // setTimeout(function() {
@@ -515,26 +515,26 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Give all Consent", color: "blue", onPressed: giveAllConsent),
               MyButton(text: "Remove all Consent", color: "blue", onPressed: removeAllConsent),
 
-              MyButton(text: "Enable Sessions", color: "blue", onPressed: enableSession),
-              MyButton(text: "Enable Events", color: "blue", onPressed: enableEvents),
-              MyButton(text: "Enable Views", color: "blue", onPressed: enableViews),
-              MyButton(text: "Enable Location", color: "blue", onPressed: enableLocation),
-              MyButton(text: "Enable Crashes", color: "blue", onPressed: enableCrashes),
-              MyButton(text: "Enable Attribution", color: "blue", onPressed: enableAttribution),
-              MyButton(text: "Enable users", color: "blue", onPressed: enableUsers),
-              MyButton(text: "Enable push", color: "blue", onPressed: enablePush),
+              // MyButton(text: "Enable Sessions", color: "blue", onPressed: enableSession),
+              // MyButton(text: "Enable Events", color: "blue", onPressed: enableEvents),
+              // MyButton(text: "Enable Views", color: "blue", onPressed: enableViews),
+              // MyButton(text: "Enable Location", color: "blue", onPressed: enableLocation),
+              // MyButton(text: "Enable Crashes", color: "blue", onPressed: enableCrashes),
+              // MyButton(text: "Enable Attribution", color: "blue", onPressed: enableAttribution),
+              // MyButton(text: "Enable users", color: "blue", onPressed: enableUsers),
+              // MyButton(text: "Enable push", color: "blue", onPressed: enablePush),
 
-              MyButton(text: "Disable Sessions", color: "blue", onPressed: disableSession),
-              MyButton(text: "Disable Events", color: "blue", onPressed: disableEvents),
-              MyButton(text: "Disable Views", color: "blue", onPressed: disableViews),
-              MyButton(text: "Disable Location", color: "blue", onPressed: disableLocation),
-              MyButton(text: "Disable Crashes", color: "blue", onPressed: disableCrashes),
-              MyButton(text: "Disable Attribution", color: "blue", onPressed: disableAttribution),
-              MyButton(text: "Disable users", color: "blue", onPressed: disableUsers),
-              MyButton(text: "Disable push", color: "blue", onPressed: disablePush),
+              // MyButton(text: "Disable Sessions", color: "blue", onPressed: disableSession),
+              // MyButton(text: "Disable Events", color: "blue", onPressed: disableEvents),
+              // MyButton(text: "Disable Views", color: "blue", onPressed: disableViews),
+              // MyButton(text: "Disable Location", color: "blue", onPressed: disableLocation),
+              // MyButton(text: "Disable Crashes", color: "blue", onPressed: disableCrashes),
+              // MyButton(text: "Disable Attribution", color: "blue", onPressed: disableAttribution),
+              // MyButton(text: "Disable users", color: "blue", onPressed: disableUsers),
+              // MyButton(text: "Disable push", color: "blue", onPressed: disablePush),
 
 
-              
+
 
               MyButton(text: "Countly.setRemoteConfigAutomaticDownload", color: "purple", onPressed: setRemoteConfigAutomaticDownload),
               MyButton(text: "Countly.remoteConfigUpdate", color: "purple", onPressed: remoteConfigUpdate),

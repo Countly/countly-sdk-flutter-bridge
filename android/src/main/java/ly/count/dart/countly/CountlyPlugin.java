@@ -369,7 +369,8 @@ public class CountlyPlugin implements MethodCallHandler {
         Countly.userData.save();
         result.success("userData_pullValue success!");
     }
-//setRequiresConsent
+
+    //setRequiresConsent
     else if ("setRequiresConsent".equals(call.method)) {
         Boolean consentFlag = args.getBoolean(0);
         Countly.sharedInstance().setRequiresConsent(consentFlag);
@@ -397,7 +398,7 @@ public class CountlyPlugin implements MethodCallHandler {
                 features.add(featureName);
              }
              else {
-                Log.d(Countly.TAG, "Not a valid consent feature to remove: " + featureName);
+                Log.w(Countly.TAG, "Not a valid consent feature to remove: " + featureName);
              }
          }
          Countly.sharedInstance().removeConsent(features.toArray(new String[features.size()]));
