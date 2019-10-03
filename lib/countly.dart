@@ -580,6 +580,90 @@ class Countly {
     }
     return result;
   }
+  static Future<String> disableEvents(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('disableEvents', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> disableViews(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('disableViews', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> disableLocation(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('disableLocation', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> disableCrashes(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('disableCrashes', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> disableAttribution(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('disableAttribution', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> disableUsers(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('disableUsers', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> disablePush(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('disablePush', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
   
 
   static Future<String> setRemoteConfigAutomaticDownload(Function callback) async {

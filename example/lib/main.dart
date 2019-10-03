@@ -286,6 +286,27 @@ class _MyAppState extends State<MyApp> {
   disableSession(){
     Countly.disableSession(true);
   }
+  disableEvents(){
+    Countly.disableEvents(true);
+  }
+  disableViews(){
+    Countly.disableViews(true);
+  }
+  disableLocation(){
+    Countly.disableLocation(true);
+  }
+  disableCrashes(){
+    Countly.disableCrashes(true);
+  }
+  disableAttribution(){
+    Countly.disableAttribution(true);
+  }
+  disableUsers(){
+    Countly.disableUsers(true);
+  }
+  disablePush(){
+    Countly.disablePush(true);
+  }
   
   sendPushToken(){
     //  var push = PushNotification.init({
@@ -504,6 +525,13 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Enable push", color: "blue", onPressed: enablePush),
 
               MyButton(text: "Disable Sessions", color: "blue", onPressed: disableSession),
+              MyButton(text: "Disable Events", color: "blue", onPressed: disableEvents),
+              MyButton(text: "Disable Views", color: "blue", onPressed: disableViews),
+              MyButton(text: "Disable Location", color: "blue", onPressed: disableLocation),
+              MyButton(text: "Disable Crashes", color: "blue", onPressed: disableCrashes),
+              MyButton(text: "Disable Attribution", color: "blue", onPressed: disableAttribution),
+              MyButton(text: "Disable users", color: "blue", onPressed: disableUsers),
+              MyButton(text: "Disable push", color: "blue", onPressed: disablePush),
 
 
               
