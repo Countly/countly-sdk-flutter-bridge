@@ -435,41 +435,39 @@ CountlyConfig* config = nil;
         [Countly.sharedInstance cancelConsentForAllFeatures];
         result(@"removeAllConsent!");
 
-    }else if ([@"enableSession" isEqualToString:call.method]) {
-        config.enableDebug = YES;
-        result(@"enableSession!");
+    
+    }else if ([@"giveConsentEvents" isEqualToString:call.method]) {
+        
+        result(@"giveConsentEvents!");
 
-    }else if ([@"enableEvents" isEqualToString:call.method]) {
-        config.enableDebug = YES;
-        result(@"enableEvents!");
+    }else if ([@"giveConsentViews" isEqualToString:call.method]) {
+        
+        result(@"giveConsentViews!");
 
-    }else if ([@"enableViews" isEqualToString:call.method]) {
-        config.enableDebug = YES;
-        result(@"enableViews!");
+    }else if ([@"giveConsentstarRating" isEqualToString:call.method]) {
+        
+        result(@"giveConsentstarRating!");
 
-    }else if ([@"enableLocation" isEqualToString:call.method]) {
-        config.enableDebug = YES;
-        result(@"enableLocation!");
+    }else if ([@"giveConsentCrashes" isEqualToString:call.method]) {
+        
+        result(@"giveConsentCrashes!");
 
-    }else if ([@"enableCrashes" isEqualToString:call.method]) {
-        config.enableDebug = YES;
-        result(@"enableCrashes!");
+    }else if ([@"removeConsentEvents" isEqualToString:call.method]) {
+        
+        result(@"removeConsentEvents!");
 
-    }else if ([@"enableAttribution" isEqualToString:call.method]) {
-        config.enableDebug = YES;
-        result(@"enableAttribution!");
+    }else if ([@"removeConsentViews" isEqualToString:call.method]) {
+        
+        result(@"removeConsentViews!");
 
-    }else if ([@"enableUsers" isEqualToString:call.method]) {
-        config.enableDebug = YES;
-        result(@"enableUsers!");
+    }else if ([@"removeConsentstarRating" isEqualToString:call.method]) {
+        
+        result(@"removeConsentstarRating!");
 
-    }else if ([@"enablePush" isEqualToString:call.method]) {
-        config.enableDebug = YES;
-        result(@"enablePush!");                
+    }else if ([@"removeConsentCrashes" isEqualToString:call.method]) {
+        
+        result(@"removeConsentCrashes!");
 
-    }else if ([@"disableSession" isEqualToString:call.method]) {
-        config.enableDebug = YES;
-        result(@"disableSession!");                    
 
     }else if ([@"setOptionalParametersForInitialization" isEqualToString:call.method]) {
         NSString* city = [command objectAtIndex:0];

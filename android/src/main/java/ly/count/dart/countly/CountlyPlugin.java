@@ -421,68 +421,30 @@ public class CountlyPlugin implements MethodCallHandler {
         }
         result.success("enableSession success!");
     }
-    else if ("enableEvents".equals(call.method)) {
-        String sessionEnable = args.getString(0);
-        if(eventEnable.equals("true")){
-            Countly.sharedInstance().enableEvents(true);
-        }else{
-            Countly.sharedInstance().enableEvents(false);
-        }
-        result.success("enableEvents success!");
+    else if ("giveConsentEvents".equals(call.method)) {
+        result.success("giveConsentEvents success!");
     }
-    else if ("enableViews".equals(call.method)) {
-        String viewsEnable = args.getString(0);
-        if(loggingEnable.equals("true")){
-            Countly.sharedInstance().enableViews(true);
-        }else{
-            Countly.sharedInstance().enableViews(false);
-        }
-        result.success("enableViews success!");
+    else if ("giveConsentViews".equals(call.method)) {
+        result.success("giveConsentViews success!");
     }
-    else if ("enableLocation".equals(call.method)) {
-        String locationEnable = args.getString(0);
-        if(loggingEnable.equals("true")){
-            Countly.sharedInstance().enableLocation(true);
-        }else{
-            Countly.sharedInstance().enableLocation(false);
-        }
-        result.success("enableLocation success!");
+    else if ("giveConsentstarRating".equals(call.method)) {
+        result.success("giveConsentstarRating success!");
     }
-    else if ("enableCrashes".equals(call.method)) {
-        String locationEnable = args.getString(0);
-        if(loggingEnable.equals("true")){
-            Countly.sharedInstance().enableCrashes(true);
-        }else{
-            Countly.sharedInstance().enableCrashes(false);
-        }
-        result.success("enableCrashes success!");
+    else if ("giveConsentCrashes".equals(call.method)) {
+        result.success("giveConsentCrashes success!");
     }
-    else if ("enableAttribution".equals(call.method)) {
-        String locationEnable = args.getString(0);
-        if(loggingEnable.equals("true")){
-            Countly.sharedInstance().enableAttribution(true);
-        }else{
-            Countly.sharedInstance().enableAttribution(false);
-        }
-        result.success("enableAttribution success!");
+    
+    else if ("removeConsentEvents".equals(call.method)) {
+        result.success("removeConsentEvents success!");
     }
-    else if ("enableUsers".equals(call.method)) {
-        String locationEnable = args.getString(0);
-        if(loggingEnable.equals("true")){
-            Countly.sharedInstance().enableUsers(true);
-        }else{
-            Countly.sharedInstance().enableUsers(false);
-        }
-        result.success("enableUsers success!");
+    else if ("removeConsentViews".equals(call.method)) {
+        result.success("removeConsentViews success!");
     }
-    else if ("enablePush".equals(call.method)) {
-        String locationEnable = args.getString(0);
-        if(loggingEnable.equals("true")){
-            Countly.sharedInstance().enablePush(true);
-        }else{
-            Countly.sharedInstance().enablePush(false);
-        }
-        result.success("enablePush success!");
+    else if ("removeConsentstarRating".equals(call.method)) {
+        result.success("removeConsentstarRating success!");
+    }
+    else if ("removeConsentCrashes".equals(call.method)) {
+        result.success("removeConsentCrashes success!");
     }
 
     else if ("disableSession".equals(call.method)) {
