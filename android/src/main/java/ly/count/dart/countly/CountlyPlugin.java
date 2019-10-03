@@ -9,6 +9,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 import ly.count.android.sdk.Countly;
 import ly.count.android.sdk.DeviceId;
 import ly.count.android.sdk.RemoteConfig;
+import ly.count.android.sdk.CountlyStarRating;
 //import ly.count.android.sdk.DeviceInfo;
 import java.util.HashMap;
 import java.util.Map;
@@ -511,8 +512,21 @@ public class CountlyPlugin implements MethodCallHandler {
         result.success(getRemoteConfigValueForKeyResult);
     }
     else if("askForFeedback".equals(call.method)){
-        String widgetId = args.getString(0);
-        // result.success(Countly.sharedInstance().getFeedbackWidget(widgetId));
+          String widgetId = args.getString(0);
+          String closeButtonText = args.getString(1);
+          Countly.sharedInstance().showFeedbackPopup(widgetId, closeButtonText, activity, new CountlyStarRating.FeedbackRatingCallback() {
+            @Override
+            public void callback(String error) {
+                if(error != null){
+                    result.success("Error: Encountered error while showing feedback dialog: [" + error + "]");
+                }else{
+                    result.success("Feedback submitted.");
+                }
+            }
+        });
+    }else if (call.method.equals("askForStarRating")) {
+        Countly.sharedInstance().showStarRating(context, null);
+        result.success("askForStarRating success.");
     }else if (call.method.equals("getPlatformVersion")) {
       result.success("Android " + android.os.Build.VERSION.RELEASE);
     }
