@@ -435,6 +435,43 @@ CountlyConfig* config = nil;
         [Countly.sharedInstance cancelConsentForAllFeatures];
         result(@"removeAllConsent!");
 
+<<<<<<< HEAD
+    
+    }else if ([@"giveConsentEvents" isEqualToString:call.method]) {
+        
+        result(@"giveConsentEvents!");
+
+    }else if ([@"giveConsentViews" isEqualToString:call.method]) {
+        
+        result(@"giveConsentViews!");
+
+    }else if ([@"giveConsentstarRating" isEqualToString:call.method]) {
+        
+        result(@"giveConsentstarRating!");
+
+    }else if ([@"giveConsentCrashes" isEqualToString:call.method]) {
+        
+        result(@"giveConsentCrashes!");
+
+    }else if ([@"removeConsentEvents" isEqualToString:call.method]) {
+        
+        result(@"removeConsentEvents!");
+
+    }else if ([@"removeConsentViews" isEqualToString:call.method]) {
+        
+        result(@"removeConsentViews!");
+
+    }else if ([@"removeConsentstarRating" isEqualToString:call.method]) {
+        
+        result(@"removeConsentstarRating!");
+
+    }else if ([@"removeConsentCrashes" isEqualToString:call.method]) {
+        
+        result(@"removeConsentCrashes!");
+
+
+=======
+>>>>>>> 7aa1eaf229f28b44f8b2ff01172aa4261f9e5373
     }else if ([@"setOptionalParametersForInitialization" isEqualToString:call.method]) {
         NSString* city = [command objectAtIndex:0];
         NSString* country = [command objectAtIndex:1];
