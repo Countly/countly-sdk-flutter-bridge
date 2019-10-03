@@ -36,45 +36,45 @@ class _MyAppState extends State<MyApp> {
   basicEvent(){
     // example for basic event
     var event = {
-        "key": "Basic Event",
-        "count": 1
+      "key": "Basic Event",
+      "count": 1
     };
     Countly.recordEvent(event);
   }
   eventWithSum(){
     // example for event with sum
     var event = {
-        "key": "Event With Sum",
-        "count": 1,
-        "sum": "0.99"
+      "key": "Event With Sum",
+      "count": 1,
+      "sum": "0.99"
     };
     Countly.recordEvent(event);
   }
   eventWithSegment(){
-      // example for event with segment
-      var event = {
-          "key": "Event With Segment",
-          "count": 1
-      };
-      event["segmentation"] = {
-          "Country": "Turkey",
-          "Age": "28"
-      };
-      Countly.recordEvent(event);
+    // example for event with segment
+    var event = {
+      "key": "Event With Segment",
+      "count": 1
+    };
+    event["segmentation"] = {
+      "Country": "Turkey",
+      "Age": "28"
+    };
+    Countly.recordEvent(event);
   }
 
   eventWithSumSegment(){
     // example for event with segment and sum
-        var event = {
-            "key": "Event With Sum And Segment",
-            "count": 1,
-            "sum": "0.99"
-        };
-        event["segmentation"] = {
-            "Country": "Turkey",
-            "Age": "28"
-        };
-        Countly.recordEvent(event);
+    var event = {
+      "key": "Event With Sum And Segment",
+      "count": 1,
+      "sum": "0.99"
+    };
+    event["segmentation"] = {
+      "Country": "Turkey",
+      "Age": "28"
+    };
+    Countly.recordEvent(event);
   }
   event(){
     // setInterval(function() {
@@ -82,65 +82,53 @@ class _MyAppState extends State<MyApp> {
         // }, 1000);
   }
   endEventBasic(){
-    Countly.startEvent("Timed Event");
-        // setTimeout(function() {
-        Timer timer;
-        timer = new Timer(new Duration(seconds: 5), () {
-          Countly.endEvent({ "key": "Timed Event" });
-          timer.cancel();
-        });
-
-
-        // }, 1000);
+    Countly.startEvent("Timed Event"); 
+    Timer timer;
+    timer = new Timer(new Duration(seconds: 5), () {
+      Countly.endEvent({ "key": "Timed Event" });
+      timer.cancel();
+    });
   }
 endEventWithSum(){
-     Countly.startEvent("Timed Event With Sum");
-        // setTimeout(function() {
-        Timer timer;
-        timer = new Timer(new Duration(seconds: 5), () {
-          Countly.endEvent({ "key": "Timed Event With Sum", "sum": "0.99" });
-          timer.cancel();
-        });
-
-        // }, 1000);
+    Countly.startEvent("Timed Event With Sum");    
+    Timer timer;
+    timer = new Timer(new Duration(seconds: 5), () {
+      Countly.endEvent({ "key": "Timed Event With Sum", "sum": "0.99" });
+      timer.cancel();
+    });
   }
   endEventWithSegment(){
-    Countly.startEvent("Timed Event With Segment");
-    //     // setTimeout(function() {
-     Timer timer;
-      timer = new Timer(new Duration(seconds: 5), () {
-        var event = {
-            "key": "Timed Event With Segment",
-            "count": 1,
-        };
-        event["segmentation"] = {
-            "Country": "Turkey",
-            "Age": "28"
-        };
-        Countly.endEvent(event);
-        timer.cancel();
-      });
-    //     // }, 1000);
+    Countly.startEvent("Timed Event With Segment");     
+    Timer timer;
+    timer = new Timer(new Duration(seconds: 5), () {
+      var event = {
+        "key": "Timed Event With Segment",
+        "count": 1,
+      };
+      event["segmentation"] = {
+        "Country": "Turkey",
+        "Age": "28"
+      };
+      Countly.endEvent(event);
+      timer.cancel();
+    });
   }
   endEventWithSumSegment(){
     Countly.startEvent("Timed Event With Segment, Sum and Count");
-    //     setTimeout(function() {
-      Timer timer;
-      timer = new Timer(new Duration(seconds: 5), () {
-        var event = {
-            "key": "Timed Event With Segment, Sum and Count",
-            "count": 1,
-            "sum": "0.99"
-        };
-        event["segmentation"] = {
-            "Country": "Turkey",
-            "Age": "28"
-        };
-        Countly.endEvent(event);
-        timer.cancel();
-      });
-
-    //     }, 1000);
+    Timer timer;
+    timer = new Timer(new Duration(seconds: 5), () {
+      var event = {
+        "key": "Timed Event With Segment, Sum and Count",
+        "count": 1,
+        "sum": "0.99"
+      };
+      event["segmentation"] = {
+        "Country": "Turkey",
+        "Age": "28"
+      };
+      Countly.endEvent(event);
+      timer.cancel();
+    });
   }
   recordViewHome(){
     Countly.recordView("HomePage");
@@ -155,108 +143,103 @@ endEventWithSum(){
     return random;
   }
   setCaptianAmericaData(){
-     // example for setCaptianAmericaData
-        var deviceId = makeid();
-        Countly.changeDeviceId(deviceId, false);
+    // example for setCaptianAmericaData
+    var deviceId = makeid();
+    Countly.changeDeviceId(deviceId, false);
 
-        Map<String, Object> options = {
-          "name": "Captian America",
-        "username": "captianamerica",
-        "email": "captianamerica@avengers.com",
-        "organization": "Avengers",
-        "phone": "+91 555 555 5555",
-        "picture": "http://icons.iconarchive.com/icons/hopstarter/superhero-avatar/256/Avengers-Captain-America-icon.png",
-        "picturePath": "",
-        "gender": "M", // "F"
-        "byear": "1989",
-        };
-
-        Countly.setUserData(options);
+    Map<String, Object> options = {
+      "name": "Captian America",
+      "username": "captianamerica",
+      "email": "captianamerica@avengers.com",
+      "organization": "Avengers",
+      "phone": "+91 555 555 5555",
+      "picture": "http://icons.iconarchive.com/icons/hopstarter/superhero-avatar/256/Avengers-Captain-America-icon.png",
+      "picturePath": "",
+      "gender": "M", // "F"
+      "byear": "1989",
+    };
+    Countly.setUserData(options);
   }
   setIronManData(){
-      // example for setIronManData
-        var deviceId = makeid();
-        Countly.changeDeviceId(deviceId, false);
+    // example for setIronManData
+    var deviceId = makeid();
+    Countly.changeDeviceId(deviceId, false);
 
-        Map<String, Object> options = {
-          "name": "Iron Man",
-        "username": "ironman",
-        "email": "ironman@avengers.com",
-        "organization": "Avengers",
-        "phone": "+91 555 555 5555",
-        "picture": "http://icons.iconarchive.com/icons/hopstarter/superhero-avatar/256/Avengers-Iron-Man-icon.png",
-        "picturePath": "",
-        "gender": "M", // "F"
-        "byear": "1989",
-        };
-
-        Countly.setUserData(options);
-        Countly.start();
+    Map<String, Object> options = {
+      "name": "Iron Man",
+      "username": "ironman",
+      "email": "ironman@avengers.com",
+      "organization": "Avengers",
+      "phone": "+91 555 555 5555",
+      "picture": "http://icons.iconarchive.com/icons/hopstarter/superhero-avatar/256/Avengers-Iron-Man-icon.png",
+      "picturePath": "",
+      "gender": "M", // "F"
+      "byear": "1989",
+    };
+    Countly.setUserData(options);
+    Countly.start();
   }
   setSpiderManData(){
-       var deviceId = makeid();
-        Countly.changeDeviceId(deviceId, false);
+    var deviceId = makeid();
+    Countly.changeDeviceId(deviceId, false);
 
-       Map<String, Object> options = {
-        "name": "Spider-Man",
-        "username": "spiderman",
-        "email": "spiderman@avengers.com",
-        "organization": "Avengers",
-        "phone": "+91 555 555 5555",
-        "picture": "http://icons.iconarchive.com/icons/mattahan/ultrabuuf/512/Comics-Spiderman-Morales-icon.png",
-        "picturePath": "",
-        "gender": "M", // "F"
-        "byear": "1989"
-       };
-
-        Countly.setUserData(options);
-        Countly.start();
+    Map<String, Object> options = {
+      "name": "Spider-Man",
+      "username": "spiderman",
+      "email": "spiderman@avengers.com",
+      "organization": "Avengers",
+      "phone": "+91 555 555 5555",
+      "picture": "http://icons.iconarchive.com/icons/mattahan/ultrabuuf/512/Comics-Spiderman-Morales-icon.png",
+      "picturePath": "",
+      "gender": "M", // "F"
+      "byear": "1989"
+    };
+    Countly.setUserData(options);
+    Countly.start();
   }
   setUserData(){
-
-      Map<String, Object> options = {
-        "name": "Trinisoft Technologies",
-        "username": "trinisofttechnologies",
-        "email": "trinisofttechnologies@gmail.com",
-        "organization": "Trinisoft Technologies Pvt. Ltd.",
-        "phone": "+91 812 840 2946",
-        "picture": "https://avatars0.githubusercontent.com/u/10754117?s=400&u=fe019f92d573ac76cbfe7969dde5e20d7206975a&v=4",
-        "picturePath": "",
-        "gender": "M", // "F"
-        "byear": "1989",
-      };
-
-        Countly.setUserData(options);
+    Map<String, Object> options = {
+      "name": "Trinisoft Technologies",
+      "username": "trinisofttechnologies",
+      "email": "trinisofttechnologies@gmail.com",
+      "organization": "Trinisoft Technologies Pvt. Ltd.",
+      "phone": "+91 812 840 2946",
+      "picture": "https://avatars0.githubusercontent.com/u/10754117?s=400&u=fe019f92d573ac76cbfe7969dde5e20d7206975a&v=4",
+      "picturePath": "",
+      "gender": "M", // "F"
+      "byear": "1989",
+    };
+    Countly.setUserData(options);
   }
   setProperty(){
-      Countly.setProperty("setProperty", "My Property");
+    Countly.setProperty("setProperty", "My Property");
   }
   increment(){
-      Countly.increment("increment");
+    Countly.increment("increment");
   }
   incrementBy(){
-      Countly.incrementBy("incrementBy", 10);
+    Countly.incrementBy("incrementBy", 10);
   }
   multiply(){
-       Countly.multiply("multiply", 20);
+    Countly.multiply("multiply", 20);
   }
    saveMax(){
-       Countly.saveMax("saveMax", 100);
+    Countly.saveMax("saveMax", 100);
   }
   saveMin(){
-       Countly.saveMin("saveMin", 50);
+    Countly.saveMin("saveMin", 50);
   }
   setOnce(){
-       Countly.setOnce("setOnce", 200);
+    Countly.setOnce("setOnce", 200);
   }
   pushUniqueValue(){
-      Countly.pushUniqueValue("pushUniqueValue", "morning");
+    Countly.pushUniqueValue("pushUniqueValue", "morning");
   }
   pushValue(){
-       Countly.pushValue("pushValue", "morning");
+    Countly.pushValue("pushValue", "morning");
   }
   pullValue(){
-       Countly.pullValue("pushValue", "morning");
+    Countly.pullValue("pushValue", "morning");
   }
   //
   setRequiresConsent(){
@@ -275,56 +258,56 @@ endEventWithSum(){
     Countly.removeAllConsent();
   }
   sendPushToken(){
-      //  var push = PushNotification.init({
-      //       android: {sound: true},
-      //       ios: {
-      //           alert: "true",
-      //           badge: "true",
-      //           sound: "true"
-      //       },
-      //       windows: {}
-      //   });
+    //  var push = PushNotification.init({
+    //       android: {sound: true},
+    //       ios: {
+    //           alert: "true",
+    //           badge: "true",
+    //           sound: "true"
+    //       },
+    //       windows: {}
+    //   });
 
-      //   push.on('registration', function(data) {
-      //       alert('Token received: '+data.registrationId);
-      //       Countly.sendPushToken({
-      //           "token": data.registrationId,
-      //           "messagingMode": Countly.messagingMode.DEVELOPMENT
-      //       });
-      //   });
+    //   push.on('registration', function(data) {
+    //       alert('Token received: '+data.registrationId);
+    //       Countly.sendPushToken({
+    //           "token": data.registrationId,
+    //           "messagingMode": Countly.messagingMode.DEVELOPMENT
+    //       });
+    //   });
 
-      //   push.on('notification', function(data) {
-      //       alert(JSON.stringify(data));
-      //       // data.message,
-      //       // data.title,
-      //       // data.count,
-      //       // data.sound,
-      //       // data.image,
-      //       // data.additionalData
-      //   });
+    //   push.on('notification', function(data) {
+    //       alert(JSON.stringify(data));
+    //       // data.message,
+    //       // data.title,
+    //       // data.count,
+    //       // data.sound,
+    //       // data.image,
+    //       // data.additionalData
+    //   });
 
-        // // Test android 8.0 and 9.0
-        // push.subscribe('myTopic', function(n){
-        //     alert(JSON.stringify(n));
-        // }, function(e){
-        //     alert(JSON.stringify(e));
-        // });
+    // // Test android 8.0 and 9.0
+    // push.subscribe('myTopic', function(n){
+    //     alert(JSON.stringify(n));
+    // }, function(e){
+    //     alert(JSON.stringify(e));
+    // });
 
-        // push.on('error', function(e) {
-        //     // e.message
-        // });
-        // Countly.messagingMode.DEVELOPMENT
-        // Countly.messagingMode.PRODUCTION
-        // Countly.messagingMode.ADHOC
-        // Countly.mode = Countly.messagingMode.DEVELOPMENT;
-        // Countly.Push.onRegisterPushNotification();
-        // @depricated: The below commented method is depricated and no longer works.
-        // Countly.initMessaging({
-        //     "messageMode": Countly.messagingMode.TEST,
-        //     "projectId": "881000050249"
-        // });
+    // push.on('error', function(e) {
+    //     // e.message
+    // });
+    // Countly.messagingMode.DEVELOPMENT
+    // Countly.messagingMode.PRODUCTION
+    // Countly.messagingMode.ADHOC
+    // Countly.mode = Countly.messagingMode.DEVELOPMENT;
+    // Countly.Push.onRegisterPushNotification();
+    // @depricated: The below commented method is depricated and no longer works.
+    // Countly.initMessaging({
+    //     "messageMode": Countly.messagingMode.TEST,
+    //     "projectId": "881000050249"
+    // });
 
-        // Tesing purpose only
+    // Tesing purpose only
 
   }
   setRemoteConfigAutomaticDownload(){
@@ -334,44 +317,43 @@ endEventWithSum(){
   }
   remoteConfigUpdate(){
     Countly.remoteConfigUpdate((result){
-       print(result);
+      print(result);
     });
   }
   updateRemoteConfigForKeysOnly(){
     Countly.updateRemoteConfigForKeysOnly(["name"],(result){
-       print(result);
+      print(result);
     });
   }
   updateRemoteConfigExceptKeys(){
     Countly.updateRemoteConfigExceptKeys(["url"],(result){
-       print(result);
+      print(result);
     });
   }
 
   remoteConfigClearValues(){
     Countly.remoteConfigClearValues((result){
-       print(result);
+      print(result);
     });
   }
 
   getRemoteConfigValueForKey(){
     Countly.getRemoteConfigValueForKey("name", (result){
-       print(result);
+      print(result);
     });
   }
 
   testAndroidPush(){
     Countly.sendPushToken({
-        "token": "1234567890",
-        "messagingMode": Countly.messagingMode["DEVELOPMENT"]
+      "token": "1234567890",
+      "messagingMode": Countly.messagingMode["DEVELOPMENT"]
     });
   }
 
-
   testiOSPush(){
     Countly.sendPushToken({
-        "token": "1234567890",
-        "messagingMode": Countly.messagingMode["DEVELOPMENT"]
+      "token": "1234567890",
+      "messagingMode": Countly.messagingMode["DEVELOPMENT"]
     });
   }
   changeDeviceId(){
@@ -381,26 +363,26 @@ endEventWithSum(){
     Countly.enableParameterTamperingProtection("salt");
   }
    setOptionalParametersForInitialization(){
-     Map<String, Object> options = {
-          "city": "Tampa",
-          "country": "US",
-          "latitude": "28.006324",
-          "longitude": "-82.7166183",
-          "ipAddress": "255.255.255.255"
-      };
-      Countly.setOptionalParametersForInitialization(options);
+    Map<String, Object> options = {
+      "city": "Tampa",
+      "country": "US",
+      "latitude": "28.006324",
+      "longitude": "-82.7166183",
+      "ipAddress": "255.255.255.255"
+    };
+    Countly.setOptionalParametersForInitialization(options);
   }
   addCrashLog(){
-      Countly.enableCrashReporting();
-      //   Countly.addCrashLog("User Performed Step A");
-      //   // setTimeout(function() {
-      //       Countly.addCrashLog("User Performed Step B");
-      //   // }, 1000);
-      //   // setTimeout(function() {
-      //       Countly.addCrashLog("User Performed Step C");
-      //       // console.log("Opps found and error");
-      //       // a();
-      //   // }, 1000);
+    Countly.enableCrashReporting();
+    //   Countly.addCrashLog("User Performed Step A");
+    //   
+    //       Countly.addCrashLog("User Performed Step B");
+    //   // }, 1000);
+    //   // setTimeout(function() {
+    //       Countly.addCrashLog("User Performed Step C");
+    //       // console.log("Opps found and error");
+    //       // a();
+    //   // }, 1000);
   }
   setLoggingEnabled(){
     Countly.setLoggingEnabled(true);
@@ -428,9 +410,8 @@ endEventWithSum(){
     Countly.setHttpPostForced(true);
   }
   setLocation(){
-      Countly.setLocation("latitude","longitude");
+    Countly.setLocation("latitude","longitude");
   }
-
 
   @override
   Widget build(BuildContext context) {

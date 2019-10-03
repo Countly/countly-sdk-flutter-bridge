@@ -16,7 +16,7 @@ class Countly {
 
   static Future<String> init(String serverUrl, String appKey, [String deviceId]) async {
     if (Platform.isAndroid) {
-        messagingMode = {"DEVELOPMENT": 2, "PRODUCTION": 0};
+      messagingMode = {"DEVELOPMENT": 2, "PRODUCTION": 0};
     }
     List <String> args = [];
     args.add(serverUrl);
@@ -26,7 +26,7 @@ class Countly {
     }
 
     final String result = await _channel.invokeMethod('init', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -55,15 +55,15 @@ class Countly {
     args.add(options["sum"].toString());
 
     if(options["segmentation"] != null){
-        segmentation = options["segmentation"];
-        segmentation.forEach((k, v){
-          args.add(k.toString());
-          args.add(v.toString());
-        });
+      segmentation = options["segmentation"];
+      segmentation.forEach((k, v){
+        args.add(k.toString());
+        args.add(v.toString());
+      });
     }
 
     final String result = await _channel.invokeMethod('recordEvent', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(json.encode(args));
@@ -72,21 +72,20 @@ class Countly {
     return result;
   }
 
-
   ////// 001
   static Future<String> recordView(String view) async {
     List <String> args = [];
     args.add(view);
     final String result = await _channel.invokeMethod('recordView', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
     }
     return result;
   }
-///
-static Future<String> setUserData(Map<String, Object> options) async {
+
+  static Future<String> setUserData(Map<String, Object> options) async {
     List <String> args = [];
     if(options["name"] == null){
       options["name"] = "";
@@ -122,20 +121,20 @@ static Future<String> setUserData(Map<String, Object> options) async {
 
 
     final String result = await _channel.invokeMethod('setuserdata', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
     }
     return result;
   }
-static Future<String> sendPushToken(Map<String, Object> options) async {
+  static Future<String> sendPushToken(Map<String, Object> options) async {
     List <String> args = [];
     // args.add(options["token"] || "");
     // args.add(options["messagingMode"] || Countly.messagingMode["PRODUCTION"]);
 
     final String result = await _channel.invokeMethod('sendPushToken', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -144,10 +143,10 @@ static Future<String> sendPushToken(Map<String, Object> options) async {
   }
 
 
-static Future<String> start() async {
+  static Future<String> start() async {
     List <String> args = [];
     final String result = await _channel.invokeMethod('start', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -158,7 +157,7 @@ static Future<String> start() async {
   static Future<String> stop() async {
     List <String> args = [];
     final String result = await _channel.invokeMethod('stop', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -166,7 +165,7 @@ static Future<String> start() async {
     return result;
   }
 
-static Future<String> setOptionalParametersForInitialization(Map<String, Object> options) async {
+  static Future<String> setOptionalParametersForInitialization(Map<String, Object> options) async {
     List <String> args = [];
 
     String city = options["city"];
@@ -205,7 +204,7 @@ static Future<String> setOptionalParametersForInitialization(Map<String, Object>
     args.add(ipAddress);
 
     final String result = await _channel.invokeMethod('setOptionalParametersForInitialization', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -213,7 +212,7 @@ static Future<String> setOptionalParametersForInitialization(Map<String, Object>
     return result;
   }
 
-static Future<String> changeDeviceId(String newDeviceID ,bool onServer) async {
+  static Future<String> changeDeviceId(String newDeviceID ,bool onServer) async {
     List <String> args = [];
     String onServerString;
     if(onServer == false){
@@ -225,44 +224,44 @@ static Future<String> changeDeviceId(String newDeviceID ,bool onServer) async {
     args.add(newDeviceID);
     args.add(onServerString);
     final String result = await _channel.invokeMethod('changeDeviceId', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
     }
     return result;
-}
+  }
 
-static Future<String> addCrashLog(String newDeviceID) async {
+  static Future<String> addCrashLog(String newDeviceID) async {
     List <String> args = [];
     args.add(newDeviceID);
     final String result = await _channel.invokeMethod('addCrashLog', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
     }
     return result;
-}
+  } 
 
-static Future<String> setLoggingEnabled(bool flag) async {
+  static Future<String> setLoggingEnabled(bool flag) async {
     List <String> args = [];
     isDebug = flag;
     args.add(flag.toString());
     final String result = await _channel.invokeMethod('setloggingenabled', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
     }
     return result;
-}
+  }
 
-static Future<String> enableParameterTamperingProtection(String salt) async {
+  static Future<String> enableParameterTamperingProtection(String salt) async {
     List <String> args = [];
     args.add(salt);
     final String result = await _channel.invokeMethod('enableParameterTamperingProtection', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -273,7 +272,7 @@ static Future<String> enableParameterTamperingProtection(String salt) async {
     List <String> args = [];
     args.add(isEnabled.toString());
     final String result = await _channel.invokeMethod('setHttpPostForced', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -285,19 +284,19 @@ static Future<String> enableParameterTamperingProtection(String salt) async {
     args.add(latitude);
     args.add(longitude);
     final String result = await _channel.invokeMethod('setLocation', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
     }
     return result;
   }
-static Future<String> setProperty(String keyName , String keyValue) async {
+  static Future<String> setProperty(String keyName , String keyValue) async {
     List <String> args = [];
     args.add(keyName);
     args.add(keyValue);
     final String result = await _channel.invokeMethod('userData_setProperty', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -308,7 +307,7 @@ static Future<String> setProperty(String keyName , String keyValue) async {
     List <String> args = [];
     args.add(keyName);
     final String result = await _channel.invokeMethod('userData_increment', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -320,7 +319,7 @@ static Future<String> setProperty(String keyName , String keyValue) async {
     args.add(keyName);
     args.add(keyIncrement.toString());
     final String result = await _channel.invokeMethod('userData_incrementBy', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -332,7 +331,7 @@ static Future<String> setProperty(String keyName , String keyValue) async {
     args.add(keyName);
     args.add(multiplyValue.toString());
     final String result = await _channel.invokeMethod('userData_multiply', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -345,31 +344,31 @@ static Future<String> setProperty(String keyName , String keyValue) async {
     args.add(keyName);
     args.add(saveMax.toString());
     final String result = await _channel.invokeMethod('userData_saveMax', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
     }
     return result;
   }
-static Future<String> saveMin(String keyName, int saveMin) async {
+  static Future<String> saveMin(String keyName, int saveMin) async {
     List <String> args = [];
     args.add(keyName);
     args.add(saveMin.toString());
     final String result = await _channel.invokeMethod('userData_saveMin', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
     }
     return result;
   }
-static Future<String> setOnce(String keyName, int setOnce) async {
+  static Future<String> setOnce(String keyName, int setOnce) async {
     List <String> args = [];
     args.add(keyName);
     args.add(setOnce.toString());
     final String result = await _channel.invokeMethod('userData_setOnce', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -382,7 +381,7 @@ static Future<String> setOnce(String keyName, int setOnce) async {
     args.add(type);
     args.add(pushUniqueValue);
     final String result = await _channel.invokeMethod('userData_pushUniqueValue', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -395,7 +394,7 @@ static Future<String> setOnce(String keyName, int setOnce) async {
     args.add(type);
     args.add(pushValue);
     final String result = await _channel.invokeMethod('userData_pushValue', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -408,7 +407,7 @@ static Future<String> setOnce(String keyName, int setOnce) async {
     args.add(type);
     args.add(pullValue);
     final String result = await _channel.invokeMethod('userData_pullValue', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -421,7 +420,7 @@ static Future<String> setRequiresConsent(bool flag) async {
   List <String> args = [];
   args.add(flag.toString());
   final String result = await _channel.invokeMethod('setRequiresConsent', <String, dynamic>{
-      'data': json.encode(args)
+    'data': json.encode(args)
   });
   if(isDebug){
     print(result);
@@ -431,7 +430,7 @@ static Future<String> setRequiresConsent(bool flag) async {
 static Future<String> giveConsent(List <String> consent) async {
   List <String> args = consent;
   final String result = await _channel.invokeMethod('giveConsent', <String, dynamic>{
-      'data': json.encode(args)
+    'data': json.encode(args)
   });
   if(isDebug){
     print(result);
@@ -442,7 +441,7 @@ static Future<String> removeConsent(List <String> consent) async {
   List <String> args = consent;
 
   final String result = await _channel.invokeMethod('removeConsent', <String, dynamic>{
-      'data': json.encode(args)
+    'data': json.encode(args)
   });
   if(isDebug){
     print(result);
@@ -453,7 +452,7 @@ static Future<String> giveAllConsent() async {
   List <String> args = [];
 
   final String result = await _channel.invokeMethod('giveAllConsent', <String, dynamic>{
-      'data': json.encode(args)
+    'data': json.encode(args)
   });
   if(isDebug){
     print(result);
@@ -464,7 +463,7 @@ static Future<String> removeAllConsent() async {
   List <String> args = [];
 
   final String result = await _channel.invokeMethod('removeAllConsent', <String, dynamic>{
-      'data': json.encode(args)
+    'data': json.encode(args)
   });
   if(isDebug){
     print(result);
@@ -475,7 +474,7 @@ static Future<String> removeAllConsent() async {
   static Future<String> setRemoteConfigAutomaticDownload(Function callback) async {
     List <String> args = [];
     final String result = await _channel.invokeMethod('setRemoteConfigAutomaticDownload', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -487,7 +486,7 @@ static Future<String> removeAllConsent() async {
     List <String> args = [];
 
     final String result = await _channel.invokeMethod('remoteConfigUpdate', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -497,7 +496,7 @@ static Future<String> removeAllConsent() async {
   }
   static Future<String> updateRemoteConfigForKeysOnly(List<String> args, Function callback) async {
     final String result = await _channel.invokeMethod('updateRemoteConfigForKeysOnly', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -509,7 +508,7 @@ static Future<String> removeAllConsent() async {
     List <String> args = [];
 
     final String result = await _channel.invokeMethod('updateRemoteConfigExceptKeys', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -520,7 +519,7 @@ static Future<String> removeAllConsent() async {
   static Future<String> remoteConfigClearValues(Function callback) async {
     List <String> args = [];
     final String result = await _channel.invokeMethod('remoteConfigClearValues', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -532,7 +531,7 @@ static Future<String> removeAllConsent() async {
     List <String> args = [];
     args.add(key);
     final String result = await _channel.invokeMethod('getRemoteConfigValueForKey', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -544,7 +543,7 @@ static Future<String> removeAllConsent() async {
     List <String> args = [];
     args.add(sendRating.toString());
     final String result = await _channel.invokeMethod('sendRating', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -558,7 +557,7 @@ static Future<String> removeAllConsent() async {
     // Countly.rating.callback = callback;
     // query('countly-rating-modal').classList.add('open');
     final String result = await _channel.invokeMethod('askForStarRating', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -573,7 +572,7 @@ static Future<String> removeAllConsent() async {
     // Countly.rating.callback = callback;
     // query('countly-rating-modal').classList.add('open');
     final String result = await _channel.invokeMethod('askForFeedback', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -585,7 +584,7 @@ static Future<String> removeAllConsent() async {
     List <String> args = [];
     args.add(key);
     final String result = await _channel.invokeMethod('startEvent', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -613,28 +612,26 @@ static Future<String> removeAllConsent() async {
     args.add(options["sum"].toString());
 
     if(options["segmentation"] != null){
-        segmentation = options["segmentation"];
-        segmentation.forEach((k, v){
-          args.add(k.toString());
-          args.add(v.toString());
-        });
+      segmentation = options["segmentation"];
+      segmentation.forEach((k, v){
+        args.add(k.toString());
+        args.add(v.toString());
+      });
     }
-
-  final String result = await _channel.invokeMethod('endEvent', <String, dynamic>{
+    final String result = await _channel.invokeMethod('endEvent', <String, dynamic>{
       'data': json.encode(args)
-  });
-  if(isDebug){
-    print(result);
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
   }
-  return result;
-}
-
 
   static Future<String> enableCrashReporting() async {
     List <String> args = [];
-  //  Countly.isCrashReportingEnabled = true;
+    //  Countly.isCrashReportingEnabled = true;
     final String result = await _channel.invokeMethod('enableCrashReporting', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
@@ -646,7 +643,7 @@ static Future<String> removeAllConsent() async {
     List <String> args = [];
 
     final String result = await _channel.invokeMethod('logException', <String, dynamic>{
-        'data': json.encode(args)
+      'data': json.encode(args)
     });
     if(isDebug){
       print(result);
