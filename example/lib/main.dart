@@ -282,6 +282,10 @@ class _MyAppState extends State<MyApp> {
   enablePush(){
     Countly.enablePush(true);
   }
+
+  disableSession(){
+    Countly.disableSession(true);
+  }
   
   sendPushToken(){
     //  var push = PushNotification.init({
@@ -498,6 +502,10 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Enable Attribution", color: "blue", onPressed: enableAttribution),
               MyButton(text: "Enable users", color: "blue", onPressed: enableUsers),
               MyButton(text: "Enable push", color: "blue", onPressed: enablePush),
+
+              MyButton(text: "Disable Sessions", color: "blue", onPressed: disableSession),
+
+
               
 
               MyButton(text: "Countly.setRemoteConfigAutomaticDownload", color: "purple", onPressed: setRemoteConfigAutomaticDownload),

@@ -448,6 +448,52 @@ public class CountlyPlugin implements MethodCallHandler {
         }
         result.success("enableLocation success!");
     }
+    else if ("enableCrashes".equals(call.method)) {
+        String locationEnable = args.getString(0);
+        if(loggingEnable.equals("true")){
+            Countly.sharedInstance().enableCrashes(true);
+        }else{
+            Countly.sharedInstance().enableCrashes(false);
+        }
+        result.success("enableCrashes success!");
+    }
+    else if ("enableAttribution".equals(call.method)) {
+        String locationEnable = args.getString(0);
+        if(loggingEnable.equals("true")){
+            Countly.sharedInstance().enableAttribution(true);
+        }else{
+            Countly.sharedInstance().enableAttribution(false);
+        }
+        result.success("enableAttribution success!");
+    }
+    else if ("enableUsers".equals(call.method)) {
+        String locationEnable = args.getString(0);
+        if(loggingEnable.equals("true")){
+            Countly.sharedInstance().enableUsers(true);
+        }else{
+            Countly.sharedInstance().enableUsers(false);
+        }
+        result.success("enableUsers success!");
+    }
+    else if ("enablePush".equals(call.method)) {
+        String locationEnable = args.getString(0);
+        if(loggingEnable.equals("true")){
+            Countly.sharedInstance().enablePush(true);
+        }else{
+            Countly.sharedInstance().enablePush(false);
+        }
+        result.success("enablePush success!");
+    }
+
+    else if ("disableSession".equals(call.method)) {
+        String locationEnable = args.getString(0);
+        if(loggingEnable.equals("true")){
+            Countly.sharedInstance().disableSession(true);
+        }else{
+            Countly.sharedInstance().disableSession(false);
+        }
+        result.success("disableSession success!");
+    }
 
 
     else if("getDeviceID".equals(call.method)){

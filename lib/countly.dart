@@ -567,6 +567,19 @@ class Countly {
     }
     return result;
   }
+
+  static Future<String> disableSession(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('disableSession', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
   
 
   static Future<String> setRemoteConfigAutomaticDownload(Function callback) async {
