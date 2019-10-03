@@ -412,6 +412,43 @@ public class CountlyPlugin implements MethodCallHandler {
          result.success("removeAllConsent!");
      }
 
+     else if ("enableSession".equals(call.method)) {
+        String sessionEnable = args.getString(0);
+        if(loggingEnable.equals("true")){
+            Countly.sharedInstance().enableSession(true);
+        }else{
+            Countly.sharedInstance().enableSession(false);
+        }
+        result.success("enableSession success!");
+    }
+    else if ("enableEvents".equals(call.method)) {
+        String sessionEnable = args.getString(0);
+        if(eventEnable.equals("true")){
+            Countly.sharedInstance().enableEvents(true);
+        }else{
+            Countly.sharedInstance().enableEvents(false);
+        }
+        result.success("enableEvents success!");
+    }
+    else if ("enableViews".equals(call.method)) {
+        String viewsEnable = args.getString(0);
+        if(loggingEnable.equals("true")){
+            Countly.sharedInstance().enableViews(true);
+        }else{
+            Countly.sharedInstance().enableViews(false);
+        }
+        result.success("enableViews success!");
+    }
+    else if ("enableLocation".equals(call.method)) {
+        String locationEnable = args.getString(0);
+        if(loggingEnable.equals("true")){
+            Countly.sharedInstance().enableLocation(true);
+        }else{
+            Countly.sharedInstance().enableLocation(false);
+        }
+        result.success("enableLocation success!");
+    }
+
 
     else if("getDeviceID".equals(call.method)){
         result.success(Countly.sharedInstance().getDeviceID());

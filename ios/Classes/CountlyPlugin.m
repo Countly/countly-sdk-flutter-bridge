@@ -435,6 +435,21 @@ CountlyConfig* config = nil;
         [Countly.sharedInstance cancelConsentForAllFeatures];
         result(@"removeAllConsent!");
 
+    }else if ([@"enableSession" isEqualToString:call.method]) {
+        config.enableDebug = YES;
+        result(@"enableSession!");
+
+    }else if ([@"enableEvents" isEqualToString:call.method]) {
+        config.enableDebug = YES;
+        result(@"enableEvents!");
+
+    }else if ([@"enableViews" isEqualToString:call.method]) {
+        config.enableDebug = YES;
+        result(@"enableViews!");
+
+    }else if ([@"enableLocation" isEqualToString:call.method]) {
+        config.enableDebug = YES;
+        result(@"enableLocation!");
 
     }else if ([@"setOptionalParametersForInitialization" isEqualToString:call.method]) {
         NSString* city = [command objectAtIndex:0];

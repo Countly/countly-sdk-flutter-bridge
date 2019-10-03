@@ -89,7 +89,7 @@ class _MyAppState extends State<MyApp> {
       timer.cancel();
     });
   }
-endEventWithSum(){
+  endEventWithSum(){
     Countly.startEvent("Timed Event With Sum");    
     Timer timer;
     timer = new Timer(new Duration(seconds: 5), () {
@@ -257,6 +257,32 @@ endEventWithSum(){
   removeAllConsent(){
     Countly.removeAllConsent();
   }
+
+  enableSession(){
+    Countly.enableSession(true);
+  }
+  enableEvents(){
+    Countly.enableEvents(true);
+  }
+  enableViews(){
+    Countly.enableViews(true);
+  }
+  enableLocation(){
+    Countly.enableLocation(true);
+  }
+  enableCrashes(){
+    Countly.enableCrashes(true);
+  }
+  enableAttribution(){
+    Countly.enableAttribution(true);
+  }
+  enableUsers(){
+    Countly.enableUsers(true);
+  }
+  enablePush(){
+    Countly.enablePush(true);
+  }
+  
   sendPushToken(){
     //  var push = PushNotification.init({
     //       android: {sound: true},
@@ -463,6 +489,16 @@ endEventWithSum(){
               MyButton(text: "Remove multiple consent", color: "blue", onPressed: removeMultipleConsent),
               MyButton(text: "Give all Consent", color: "blue", onPressed: giveAllConsent),
               MyButton(text: "Remove all Consent", color: "blue", onPressed: removeAllConsent),
+
+              MyButton(text: "Enable Sessions", color: "blue", onPressed: enableSession),
+              MyButton(text: "Enable Events", color: "blue", onPressed: enableEvents),
+              MyButton(text: "Enable Views", color: "blue", onPressed: enableViews),
+              MyButton(text: "Enable Location", color: "blue", onPressed: enableLocation),
+              MyButton(text: "Enable Crashes", color: "blue", onPressed: enableCrashes),
+              MyButton(text: "Enable Attribution", color: "blue", onPressed: enableAttribution),
+              MyButton(text: "Enable users", color: "blue", onPressed: enableUsers),
+              MyButton(text: "Enable push", color: "blue", onPressed: enablePush),
+              
 
               MyButton(text: "Countly.setRemoteConfigAutomaticDownload", color: "purple", onPressed: setRemoteConfigAutomaticDownload),
               MyButton(text: "Countly.remoteConfigUpdate", color: "purple", onPressed: remoteConfigUpdate),
