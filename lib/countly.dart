@@ -470,11 +470,11 @@ class Countly {
     return result;
   }
   /// button 
-  static Future<String> enableSession(bool flag) async {
+  static Future<String> giveConsentSession(bool flag) async {
     List <String> args = [];
     isDebug = flag;
     args.add(flag.toString());
-    final String result = await _channel.invokeMethod('enableSession', <String, dynamic>{
+    final String result = await _channel.invokeMethod('giveConsentSession', <String, dynamic>{
       'data': json.encode(args)
     });
     if(isDebug){
@@ -482,11 +482,11 @@ class Countly {
     }
     return result;
   }
-  static Future<String> enableEvents(bool flag) async {
+  static Future<String> giveConsentEvents(bool flag) async {
     List <String> args = [];
     isDebug = flag;
     args.add(flag.toString());
-    final String result = await _channel.invokeMethod('enableEvents', <String, dynamic>{
+    final String result = await _channel.invokeMethod('giveConsentEvents', <String, dynamic>{
       'data': json.encode(args)
     });
     if(isDebug){
@@ -494,23 +494,11 @@ class Countly {
     }
     return result;
   }
-  static Future<String> enableViews(bool flag) async {
+  static Future<String> giveConsentViews(bool flag) async {
     List <String> args = [];
     isDebug = flag;
     args.add(flag.toString());
-    final String result = await _channel.invokeMethod('enableViews', <String, dynamic>{
-      'data': json.encode(args)
-    });
-    if(isDebug){
-      print(result);
-    }
-    return result;
-  }
-  static Future<String> enableLocation(bool flag) async {
-    List <String> args = [];
-    isDebug = flag;
-    args.add(flag.toString());
-    final String result = await _channel.invokeMethod('enableLocation', <String, dynamic>{
+    final String result = await _channel.invokeMethod('giveConsentViews', <String, dynamic>{
       'data': json.encode(args)
     });
     if(isDebug){
@@ -519,13 +507,84 @@ class Countly {
     return result;
   }
   
-  
+  static Future<String> giveConsentLocation(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('giveConsentLocation', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> giveConsentcrashes(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('giveConsentcrashes', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> giveConsentattribution(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('giveConsentattribution', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> giveConsentusers(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('giveConsentusers', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> giveConsentpush(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('giveConsentpush', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> giveConsentstarRating(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('giveConsentstarRating', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
 
-  static Future<String> disableSession(bool flag) async {
+    static Future<String> removeConsentSession(bool flag) async {
     List <String> args = [];
     isDebug = flag;
     args.add(flag.toString());
-    final String result = await _channel.invokeMethod('disableSession', <String, dynamic>{
+    final String result = await _channel.invokeMethod('removeConsentSession', <String, dynamic>{
       'data': json.encode(args)
     });
     if(isDebug){
@@ -533,11 +592,11 @@ class Countly {
     }
     return result;
   }
-  static Future<String> disableEvents(bool flag) async {
+  static Future<String> removeConsentEvents(bool flag) async {
     List <String> args = [];
     isDebug = flag;
     args.add(flag.toString());
-    final String result = await _channel.invokeMethod('disableEvents', <String, dynamic>{
+    final String result = await _channel.invokeMethod('removeConsentEvents', <String, dynamic>{
       'data': json.encode(args)
     });
     if(isDebug){
@@ -545,23 +604,11 @@ class Countly {
     }
     return result;
   }
-  static Future<String> disableViews(bool flag) async {
+  static Future<String> removeConsentViews(bool flag) async {
     List <String> args = [];
     isDebug = flag;
     args.add(flag.toString());
-    final String result = await _channel.invokeMethod('disableViews', <String, dynamic>{
-      'data': json.encode(args)
-    });
-    if(isDebug){
-      print(result);
-    }
-    return result;
-  }
-  static Future<String> disableLocation(bool flag) async {
-    List <String> args = [];
-    isDebug = flag;
-    args.add(flag.toString());
-    final String result = await _channel.invokeMethod('removeConsentCrashes', <String, dynamic>{
+    final String result = await _channel.invokeMethod('removeConsentViews', <String, dynamic>{
       'data': json.encode(args)
     });
     if(isDebug){
@@ -570,6 +617,78 @@ class Countly {
     return result;
   }
   
+  static Future<String> removeConsentLocation(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('removeConsentLocation', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> removeConsentcrashes(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('removeConsentcrashes', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> removeConsentattribution(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('removeConsentattribution', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> removeConsentusers(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('removeConsentusers', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> removeConsentpush(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('removeConsentpush', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+  static Future<String> removeConsentstarRating(bool flag) async {
+    List <String> args = [];
+    isDebug = flag;
+    args.add(flag.toString());
+    final String result = await _channel.invokeMethod('removeConsentstarRating', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
 
   static Future<String> setRemoteConfigAutomaticDownload(Function callback) async {
     List <String> args = [];

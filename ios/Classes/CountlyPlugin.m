@@ -435,6 +435,80 @@ CountlyConfig* config = nil;
         [Countly.sharedInstance cancelConsentForAllFeatures];
         result(@"removeAllConsent!");
 
+
+    }else if ([@"giveConsentSession" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"giveConsentSession!");
+
+    }else if ([@"giveConsentEvents" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"giveConsentEvents!");
+
+    }else if ([@"giveConsentViews" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"giveConsentViews!");
+
+    }else if ([@"giveConsentLocation" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"giveConsentLocation!");
+
+    }else if ([@"giveConsentcrashes" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"giveConsentcrashes!");
+
+    }else if ([@"giveConsentattribution" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"giveConsentattribution!");
+
+    }else if ([@"giveConsentusers" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"giveConsentusers!");
+
+    }else if ([@"giveConsentpush" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"giveConsentpush!");
+
+    }else if ([@"giveConsentstarRating" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"giveConsentstarRating!");    
+
+
+    }else if ([@"removeConsentSession" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"removeConsentSession!");
+
+    }else if ([@"removeConsentEvents" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"removeConsentEvents!");
+
+    }else if ([@"removeConsentViews" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"removeConsentViews!");
+
+    }else if ([@"removeConsentLocation" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"removeConsentLocation!");
+
+    }else if ([@"removeConsentcrashes" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"removeConsentcrashes!");
+
+    }else if ([@"removeConsentattribution" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"removeConsentattribution!");
+
+    }else if ([@"removeConsentusers" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"removeConsentusers!");
+
+    }else if ([@"removeConsentpush" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"removeConsentpush!");
+        
+    }else if ([@"removeConsentstarRating" isEqualToString:call.method]) {
+        [Countly.sharedInstance cancelConsentForFeatures:command];
+        result(@"removeConsentstarRating!");  
+
     }else if ([@"setOptionalParametersForInitialization" isEqualToString:call.method]) {
         NSString* city = [command objectAtIndex:0];
         NSString* country = [command objectAtIndex:1];

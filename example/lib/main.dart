@@ -258,30 +258,61 @@ class _MyAppState extends State<MyApp> {
     Countly.removeAllConsent();
   }
 
+  giveConsentsessions(){
+    Countly.giveConsent(["sessions"]);
+  }
   giveConsentEvents(){
     Countly.giveConsent(["events"]);
   }
   giveConsentViews(){
     Countly.giveConsent(["views"]);
   }
+  giveConsentlocation(){
+    Countly.giveConsent(["location"]);
+  }
+  giveConsentcrashes(){
+    Countly.giveConsent(["crashes"]);
+  }
+  giveConsentattribution(){
+    Countly.giveConsent(["attribution"]);
+  }
+  giveConsentusers(){
+    Countly.giveConsent(["users"]);
+  }
+  giveConsentpush(){
+    Countly.giveConsent(["push"]);
+  }
   giveConsentstarRating(){
     Countly.giveConsent(["star-rating"]);
   }
-  giveConsentCrashes(){
-    Countly.giveConsent(["crashes"]);
-  }
   
+
+  removeConsentsessions(){
+    Countly.removeConsent(["sessions"]);
+  }
   removeConsentEvents(){
     Countly.removeConsent(["events"]);
   }
   removeConsentViews(){
     Countly.removeConsent(["views"]);
   }
+  removeConsentlocation(){
+    Countly.removeConsent(["location"]);
+  }
+  removeConsentcrashes(){
+    Countly.removeConsent(["crashes"]);
+  }
+  removeConsentattribution(){
+    Countly.removeConsent(["attribution"]);
+  }
+  removeConsentusers(){
+    Countly.removeConsent(["users"]);
+  }
+  removeConsentpush(){
+    Countly.removeConsent(["push"]);
+  }
   removeConsentstarRating(){
     Countly.removeConsent(["star-rating"]);
-  }
-  removeConsentCrashes(){
-    Countly.removeConsent(["crashes"]);
   }
   
   sendPushToken(){
@@ -491,16 +522,26 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Give all Consent", color: "blue", onPressed: giveAllConsent),
               MyButton(text: "Remove all Consent", color: "blue", onPressed: removeAllConsent),
 
-              // MyButton(text: "Enable Sessions", color: "blue", onPressed: enableSession),
+              MyButton(text: "Give Consent Sessions", color: "blue", onPressed: giveConsentsessions),
               MyButton(text: "Give Consent Events", color: "blue", onPressed:giveConsentEvents),
               MyButton(text: "Give Consent Views", color: "blue", onPressed: giveConsentViews),
-              MyButton(text: "Give starRating", color: "blue", onPressed: giveConsentstarRating),
-              MyButton(text: "Give Consent Crashes", color: "blue", onPressed: giveConsentCrashes),
+              MyButton(text: "Give Consent Location", color: "blue", onPressed: giveConsentlocation),
+              MyButton(text: "Give Consent Crashes", color: "blue", onPressed: giveConsentcrashes),
+              MyButton(text: "Give Consent Attribution", color: "blue", onPressed:giveConsentattribution),
+              MyButton(text: "Give Consent Users", color: "blue", onPressed: giveConsentusers),
+              MyButton(text: "Give Consent Push", color: "blue", onPressed: giveConsentpush),
+              MyButton(text: "Give Consent starRating", color: "blue", onPressed: giveConsentstarRating),
+
               
-              MyButton(text: "Remove Consent Events", color: "blue", onPressed: removeConsentEvents),
+              MyButton(text: "Remove Consent Sessions", color: "blue", onPressed: removeConsentsessions),
+              MyButton(text: "Remove Consent Events", color: "blue", onPressed:removeConsentEvents),
               MyButton(text: "Remove Consent Views", color: "blue", onPressed: removeConsentViews),
-              MyButton(text: "Remove Location", color: "blue", onPressed: removeConsentstarRating),
-              MyButton(text: "Remove Consent Crashes", color: "blue", onPressed: removeConsentCrashes),
+              MyButton(text: "Remove Consent Location", color: "blue", onPressed: removeConsentlocation),
+              MyButton(text: "Remove Consent Crashes", color: "blue", onPressed: removeConsentcrashes),
+              MyButton(text: "Remove Consent Attribution", color: "blue", onPressed:removeConsentattribution),
+              MyButton(text: "Remove Consent Users", color: "blue", onPressed: removeConsentusers),
+              MyButton(text: "Remove Consent Push", color: "blue", onPressed: removeConsentpush),
+              MyButton(text: "Remove Consent starRating", color: "blue", onPressed: removeConsentstarRating),
 
               
 
