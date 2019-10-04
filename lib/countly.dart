@@ -154,9 +154,53 @@ class Countly {
     return result;
   }
 
+  static Future<String> manualSessionHandling() async {
+    List <String> args = [];
+    final String result = await _channel.invokeMethod('manualSessionHandling', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+
   static Future<String> stop() async {
     List <String> args = [];
     final String result = await _channel.invokeMethod('stop', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+
+  static Future<String> updateSessionPeriod() async {
+    List <String> args = [];
+    final String result = await _channel.invokeMethod('updateSessionPeriod', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+
+  static Future<String> eventSendThreshold() async {
+    List <String> args = [];
+    final String result = await _channel.invokeMethod('updateSessionPeriod', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+
+  static Future<String> storedRequestsLimit() async {
+    List <String> args = [];
+    final String result = await _channel.invokeMethod('storedRequestsLimit', <String, dynamic>{
       'data': json.encode(args)
     });
     if(isDebug){

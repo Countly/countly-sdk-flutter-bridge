@@ -30,6 +30,9 @@ class _MyAppState extends State<MyApp> {
   start(){
     Countly.start();
   }
+  manualSessionHandling(){
+    Countly.manualSessionHandling();
+  }
   stop(){
     Countly.stop();
   }

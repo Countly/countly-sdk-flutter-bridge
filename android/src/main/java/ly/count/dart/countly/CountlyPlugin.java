@@ -159,9 +159,27 @@ public class CountlyPlugin implements MethodCallHandler {
         Countly.sharedInstance().onStart(activity);
         result.success("started!");
     }
+
+    else if ("manualSessionHandling".equals(call.method)) {
+        Countly.sharedInstance().manualSessionHandling();
+        result.success("deafult!");
+        
     else if ("stop".equals(call.method)) {
         Countly.sharedInstance().onStop();
         result.success("stoped!");
+
+    else if ("updateSessionPeriod".equals(call.method)) {
+        Countly.sharedInstance().updateSessionPeriod();
+        result.success("default!");
+
+    else if ("eventSendThreshold".equals(call.method)) {
+        Countly.sharedInstance().eventSendThreshold();
+        result.success("default!");
+
+    else if ("storedRequestsLimit".equals(call.method)) {
+        Countly.sharedInstance().storedRequestsLimit();
+        result.success("default!");        
+
     }else if("startEvent".equals(call.method)){
         String startEvent = args.getString(0);
         Countly.sharedInstance().startEvent(startEvent);

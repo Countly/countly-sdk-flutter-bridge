@@ -185,9 +185,25 @@ CountlyConfig* config = nil;
         [Countly.sharedInstance updateSession];
         result(@"update!");
 
+    }else if ([@"manualSessionHandling" isEqualToString:call.method]) {
+        config.manualSessionHandling = YES;
+        result(@"manualSessionHandling!");
+
     }else if ([@"stop" isEqualToString:call.method]) {
         [Countly.sharedInstance endSession];
-        result(@"stop!");
+        result(@"stop!");    
+
+    }else if ([@"updateSessionPeriod" isEqualToString:call.method]) {
+        config.updateSessionPeriod = 15;
+        result(@"updateSessionPeriod!");        
+
+    }else if ([@"eventSendThreshold" isEqualToString:call.method]) {
+        config.eventSendThreshold = 1;
+        result(@"eventSendThreshold!");
+
+    }else if ([@"storedRequestsLimit" isEqualToString:call.method]) {
+        config.storedRequestsLimit = 1;
+        result(@"storedRequestsLimit!");    
 
     }else if ([@"changeDeviceId" isEqualToString:call.method]) {
         NSString* newDeviceID = [command objectAtIndex:0];
