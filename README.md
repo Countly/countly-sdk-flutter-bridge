@@ -1,10 +1,8 @@
-* **Questions?** Visit [http://community.count.ly](http://community.count.ly).
-
-## Phonegap and Cordova SDK for Countly
+## Flutter SDK for Countly (WORK IN PROGRESS)
 
 [Countly](http://count.ly) is an innovative, real-time, open source mobile analytics and push notifications platform. It collects data from mobile devices, and visualizes this information to analyze mobile application usage and end-user behavior. There are two parts of Countly: the server that collects and analyzes data, and mobile SDK that sends this data. Both parts are open source with different licensing terms.
 
-This repository includes the SDK for Phonegap and Icenium. You also need Countly server - either hosted on cloud, or installed on-premise as Community Edition or [Enterprise Edition](http://count.ly/enterprise-edition)
+This repository includes the SDK for Flutter. You also need Countly server - either hosted on cloud, or installed on-premise as Community Edition or [Enterprise Edition](http://count.ly/enterprise-edition)
 
 ## Using and configuring SDK
 
