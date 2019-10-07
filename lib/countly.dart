@@ -292,7 +292,7 @@ class Countly {
     List <String> args = [];
     isDebug = flag;
     args.add(flag.toString());
-    final String result = await _channel.invokeMethod('setloggingenabled', <String, dynamic>{
+    final String result = await _channel.invokeMethod('setLoggingEnabled', <String, dynamic>{
       'data': json.encode(args)
     });
     if(isDebug){
