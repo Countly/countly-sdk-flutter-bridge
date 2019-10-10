@@ -572,10 +572,10 @@ public class CountlyPlugin implements MethodCallHandler {
                   }
               });
           } else if (call.method.equals("askForStarRating")) {
-//              Countly.sharedInstance().(context, 5);
-              Countly.sharedInstance().showStarRating(context, null);
+              // Countly.sharedInstance().(context, 5);
+              Countly.sharedInstance().showStarRating(activity, null);
 
-              result.success("askForStarRating success.");
+              result.success("askForStarRating success.");  
           } else if (call.method.equals("getPlatformVersion")) {
               result.success("Android " + android.os.Build.VERSION.RELEASE);
           } else {
