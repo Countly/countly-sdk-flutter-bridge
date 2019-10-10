@@ -194,8 +194,10 @@ CountlyConfig* config = nil;
         float sum = [sumString floatValue];
         NSMutableDictionary *segmentation = [[NSMutableDictionary alloc] init];
 
-        for(int i=4,il=(int)command.count;i<il;i+=2){
-            segmentation[[command objectAtIndex:i]] = [command objectAtIndex:i+1];
+        if((int)command.count > 3){
+            for(int i=3,il=(int)command.count;i<il;i+=2){
+                segmentation[[command objectAtIndex:i]] = [command objectAtIndex:i+1];
+            }
         }
         [[Countly sharedInstance] endEvent:key segmentation:segmentation count:count  sum:sum];
         NSString *resultString = @"endEvent for: ";
