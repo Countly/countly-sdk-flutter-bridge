@@ -203,52 +203,6 @@ CountlyConfig* config = nil;
         NSString *resultString = @"endEvent for: ";
         resultString = [resultString stringByAppendingString: key];
         result(resultString);
-
-        // NSString* eventType = [command objectAtIndex:0];
-
-        // if ([eventType  isEqual: @"event"]) {
-        //     NSString* eventName = [command objectAtIndex:1];
-        //     [Countly.sharedInstance endEvent:eventName];
-        //     result(@"event sent!");
-        // }
-        // else if ([eventType  isEqual: @"eventWithSum"]){
-        //     NSString* eventName = [command objectAtIndex:1];
-        //     NSString* countString = [command objectAtIndex:2];
-        //     int countInt = [countString intValue];
-        //     NSString* sumString = [command objectAtIndex:3];
-        //     int sumInt = [sumString intValue];
-        //     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-        //     [Countly.sharedInstance endEvent:eventName segmentation:dict count:countInt sum:sumInt];
-        //     result(@"eventWithSum sent!");
-        // }
-        // else if ([eventType  isEqual: @"eventWithSegment"]){
-        //     NSString* eventName = [command objectAtIndex:1];
-        //     NSString* countString = [command objectAtIndex:2];
-        //     int countInt = [countString intValue];
-        //     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-        //     for(int i=4,il=(int)command.count;i<il;i+=2){
-        //         dict[[command objectAtIndex:i]] = [command objectAtIndex:i+1];
-        //     }
-        //     [Countly.sharedInstance endEvent:eventName segmentation:dict count:countInt sum:0];
-        //     result(@"eventWithSegment sent!");
-        // }
-        // else if ([eventType  isEqual: @"eventWithSumSegment"]){
-        //     NSString* eventName = [command objectAtIndex:1];
-        //     NSString* countString = [command objectAtIndex:2];
-        //     int countInt = [countString intValue];
-        //     NSString* sumString = [command objectAtIndex:3];
-        //     int sumInt = [sumString intValue];
-        //     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-        //     for(int i=4,il=(int)command.count;i<il;i+=2){
-        //         dict[[command objectAtIndex:i]] = [command objectAtIndex:i+1];
-        //     }
-        //     [Countly.sharedInstance endEvent:eventName segmentation:dict count:countInt sum:sumInt];
-        //     result(@"eventWithSumSegment sent!");
-        // }
-        // else{
-        //     result(@"none cases!");
-        // }
-
     }else if ([@"setLocation" isEqualToString:call.method]) {
         NSString* latitudeString = [command objectAtIndex:0];
         NSString* longitudeString = [command objectAtIndex:1];
