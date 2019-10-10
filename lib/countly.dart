@@ -54,6 +54,11 @@ class Countly {
     }
     args.add(options["sum"].toString());
 
+    if(options["duration"] == null){
+      options["duration"] = "0";
+    }
+    args.add(options["duration"].toString());
+
     if(options["segmentation"] != null){
       segmentation = options["segmentation"];
       segmentation.forEach((k, v){
@@ -513,7 +518,7 @@ class Countly {
     }
     return result;
   }
-  /// button 
+  /// button
   static Future<String> giveConsentSession(bool flag) async {
     List <String> args = [];
     isDebug = flag;
@@ -550,7 +555,7 @@ class Countly {
     }
     return result;
   }
-  
+
   static Future<String> giveConsentLocation(bool flag) async {
     List <String> args = [];
     isDebug = flag;
@@ -660,7 +665,7 @@ class Countly {
     }
     return result;
   }
-  
+
   static Future<String> removeConsentLocation(bool flag) async {
     List <String> args = [];
     isDebug = flag;

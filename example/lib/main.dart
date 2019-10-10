@@ -49,7 +49,7 @@ class _MyAppState extends State<MyApp> {
     var event = {
       "key": "Event With Sum",
       "count": 1,
-      "sum": "0.99"
+      "sum": "0.99",
     };
     Countly.recordEvent(event);
   }
@@ -288,7 +288,7 @@ class _MyAppState extends State<MyApp> {
   giveConsentStarRating(){
     Countly.giveConsent(["star-rating"]);
   }
-  
+
 
   removeConsentsessions(){
     Countly.removeConsent(["sessions"]);
@@ -317,7 +317,7 @@ class _MyAppState extends State<MyApp> {
   removeConsentstarRating(){
     Countly.removeConsent(["star-rating"]);
   }
-  
+
   sendPushToken(){
     //  var push = PushNotification.init({
     //       android: {sound: true},
@@ -532,7 +532,7 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Give Consent Push", color: "blue", onPressed: giveConsentPush),
               MyButton(text: "Give Consent starRating", color: "blue", onPressed: giveConsentStarRating),
 
-              
+
               MyButton(text: "Remove Consent Sessions", color: "blue", onPressed: removeConsentsessions),
               MyButton(text: "Remove Consent Events", color: "blue", onPressed:removeConsentEvents),
               MyButton(text: "Remove Consent Views", color: "blue", onPressed: removeConsentViews),
@@ -543,7 +543,7 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Remove Consent Push", color: "blue", onPressed: removeConsentpush),
               MyButton(text: "Remove Consent starRating", color: "blue", onPressed: removeConsentstarRating),
 
-              
+
 
               MyButton(text: "Countly.setRemoteConfigAutomaticDownload", color: "purple", onPressed: setRemoteConfigAutomaticDownload),
               MyButton(text: "Countly.remoteConfigUpdate", color: "purple", onPressed: remoteConfigUpdate),

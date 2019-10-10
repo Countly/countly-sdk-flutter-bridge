@@ -63,65 +63,19 @@ CountlyConfig* config = nil;
         int count = [countString intValue];
         NSString* sumString = [command objectAtIndex:2];
         float sum = [sumString floatValue];
+        NSString* durationString = [command objectAtIndex:1];
+        int duration = [durationString intValue];
         NSMutableDictionary *segmentation = [[NSMutableDictionary alloc] init];
 
-        for(int i=4,il=(int)command.count;i<il;i+=2){
-            segmentation[[command objectAtIndex:i]] = [command objectAtIndex:i+1];
+        if((int)command.count > 4){
+            for(int i=4,il=(int)command.count;i<il;i+=2){
+                segmentation[[command objectAtIndex:i]] = [command objectAtIndex:i+1];
+            }
         }
-        [[Countly sharedInstance] recordEvent:key segmentation:segmentation count:count  sum:sum];
+        [[Countly sharedInstance] recordEvent:key segmentation:segmentation count:count  sum:sum duration:duration];
         NSString *resultString = @"recordEvent for: ";
         resultString = [resultString stringByAppendingString: key];
         result(resultString);
-        // NSString* eventType = [command objectAtIndex:0];
-        // if (eventType != nil && [eventType length] > 0) {
-        //     if ([eventType  isEqual: @"event"]) {
-        //         NSString* eventName = [command objectAtIndex:1];
-        //         NSString* countString = [command objectAtIndex:2];
-        //         int countInt = [countString intValue];
-        //         [[Countly sharedInstance] recordEvent:eventName count:countInt];
-        //         result(@"event sent!");
-
-        //     }else if ([eventType  isEqual: @"eventWithSum"]){
-        //         NSString* eventName = [command objectAtIndex:1];
-        //         NSString* countString = [command objectAtIndex:2];
-        //         int countInt = [countString intValue];
-        //         NSString* sumString = [command objectAtIndex:3];
-        //         float sumFloat = [sumString floatValue];
-        //         [[Countly sharedInstance] recordEvent:eventName count:countInt  sum:sumFloat];
-        //         result(@"eventWithSum sent!");
-        //     }
-        //     else if ([eventType  isEqual: @"eventWithSegment"]){
-        //         NSString* eventName = [command objectAtIndex:1];
-        //         NSString* countString = [command objectAtIndex:2];
-        //         int countInt = [countString intValue];
-        //         NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-
-        //         for(int i=3,il=(int)command.count;i<il;i+=2){
-        //             dict[[command objectAtIndex:i]] = [command objectAtIndex:i+1];
-        //         }
-        //         [[Countly sharedInstance] recordEvent:eventName segmentation:dict count:countInt];
-        //         result(@"eventWithSegment sent!");
-        //     }
-        //     else if ([eventType  isEqual: @"eventWithSumSegment"]){
-        //         NSString* eventName = [command objectAtIndex:1];
-        //         NSString* countString = [command objectAtIndex:2];
-        //         int countInt = [countString intValue];
-        //         NSString* sumString = [command objectAtIndex:3];
-        //         float sumFloat = [sumString floatValue];
-        //         NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-
-        //         for(int i=4,il=(int)command.count;i<il;i+=2){
-        //             dict[[command objectAtIndex:i]] = [command objectAtIndex:i+1];
-        //         }
-        //         [[Countly sharedInstance] recordEvent:eventName segmentation:dict count:countInt  sum:sumFloat];
-        //         result(@"eventWithSegment sent!");
-        //     }
-        //     else{
-        //         result(@"none cases!");
-        //     }
-        // } else {
-        //     result(@"default!");
-        // }
     }else if ([@"recordView" isEqualToString:call.method]) {
         NSString* recordView = [command objectAtIndex:0];
         [Countly.sharedInstance recordView:recordView];
@@ -191,11 +145,11 @@ CountlyConfig* config = nil;
 
     }else if ([@"stop" isEqualToString:call.method]) {
         [Countly.sharedInstance endSession];
-        result(@"stop!");    
+        result(@"stop!");
 
     }else if ([@"updateSessionPeriod" isEqualToString:call.method]) {
         config.updateSessionPeriod = 15;
-        result(@"updateSessionPeriod!");        
+        result(@"updateSessionPeriod!");
 
     }else if ([@"eventSendThreshold" isEqualToString:call.method]) {
         config.eventSendThreshold = 1;
@@ -203,7 +157,7 @@ CountlyConfig* config = nil;
 
     }else if ([@"storedRequestsLimit" isEqualToString:call.method]) {
         config.storedRequestsLimit = 1;
-        result(@"storedRequestsLimit!");    
+        result(@"storedRequestsLimit!");
 
     }else if ([@"changeDeviceId" isEqualToString:call.method]) {
         NSString* newDeviceID = [command objectAtIndex:0];
@@ -471,7 +425,7 @@ CountlyConfig* config = nil;
                 [Countly.sharedInstance giveConsentForFeature:CLYConsentAppleWatch];
             }
         }
-        
+
 
         NSString *resultString = @"giveConsent for: ";
         result(@"giveConsent!");
@@ -512,13 +466,13 @@ CountlyConfig* config = nil;
                 [Countly.sharedInstance cancelConsentForFeature:CLYConsentAppleWatch];
             }
         }
-        
+
         NSString *resultString = @"removeConsent for: ";
         result(@"removeConsent!");
 
     }else if ([@"giveAllConsent" isEqualToString:call.method]) {
 //        [Countly.sharedInstance giveConsentForAllFeatures];
-        
+
         [Countly.sharedInstance giveConsentForFeature:CLYConsentSessions];
         [Countly.sharedInstance giveConsentForFeature:CLYConsentEvents];
         [Countly.sharedInstance giveConsentForFeature:CLYConsentUserDetails];
@@ -532,7 +486,7 @@ CountlyConfig* config = nil;
 
     }else if ([@"removeAllConsent" isEqualToString:call.method]) {
 //        [Countly.sharedInstance cancelConsentForAllFeatures];
-        
+
         [Countly.sharedInstance cancelConsentForFeature:CLYConsentSessions];
         [Countly.sharedInstance cancelConsentForFeature:CLYConsentEvents];
         [Countly.sharedInstance cancelConsentForFeature:CLYConsentUserDetails];
