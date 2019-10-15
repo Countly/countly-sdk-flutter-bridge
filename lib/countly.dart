@@ -281,9 +281,9 @@ class Countly {
     return result;
   }
 
-  static Future<String> addCrashLog(String newDeviceID) async {
+  static Future<String> addCrashLog(String logs) async {
     List <String> args = [];
-    args.add(newDeviceID);
+    args.add(logs);
     final String result = await _channel.invokeMethod('addCrashLog', <String, dynamic>{
       'data': json.encode(args)
     });
@@ -891,7 +891,8 @@ class Countly {
 
   static Future<String> enableCrashReporting() async {
     List <String> args = [];
-    //  Countly.isCrashReportingEnabled = true;
+    // Countly.enableCrashReporting = true;
+    // args.add(flag.toString());
     final String result = await _channel.invokeMethod('enableCrashReporting', <String, dynamic>{
       'data': json.encode(args)
     });
@@ -901,9 +902,15 @@ class Countly {
     return result;
   }
 
-  static Future<String> logException() async {
+  static Future<String> logException(String execption,bool nonfatal, Map<String, Object> segmentation) async {
     List <String> args = [];
 
+    args.add(execption);
+    args.add(nonfatal.toString());
+    segmentation.forEach((k, v){
+      args.add(k.toString());
+      args.add(v.toString());
+    });
     final String result = await _channel.invokeMethod('logException', <String, dynamic>{
       'data': json.encode(args)
     });

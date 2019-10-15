@@ -433,23 +433,54 @@ class _MyAppState extends State<MyApp> {
     };
     Countly.setOptionalParametersForInitialization(options);
   }
+
+  // enableCrashReporting(){
+  //   Countly.enableCrashReporting();
+  // }
   addCrashLog(){
     Countly.enableCrashReporting();
-    //   Countly.addCrashLog("User Performed Step A");
-    //
-    //       Countly.addCrashLog("User Performed Step B");
-    //   // }, 1000);
-    //   // setTimeout(function() {
-    //       Countly.addCrashLog("User Performed Step C");
-    //       // console.log("Opps found and error");
-    //       // a();
-    //   // }, 1000);
+      Countly.addCrashLog("User Performed Step A");
+      Timer timer;
+      timer = new Timer(new Duration(seconds: 5), () {
+        Countly.logException("one.js \n two.js \n three.js", true, {"_facebook_version": "0.0.1"});
+        timer.cancel();
+      });
+      
+    // }, 1000);
+    // setTimeout(function() {
+        // Countly.addCrashLog("User Performed Step C");
+        // console.log("Opps found and error");
+        a();
+      // }, 1000);
   }
+
+  void a(){
+    b();
+  }
+  
+  void b(){
+    c();
+  }
+   
+  void c(){
+    d();
+    throw("My Custom Error");
+  } 
+  
+  void d(){
+    try {
+      throw("try Error");
+    } catch (err) {
+      throw("catch Error"); 
+    }
+  } 
+  
+
   setLoggingEnabled(){
     Countly.setLoggingEnabled(false);
   }
   sendRating(){
-    Countly.sendRating(5);
+    Countly.sendRating(3);
   }
   askForStarRating(){
     Countly.askForStarRating();
@@ -458,10 +489,10 @@ class _MyAppState extends State<MyApp> {
     // });
   }
   askForFeedback(){
-    Countly.askForFeedback("5d95c48805c90924dae7df80", "Close");
+    Countly.askForFeedback("5da0877c31ec7124c8bf398d", "Close");
   }
   logException(){
-    Countly.logException();
+    Countly.logException("execption", true, null);
   }
 
   setHttpPostForced(){
