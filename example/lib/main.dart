@@ -445,36 +445,36 @@ class _MyAppState extends State<MyApp> {
         Countly.logException("one.js \n two.js \n three.js", true, {"_facebook_version": "0.0.1"});
         timer.cancel();
       });
-      
+
     // }, 1000);
     // setTimeout(function() {
         // Countly.addCrashLog("User Performed Step C");
         // console.log("Opps found and error");
-        a();
+        // a();
       // }, 1000);
   }
 
   void a(){
     b();
   }
-  
+
   void b(){
     c();
   }
-   
+
   void c(){
     d();
     throw("My Custom Error");
-  } 
-  
+  }
+
   void d(){
     try {
       throw("try Error");
     } catch (err) {
-      throw("catch Error"); 
+      throw("catch Error");
     }
-  } 
-  
+  }
+
 
   setLoggingEnabled(){
     Countly.setLoggingEnabled(false);

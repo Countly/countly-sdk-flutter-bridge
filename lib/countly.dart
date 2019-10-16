@@ -907,10 +907,12 @@ class Countly {
 
     args.add(execption);
     args.add(nonfatal.toString());
-    segmentation.forEach((k, v){
-      args.add(k.toString());
-      args.add(v.toString());
-    });
+    if(segmentation != null){
+      segmentation.forEach((k, v){
+        args.add(k.toString());
+        args.add(v.toString());
+      });
+    }
     final String result = await _channel.invokeMethod('logException', <String, dynamic>{
       'data': json.encode(args)
     });

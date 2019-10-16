@@ -499,7 +499,7 @@ CountlyConfig* config = nil;
             [randomSelection addObject:[command objectAtIndex:i]];
         }
         NSArray *keysOnly = [randomSelection copy];
-        
+
         // NSArray * keysOnly[] = {};
         // for(int i=0,il=(int)command.count;i<il;i++){
         //     keysOnly[i] = [command objectAtIndex:i];
@@ -519,7 +519,7 @@ CountlyConfig* config = nil;
             [randomSelection addObject:[command objectAtIndex:i]];
         }
         NSArray *exceptKeys = [randomSelection copy];
-        
+
         // NSArray * exceptKeys[] = {};
         // for(int i=0,il=(int)command.count;i<il;i++){
         //     exceptKeys[i] = [command objectAtIndex:i];
