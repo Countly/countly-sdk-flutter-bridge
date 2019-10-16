@@ -494,11 +494,17 @@ CountlyConfig* config = nil;
          }];
 
     }else if ([@"updateRemoteConfigForKeysOnly" isEqualToString:call.method]) {
-        NSArray * keysOnly[] = {};
-        for(int i=0,il=(int)command.count;i<il;i++){
-            keysOnly[i] = [command objectAtIndex:i];
+        NSMutableArray *randomSelection = [[NSMutableArray alloc] init];
+        for (int i = 0; i < (int)command.count; i++){
+            [randomSelection addObject:[command objectAtIndex:i]];
         }
-        [Countly.sharedInstance updateRemoteConfigOnlyForKeys: *keysOnly completionHandler:^(NSError * error)
+        NSArray *keysOnly = [randomSelection copy];
+        
+        // NSArray * keysOnly[] = {};
+        // for(int i=0,il=(int)command.count;i<il;i++){
+        //     keysOnly[i] = [command objectAtIndex:i];
+        // }
+        [Countly.sharedInstance updateRemoteConfigOnlyForKeys: keysOnly completionHandler:^(NSError * error)
          {
              if (!error){
                 result(@"Success!");
@@ -508,11 +514,17 @@ CountlyConfig* config = nil;
          }];
 
     }else if ([@"updateRemoteConfigExceptKeys" isEqualToString:call.method]) {
-        NSArray * exceptKeys[] = {};
-        for(int i=0,il=(int)command.count;i<il;i++){
-            exceptKeys[i] = [command objectAtIndex:i];
+        NSMutableArray *randomSelection = [[NSMutableArray alloc] init];
+        for (int i = 0; i < (int)command.count; i++){
+            [randomSelection addObject:[command objectAtIndex:i]];
         }
-        [Countly.sharedInstance updateRemoteConfigExceptForKeys: *exceptKeys completionHandler:^(NSError * error)
+        NSArray *exceptKeys = [randomSelection copy];
+        
+        // NSArray * exceptKeys[] = {};
+        // for(int i=0,il=(int)command.count;i<il;i++){
+        //     exceptKeys[i] = [command objectAtIndex:i];
+        // }
+        [Countly.sharedInstance updateRemoteConfigExceptForKeys: exceptKeys completionHandler:^(NSError * error)
          {
              if (!error){
                  result(@"Success!");

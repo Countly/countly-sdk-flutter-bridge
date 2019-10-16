@@ -461,7 +461,6 @@ public class CountlyPlugin implements MethodCallHandler {
               String[] exceptKeys = new String[args.length()];
               for (int i = 0, il = args.length(); i < il; i++) {
                   exceptKeys[i] = args.getString(i);
-                  ;
               }
 
               Countly.sharedInstance().updateRemoteConfigExceptKeys(exceptKeys, new RemoteConfig.RemoteConfigCallback() {
