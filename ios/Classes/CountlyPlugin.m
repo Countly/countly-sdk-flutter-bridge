@@ -80,9 +80,9 @@ CountlyConfig* config = nil;
         NSString* recordView = [command objectAtIndex:0];
         [Countly.sharedInstance recordView:recordView];
         result(@"recordView Sent!");
-    }else if ([@"setloggingenabled" isEqualToString:call.method]) {
+    }else if ([@"setLoggingEnabled" isEqualToString:call.method]) {
         config.enableDebug = YES;
-        result(@"setloggingenabled!");
+        result(@"setLoggingEnabled!");
 
     }else if ([@"setuserdata" isEqualToString:call.method]) {
         NSString* name = [command objectAtIndex:0];

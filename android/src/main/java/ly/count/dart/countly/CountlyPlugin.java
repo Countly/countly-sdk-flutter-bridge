@@ -201,14 +201,14 @@ public class CountlyPlugin implements MethodCallHandler {
               }
               Countly.sharedInstance().recordEvent(key, segmentation, count, sum, duration);
               result.success("recordEvent for: " + key);
-          } else if ("setloggingenabled".equals(call.method)) {
+          } else if ("setLoggingEnabled".equals(call.method)) {
               String loggingEnable = args.getString(0);
               if (loggingEnable.equals("true")) {
                   Countly.sharedInstance().setLoggingEnabled(true);
               } else {
                   Countly.sharedInstance().setLoggingEnabled(false);
               }
-              result.success("setloggingenabled success!");
+              result.success("setLoggingEnabled success!");
           } else if ("setuserdata".equals(call.method)) {
               // Bundle bundle = new Bundle();
 
