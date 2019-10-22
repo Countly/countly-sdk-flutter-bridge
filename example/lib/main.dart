@@ -1,11 +1,8 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/services.dart';
-import 'package:countly/countly.dart';
+import 'package:countly_flutter/countly_flutter.dart';
 
 void main() => runApp(MyApp());
 

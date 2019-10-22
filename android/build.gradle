@@ -1,5 +1,5 @@
-group 'ly.count.dart.countly'
-version '1.0-SNAPSHOT'
+group 'ly.count.dart.countly_flutter'
+version '1.0'
 
 buildscript {
     repositories {

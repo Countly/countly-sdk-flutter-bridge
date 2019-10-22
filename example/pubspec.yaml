@@ -1,5 +1,5 @@
-name: countly_example
-description: Demonstrates how to use the countly plugin.
+name: countly_flutter_example
+description: Demonstrates how to use the countly_flutter plugin.
 publish_to: 'none'
 
 environment:
@@ -17,7 +17,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  countly:
+  countly_flutter:
     path: ../
 
 # For information on the generic Dart part of this file, see the
