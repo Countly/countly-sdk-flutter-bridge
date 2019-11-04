@@ -30,6 +30,7 @@ CountlyConfig* config = nil;
     if(config == nil){
         config = CountlyConfig.new;
     }
+    config.features = @[CLYCrashReporting, CLYPushNotifications, CLYAutoViewTracking];
 
     if([@"init" isEqualToString:call.method]){
 
@@ -248,6 +249,13 @@ CountlyConfig* config = nil;
         // [Countly.sharedInstance sendPushToken:token messagingMode: messagingMode];
         // result(@"sendPushToken!");
 
+    }else if ([@"askForNotificationPermission" isEqualToString:call.method]) {
+        UNAuthorizationOptions authorizationOptions = UNAuthorizationOptionProvisional;
+        [Countly.sharedInstance askForNotificationPermissionWithOptions:authorizationOptions completionHandler:^(BOOL granted, NSError *error){
+            NSLog(@"granted: %d", granted);
+            NSLog(@"error: %@", error);
+        }];
+        [Countly.sharedInstance askForNotificationPermission];
     }else if ([@"userData_setProperty" isEqualToString:call.method]) {
         NSString* keyName = [command objectAtIndex:0];
         NSString* keyValue = [command objectAtIndex:1];

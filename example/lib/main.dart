@@ -315,7 +315,8 @@ class _MyAppState extends State<MyApp> {
     Countly.removeConsent(["star-rating"]);
   }
 
-  sendPushToken(){
+  askForNotificationPermission(){
+    Countly.askForNotificationPermission();
     //  var push = PushNotification.init({
     //       android: {sound: true},
     //       ios: {
@@ -580,9 +581,7 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Countly.remoteConfigClearValues", color: "purple", onPressed: remoteConfigClearValues),
               MyButton(text: "Countly.getRemoteConfigValueForKey", color: "purple", onPressed: getRemoteConfigValueForKey),
 
-              MyButton(text: "Push Message", color: "primary", onPressed: sendPushToken),
-              MyButton(text: "Push Test Android", color: "primary", onPressed: testAndroidPush),
-              MyButton(text: "Push Test iOS", color: "primary", onPressed: testiOSPush),
+              MyButton(text: "Push Notification", color: "primary", onPressed: askForNotificationPermission),
 
               MyButton(text: "Change Device ID", color: "violet", onPressed: changeDeviceId),
               MyButton(text: "Enable Parameter Tapmering Protection", color: "violet", onPressed: enableParameterTamperingProtection),
