@@ -164,7 +164,7 @@ CountlyConfig* config = nil;
         NSString* newDeviceID = [command objectAtIndex:0];
         NSString* onServerString = [command objectAtIndex:1];
 
-        if ([onServerString  isEqual: @"true"]) {
+        if ([onServerString  isEqual: @"1"]) {
             [Countly.sharedInstance setNewDeviceID:newDeviceID onServer: YES];
         }else{
             [Countly.sharedInstance setNewDeviceID:newDeviceID onServer: NO];
