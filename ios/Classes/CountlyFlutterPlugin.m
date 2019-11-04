@@ -466,11 +466,9 @@ CountlyConfig* config = nil;
         double latitudeDouble = [latitudeString doubleValue];
         double longitudeDouble = [longitudeString doubleValue];
 
-        config.ISOCountryCode = country;
-        config.city = city;
-        config.location = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
-        config.IP = ipAddress;
-
+        [Countly.sharedInstance recordLocation:(CLLocationCoordinate2D){latitudeDouble,longitudeDouble}];
+        [Countly.sharedInstance recordCity:city andISOCountryCode:country];
+        [Countly.sharedInstance recordIP:ipAddress];
         result(@"setOptionalParametersForInitialization!");
 
     }else if ([@"setRemoteConfigAutomaticDownload" isEqualToString:call.method]) {

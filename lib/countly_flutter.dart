@@ -231,13 +231,13 @@ class Countly {
       country = "";
     }
     if(latitude == null){
-      latitude = "";
+      latitude = "0.00";
     }
     if(longitude == null){
       longitude = "0.00";
     }
     if(ipAddress == null){
-      ipAddress = "0.00";
+      ipAddress = "0.0.0.0";
     }
 
     if(!latitude.contains(".")){

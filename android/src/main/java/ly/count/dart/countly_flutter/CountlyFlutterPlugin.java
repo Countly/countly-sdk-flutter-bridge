@@ -409,8 +409,26 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               String latitude = args.getString(2);
               String longitude = args.getString(3);
               String ipAddress = args.getString(4);
-
-              Countly.sharedInstance().setLocation(country, city, latitude + "," + longitude, ipAddress);
+              String latlng = latitude + "," + longitude;
+              if(city.length == 0){
+                  city = null;
+              }
+              if(country.length == 0){
+                  country = null;
+              }
+              if(latitude.equals("0.00")){
+                  latitude = null;
+              }
+              if(longitude.equals("0.00")){
+                  longitude = null;
+              }
+              if(latitude == null && longitude == null){
+                  latlng = null;
+              }
+              if(ipAddress.equals("0.0.0.0")){
+                  ipAddress = null;
+              }
+              Countly.sharedInstance().setLocation(country, city, latlng, ipAddress);
 
               result.success("setOptionalParametersForInitialization sent.");
           } else if ("setRemoteConfigAutomaticDownload".equals(call.method)) {
