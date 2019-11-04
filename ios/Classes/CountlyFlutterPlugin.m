@@ -30,10 +30,8 @@ CountlyConfig* config = nil;
     if(config == nil){
         config = CountlyConfig.new;
     }
-    config.features = @[CLYCrashReporting, CLYPushNotifications, CLYAutoViewTracking];
 
     if([@"init" isEqualToString:call.method]){
-
 
         NSString* serverurl = [command  objectAtIndex:0];
         NSString* appkey = [command objectAtIndex:1];
@@ -42,6 +40,9 @@ CountlyConfig* config = nil;
         config.appKey = appkey;
         config.host = serverurl;
 
+        config.features = @[CLYCrashReporting, CLYPushNotifications, CLYAutoViewTracking];
+        config.sendPushTokenAlways = YES;
+
         if(command.count == 3){
             deviceID = [command objectAtIndex:2];
             config.deviceID = deviceID;
@@ -49,16 +50,16 @@ CountlyConfig* config = nil;
 
         if (serverurl != nil && [serverurl length] > 0) {
             [[Countly sharedInstance] startWithConfig:config];
-            result(@"initialized");
+            result(@"initialized.");
         } else {
-            result(@"Errorabc");
+            result(@"initialization failed!");
         }
 
-        // config.deviceID = deviceID; doesn't work so applied at patch temporarly.
-        if(command.count == 3){
-            deviceID = [command objectAtIndex:2];
-            [Countly.sharedInstance setNewDeviceID:deviceID onServer:YES];   //replace and merge on server
-        }
+        // // config.deviceID = deviceID; doesn't work so applied at patch temporarly.
+        // if(command.count == 3){
+        //     deviceID = [command objectAtIndex:2];
+        //     [Countly.sharedInstance setNewDeviceID:deviceID onServer:YES];   //replace and merge on server
+        // }
     }else if ([@"recordEvent" isEqualToString:call.method]) {
         NSString* key = [command objectAtIndex:0];
         NSString* countString = [command objectAtIndex:1];
@@ -217,7 +218,7 @@ CountlyConfig* config = nil;
         result(@"setLocation!");
 
     }else if ([@"enableCrashReporting" isEqualToString:call.method]) {
-        config.features = @[CLYCrashReporting];
+        // config.features = @[CLYCrashReporting];
         result(@"enableCrashReporting!");
 
     }else if ([@"addCrashLog" isEqualToString:call.method]) {
@@ -250,12 +251,13 @@ CountlyConfig* config = nil;
         // result(@"sendPushToken!");
 
     }else if ([@"askForNotificationPermission" isEqualToString:call.method]) {
-        UNAuthorizationOptions authorizationOptions = UNAuthorizationOptionProvisional;
-        [Countly.sharedInstance askForNotificationPermissionWithOptions:authorizationOptions completionHandler:^(BOOL granted, NSError *error){
-            NSLog(@"granted: %d", granted);
-            NSLog(@"error: %@", error);
-        }];
+        // UNAuthorizationOptions authorizationOptions = UNAuthorizationOptionProvisional;
+        // [Countly.sharedInstance askForNotificationPermissionWithOptions:authorizationOptions completionHandler:^(BOOL granted, NSError *error){
+        //     NSLog(@"granted: %d", granted);
+        //     NSLog(@"error: %@", error);
+        // }];
         [Countly.sharedInstance askForNotificationPermission];
+        result(@"askForNotificationPermission!");
     }else if ([@"userData_setProperty" isEqualToString:call.method]) {
         NSString* keyName = [command objectAtIndex:0];
         NSString* keyValue = [command objectAtIndex:1];
