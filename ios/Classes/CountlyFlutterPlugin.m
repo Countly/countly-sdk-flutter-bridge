@@ -251,18 +251,11 @@ CountlyConfig* config = nil;
         // result(@"sendPushToken!");
 
     }else if ([@"askForNotificationPermission" isEqualToString:call.method]) {
-        config.isTestDevice = YES;
-        UNAuthorizationOptions authorizationOptions = UNAuthorizationOptionProvisional;
-        [Countly.sharedInstance askForNotificationPermissionWithOptions:authorizationOptions completionHandler:^(BOOL granted, NSError *error){
-            if(granted){
-                NSLog(@"The token: ");
-                [Countly.sharedInstance recordPushNotificationToken];
-            }
-            NSLog(@"granted: %d", granted);
-            NSLog(@"error: %@", error);
-        }];
-        // [Countly.sharedInstance askForNotificationPermission];
+        [Countly.sharedInstance askForNotificationPermission];
         result(@"askForNotificationPermission!");
+    }else if ([@"isTestDevice" isEqualToString:call.method]) {
+        config.pushTestMode = @"CLYPushTestModeDevelopment";
+        result(@"isTestDevice!");
     }else if ([@"userData_setProperty" isEqualToString:call.method]) {
         NSString* keyName = [command objectAtIndex:0];
         NSString* keyValue = [command objectAtIndex:1];

@@ -159,6 +159,17 @@ class Countly {
     return result;
   }
 
+  static Future<String> isTestDevice() async {
+    List <String> args = [];
+    final String result = await _channel.invokeMethod('isTestDevice', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    if(isDebug){
+      print(result);
+    }
+    return result;
+  }
+
   static Future<String> start() async {
     List <String> args = [];
     final String result = await _channel.invokeMethod('start', <String, dynamic>{

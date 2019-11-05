@@ -18,6 +18,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   onInit(){
+    Countly.isTestDevice();
     Countly.init("https://try.count.ly", "0e8a00e8c01395a0af8be0e55da05a404bb23c3e");
     Countly.setLoggingEnabled(true);
   }
@@ -317,57 +318,6 @@ class _MyAppState extends State<MyApp> {
 
   askForNotificationPermission(){
     Countly.askForNotificationPermission();
-    //  var push = PushNotification.init({
-    //       android: {sound: true},
-    //       ios: {
-    //           alert: "true",
-    //           badge: "true",
-    //           sound: "true"
-    //       },
-    //       windows: {}
-    //   });
-
-    //   push.on('registration', function(data) {
-    //       alert('Token received: '+data.registrationId);
-    //       Countly.sendPushToken({
-    //           "token": data.registrationId,
-    //           "messagingMode": Countly.messagingMode.DEVELOPMENT
-    //       });
-    //   });
-
-    //   push.on('notification', function(data) {
-    //       alert(JSON.stringify(data));
-    //       // data.message,
-    //       // data.title,
-    //       // data.count,
-    //       // data.sound,
-    //       // data.image,
-    //       // data.additionalData
-    //   });
-
-    // // Test android 8.0 and 9.0
-    // push.subscribe('myTopic', function(n){
-    //     alert(JSON.stringify(n));
-    // }, function(e){
-    //     alert(JSON.stringify(e));
-    // });
-
-    // push.on('error', function(e) {
-    //     // e.message
-    // });
-    // Countly.messagingMode.DEVELOPMENT
-    // Countly.messagingMode.PRODUCTION
-    // Countly.messagingMode.ADHOC
-    // Countly.mode = Countly.messagingMode.DEVELOPMENT;
-    // Countly.Push.onRegisterPushNotification();
-    // @depricated: The below commented method is depricated and no longer works.
-    // Countly.initMessaging({
-    //     "messageMode": Countly.messagingMode.TEST,
-    //     "projectId": "881000050249"
-    // });
-
-    // Tesing purpose only
-
   }
   setRemoteConfigAutomaticDownload(){
     Countly.setRemoteConfigAutomaticDownload((result){
