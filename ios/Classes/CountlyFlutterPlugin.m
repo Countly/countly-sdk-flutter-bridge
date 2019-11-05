@@ -253,9 +253,16 @@ CountlyConfig* config = nil;
     }else if ([@"askForNotificationPermission" isEqualToString:call.method]) {
         [Countly.sharedInstance askForNotificationPermission];
         result(@"askForNotificationPermission!");
-    }else if ([@"isTestDevice" isEqualToString:call.method]) {
-        config.pushTestMode = @"CLYPushTestModeDevelopment";
-        result(@"isTestDevice!");
+    }else if ([@"pushTokenType" isEqualToString:call.method]) {
+        NSString* tokenType = [command objectAtIndex:0];
+        if([tokenType isEqualToString: @"1"]){
+            config.pushTestMode = @"CLYPushTestModeDevelopment";
+        }else if([tokenType isEqualToString: @"2"]){
+            config.pushTestMode = @"CLYPushTestModeTestFlightOrAdHoc";
+        }else{
+
+        }
+        result(@"pushTokenType!");
     }else if ([@"userData_setProperty" isEqualToString:call.method]) {
         NSString* keyName = [command objectAtIndex:0];
         NSString* keyValue = [command objectAtIndex:1];

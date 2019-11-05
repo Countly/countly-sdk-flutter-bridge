@@ -12,12 +12,12 @@ class Countly {
   // static variable
   static bool isDebug = false;
   static bool enableCrashReportingFlag = false;
-  static Map<String, Object> messagingMode = {"DEVELOPMENT": 1, "PRODUCTION": 0, "ADHOC": 2};
+  static Map<String, Object> messagingMode = {"TEST": "1", "PRODUCTION": "0", "ADHOC": "2"};
 
 
   static Future<String> init(String serverUrl, String appKey, [String deviceId]) async {
     if (Platform.isAndroid) {
-      messagingMode = {"DEVELOPMENT": 2, "PRODUCTION": 0};
+      messagingMode = {"TEST": "2", "PRODUCTION": "0"};
     }
     List <String> args = [];
     args.add(serverUrl);
@@ -159,9 +159,10 @@ class Countly {
     return result;
   }
 
-  static Future<String> isTestDevice() async {
+  static Future<String> pushTokenType(String tokenType) async {
     List <String> args = [];
-    final String result = await _channel.invokeMethod('isTestDevice', <String, dynamic>{
+    args.add(tokenType);
+    final String result = await _channel.invokeMethod('pushTokenType', <String, dynamic>{
       'data': json.encode(args)
     });
     if(isDebug){
