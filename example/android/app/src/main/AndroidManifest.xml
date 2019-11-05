@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="ly.count.dart.countly_flutter_example">
+    package="com.countly.demo">
 
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.
@@ -8,7 +8,7 @@
          FlutterApplication and put your custom class here. -->
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="countly_flutter_example"
+        android:label="MainActivity"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name="com.countly.demo.MainActivity"
