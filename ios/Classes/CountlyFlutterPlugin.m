@@ -41,8 +41,7 @@ CountlyConfig* config = nil;
         config.host = serverurl;
 
         config.features = @[CLYCrashReporting, CLYPushNotifications, CLYAutoViewTracking];
-        config.sendPushTokenAlways = YES;
-
+        
         if(command.count == 3){
             deviceID = [command objectAtIndex:2];
             config.deviceID = deviceID;
@@ -251,9 +250,17 @@ CountlyConfig* config = nil;
         // result(@"sendPushToken!");
 
     }else if ([@"askForNotificationPermission" isEqualToString:call.method]) {
-        [Countly.sharedInstance askForNotificationPermission];
+        UNAuthorizationOptions authorizationOptions = UNAuthorizationOptionProvisional;
+
+        [Countly.sharedInstance askForNotificationPermissionWithOptions:authorizationOptions completionHandler:^(BOOL granted, NSError *error)
+        {
+            NSLog(@"granted: %d", granted);
+            NSLog(@"error: %@", error);
+        }];
+        // [Countly.sharedInstance askForNotificationPermission];
         result(@"askForNotificationPermission!");
     }else if ([@"pushTokenType" isEqualToString:call.method]) {
+        config.sendPushTokenAlways = YES;
         NSString* tokenType = [command objectAtIndex:0];
         if([tokenType isEqualToString: @"1"]){
             config.pushTestMode = @"CLYPushTestModeDevelopment";
@@ -570,12 +577,10 @@ CountlyConfig* config = nil;
             }
         }];
 
-
     }else if ([@"askForStarRating" isEqualToString:call.method]) {
         [Countly.sharedInstance askForStarRating:^(NSInteger rating){
-
+            result([NSString stringWithFormat: @"Rating:%d", (int)rating]);
         }];
-        result(@"Done");
     }else if ([@"getPlatformVersion" isEqualToString:call.method]) {
         result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
     }
