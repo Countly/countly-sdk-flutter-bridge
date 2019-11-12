@@ -251,14 +251,14 @@ CountlyConfig* config = nil;
         // result(@"sendPushToken!");
 
     }else if ([@"askForNotificationPermission" isEqualToString:call.method]) {
-        UNAuthorizationOptions authorizationOptions = UNAuthorizationOptionProvisional;
+        // UNAuthorizationOptions authorizationOptions = UNAuthorizationOptionProvisional;
 
-        [Countly.sharedInstance askForNotificationPermissionWithOptions:authorizationOptions completionHandler:^(BOOL granted, NSError *error)
-        {
-            NSLog(@"granted: %d", granted);
-            NSLog(@"error: %@", error);
-        }];
-        // [Countly.sharedInstance askForNotificationPermission];
+        // [Countly.sharedInstance askForNotificationPermissionWithOptions:authorizationOptions completionHandler:^(BOOL granted, NSError *error)
+        // {
+        //     NSLog(@"granted: %d", granted);
+        //     NSLog(@"error: %@", error);
+        // }];
+        [Countly.sharedInstance askForNotificationPermission];
         result(@"askForNotificationPermission!");
     }else if ([@"pushTokenType" isEqualToString:call.method]) {
         config.sendPushTokenAlways = YES;
