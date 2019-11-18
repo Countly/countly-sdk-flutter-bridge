@@ -108,11 +108,7 @@ CountlyConfig* config = nil;
         Countly.user.birthYear = @([byear integerValue]);
 
         [Countly.user save];
-        result(@"setuserdata!");
-
-    }else if ([@"getDeviceID" isEqualToString:call.method]) {
-        NSString* deviceID = Countly.sharedInstance.deviceID;
-        result(@"default!");
+        result(@"setuserdata!");  
 
     }else if ([@"sendRating" isEqualToString:call.method]) {
         NSString* ratingString = [command objectAtIndex:0];
@@ -582,8 +578,7 @@ CountlyConfig* config = nil;
         [Countly.sharedInstance askForStarRating:^(NSInteger rating){
             result([NSString stringWithFormat: @"Rating:%d", (int)rating]);
         }];
-    }else if ([@"getPlatformVersion" isEqualToString:call.method]) {
-        result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
+   
     }
     else {
         result(FlutterMethodNotImplemented);

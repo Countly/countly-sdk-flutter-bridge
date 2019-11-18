@@ -432,8 +432,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
 
               result.success("removeAllConsent!");
 
-          } else if ("getDeviceID".equals(call.method)) {
-              result.success(Countly.sharedInstance().getDeviceID());
+          
           } else if ("sendRating".equals(call.method)) {
               String ratingString = args.getString(0);
               int rating = Integer.parseInt(ratingString);
@@ -557,8 +556,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               Countly.sharedInstance().showStarRating(activity, null);
 
               result.success("askForStarRating success.");
-          } else if (call.method.equals("getPlatformVersion")) {
-              result.success("Android " + android.os.Build.VERSION.RELEASE);
+          
           } else {
               result.notImplemented();
           }
