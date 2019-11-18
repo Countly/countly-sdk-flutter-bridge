@@ -77,11 +77,6 @@ class _MyAppState extends State<MyApp> {
     };
     Countly.recordEvent(event);
   }
-  event(){
-    // setInterval(function() {
-            // app.sendSampleEvent();
-        // }, 1000);
-  }
   endEventBasic(){
     Countly.startEvent("Timed Event");
     Timer timer;
@@ -382,67 +377,28 @@ class _MyAppState extends State<MyApp> {
     Countly.setOptionalParametersForInitialization(options);
   }
 
-  // enableCrashReporting(){
-  //   Countly.enableCrashReporting();
-  // }
+  enableCrashReporting(){
+    Countly.enableCrashReporting();
+  }
   addCrashLog(){
     Countly.enableCrashReporting();
-      Countly.addCrashLog("User Performed Step A");
-      Timer timer;
-      timer = new Timer(new Duration(seconds: 5), () {
-        Countly.logException("one.js \n two.js \n three.js", true, {"_facebook_version": "0.0.1"});
-        timer.cancel();
-      });
-
-    // }, 1000);
-    // setTimeout(function() {
-        // Countly.addCrashLog("User Performed Step C");
-        // console.log("Opps found and error");
-        // a();
-      // }, 1000);
+    Countly.addCrashLog("User Performed Step A");
+    Timer timer;
+    timer = new Timer(new Duration(seconds: 5), () {
+      Countly.logException("one.js \n two.js \n three.js", true, {"_facebook_version": "0.0.1"});
+      timer.cancel();
+    });
   }
-
-  void a(){
-    b();
-  }
-
-  void b(){
-    c();
-  }
-
-  void c(){
-    d();
-    throw("My Custom Error");
-  }
-
-  void d(){
-    try {
-      throw("try Error");
-    } catch (err) {
-      throw("catch Error");
-    }
-  }
-
 
   setLoggingEnabled(){
     Countly.setLoggingEnabled(false);
   }
-  sendRating(){
-    Countly.sendRating(3);
-  }
   askForStarRating(){
     Countly.askForStarRating();
-    // Countly.askForStarRating(function(ratingResult){
-      // console.log(ratingResult);
-    // });
   }
   askForFeedback(){
     Countly.askForFeedback("5da0877c31ec7124c8bf398d", "Close");
   }
-  logException(){
-    Countly.logException("execption", true, null);
-  }
-
   setHttpPostForced(){
     Countly.setHttpPostForced(true);
   }
@@ -539,7 +495,6 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Send Crash Report", color: "violet", onPressed: addCrashLog),
               MyButton(text: "Enabling logging", color: "violet", onPressed: setLoggingEnabled),
 
-              MyButton(text: "Send 5 star rating!!", color: "orange", onPressed: sendRating),
               MyButton(text: "Open rating modal", color: "orange", onPressed: askForStarRating),
               MyButton(text: "Open feedback modal", color: "orange", onPressed: askForFeedback),
 
@@ -592,10 +547,6 @@ Map<String, Object> theColor = {
     "button": Color(0xff6435c9),
     "text": Color(0xff000000)
   },
-  // "teal": {
-  //   "button": Color(0xff00b5ad),
-  //   "text": Color(0xff000000)
-  // },
   "blue": {
     "button": Color(0xff00b5ad),
     "text": Color(0xff000000)
@@ -668,27 +619,7 @@ class MyButton extends StatelessWidget{
     _text = text;
 
     Map<String, Object> tColor;
-    // if(theColor.containsKey(color)){
-    //   tColor = theColor[color];
-    //   print('mathc');
-    // }
-    // void forEach(k, v) {
-    //   if(k == color){
-    //     print("match");
-    //     tColor = v;
-    //   }
-    // }
-    // for(var key in theColor){
-    //   if(key == color){
-    //     print('match');
-    //     tColor = theColor[key];
-    //   }
-    // }
-    // theColor.forEach(forEach);
-    // tColor = theColor.get(color);
     tColor = getColor(color);
-    // print(color);
-    // print(tColor);
     if(tColor == null){
       tColor = theColor["default"];
     }

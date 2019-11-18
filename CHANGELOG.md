@@ -1,3 +1,3 @@
-## 0.0.1
+## 19.02.3
 
-* TODO: Describe initial release.
+* Please refer to this documentation for released work https://resources.count.ly/docs/flutter
