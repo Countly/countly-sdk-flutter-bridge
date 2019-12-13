@@ -1,1 +1,1 @@
-## Flutter SDK for Countly (WORK IN PROGRESS)
+## Flutter SDK for Countly
