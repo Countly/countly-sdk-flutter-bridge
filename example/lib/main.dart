@@ -425,9 +425,6 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Event with Sum", color: "brown", onPressed: eventWithSum),
               MyButton(text: "Event with Segment", color: "brown", onPressed: eventWithSegment),
               MyButton(text: "Even with Sum and Segment", color: "brown", onPressed: eventWithSumSegment),
-
-              MyButton(text: "All event", color: "default", onPressed: event),
-
               MyButton(text: "Timed event: Start / Stop", color: "grey", onPressed: endEventBasic),
               MyButton(text: "Timed event Sum: Start / Stop", color: "grey", onPressed: endEventWithSum),
               MyButton(text: "Timed event Segment: Start / Stop", color: "grey", onPressed: endEventWithSegment),
