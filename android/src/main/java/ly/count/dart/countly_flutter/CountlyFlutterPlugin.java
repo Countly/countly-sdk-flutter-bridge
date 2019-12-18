@@ -363,6 +363,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
           } else if ("removeConsent".equals(call.method)) {
               List<String> features = new ArrayList<>();
               for (int i = 0; i < args.length(); i++) {
+                  String theConsent = args.getString(i);
                   if (theConsent.equals("sessions")) {
                       Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.sessions});
                   }
@@ -527,7 +528,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               Countly.sharedInstance().remoteConfigClearValues();
               result.success("remoteConfigClearValues: success");
           } else if ("getRemoteConfigValueForKey".equals(call.method)) {
-              String getRemoteConfigValueForKeyResult = (String) Countly.sharedInstance().getRemoteConfigValueForKey(args.getString(0));
+              String getRemoteConfigValueForKeyResult = Countly.sharedInstance().getRemoteConfigValueForKey(args.getString(0)).toString();
               result.success(getRemoteConfigValueForKeyResult);
           } else if ("askForFeedback".equals(call.method)) {
               String widgetId = args.getString(0);
