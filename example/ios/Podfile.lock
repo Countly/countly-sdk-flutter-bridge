@@ -9,7 +9,7 @@ PODS:
 
 DEPENDENCIES:
   - countly_flutter (from `.symlinks/plugins/countly_flutter/ios`)
-  - Flutter (from `Flutter`)
+  - Flutter (from `.symlinks/flutter/ios`)
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
@@ -19,13 +19,13 @@ EXTERNAL SOURCES:
   countly_flutter:
     :path: ".symlinks/plugins/countly_flutter/ios"
   Flutter:
-    :path: Flutter
+    :path: ".symlinks/flutter/ios"
 
 SPEC CHECKSUMS:
   Countly: 7c596e00a90a35b7978713a384455fe9a18f28aa
   countly_flutter: fa56e5b518d1ce18c89e2cab66a1880962d04610
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
 
-PODFILE CHECKSUM: 1b66dae606f75376c5f2135a8290850eeb09ae83
+PODFILE CHECKSUM: 10ae9c18d12c9ffc2275c9a159a3b1e281990db0
 
 COCOAPODS: 1.8.4
