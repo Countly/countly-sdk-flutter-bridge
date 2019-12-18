@@ -134,19 +134,6 @@ class Countly {
     }
     return result;
   }
-  static Future<String> sendPushToken(Map<String, Object> options) async {
-    List <String> args = [];
-    // args.add(options["token"] || "");
-    // args.add(options["messagingMode"] || Countly.messagingMode["PRODUCTION"]);
-
-    final String result = await _channel.invokeMethod('sendPushToken', <String, dynamic>{
-      'data': json.encode(args)
-    });
-    if(isDebug){
-      print(result);
-    }
-    return result;
-  }
 
   static Future<String> askForNotificationPermission() async {
     List <String> args = [];
@@ -610,17 +597,6 @@ class Countly {
     callback(result);
     return result;
   }
-  static Future<String> sendRating(int sendRating) async {
-    List <String> args = [];
-    args.add(sendRating.toString());
-    final String result = await _channel.invokeMethod('sendRating', <String, dynamic>{
-      'data': json.encode(args)
-    });
-    if(isDebug){
-      print(result);
-    }
-    return result;
-  }
   static Future<String> askForStarRating() async {
     List <String> args = [];
     final String result = await _channel.invokeMethod('askForStarRating', <String, dynamic>{
@@ -723,34 +699,4 @@ class Countly {
     }
     return result;
   }
-  // static Future<String> recordEvent(String serverUrl, String appKey, [String deviceId]) async {
-  //   List <String> args = [];
-  //   args.add(serverUrl);
-  //   args.add(appKey);
-  //   if(deviceId != null){
-  //     args.add(deviceId);
-  //   }
-
-  //   final String result = await _channel.invokeMethod('event', <String, dynamic>{
-  //       'data': json.encode(args)
-  //   });
-  //   if(isDebug){
-  //     print(result);
-  //   }
-  //   return result;
-  // }
-
-  // static String toJSON(List <String> list){
-  //   String j = '[';
-  //   int i = 0;
-  //   list.forEach((v){
-  //     j+= '"' +v.replaceAll('"', '\\"') +'"';
-  //     i++;
-  //     if(list.length != i){
-  //       j+=',';
-  //     }
-  //   });
-  //   j+=']';
-  //   return j;
-  // }
 }
