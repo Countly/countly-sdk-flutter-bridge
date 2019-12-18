@@ -41,7 +41,7 @@ CountlyConfig* config = nil;
         config.host = serverurl;
 
         config.sendPushTokenAlways = YES;
-        config.features = @[CLYCrashReporting, CLYPushNotifications, CLYAutoViewTracking];
+        config.features = @[CLYCrashReporting, CLYPushNotifications];
 
         if(command.count == 3){
             deviceID = [command objectAtIndex:2];
