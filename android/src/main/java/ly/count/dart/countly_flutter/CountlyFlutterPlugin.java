@@ -43,17 +43,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
     private Context context;
     private Activity activity;
     private Boolean isDebug = false;
-    private final Set<String> validConsentFeatureNames = new HashSet<String>(Arrays.asList(
-            Countly.CountlyFeatureNames.sessions,
-            Countly.CountlyFeatureNames.events,
-            Countly.CountlyFeatureNames.views,
-            Countly.CountlyFeatureNames.location,
-            Countly.CountlyFeatureNames.crashes,
-            Countly.CountlyFeatureNames.attribution,
-            Countly.CountlyFeatureNames.users,
-            Countly.CountlyFeatureNames.push,
-            Countly.CountlyFeatureNames.starRating
-    ));
+
   public static void registerWith(Registrar registrar) {
       final Activity __activity  = registrar.activity();
       final Context __context = registrar.context();
@@ -339,31 +329,32 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
           } else if ("giveConsent".equals(call.method)) {
               List<String> features = new ArrayList<>();
               for (int i = 0; i < args.length(); i++) {
-                  if (validConsentFeatureNames.contains("sessions")) {
+                  String theConsent = args.getString(i);
+                  if (theConsent.equals("sessions")) {
                       Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.sessions});
                   }
-                  if (validConsentFeatureNames.contains("events")) {
+                  if (theConsent.equals("events")) {
                       Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.events});
                   }
-                  if (validConsentFeatureNames.contains("views")) {
+                  if (theConsent.equals("views")) {
                       Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.views});
                   }
-                  if (validConsentFeatureNames.contains("location")) {
+                  if (theConsent.equals("location")) {
                       Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.location});
                   }
-                  if (validConsentFeatureNames.contains("crashes")) {
+                  if (theConsent.equals("crashes")) {
                       Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.crashes});
                   }
-                  if (validConsentFeatureNames.contains("attribution")) {
+                  if (theConsent.equals("attribution")) {
                       Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.attribution});
                   }
-                  if (validConsentFeatureNames.contains("users")) {
+                  if (theConsent.equals("users")) {
                       Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.users});
                   }
-                  if (validConsentFeatureNames.contains("push")) {
+                  if (theConsent.equals("push")) {
                       Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.push});
                   }
-                  if (validConsentFeatureNames.contains("starRating")) {
+                  if (theConsent.equals("starRating")) {
                       Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.starRating});
                   }
               }
@@ -372,67 +363,67 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
           } else if ("removeConsent".equals(call.method)) {
               List<String> features = new ArrayList<>();
               for (int i = 0; i < args.length(); i++) {
-                  if (validConsentFeatureNames.contains("sessions")) {
+                  if (theConsent.equals("sessions")) {
                       Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.sessions});
                   }
-                  if (validConsentFeatureNames.contains("events")) {
+                  if (theConsent.equals("events")) {
                       Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.events});
                   }
-                  if (validConsentFeatureNames.contains("views")) {
+                  if (theConsent.equals("views")) {
                       Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.views});
                   }
-                  if (validConsentFeatureNames.contains("location")) {
+                  if (theConsent.equals("location")) {
                       Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.location});
                   }
-                  if (validConsentFeatureNames.contains("crashes")) {
+                  if (theConsent.equals("crashes")) {
                       Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.crashes});
                   }
-                  if (validConsentFeatureNames.contains("attribution")) {
+                  if (theConsent.equals("attribution")) {
                       Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.attribution});
                   }
-                  if (validConsentFeatureNames.contains("users")) {
+                  if (theConsent.equals("users")) {
                       Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.users});
                   }
-                  if (validConsentFeatureNames.contains("push")) {
+                  if (theConsent.equals("push")) {
                       Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.push});
                   }
-                  if (validConsentFeatureNames.contains("starRating")) {
+                  if (theConsent.equals("starRating")) {
                       Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.starRating});
                   }
               }
               result.success("removeConsent!");
 
           } else if ("giveAllConsent".equals(call.method)) {
-//              Countly.sharedInstance().giveConsent(validConsentFeatureNames.toArray(new String[validConsentFeatureNames.size()]));
-              Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.sessions});
-              Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.events});
-              Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.views});
-              Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.location});
-              Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.crashes});
-              Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.attribution});
-              Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.users});
-              Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.push});
-              Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.starRating});
+              Countly.sharedInstance().giveConsent(new String[]{
+                  Countly.CountlyFeatureNames.sessions,
+                  Countly.CountlyFeatureNames.events,
+                  Countly.CountlyFeatureNames.views,
+                  Countly.CountlyFeatureNames.location,
+                  Countly.CountlyFeatureNames.crashes,
+                  Countly.CountlyFeatureNames.attribution,
+                  Countly.CountlyFeatureNames.users,
+                  Countly.CountlyFeatureNames.push,
+                  Countly.CountlyFeatureNames.starRating
+              });
               result.success("giveAllConsent!");
 
 
 
           } else if ("removeAllConsent".equals(call.method)) {
-//              Countly.sharedInstance().removeConsent(validConsentFeatureNames.toArray(new String[validConsentFeatureNames.size()]));
 
-              Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.sessions});
-              Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.events});
-              Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.views});
-              Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.location});
-              Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.crashes});
-              Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.attribution});
-              Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.users});
-              Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.push});
-              Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.starRating});
-
+              Countly.sharedInstance().removeConsent(new String[]{
+                  Countly.CountlyFeatureNames.sessions,
+                  Countly.CountlyFeatureNames.events,
+                  Countly.CountlyFeatureNames.views,
+                  Countly.CountlyFeatureNames.location,
+                  Countly.CountlyFeatureNames.crashes,
+                  Countly.CountlyFeatureNames.attribution,
+                  Countly.CountlyFeatureNames.users,
+                  Countly.CountlyFeatureNames.push,
+                  Countly.CountlyFeatureNames.starRating
+              });
               result.success("removeAllConsent!");
 
-          
           } else if ("sendRating".equals(call.method)) {
               String ratingString = args.getString(0);
               int rating = Integer.parseInt(ratingString);
@@ -556,7 +547,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               Countly.sharedInstance().showStarRating(activity, null);
 
               result.success("askForStarRating success.");
-          
+
           } else {
               result.notImplemented();
           }
