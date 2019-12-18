@@ -533,8 +533,7 @@ CountlyConfig* config = nil;
         if(!value){
             value = @"Default Value";
         }
-        result(value);
-
+        result([value stringValue]);
     }else if ([@"askForFeedback" isEqualToString:call.method]) {
          NSString* widgetId = [command objectAtIndex:0];
          [Countly.sharedInstance presentFeedbackWidgetWithID:widgetId completionHandler:^(NSError* error){

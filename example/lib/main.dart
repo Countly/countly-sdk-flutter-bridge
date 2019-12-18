@@ -329,6 +329,27 @@ class _MyAppState extends State<MyApp> {
       print(result);
     });
   }
+  getRemoteConfigValueForKeyString(){
+    Countly.getRemoteConfigValueForKey("stringValue",(result){
+      print(result);
+    });
+  }
+  getRemoteConfigValueForKeyBoolean(){
+    Countly.getRemoteConfigValueForKey("booleanValue",(result){
+      print(result);
+    });
+  }
+  getRemoteConfigValueForKeyFloat(){
+    Countly.getRemoteConfigValueForKey("floatValue",(result){
+      print(result);
+    });
+  }
+  getRemoteConfigValueForKeyInteger(){
+    Countly.getRemoteConfigValueForKey("integerValue",(result){
+      print(result);
+    });
+  }
+
   updateRemoteConfigExceptKeys(){
     Countly.updateRemoteConfigExceptKeys(["url"],(result){
       print(result);
@@ -469,7 +490,10 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Countly.updateRemoteConfigForKeysOnly", color: "purple", onPressed: updateRemoteConfigForKeysOnly),
               MyButton(text: "Countly.updateRemoteConfigExceptKeys", color: "purple", onPressed: updateRemoteConfigExceptKeys),
               MyButton(text: "Countly.remoteConfigClearValues", color: "purple", onPressed: remoteConfigClearValues),
-              MyButton(text: "Countly.getRemoteConfigValueForKey", color: "purple", onPressed: getRemoteConfigValueForKey),
+              MyButton(text: "Get String Value", color: "purple", onPressed: getRemoteConfigValueForKeyString),
+              MyButton(text: "Get Boolean Value", color: "purple", onPressed: getRemoteConfigValueForKeyBoolean),
+              MyButton(text: "Get Float Value", color: "purple", onPressed: getRemoteConfigValueForKeyFloat),
+              MyButton(text: "Get Integer Value", color: "purple", onPressed: getRemoteConfigValueForKeyInteger),
 
               MyButton(text: "Push Notification", color: "primary", onPressed: askForNotificationPermission),
 
