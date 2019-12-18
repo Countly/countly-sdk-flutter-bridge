@@ -110,30 +110,6 @@ CountlyConfig* config = nil;
         [Countly.user save];
         result(@"setuserdata!");
 
-    }else if ([@"getDeviceID" isEqualToString:call.method]) {
-        NSString* deviceID = Countly.sharedInstance.deviceID;
-        result(@"default!");
-
-    }else if ([@"sendRating" isEqualToString:call.method]) {
-        NSString* ratingString = [command objectAtIndex:0];
-        int rating = [ratingString intValue];
-        NSString* const kCountlySRKeyPlatform       = @"platform";
-        NSString* const kCountlySRKeyAppVersion     = @"app_version";
-        NSString* const kCountlySRKeyRating         = @"rating";
-        NSString* const kCountlyReservedEventStarRating = @"[CLY]_star_rating";
-
-        if (rating != 0)
-        {
-            NSDictionary* segmentation =
-            @{
-              kCountlySRKeyPlatform: CountlyDeviceInfo.osName,
-              kCountlySRKeyAppVersion: CountlyDeviceInfo.appVersion,
-              kCountlySRKeyRating: @(rating)
-              };
-//            [Countly.sharedInstance recordReservedEvent:kCountlyReservedEventStarRating segmentation:segmentation];
-        }
-        result(@"sendRating!");
-
     }else if ([@"start" isEqualToString:call.method]) {
         [Countly.sharedInstance beginSession];
         result(@"start!");
@@ -242,13 +218,6 @@ CountlyConfig* config = nil;
 
         [Countly.sharedInstance recordHandledException:myException withStackTrace: nsException];
         result(@"logException!");
-
-    }else if ([@"sendPushToken" isEqualToString:call.method]) {
-        // NSString* token = [command objectAtIndex:0];
-        // int messagingMode = [[command objectAtIndex:1] intValue];
-
-        // [Countly.sharedInstance sendPushToken:token messagingMode: messagingMode];
-        // result(@"sendPushToken!");
 
     }else if ([@"askForNotificationPermission" isEqualToString:call.method]) {
         // UNAuthorizationOptions authorizationOptions = UNAuthorizationOptionProvisional;
@@ -582,8 +551,7 @@ CountlyConfig* config = nil;
         [Countly.sharedInstance askForStarRating:^(NSInteger rating){
             result([NSString stringWithFormat: @"Rating:%d", (int)rating]);
         }];
-    }else if ([@"getPlatformVersion" isEqualToString:call.method]) {
-        result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
+
     }
     else {
         result(FlutterMethodNotImplemented);
