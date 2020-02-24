@@ -254,7 +254,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               bundle.put("picture", args.getString(5));
               bundle.put("picturePath", args.getString(6));
               bundle.put("gender", args.getString(7));
-              bundle.put("byear", String.valueOf(args.getInt(8)));
+              bundle.put("byear", args.getString(8));
 
               Countly.userData.setUserData(bundle);
               Countly.userData.save();

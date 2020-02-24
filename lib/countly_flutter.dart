@@ -114,6 +114,12 @@ class Countly {
     if(options["picturePath"] == null){
       options["picturePath"] = "";
     }
+    if(options["gender"] == null){
+      options["gender"] = "";
+    }
+    if(options["byear"] == null){
+      options["byear"] = "0";
+    }
 
     args.add(options["name"]);
     args.add(options["username"]);
