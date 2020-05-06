@@ -19,11 +19,11 @@ class _MyAppState extends State<MyApp> {
 
   onInit(){
     Countly.pushTokenType(Countly.messagingMode["TEST"]);
-    Countly.init("https://try.count.ly", "0e8a00e8c01395a0af8be0e55da05a404bb23c3e");
+    Countly.init("https://trinisoft.count.ly", "f0b2ac6919f718a13821575db28c0e2971e05ec5");
     Countly.setLoggingEnabled(true);
   }
   initWithID(){
-    Countly.init("https://try.count.ly", "0e8a00e8c01395a0af8be0e55da05a404bb23c3e", "1234567890");
+    Countly.init("https://trinisoft.count.ly", "f0b2ac6919f718a13821575db28c0e2971e05ec5", "1234567890");
   }
   start(){
     Countly.start();
