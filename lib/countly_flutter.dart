@@ -13,7 +13,9 @@ class Countly {
   static bool isDebug = false;
   static bool enableCrashReportingFlag = false;
   static Map<String, Object> messagingMode = {"TEST": "1", "PRODUCTION": "0", "ADHOC": "2"};
-
+  static Map<String, Object> deviceIDType = {
+    "TemporaryDeviceID": "TemporaryDeviceID"
+  };
 
   static Future<String> init(String serverUrl, String appKey, [String deviceId]) async {
     if (Platform.isAndroid) {

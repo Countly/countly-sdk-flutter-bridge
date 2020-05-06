@@ -7,6 +7,7 @@ import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 import ly.count.android.sdk.Countly;
+import ly.count.android.sdk.CountlyConfig;
 import ly.count.android.sdk.DeviceId;
 import ly.count.android.sdk.RemoteConfig;
 import ly.count.android.sdk.CountlyStarRating;
@@ -43,6 +44,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
     private Context context;
     private Activity activity;
     private Boolean isDebug = false;
+    private static CountlyConfig config = null;
 
   public static void registerWith(Registrar registrar) {
       final Activity __activity  = registrar.activity();
@@ -74,28 +76,44 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
 
               String serverUrl = args.getString(0);
               String appKey = args.getString(1);
+              this.config = (new CountlyConfig(context, appKey, serverUrl));
               if (args.length() == 2) {
-                  Countly.sharedInstance().init(context, serverUrl, appKey, null, DeviceId.Type.OPEN_UDID);
+                  // Countly.sharedInstance().init(context, serverUrl, appKey, null, DeviceId.Type.OPEN_UDID);
+                 this.config.setIdMode(DeviceId.Type.OPEN_UDID);
+                
               } else if (args.length() == 3) {
                   String yourDeviceID = args.getString(2);
-                  Countly.sharedInstance()
-                          .init(context, serverUrl, appKey, yourDeviceID, null);
+                  if(yourDeviceID.equals("TemporaryDeviceID")){
+                    this.config.enableTemporaryDeviceIdMode();
+                  }else{
+                    this.config.setDeviceId(yourDeviceID);
+                  }
+                  // Countly.sharedInstance()
+                  //        .init(context, serverUrl, appKey, yourDeviceID, null);
               } else {
-                  Countly.sharedInstance()
-                          .init(context, serverUrl, appKey, null, DeviceId.Type.ADVERTISING_ID);
+                  // Countly.sharedInstance()
+                  //         .init(context, serverUrl, appKey, null, DeviceId.Type.ADVERTISING_ID);
+                  this.config.setIdMode(DeviceId.Type.ADVERTISING_ID);
               }
-
+              Countly.sharedInstance().init(this.config);
               Countly.sharedInstance().onStart(activity);
               result.success("initialized!");
           } else if ("changeDeviceId".equals(call.method)) {
               String newDeviceID = args.getString(0);
               String onServerString = args.getString(1);
-              if ("1".equals(onServerString)) {
-                  Countly.sharedInstance().changeDeviceId(newDeviceID);
-              } else {
-                  Countly.sharedInstance().changeDeviceId(DeviceId.Type.DEVELOPER_SUPPLIED, newDeviceID);
+              if(newDeviceID.equals("TemporaryDeviceID")){
+                Countly.sharedInstance().enableTemporaryIdMode();
+              }else{
+                if ("1".equals(onServerString)) {
+                    Countly.sharedInstance().changeDeviceId(newDeviceID);
+                } else {
+                    Countly.sharedInstance().changeDeviceId(DeviceId.Type.DEVELOPER_SUPPLIED, newDeviceID);
+                }
               }
               result.success("changeDeviceId success!");
+          } else if ("enableTemporaryIdMode".equals(call.method)) {
+              Countly.sharedInstance().enableTemporaryIdMode();
+              result.success("enableTemporaryIdMode This method doesn't exists!");
           } else if ("setHttpPostForced".equals(call.method)) {
               int isEnabled = Integer.parseInt(args.getString(0));
               if (isEnabled == 1) {
@@ -105,7 +123,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                   isDebug = false;
                   Countly.sharedInstance().setHttpPostForced(false);
               }
-              result.success("setHttpPostForced This method doesn't exists!");
+              result.success("setHttpPostForced");
           } else if ("enableParameterTamperingProtection".equals(call.method)) {
               String salt = args.getString(0);
               Countly.sharedInstance().enableParameterTamperingProtection(salt);
@@ -121,7 +139,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               result.success("enableCrashReporting success!");
           } else if ("addCrashLog".equals(call.method)) {
               String record = args.getString(0);
-              Countly.sharedInstance().addCrashLog(record);
+              Countly.sharedInstance().addCrashBreadcrumb(record);
               result.success("addCrashLog success!");
           } else if ("logException".equals(call.method)) {
               String exceptionString = args.getString(0);
@@ -136,7 +154,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               segments.put("nonfatal", nonfatal.toString());
               Countly.sharedInstance().setCustomCrashSegments(segments);
 
-              Countly.sharedInstance().logException(exception);
+              Countly.sharedInstance().crashes().recordHandledException(exception);
 
               result.success("logException success!");
           } else if ("sendPushToken".equals(call.method)) {

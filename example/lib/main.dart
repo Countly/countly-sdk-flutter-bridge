@@ -16,14 +16,21 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
   }
-
+  static String SERVER_URL = "https://trinisoft.count.ly";
+  static String APP_KEY = "f0b2ac6919f718a13821575db28c0e2971e05ec5";
   onInit(){
     Countly.pushTokenType(Countly.messagingMode["TEST"]);
-    Countly.init("https://trinisoft.count.ly", "f0b2ac6919f718a13821575db28c0e2971e05ec5");
+    Countly.init(SERVER_URL, APP_KEY);
     Countly.setLoggingEnabled(true);
   }
   initWithID(){
-    Countly.init("https://trinisoft.count.ly", "f0b2ac6919f718a13821575db28c0e2971e05ec5", "1234567890");
+    Countly.init(SERVER_URL, APP_KEY, "1234567890");
+  }
+  initWithTemporaryDeviceID(){
+    Countly.init(SERVER_URL, APP_KEY, Countly.deviceIDType["TemporaryDeviceID"]);
+  }
+  enableTemporaryIdMode(){
+    Countly.changeDeviceId(Countly.deviceIDType["TemporaryDeviceID"], false);
   }
   start(){
     Countly.start();
@@ -426,6 +433,7 @@ class _MyAppState extends State<MyApp> {
             Column(children: <Widget>[
               MyButton(text: "Init", color: "green", onPressed: onInit),
               MyButton(text: "Init with ID", color: "green", onPressed: initWithID),
+              MyButton(text: "Init with TemporaryDeviceID", color: "green", onPressed: initWithTemporaryDeviceID),
               MyButton(text: "Start", color: "green", onPressed: start),
               MyButton(text: "Stop", color: "red", onPressed: stop),
 
@@ -497,6 +505,7 @@ class _MyAppState extends State<MyApp> {
 
               MyButton(text: "Push Notification", color: "primary", onPressed: askForNotificationPermission),
 
+              MyButton(text: "Enable Temporary ID Mode", color: "violet", onPressed: enableTemporaryIdMode),
               MyButton(text: "Change Device ID", color: "violet", onPressed: changeDeviceId),
               MyButton(text: "Enable Parameter Tapmering Protection", color: "violet", onPressed: enableParameterTamperingProtection),
               MyButton(text: "City, State, and Location", color: "violet", onPressed: setOptionalParametersForInitialization),
