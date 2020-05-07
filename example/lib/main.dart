@@ -375,7 +375,10 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  changeDeviceId(){
+  changeDeviceIdWithMerge(){
+    Countly.changeDeviceId("123456", false);
+  }
+  changeDeviceIdWithoutMerge(){
     Countly.changeDeviceId("123456", true);
   }
   enableParameterTamperingProtection(){
@@ -506,7 +509,8 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Push Notification", color: "primary", onPressed: askForNotificationPermission),
 
               MyButton(text: "Enable Temporary ID Mode", color: "violet", onPressed: enableTemporaryIdMode),
-              MyButton(text: "Change Device ID", color: "violet", onPressed: changeDeviceId),
+              MyButton(text: "Change Device ID With Merge", color: "violet", onPressed: changeDeviceIdWithMerge),
+              MyButton(text: "Change Device ID Without Merge", color: "violet", onPressed: changeDeviceIdWithoutMerge),
               MyButton(text: "Enable Parameter Tapmering Protection", color: "violet", onPressed: enableParameterTamperingProtection),
               MyButton(text: "City, State, and Location", color: "violet", onPressed: setOptionalParametersForInitialization),
               MyButton(text: "Send Crash Report", color: "violet", onPressed: addCrashLog),

@@ -9,6 +9,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 import ly.count.android.sdk.Countly;
 import ly.count.android.sdk.CountlyConfig;
 import ly.count.android.sdk.DeviceId;
+import ly.count.android.sdk.FeedbackRatingCallback;
 import ly.count.android.sdk.RemoteConfig;
 import ly.count.android.sdk.CountlyStarRating;
 //import ly.count.android.sdk.DeviceInfo;
@@ -29,6 +30,9 @@ import java.util.ArrayList;
 import android.os.Build;
 import android.app.NotificationManager;
 import android.app.NotificationChannel;
+
+import ly.count.android.sdk.RemoteConfigCallback;
+import ly.count.android.sdk.StarRatingCallback;
 import ly.count.android.sdk.messaging.CountlyPush;
 
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -44,7 +48,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
     private Context context;
     private Activity activity;
     private Boolean isDebug = false;
-    private static CountlyConfig config = null;
+    private CountlyConfig config = null;
 
   public static void registerWith(Registrar registrar) {
       final Activity __activity  = registrar.activity();
@@ -53,6 +57,13 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
       final MethodChannel channel = new MethodChannel(registrar.messenger(), "countly_flutter");
       channel.setMethodCallHandler(new CountlyFlutterPlugin(__activity, __context));
   }
+
+  private void setConfig(){
+      if(this.config == null){
+          this.config = new CountlyConfig();
+      }
+  }
+
   public CountlyFlutterPlugin(Activity _activity, Context _context){
     this.activity = _activity;
     this.context= _context;
@@ -76,7 +87,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
 
               String serverUrl = args.getString(0);
               String appKey = args.getString(1);
-              this.config = (new CountlyConfig(context, appKey, serverUrl));
+              this.setConfig();
+              this.config.setContext(context);
+              this.config.setServerURL(serverUrl);
+              this.config.setAppKey(appKey);
               if (args.length() == 2) {
                   // Countly.sharedInstance().init(context, serverUrl, appKey, null, DeviceId.Type.OPEN_UDID);
                  this.config.setIdMode(DeviceId.Type.OPEN_UDID);
@@ -105,9 +119,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                 Countly.sharedInstance().enableTemporaryIdMode();
               }else{
                 if ("1".equals(onServerString)) {
-                    Countly.sharedInstance().changeDeviceId(newDeviceID);
+                    Countly.sharedInstance().changeDeviceIdWithMerge(newDeviceID);
                 } else {
-                    Countly.sharedInstance().changeDeviceId(DeviceId.Type.DEVELOPER_SUPPLIED, newDeviceID);
+                    Countly.sharedInstance().changeDeviceIdWithoutMerge(DeviceId.Type.DEVELOPER_SUPPLIED, newDeviceID);
                 }
               }
               result.success("changeDeviceId success!");
@@ -116,17 +130,17 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               result.success("enableTemporaryIdMode This method doesn't exists!");
           } else if ("setHttpPostForced".equals(call.method)) {
               int isEnabled = Integer.parseInt(args.getString(0));
+              this.setConfig();
               if (isEnabled == 1) {
-                  isDebug = true;
-                  Countly.sharedInstance().setHttpPostForced(true);
+                  this.config.setHttpPostForced(true);
               } else {
-                  isDebug = false;
-                  Countly.sharedInstance().setHttpPostForced(false);
+                  this.config.setHttpPostForced(false);
               }
               result.success("setHttpPostForced");
           } else if ("enableParameterTamperingProtection".equals(call.method)) {
               String salt = args.getString(0);
-              Countly.sharedInstance().enableParameterTamperingProtection(salt);
+              this.setConfig();
+              this.config.setParameterTamperingProtectionSalt(salt);
               result.success("enableParameterTamperingProtection success!");
           } else if ("setLocation".equals(call.method)) {
               String latitude = args.getString(0);
@@ -135,11 +149,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               Countly.sharedInstance().setLocation(null, null, latlng, null);
               result.success("setLocation success!");
           } else if ("enableCrashReporting".equals(call.method)) {
-              Countly.sharedInstance().enableCrashReporting();
+              this.setConfig();
+              this.config.enableCrashReporting();
+              // Countly.sharedInstance().enableCrashReporting();
               result.success("enableCrashReporting success!");
           } else if ("addCrashLog".equals(call.method)) {
               String record = args.getString(0);
-              Countly.sharedInstance().addCrashBreadcrumb(record);
+              Countly.sharedInstance().crashes().addCrashBreadcrumb(record);
+              // Countly.sharedInstance().addCrashBreadcrumb(record);
               result.success("addCrashLog success!");
           } else if ("logException".equals(call.method)) {
               String exceptionString = args.getString(0);
@@ -147,12 +164,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
 
               Boolean nonfatal = args.getBoolean(1);
 
-              HashMap<String, String> segments = new HashMap<String, String>();
+              HashMap<String, Object> segments = new HashMap<String, Object>();
               for (int i = 2, il = args.length(); i < il; i += 2) {
                   segments.put(args.getString(i), args.getString(i + 1));
               }
               segments.put("nonfatal", nonfatal.toString());
-              Countly.sharedInstance().setCustomCrashSegments(segments);
+              this.setConfig();
+              this.config.setCustomCrashSegment(segments);
+              // Countly.sharedInstance().setCustomCrashSegments(segments);
 
               Countly.sharedInstance().crashes().recordHandledException(exception);
 
@@ -216,47 +235,52 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               result.success("default!");
 
           } else if ("eventSendThreshold".equals(call.method)) {
-//              Countly.sharedInstance().eventSendThreshold();
+              int queueSize = Integer.parseInt(args.getString(0));
+              this.config.setEventQueueSizeToSend(queueSize);
               result.success("default!");
 
           } else if ("storedRequestsLimit".equals(call.method)) {
+              int queueSize = Integer.parseInt(args.getString(0));
 //              Countly.sharedInstance().storedRequestsLimit();
               result.success("default!");
 
           } else if ("startEvent".equals(call.method)) {
               String startEvent = args.getString(0);
-              Countly.sharedInstance().startEvent(startEvent);
+              Countly.sharedInstance().events().startEvent(startEvent);
           } else if ("endEvent".equals(call.method)) {
               String key = args.getString(0);
               int count = Integer.parseInt(args.getString(1));
               float sum = Float.valueOf(args.getString(2)); // new Float(args.getString(2)).floatValue();
-              HashMap<String, String> segmentation = new HashMap<String, String>();
+              HashMap<String, Object> segmentation = new HashMap<String, Object>();
               if (args.length() > 3) {
                   for (int i = 3, il = args.length(); i < il; i += 2) {
                       segmentation.put(args.getString(i), args.getString(i + 1));
                   }
               }
-              Countly.sharedInstance().endEvent(key, segmentation, count, sum);
+              Countly.sharedInstance().events().endEvent(key, segmentation, count, sum);
               result.success("endEvent for: " + key);
           } else if ("recordEvent".equals(call.method)) {
               String key = args.getString(0);
               int count = Integer.parseInt(args.getString(1));
               float sum = Float.valueOf(args.getString(2)); // new Float(args.getString(2)).floatValue();
               int duration = Integer.parseInt(args.getString(3));
-              HashMap<String, String> segmentation = new HashMap<String, String>();
+              HashMap<String, Object> segmentation = new HashMap<String, Object>();
               if (args.length() > 4) {
                   for (int i = 4, il = args.length(); i < il; i += 2) {
                       segmentation.put(args.getString(i), args.getString(i + 1));
                   }
               }
-              Countly.sharedInstance().recordEvent(key, segmentation, count, sum, duration);
+              Countly.sharedInstance().events().recordEvent(key, segmentation, count, sum, duration);
               result.success("recordEvent for: " + key);
           } else if ("setLoggingEnabled".equals(call.method)) {
               String loggingEnable = args.getString(0);
+              this.setConfig();
               if (loggingEnable.equals("true")) {
-                  Countly.sharedInstance().setLoggingEnabled(true);
+                  this.config.setLoggingEnabled(true);
+                  // Countly.sharedInstance().setLoggingEnabled(true);
               } else {
-                  Countly.sharedInstance().setLoggingEnabled(false);
+                  this.config.setLoggingEnabled(false);
+                  // Countly.sharedInstance().setLoggingEnabled(false);
               }
               result.success("setLoggingEnabled success!");
           } else if ("setuserdata".equals(call.method)) {
@@ -342,38 +366,40 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
           //setRequiresConsent
           else if ("setRequiresConsent".equals(call.method)) {
               Boolean consentFlag = args.getBoolean(0);
-              Countly.sharedInstance().setRequiresConsent(consentFlag);
+              this.setConfig();
+              this.config.setRequiresConsent(consentFlag);
+              // Countly.sharedInstance().setRequiresConsent(consentFlag);
               result.success("setRequiresConsent!");
           } else if ("giveConsent".equals(call.method)) {
               List<String> features = new ArrayList<>();
               for (int i = 0; i < args.length(); i++) {
                   String theConsent = args.getString(i);
                   if (theConsent.equals("sessions")) {
-                      Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.sessions});
+                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.sessions});
                   }
                   if (theConsent.equals("events")) {
-                      Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.events});
+                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.events});
                   }
                   if (theConsent.equals("views")) {
-                      Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.views});
+                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.views});
                   }
                   if (theConsent.equals("location")) {
-                      Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.location});
+                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.location});
                   }
                   if (theConsent.equals("crashes")) {
-                      Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.crashes});
+                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.crashes});
                   }
                   if (theConsent.equals("attribution")) {
-                      Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.attribution});
+                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.attribution});
                   }
                   if (theConsent.equals("users")) {
-                      Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.users});
+                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.users});
                   }
                   if (theConsent.equals("push")) {
-                      Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.push});
+                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.push});
                   }
                   if (theConsent.equals("starRating")) {
-                      Countly.sharedInstance().giveConsent(new String[]{Countly.CountlyFeatureNames.starRating});
+                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.starRating});
                   }
               }
               result.success("giveConsent!");
@@ -383,37 +409,37 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               for (int i = 0; i < args.length(); i++) {
                   String theConsent = args.getString(i);
                   if (theConsent.equals("sessions")) {
-                      Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.sessions});
+                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.sessions});
                   }
                   if (theConsent.equals("events")) {
-                      Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.events});
+                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.events});
                   }
                   if (theConsent.equals("views")) {
-                      Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.views});
+                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.views});
                   }
                   if (theConsent.equals("location")) {
-                      Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.location});
+                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.location});
                   }
                   if (theConsent.equals("crashes")) {
-                      Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.crashes});
+                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.crashes});
                   }
                   if (theConsent.equals("attribution")) {
-                      Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.attribution});
+                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.attribution});
                   }
                   if (theConsent.equals("users")) {
-                      Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.users});
+                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.users});
                   }
                   if (theConsent.equals("push")) {
-                      Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.push});
+                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.push});
                   }
                   if (theConsent.equals("starRating")) {
-                      Countly.sharedInstance().removeConsent(new String[]{Countly.CountlyFeatureNames.starRating});
+                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.starRating});
                   }
               }
               result.success("removeConsent!");
 
           } else if ("giveAllConsent".equals(call.method)) {
-              Countly.sharedInstance().giveConsent(new String[]{
+              Countly.sharedInstance().consent().giveConsent(new String[]{
                   Countly.CountlyFeatureNames.sessions,
                   Countly.CountlyFeatureNames.events,
                   Countly.CountlyFeatureNames.views,
@@ -425,12 +451,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                   Countly.CountlyFeatureNames.starRating
               });
               result.success("giveAllConsent!");
-
-
-
           } else if ("removeAllConsent".equals(call.method)) {
 
-              Countly.sharedInstance().removeConsent(new String[]{
+              Countly.sharedInstance().consent().removeConsent(new String[]{
                   Countly.CountlyFeatureNames.sessions,
                   Countly.CountlyFeatureNames.events,
                   Countly.CountlyFeatureNames.views,
@@ -447,16 +470,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               String ratingString = args.getString(0);
               int rating = Integer.parseInt(ratingString);
 
-              Map<String, String> segm = new HashMap<>();
+              Map<String, Object> segm = new HashMap<>();
               segm.put("platform", "android");
-              // segm.put("app_version", DeviceInfo.getAppVersion(context));
               segm.put("rating", "" + rating);
-
-              Countly.sharedInstance().recordEvent("[CLY]_star_rating", segm, 1);
+              Countly.sharedInstance().events().recordEvent("[CLY]_star_rating", segm, 1);
               result.success("sendRating: " + ratingString);
           } else if ("recordView".equals(call.method)) {
               String viewName = args.getString(0);
-              Countly.sharedInstance().recordView(viewName);
+              Countly.sharedInstance().views().recordView(viewName);
               result.success("View name sent: " + viewName);
           } else if ("setOptionalParametersForInitialization".equals(call.method)) {
               String city = args.getString(0);
@@ -487,7 +508,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
 
               result.success("setOptionalParametersForInitialization sent.");
           } else if ("setRemoteConfigAutomaticDownload".equals(call.method)) {
-              Countly.sharedInstance().setRemoteConfigAutomaticDownload(true, new RemoteConfig.RemoteConfigCallback() {
+              this.setConfig();
+              this.config.setRemoteConfigAutomaticDownload(true, new RemoteConfig.RemoteConfigCallback() {
                   @Override
                   public void callback(String error) {
                       if (error == null) {
@@ -499,7 +521,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               });
 
           } else if ("remoteConfigUpdate".equals(call.method)) {
-              Countly.sharedInstance().remoteConfigUpdate(new RemoteConfig.RemoteConfigCallback() {
+              Countly.sharedInstance().remoteConfig().update(new RemoteConfigCallback() {
                   @Override
                   public void callback(String error) {
                       if (error == null) {
@@ -516,7 +538,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                   ;
               }
 
-              Countly.sharedInstance().updateRemoteConfigForKeysOnly(keysOnly, new RemoteConfig.RemoteConfigCallback() {
+              Countly.sharedInstance().remoteConfig().updateForKeysOnly(keysOnly, new RemoteConfigCallback() {
                   @Override
                   public void callback(String error) {
                       if (error == null) {
@@ -532,7 +554,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                   exceptKeys[i] = args.getString(i);
               }
 
-              Countly.sharedInstance().updateRemoteConfigExceptKeys(exceptKeys, new RemoteConfig.RemoteConfigCallback() {
+              Countly.sharedInstance().remoteConfig().updateExceptKeys(exceptKeys, new RemoteConfigCallback() {
                   @Override
                   public void callback(String error) {
                       if (error == null) {
@@ -543,15 +565,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                   }
               });
           } else if ("remoteConfigClearValues".equals(call.method)) {
-              Countly.sharedInstance().remoteConfigClearValues();
+              Countly.sharedInstance().remoteConfig().clearStoredValues();
               result.success("remoteConfigClearValues: success");
           } else if ("getRemoteConfigValueForKey".equals(call.method)) {
-              String getRemoteConfigValueForKeyResult = Countly.sharedInstance().getRemoteConfigValueForKey(args.getString(0)).toString();
+              String getRemoteConfigValueForKeyResult = Countly.sharedInstance().remoteConfig().getValueForKey(args.getString(0)).toString();
               result.success(getRemoteConfigValueForKeyResult);
           } else if ("askForFeedback".equals(call.method)) {
               String widgetId = args.getString(0);
               String closeButtonText = args.getString(1);
-              Countly.sharedInstance().showFeedbackPopup(widgetId, closeButtonText, activity, new CountlyStarRating.FeedbackRatingCallback() {
+              Countly.sharedInstance().ratings().showFeedbackPopup(widgetId, closeButtonText, activity, new FeedbackRatingCallback() {
                   @Override
                   public void callback(String error) {
                       if (error != null) {
@@ -563,10 +585,17 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               });
           } else if (call.method.equals("askForStarRating")) {
               // Countly.sharedInstance().(context, 5);
-              Countly.sharedInstance().showStarRating(activity, null);
+              Countly.sharedInstance().ratings().showStarRating(activity, new StarRatingCallback() {
+                  @Override
+                  public void onRate(int rating) {
+                      result.success("Rating: " +rating);
+                  }
 
-              result.success("askForStarRating success.");
-
+                  @Override
+                  public void onDismiss() {
+                      result.success("Rating: Modal dismissed.");
+                  }
+              });
           } else {
               result.notImplemented();
           }
