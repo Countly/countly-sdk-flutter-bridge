@@ -162,15 +162,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               String exceptionString = args.getString(0);
               Exception exception = new Exception(exceptionString);
 
-              Boolean nonfatal = args.getBoolean(1);
+              // Boolean nonfatal = args.getBoolean(1);
 
-              HashMap<String, Object> segments = new HashMap<String, Object>();
-              for (int i = 2, il = args.length(); i < il; i += 2) {
-                  segments.put(args.getString(i), args.getString(i + 1));
-              }
-              segments.put("nonfatal", nonfatal.toString());
-              this.setConfig();
-              this.config.setCustomCrashSegment(segments);
+              // HashMap<String, Object> segments = new HashMap<String, Object>();
+              // for (int i = 2, il = args.length(); i < il; i += 2) {
+              //     segments.put(args.getString(i), args.getString(i + 1));
+              // }
+              // segments.put("nonfatal", nonfatal.toString());
+              // this.setConfig();
+              // this.config.setCustomCrashSegment(segments);
               // Countly.sharedInstance().setCustomCrashSegments(segments);
 
               Countly.sharedInstance().crashes().recordHandledException(exception);
