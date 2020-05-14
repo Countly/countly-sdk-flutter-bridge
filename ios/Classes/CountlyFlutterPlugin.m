@@ -561,10 +561,11 @@ CountlyConfig* config = nil;
         }];
 
     }else if ([@"askForStarRating" isEqualToString:call.method]) {
-        [Countly.sharedInstance askForStarRating:^(NSInteger rating){
-            result([NSString stringWithFormat: @"Rating:%d", (int)rating]);
-        }];
-
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            [Countly.sharedInstance askForStarRating:^(NSInteger rating){
+                result([NSString stringWithFormat: @"Rating:%d", (int)rating]);
+            }];
+        });
     }
     else {
         result(FlutterMethodNotImplemented);
