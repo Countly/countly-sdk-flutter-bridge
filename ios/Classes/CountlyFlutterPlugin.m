@@ -70,7 +70,7 @@ CountlyConfig* config = nil;
         int count = [countString intValue];
         NSString* sumString = [command objectAtIndex:2];
         float sum = [sumString floatValue];
-        NSString* durationString = [command objectAtIndex:1];
+        NSString* durationString = [command objectAtIndex:3];
         int duration = [durationString intValue];
         NSMutableDictionary *segmentation = [[NSMutableDictionary alloc] init];
 
