@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart';
 
 class Countly {
   static const MethodChannel _channel =
@@ -677,6 +678,15 @@ class Countly {
   }
 
   static Future<String> enableCrashReporting() async {
+    FlutterError.onError = (FlutterErrorDetails details, {bool forceReport = false}) {
+      try {
+        Countly.logException("${details.exception} \n ${details.stack}", true, {});
+      } catch (e) {
+        print('Sending report to sentry.io failed: $e');
+      } finally {
+        FlutterError.dumpErrorToConsole(details, forceReport: forceReport);
+      }
+    };
     List <String> args = [];
     enableCrashReportingFlag = true;
     final String result = await _channel.invokeMethod('enableCrashReporting', <String, dynamic>{

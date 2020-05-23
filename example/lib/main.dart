@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
+import 'dart:convert';
 
 import 'package:countly_flutter/countly_flutter.dart';
 
@@ -22,6 +23,7 @@ class _MyAppState extends State<MyApp> {
     Countly.pushTokenType(Countly.messagingMode["TEST"]);
     Countly.init(SERVER_URL, APP_KEY);
     Countly.setLoggingEnabled(true);
+    Countly.enableCrashReporting();
   }
   initWithID(){
     Countly.init(SERVER_URL, APP_KEY, "1234567890");
@@ -408,6 +410,10 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  throwException(){
+    Map<String, Object> options = json.decode("This is a on purpose error.");
+  }
+
   setLoggingEnabled(){
     Countly.setLoggingEnabled(false);
   }
@@ -514,6 +520,7 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Enable Parameter Tapmering Protection", color: "violet", onPressed: enableParameterTamperingProtection),
               MyButton(text: "City, State, and Location", color: "violet", onPressed: setOptionalParametersForInitialization),
               MyButton(text: "Send Crash Report", color: "violet", onPressed: addCrashLog),
+              MyButton(text: "Throw Exception", color: "violet", onPressed: throwException),
               MyButton(text: "Enabling logging", color: "violet", onPressed: setLoggingEnabled),
 
               MyButton(text: "Open rating modal", color: "orange", onPressed: askForStarRating),
