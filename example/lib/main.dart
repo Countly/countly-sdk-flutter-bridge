@@ -24,6 +24,7 @@ class _MyAppState extends State<MyApp> {
     Countly.setLoggingEnabled(true);
     Countly.enableCrashReporting();
     Countly.init(SERVER_URL, APP_KEY);
+    
   }
   initWithID(){
     Countly.setLoggingEnabled(true);
