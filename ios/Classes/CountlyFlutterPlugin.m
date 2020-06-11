@@ -40,7 +40,9 @@ CountlyConfig* config = nil;
         config.appKey = appkey;
         config.host = serverurl;
 
-        config.sendPushTokenAlways = YES;
+        //should only be used for silent pushes if explicitly enabled
+        //config.sendPushTokenAlways = YES;
+
         config.features = @[CLYCrashReporting, CLYPushNotifications];
 
         if(command.count == 3){
@@ -146,7 +148,7 @@ CountlyConfig* config = nil;
         NSString* newDeviceID = [command objectAtIndex:0];
         NSString* onServerString = [command objectAtIndex:1];
 
-        if ([onServerString  isEqual: @"TemporaryDeviceID"]) {
+        if ([newDeviceID  isEqual: @"TemporaryDeviceID"]) {
             [Countly.sharedInstance setNewDeviceID:CLYTemporaryDeviceID onServer:NO];
         }else{
             if ([onServerString  isEqual: @"1"]) {
