@@ -21,9 +21,9 @@ class _MyAppState extends State<MyApp> {
   static String APP_KEY = "f0b2ac6919f718a13821575db28c0e2971e05ec5";
   onInit(){
     Countly.pushTokenType(Countly.messagingMode["TEST"]);
-    Countly.init(SERVER_URL, APP_KEY);
     Countly.setLoggingEnabled(true);
     Countly.enableCrashReporting();
+    Countly.init(SERVER_URL, APP_KEY);
   }
   initWithID(){
     Countly.setLoggingEnabled(true);
