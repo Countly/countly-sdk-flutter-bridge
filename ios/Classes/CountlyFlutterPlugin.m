@@ -465,7 +465,7 @@ CountlyConfig* config = nil;
 
         NSString* latitudeString = [command objectAtIndex:2];
         NSString* longitudeString = [command objectAtIndex:3];
-        NSString* ipAddress = [command objectAtIndex:3];
+        NSString* ipAddress = [command objectAtIndex:4];
 
         if([@"null" isEqualToString:city]){
             city = nil;
