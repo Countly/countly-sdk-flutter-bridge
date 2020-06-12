@@ -26,9 +26,11 @@ class _MyAppState extends State<MyApp> {
     Countly.enableCrashReporting();
   }
   initWithID(){
+    Countly.setLoggingEnabled(true);
     Countly.init(SERVER_URL, APP_KEY, "1234567890");
   }
   initWithTemporaryDeviceID(){
+    Countly.setLoggingEnabled(true);
     Countly.init(SERVER_URL, APP_KEY, Countly.deviceIDType["TemporaryDeviceID"]);
   }
   enableTemporaryIdMode(){
