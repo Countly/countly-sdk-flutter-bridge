@@ -243,26 +243,19 @@ class Countly {
     String ipAddress = options["ipAddress"];
 
     if(city == null){
-      city = "";
+      city = "null";
     }
     if(country == null){
-      country = "";
+      country = "null";
     }
     if(latitude == null){
-      latitude = "0.00";
+      latitude = "null";
     }
     if(longitude == null){
-      longitude = "0.00";
+      longitude = "null";
     }
     if(ipAddress == null){
-      ipAddress = "0.0.0.0";
-    }
-
-    if(!latitude.contains(".")){
-        latitude =  latitude + ".00";
-    }
-    if(!latitude.contains(".")){
-        latitude =  latitude + ".00";
+      ipAddress = "null";
     }
 
     args.add(city);
@@ -349,6 +342,14 @@ class Countly {
   }
   static Future<String> setLocation(String latitude, String longitude) async {
     List <String> args = [];
+
+    if(latitude == null){
+      latitude = "null";
+    }
+    if(longitude == null){
+      longitude = "null";
+    }
+
     args.add(latitude);
     args.add(longitude);
     final String result = await _channel.invokeMethod('setLocation', <String, dynamic>{

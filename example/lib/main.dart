@@ -24,7 +24,6 @@ class _MyAppState extends State<MyApp> {
     Countly.setLoggingEnabled(true);
     Countly.enableCrashReporting();
     Countly.init(SERVER_URL, APP_KEY);
-    
   }
   initWithID(){
     Countly.setLoggingEnabled(true);
@@ -390,6 +389,42 @@ class _MyAppState extends State<MyApp> {
     Countly.enableParameterTamperingProtection("salt");
   }
    setOptionalParametersForInitialization(){
+    Map<String, Object> optionsSecond = {
+      "city": null,
+      "country": null,
+      "latitude": null,
+      "longitude": null,
+      "ipAddress": null
+    };
+    Countly.setOptionalParametersForInitialization(optionsSecond);
+
+    Map<String, Object> optionsThird = {
+      "city": "Tampa",
+      "country": "US",
+      "latitude": null,
+      "longitude": null,
+      "ipAddress": "255.255.255.255"
+    };
+    Countly.setOptionalParametersForInitialization(optionsThird);
+
+    Map<String, Object> optionsFourth = {
+      "city": "Tampa",
+      "country": "US",
+      "latitude": "28.006324",
+      "longitude": "-82.7166183",
+      "ipAddress": null
+    };
+    Countly.setOptionalParametersForInitialization(optionsFourth);
+
+    Map<String, Object> optionsFifth = {
+      "city": null,
+      "country": null,
+      "latitude": "28.006324",
+      "longitude": "-82.7166183",
+      "ipAddress": "255.255.255.255"
+    };
+    Countly.setOptionalParametersForInitialization(optionsFifth);
+
     Map<String, Object> options = {
       "city": "Tampa",
       "country": "US",
@@ -430,7 +465,8 @@ class _MyAppState extends State<MyApp> {
     Countly.setHttpPostForced(true);
   }
   setLocation(){
-    Countly.setLocation("latitude","longitude");
+    Countly.setLocation(null,null);
+    Countly.setLocation("-33.9142687","18.0955802");
   }
 
   @override
@@ -522,6 +558,7 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Change Device ID Without Merge", color: "violet", onPressed: changeDeviceIdWithoutMerge),
               MyButton(text: "Enable Parameter Tapmering Protection", color: "violet", onPressed: enableParameterTamperingProtection),
               MyButton(text: "City, State, and Location", color: "violet", onPressed: setOptionalParametersForInitialization),
+              MyButton(text: "setLocation", color: "violet", onPressed: setLocation),
               MyButton(text: "Send Crash Report", color: "violet", onPressed: addCrashLog),
               MyButton(text: "Throw Exception", color: "violet", onPressed: throwException),
               MyButton(text: "Enabling logging", color: "violet", onPressed: setLoggingEnabled),

@@ -197,10 +197,18 @@ CountlyConfig* config = nil;
         NSString* latitudeString = [command objectAtIndex:0];
         NSString* longitudeString = [command objectAtIndex:1];
 
-        double latitudeDouble = [latitudeString doubleValue];
-        double longitudeDouble = [longitudeString doubleValue];
+        if([@"null" isEqualToString:latitudeString]){
+            latitudeString = nil;
+        }
+        if([@"null" isEqualToString:longitudeString]){
+            longitudeString = nil;
+        }
 
-        config.location = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
+        if(latitudeString != nil && longitudeString != nil){
+            double latitudeDouble = [latitudeString doubleValue];
+            double longitudeDouble = [longitudeString doubleValue];
+            config.location = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
+        }
 
         result(@"setLocation!");
 
@@ -231,13 +239,6 @@ CountlyConfig* config = nil;
         result(@"logException!");
 
     }else if ([@"askForNotificationPermission" isEqualToString:call.method]) {
-        // UNAuthorizationOptions authorizationOptions = UNAuthorizationOptionProvisional;
-
-        // [Countly.sharedInstance askForNotificationPermissionWithOptions:authorizationOptions completionHandler:^(BOOL granted, NSError *error)
-        // {
-        //     NSLog(@"granted: %d", granted);
-        //     NSLog(@"error: %@", error);
-        // }];
         [Countly.sharedInstance askForNotificationPermission];
         result(@"askForNotificationPermission!");
     }else if ([@"pushTokenType" isEqualToString:call.method]) {
@@ -466,10 +467,28 @@ CountlyConfig* config = nil;
         NSString* longitudeString = [command objectAtIndex:3];
         NSString* ipAddress = [command objectAtIndex:3];
 
-        double latitudeDouble = [latitudeString doubleValue];
-        double longitudeDouble = [longitudeString doubleValue];
+        if([@"null" isEqualToString:city]){
+            city = nil;
+        }
+        if([@"null" isEqualToString:country]){
+            country = nil;
+        }
+        if([@"null" isEqualToString:latitudeString]){
+            latitudeString = nil;
+        }
+        if([@"null" isEqualToString:longitudeString]){
+            longitudeString = nil;
+        }
+        if([@"null" isEqualToString:ipAddress]){
+            ipAddress = nil;
+        }
 
-        [Countly.sharedInstance recordLocation:(CLLocationCoordinate2D){latitudeDouble,longitudeDouble}];
+        if(latitudeString != nil && longitudeString != nil){
+            double latitudeDouble = [latitudeString doubleValue];
+            double longitudeDouble = [longitudeString doubleValue];
+            [Countly.sharedInstance recordLocation:(CLLocationCoordinate2D){latitudeDouble,longitudeDouble}];
+        }
+
         [Countly.sharedInstance recordCity:city andISOCountryCode:country];
         [Countly.sharedInstance recordIP:ipAddress];
         result(@"setOptionalParametersForInitialization!");
