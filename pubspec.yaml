@@ -1,7 +1,6 @@
 name: countly_flutter
 description: Countly is an innovative, real-time, open source mobile analytics and push notifications platform.
 version: 20.04.0
-author: Trinisoft Technologies <trinisofttechnologies@gmail.com>
 homepage: https://support.count.ly/hc/en-us/articles/360037944212-Flutter
 
 environment:
@@ -21,5 +20,9 @@ flutter:
   # There are two parts of Countly: the server that collects and analyzes data, and mobile SDK that sends this data. 
   # Both parts are open source with different licensing terms.
   plugin:
-    androidPackage: ly.count.dart.countly_flutter
-    pluginClass: CountlyFlutterPlugin
+    platforms:
+      android: 
+        package: ly.count.dart.countly_flutter
+        pluginClass: CountlyFlutterPlugin
+      ios:
+        pluginClass: CountlyFlutterPlugin
