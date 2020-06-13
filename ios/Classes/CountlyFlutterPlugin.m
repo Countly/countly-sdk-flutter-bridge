@@ -205,11 +205,15 @@ CountlyConfig* config = nil;
         }
 
         if(latitudeString != nil && longitudeString != nil){
-            double latitudeDouble = [latitudeString doubleValue];
-            double longitudeDouble = [longitudeString doubleValue];
-            config.location = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
+            @try{
+                double latitudeDouble = [latitudeString doubleValue];
+                double longitudeDouble = [longitudeString doubleValue];
+                config.location = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
+            }
+            @catch(NSException *execption){
+                NSLog(@"[Countly] Invalid latitude or longitude.");
+            }
         }
-
         result(@"setLocation!");
 
     }else if ([@"enableCrashReporting" isEqualToString:call.method]) {
@@ -484,9 +488,14 @@ CountlyConfig* config = nil;
         }
 
         if(latitudeString != nil && longitudeString != nil){
-            double latitudeDouble = [latitudeString doubleValue];
-            double longitudeDouble = [longitudeString doubleValue];
-            [Countly.sharedInstance recordLocation:(CLLocationCoordinate2D){latitudeDouble,longitudeDouble}];
+            @try{
+                double latitudeDouble = [latitudeString doubleValue];
+                double longitudeDouble = [longitudeString doubleValue];
+                [Countly.sharedInstance recordLocation:(CLLocationCoordinate2D){latitudeDouble,longitudeDouble}];
+            }
+            @catch(NSException *execption){
+                NSLog(@"[Countly] Invalid latitude or longitude.");
+            }
         }
 
         [Countly.sharedInstance recordCity:city andISOCountryCode:country];
