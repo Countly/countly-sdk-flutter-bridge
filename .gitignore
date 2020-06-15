@@ -6,3 +6,4 @@
 
 build/
 .orig
+example/.flutter-plugins-dependencies
