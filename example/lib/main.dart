@@ -655,29 +655,13 @@ Map<String, Object> theColor = {
     "button": Color(0xff6435c9),
     "text": Color(0xff000000)
   },
-  "blue": {
-    "button": Color(0xff00b5ad),
-    "text": Color(0xff000000)
+  "yellow": {
+    "button": Color(0xfffbbd08),
+    "text": Color(0xffffffff)
   },
   "black": {
     "button": Color(0xff1b1c1d),
     "text": Color(0xffffffff)
-  },
-  "grey": {
-    "button": Color(0xff767676),
-    "text": Color(0xff000000)
-  },
-  "brown": {
-    "button": Color(0xffa5673f),
-    "text": Color(0xff000000)
-  },
-  "purple": {
-    "button": Color(0xffa333c8),
-    "text": Color(0xff000000)
-  },
-  "violet": {
-    "button": Color(0xff6435c9),
-    "text": Color(0xff000000)
   },
   "olive": {
     "button": Color(0xffd9e778),
