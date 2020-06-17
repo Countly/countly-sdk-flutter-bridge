@@ -104,7 +104,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                   this.config.setIdMode(DeviceId.Type.ADVERTISING_ID);
               }
               Countly.sharedInstance().init(this.config);
-              Countly.sharedInstance().onStart(activity);
               result.success("initialized!");
           } else if ("changeDeviceId".equals(call.method)) {
               String newDeviceID = args.getString(0);

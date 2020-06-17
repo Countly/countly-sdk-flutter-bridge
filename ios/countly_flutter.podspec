@@ -15,7 +15,7 @@ A new flutter plugin project.
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
-  s.dependency 'Countly'
+  s.dependency 'Countly', '20.04'
 
   s.ios.deployment_target = '8.0'
 end
