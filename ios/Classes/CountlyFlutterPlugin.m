@@ -1,5 +1,4 @@
 #import "CountlyFlutterPlugin.h"
-#import <countly_flutter/countly_flutter-Swift.h>
 #import "Countly.h"
 #import "CountlyConfig.h"
 #import "CountlyDeviceInfo.h"
@@ -464,7 +463,7 @@ CountlyConfig* config = nil;
 
         NSString* latitudeString = [command objectAtIndex:2];
         NSString* longitudeString = [command objectAtIndex:3];
-        NSString* ipAddress = [command objectAtIndex:3];
+        NSString* ipAddress = [command objectAtIndex:4];
 
         double latitudeDouble = [latitudeString doubleValue];
         double longitudeDouble = [longitudeString doubleValue];
