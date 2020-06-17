@@ -6,6 +6,7 @@ homepage: https://support.count.ly/hc/en-us/articles/360037944212-Flutter
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
+  flutter: ">=1.0.0"
 
 dependencies:
   flutter:

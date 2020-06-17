@@ -79,12 +79,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
           args = new JSONArray(argsString);
 
           if (isDebug) {
-              Log.i("Countly", "Method name: " + call.method);
-              Log.i("Countly", "Method arguments: " + argsString);
+              Log.i(Countly.TAG, "[CountlyFlutterPlugin] Method name: " + call.method);
+              Log.i(Countly.TAG, "[CountlyFlutterPlugin] Method arguments: " + argsString);
           }
 
           if ("init".equals(call.method)) {
-
               String serverUrl = args.getString(0);
               String appKey = args.getString(1);
               this.setConfig();
@@ -92,7 +91,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               this.config.setServerURL(serverUrl);
               this.config.setAppKey(appKey);
               if (args.length() == 2) {
-                  // Countly.sharedInstance().init(context, serverUrl, appKey, null, DeviceId.Type.OPEN_UDID);
                  this.config.setIdMode(DeviceId.Type.OPEN_UDID);
                 
               } else if (args.length() == 3) {
@@ -102,11 +100,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                   }else{
                     this.config.setDeviceId(yourDeviceID);
                   }
-                  // Countly.sharedInstance()
-                  //        .init(context, serverUrl, appKey, yourDeviceID, null);
               } else {
-                  // Countly.sharedInstance()
-                  //         .init(context, serverUrl, appKey, null, DeviceId.Type.ADVERTISING_ID);
                   this.config.setIdMode(DeviceId.Type.ADVERTISING_ID);
               }
               Countly.sharedInstance().init(this.config);
@@ -203,7 +197,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                       @Override
                       public void onComplete(Task<InstanceIdResult> task) {
                           if (!task.isSuccessful()) {
-                              Log.w("Tag", "getInstanceId failed", task.getException());
+                              if(Countly.sharedInstance().isLoggingEnabled()) {
+                                  Log.w(Countly.TAG, "[CountlyFlutterPlugin] getInstanceId failed", task.getException());
+                              }
                               return;
                           }
                           String token = task.getResult().getToken();
