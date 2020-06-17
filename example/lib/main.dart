@@ -381,10 +381,10 @@ class _MyAppState extends State<MyApp> {
   }
 
   changeDeviceIdWithMerge(){
-    Countly.changeDeviceId("123456", false);
+    Countly.changeDeviceId("123456", true);
   }
   changeDeviceIdWithoutMerge(){
-    Countly.changeDeviceId("123456", true);
+    Countly.changeDeviceId("123456", false);
   }
   enableParameterTamperingProtection(){
     Countly.enableParameterTamperingProtection("salt");
