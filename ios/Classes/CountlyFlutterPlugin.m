@@ -430,33 +430,12 @@ CountlyConfig* config = nil;
         result(@"removeConsent!");
 
     }else if ([@"giveAllConsent" isEqualToString:call.method]) {
-//        [Countly.sharedInstance giveConsentForAllFeatures];
-
-        [Countly.sharedInstance giveConsentForFeature:CLYConsentSessions];
-        [Countly.sharedInstance giveConsentForFeature:CLYConsentEvents];
-        [Countly.sharedInstance giveConsentForFeature:CLYConsentUserDetails];
-        [Countly.sharedInstance giveConsentForFeature:CLYConsentCrashReporting];
-        [Countly.sharedInstance giveConsentForFeature:CLYConsentPushNotifications];
-        [Countly.sharedInstance giveConsentForFeature:CLYConsentViewTracking];
-        [Countly.sharedInstance giveConsentForFeature:CLYConsentAttribution];
-        [Countly.sharedInstance giveConsentForFeature:CLYConsentStarRating];
-        [Countly.sharedInstance giveConsentForFeature:CLYConsentAppleWatch];
+        [Countly.sharedInstance giveConsentForFeature:CLYConsentLocation];
+        [Countly.sharedInstance giveConsentForAllFeatures];
         result(@"giveAllConsent!");
-
     }else if ([@"removeAllConsent" isEqualToString:call.method]) {
-//        [Countly.sharedInstance cancelConsentForAllFeatures];
-
-        [Countly.sharedInstance cancelConsentForFeature:CLYConsentSessions];
-        [Countly.sharedInstance cancelConsentForFeature:CLYConsentEvents];
-        [Countly.sharedInstance cancelConsentForFeature:CLYConsentUserDetails];
-        [Countly.sharedInstance cancelConsentForFeature:CLYConsentCrashReporting];
-        [Countly.sharedInstance cancelConsentForFeature:CLYConsentPushNotifications];
-        [Countly.sharedInstance cancelConsentForFeature:CLYConsentViewTracking];
-        [Countly.sharedInstance cancelConsentForFeature:CLYConsentAttribution];
-        [Countly.sharedInstance cancelConsentForFeature:CLYConsentStarRating];
-        [Countly.sharedInstance cancelConsentForFeature:CLYConsentAppleWatch];
+        [Countly.sharedInstance cancelConsentForAllFeatures];
         result(@"removeAllConsent!");
-
     }else if ([@"setOptionalParametersForInitialization" isEqualToString:call.method]) {
         NSString* city = [command objectAtIndex:0];
         NSString* country = [command objectAtIndex:1];

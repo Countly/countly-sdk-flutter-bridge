@@ -434,33 +434,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               result.success("removeConsent!");
 
           } else if ("giveAllConsent".equals(call.method)) {
-              Countly.sharedInstance().consent().giveConsent(new String[]{
-                  Countly.CountlyFeatureNames.sessions,
-                  Countly.CountlyFeatureNames.events,
-                  Countly.CountlyFeatureNames.views,
-                  Countly.CountlyFeatureNames.location,
-                  Countly.CountlyFeatureNames.crashes,
-                  Countly.CountlyFeatureNames.attribution,
-                  Countly.CountlyFeatureNames.users,
-                  Countly.CountlyFeatureNames.push,
-                  Countly.CountlyFeatureNames.starRating
-              });
+              Countly.sharedInstance().consent().giveConsentAll();
               result.success("giveAllConsent!");
           } else if ("removeAllConsent".equals(call.method)) {
-
-              Countly.sharedInstance().consent().removeConsent(new String[]{
-                  Countly.CountlyFeatureNames.sessions,
-                  Countly.CountlyFeatureNames.events,
-                  Countly.CountlyFeatureNames.views,
-                  Countly.CountlyFeatureNames.location,
-                  Countly.CountlyFeatureNames.crashes,
-                  Countly.CountlyFeatureNames.attribution,
-                  Countly.CountlyFeatureNames.users,
-                  Countly.CountlyFeatureNames.push,
-                  Countly.CountlyFeatureNames.starRating
-              });
+              Countly.sharedInstance().consent().removeConsentAll();
               result.success("removeAllConsent!");
-
           } else if ("sendRating".equals(call.method)) {
               String ratingString = args.getString(0);
               int rating = Integer.parseInt(ratingString);
@@ -530,7 +508,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               String[] keysOnly = new String[args.length()];
               for (int i = 0, il = args.length(); i < il; i++) {
                   keysOnly[i] = args.getString(i);
-                  ;
               }
 
               Countly.sharedInstance().remoteConfig().updateForKeysOnly(keysOnly, new RemoteConfigCallback() {
@@ -595,11 +572,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               result.notImplemented();
           }
 
-          // if (call.method.equals("getPlatformVersion")) {
-          //   result.success("Android " + android.os.Build.VERSION.RELEASE);
-          // } else {
-          //   result.notImplemented();
-          // }
       } catch (JSONException jsonException) {
           result.success(jsonException.toString());
       }
