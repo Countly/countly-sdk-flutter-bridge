@@ -6,8 +6,9 @@
 
 build/
 .orig
-
+<<<<<<< HEAD
 example/.flutter-plugins-dependencies
+=======
 
 pubspec.lock
 
@@ -19,3 +20,4 @@ pubspec.lock
 
 # Visual Studio Code related
 .vscode/
+>>>>>>> ad25252f39409034075517f4dbe627964006c3b8

@@ -91,8 +91,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               this.config.setServerURL(serverUrl);
               this.config.setAppKey(appKey);
               if (args.length() == 2) {
+<<<<<<< HEAD
+                    this.config.setIdMode(DeviceId.Type.OPEN_UDID);
+=======
                  this.config.setIdMode(DeviceId.Type.OPEN_UDID);
                 
+>>>>>>> ad25252f39409034075517f4dbe627964006c3b8
               } else if (args.length() == 3) {
                   String yourDeviceID = args.getString(2);
                   if(yourDeviceID.equals("TemporaryDeviceID")){

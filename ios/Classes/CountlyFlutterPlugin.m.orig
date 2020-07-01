@@ -448,6 +448,7 @@ CountlyConfig* config = nil;
         NSString* latitudeString = [command objectAtIndex:2];
         NSString* longitudeString = [command objectAtIndex:3];
         NSString* ipAddress = [command objectAtIndex:4];
+<<<<<<< HEAD
 
         if([@"null" isEqualToString:city]){
             city = nil;
@@ -464,6 +465,8 @@ CountlyConfig* config = nil;
         if([@"null" isEqualToString:ipAddress]){
             ipAddress = nil;
         }
+=======
+>>>>>>> ad25252f39409034075517f4dbe627964006c3b8
 
         if(latitudeString != nil && longitudeString != nil){
             @try{

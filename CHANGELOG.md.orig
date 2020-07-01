@@ -1,9 +1,12 @@
 ## 20.04.0
+<<<<<<< HEAD
+=======
 * Updating bridged ios and android Countly SDK versions
 * Added uncaught crash handler for flutter
 * Added temporary device ID
 * Fixed event duration bug with ios
 * Fixed issue with default user profile values
+>>>>>>> ad25252f39409034075517f4dbe627964006c3b8
 
 ## 19.03.0
 
