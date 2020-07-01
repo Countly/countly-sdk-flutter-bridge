@@ -18,6 +18,11 @@ class Countly {
     "TemporaryDeviceID": "TemporaryDeviceID"
   };
 
+  static log(String message) async {
+    if(isDebug){
+      print(message);
+    }
+  }
   static Future<String> init(String serverUrl, String appKey, [String deviceId]) async {
     if (Platform.isAndroid) {
       messagingMode = {"TEST": "2", "PRODUCTION": "0"};
@@ -28,15 +33,11 @@ class Countly {
     if(deviceId != null){
       args.add(deviceId);
     }
-    if(isDebug){
-      print(args);
-    }
+    log(args.toString());
     final String result = await _channel.invokeMethod('init', <String, dynamic>{
       'data': json.encode(args)
     });
-    if(isDebug){
-      print(result);
-    }
+    log(result);
     return result;
   }
 
@@ -182,6 +183,20 @@ class Countly {
       print(result);
     }
     return result;
+  }
+
+
+  static Future<String> onNotification(Function callback) async {
+    List <String> args = [];
+    log("registerForNotification");
+    _channel.invokeMethod('registerForNotification', <String, dynamic>{
+      'data': json.encode(args)
+    }).then((value){
+      callback(value.toString());
+    }).catchError((error){
+      callback(error.toString());
+    });
+    return "";
   }
 
   static Future<String> start() async {

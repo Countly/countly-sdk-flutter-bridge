@@ -16,6 +16,10 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    Countly.onNotification((String notification){
+      print("The notification");
+      print(notification);
+    });
   }
   static String SERVER_URL = "https://trinisoft.count.ly";
   static String APP_KEY = "f0b2ac6919f718a13821575db28c0e2971e05ec5";

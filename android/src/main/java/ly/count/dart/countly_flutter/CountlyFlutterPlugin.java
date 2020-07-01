@@ -19,6 +19,8 @@ import android.app.Activity;
 import android.content.Context;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.util.Log;
 import java.util.List;
 import java.util.Set;
@@ -49,8 +51,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
     private Activity activity;
     private Boolean isDebug = false;
     private CountlyConfig config = null;
+    private static Callback notificationListener = null;
+    private static String lastStoredNotification = null;
 
-  public static void registerWith(Registrar registrar) {
+    public static void registerWith(Registrar registrar) {
       final Activity __activity  = registrar.activity();
       final Context __context = registrar.context();
 
@@ -213,6 +217,18 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                   pushTokenType = Countly.CountlyMessagingMode.PRODUCTION;
               }
               result.success("pushTokenType!");
+          } else if ("registerForNotification".equals(call.method)) {
+              registerForNotification(args, new Callback() {
+                  @Override
+                  public void callback(final String resultString) {
+                      activity.runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              result.success(resultString);
+                          }
+                      });
+                  }
+              });
           } else if ("start".equals(call.method)) {
               Countly.sharedInstance().onStart(activity);
               result.success("started!");
@@ -603,4 +619,26 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
           result.success(jsonException.toString());
       }
   }
+    public String registerForNotification(JSONArray args, final Callback theCallback){
+        notificationListener = theCallback;
+        Log.i("CountlyNative", "registerForNotification theCallback");
+        if(lastStoredNotification != null){
+            theCallback.callback(lastStoredNotification);
+            lastStoredNotification = null;
+        }
+        return "pushTokenType: success";
+    }
+    public static void onNotification(Map<String, String>  notification){
+        JSONObject json = new JSONObject(notification);
+        String notificationString = json.toString();
+        Log.i("Countly onNotification", notificationString);
+        if(notificationListener != null){
+            notificationListener.callback(notificationString);
+        }else{
+            lastStoredNotification = notificationString;
+        }
+    }
+    public interface Callback {
+        void callback(String result);
+    }
 }

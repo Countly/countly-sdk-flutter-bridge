@@ -7,6 +7,7 @@ import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 import ly.count.android.sdk.messaging.CountlyPush;
+import ly.count.android.sdk.Countly;
 
 public class CountlyMessagingService extends FirebaseMessagingService {
     private static final String TAG = "CountlyMessagingService";
@@ -15,12 +16,23 @@ public class CountlyMessagingService extends FirebaseMessagingService {
     public void onNewToken(String token) {
         super.onNewToken(token);
         Log.d(TAG, "got new token: " + token);
-        CountlyPush.onTokenRefresh(token);
+        if(Countly.sharedInstance().isInitialized()) {
+            CountlyPush.onTokenRefresh(token);
+        }
     }
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
+
+        if(!Countly.sharedInstance().isInitialized()) {
+            int mode = CountlyPush.getLastMessagingMethod(this);
+            if(mode == 0) {
+                CountlyPush.init(getApplication(), Countly.CountlyMessagingMode.TEST);
+            } else if(mode == 1) {
+                CountlyPush.init(getApplication(), Countly.CountlyMessagingMode.PRODUCTION);
+            }
+        }
 
         Log.d(TAG, "got new message: " + remoteMessage.getData());
 
@@ -46,6 +58,7 @@ public class CountlyMessagingService extends FirebaseMessagingService {
         } else {
             Log.i(TAG, "Message wasn't handled by Countly SDK because API level is too low for Notification support or because currentActivity is null (not enough lifecycle method calls)");
         }
+        CountlyFlutterPlugin.onNotification(remoteMessage.getData());
     }
 
     @Override
