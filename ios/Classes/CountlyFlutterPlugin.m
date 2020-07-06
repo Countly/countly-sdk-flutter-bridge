@@ -4,6 +4,9 @@
 #import "CountlyDeviceInfo.h"
 #import "CountlyRemoteConfig.h"
 
+FlutterResult notificationListener = nil;
+NSDictionary *lastStoredNotification = nil;
+NSMutableArray *notificationIDs = nil;        // alloc here
 
 @implementation CountlyFlutterPlugin
 
@@ -54,7 +57,9 @@ CountlyConfig* config = nil;
         }
 
         if (serverurl != nil && [serverurl length] > 0) {
-            [[Countly sharedInstance] startWithConfig:config];
+            dispatch_async(dispatch_get_main_queue(), ^ {
+              [[Countly sharedInstance] startWithConfig:config];
+            });
             result(@"initialized.");
         } else {
             result(@"initialization failed!");
@@ -242,19 +247,26 @@ CountlyConfig* config = nil;
         result(@"logException!");
 
     }else if ([@"askForNotificationPermission" isEqualToString:call.method]) {
-        [Countly.sharedInstance askForNotificationPermission];
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            [Countly.sharedInstance askForNotificationPermission];
+        });
         result(@"askForNotificationPermission!");
     }else if ([@"pushTokenType" isEqualToString:call.method]) {
         config.sendPushTokenAlways = YES;
         NSString* tokenType = [command objectAtIndex:0];
         if([tokenType isEqualToString: @"1"]){
             config.pushTestMode = @"CLYPushTestModeDevelopment";
-        }else if([tokenType isEqualToString: @"2"]){
+        } else {
             config.pushTestMode = @"CLYPushTestModeTestFlightOrAdHoc";
-        }else{
-
         }
         result(@"pushTokenType!");
+    }else if ([@"registerForNotification" isEqualToString:call.method]) {
+        NSLog(@"Countly Native: registerForNotification");
+        notificationListener = result;
+        if(lastStoredNotification != nil){
+            result([lastStoredNotification description]);
+            lastStoredNotification = nil;
+        }
     }else if ([@"userData_setProperty" isEqualToString:call.method]) {
         NSString* keyName = [command objectAtIndex:0];
         NSString* keyValue = [command objectAtIndex:1];
@@ -389,14 +401,10 @@ CountlyConfig* config = nil;
                 [Countly.sharedInstance giveConsentForFeature:CLYConsentAppleWatch];
             }
         }
-
-
-        NSString *resultString = @"giveConsent for: ";
         result(@"giveConsent!");
 
     }else if ([@"removeConsent" isEqualToString:call.method]) {
         NSString* consent = @"";
-//        NSMutableDictionary *removeConsent = [[NSMutableDictionary alloc] init];
         for(int i=0,il=(int)command.count; i<il;i++){
             consent = [command objectAtIndex:i];
             if([@"sessions" isEqualToString:consent]){
@@ -579,5 +587,34 @@ CountlyConfig* config = nil;
         result(FlutterMethodNotImplemented);
     }
 }
-
++ (void)onNotification: (NSDictionary *) notificationMessage{
+    NSLog(@"Notification received");
+    NSLog(@"The notification %@", notificationMessage);
+    if(notificationMessage && notificationListener != nil){
+        notificationListener([NSString stringWithFormat:@"%@",notificationMessage]);
+    }else{
+        lastStoredNotification = notificationMessage;
+    }
+    if(notificationMessage){
+        if(notificationIDs == nil){
+            notificationIDs = [[NSMutableArray alloc] init];
+        }
+        NSDictionary* countlyPayload = notificationMessage[@"c"];
+        NSString *notificationID = countlyPayload[@"i"];
+        [notificationIDs insertObject:notificationID atIndex:[notificationIDs count]];
+    }
+}
+- (void)recordPushAction
+{
+    for(int i=0,il = (int) notificationIDs.count;i<il;i++){
+        NSString *notificationID = notificationIDs[i];
+        NSDictionary* segmentation =
+        @{
+            @"i": notificationID,
+            @"b": @(0)
+        };
+        [Countly.sharedInstance recordEvent:@"[CLY]_push_action" segmentation: segmentation];
+    }
+    notificationIDs = nil;
+}
 @end
