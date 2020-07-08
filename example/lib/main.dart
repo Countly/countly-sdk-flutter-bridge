@@ -16,6 +16,9 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    onNotification();
+  }
+  onNotification(){
     Countly.onNotification((String notification){
       print("The notification");
       print(notification);
