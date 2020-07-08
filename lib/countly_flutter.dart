@@ -9,8 +9,8 @@ class Countly {
   static const MethodChannel _channel =
   const MethodChannel('countly_flutter');
 
-
   // static variable
+  static Function listenerCallback = null;
   static bool isDebug = false;
   static bool enableCrashReportingFlag = false;
   static Map<String, Object> messagingMode = {"TEST": "1", "PRODUCTION": "0", "ADHOC": "2"};
@@ -188,13 +188,15 @@ class Countly {
 
   static Future<String> onNotification(Function callback) async {
     List <String> args = [];
+    listenerCallback = callback;
     log("registerForNotification");
     _channel.invokeMethod('registerForNotification', <String, dynamic>{
       'data': json.encode(args)
     }).then((value){
-      callback(value.toString());
+      listenerCallback(value.toString());
+      onNotification(callback);
     }).catchError((error){
-      callback(error.toString());
+      listenerCallback(error.toString());
     });
     return "";
   }
