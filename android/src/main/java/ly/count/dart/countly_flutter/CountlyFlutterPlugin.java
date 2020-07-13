@@ -96,7 +96,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               this.config.setAppKey(appKey);
               if (args.length() == 2) {
                  this.config.setIdMode(DeviceId.Type.OPEN_UDID);
-                
+
               } else if (args.length() == 3) {
                   String yourDeviceID = args.getString(2);
                   if(yourDeviceID.equals("TemporaryDeviceID")){
@@ -109,7 +109,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               }
               Countly.sharedInstance().init(this.config);
               result.success("initialized!");
-          } else if ("changeDeviceId".equals(call.method)) {
+        } else if ("isInitialized".equals(call.method)) {
+            Boolean isInitialized = Countly.sharedInstance().isInitialized();
+            if(isInitialized){
+                result.success("true");
+
+            }else{
+                result.success("false");
+            }
+        }else if ("changeDeviceId".equals(call.method)) {
               String newDeviceID = args.getString(0);
               String onServerString = args.getString(1);
               if(newDeviceID.equals("TemporaryDeviceID")){

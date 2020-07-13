@@ -11,7 +11,7 @@ NSMutableArray *notificationIDs = nil;        // alloc here
 @implementation CountlyFlutterPlugin
 
 CountlyConfig* config = nil;
-
+Boolean isInitialized = false;
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   FlutterMethodChannel* channel = [FlutterMethodChannel
       methodChannelWithName:@"countly_flutter"
@@ -58,6 +58,7 @@ CountlyConfig* config = nil;
 
         if (serverurl != nil && [serverurl length] > 0) {
             dispatch_async(dispatch_get_main_queue(), ^ {
+              isInitialized = true;
               [[Countly sharedInstance] startWithConfig:config];
             });
             result(@"initialized.");
@@ -70,6 +71,12 @@ CountlyConfig* config = nil;
         //     deviceID = [command objectAtIndex:2];
         //     [Countly.sharedInstance setNewDeviceID:deviceID onServer:YES];   //replace and merge on server
         // }
+    }else if ([@"isInitialized" isEqualToString:call.method]) {
+        if(isInitialized){
+            result(@"true");
+        }else{
+            result(@"false");
+        }
     }else if ([@"recordEvent" isEqualToString:call.method]) {
         NSString* key = [command objectAtIndex:0];
         NSString* countString = [command objectAtIndex:1];

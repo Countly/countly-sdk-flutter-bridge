@@ -10,7 +10,7 @@ class Countly {
   const MethodChannel('countly_flutter');
 
   // static variable
-  static Function listenerCallback = null;
+  static Function listenerCallback;
   static bool isDebug = false;
   static bool enableCrashReportingFlag = false;
   static Map<String, Object> messagingMode = {"TEST": "1", "PRODUCTION": "0", "ADHOC": "2"};
@@ -41,7 +41,18 @@ class Countly {
     return result;
   }
 
-
+  static Future<bool> isInitialized() async {
+    List <String> args = [];
+    final String result = await _channel.invokeMethod('isInitialized', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    if(result == "true"){
+      return true;
+    }else{
+      return false;
+    }
+  }
   static Future<String> recordEvent( Map<String, Object> options) async {
     List <String> args = [];
     var segmentation = {};
