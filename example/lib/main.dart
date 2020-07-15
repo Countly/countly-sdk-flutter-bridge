@@ -410,42 +410,6 @@ class _MyAppState extends State<MyApp> {
     Countly.enableParameterTamperingProtection("salt");
   }
    setOptionalParametersForInitialization(){
-    Map<String, Object> optionsSecond = {
-      "city": null,
-      "country": null,
-      "latitude": null,
-      "longitude": null,
-      "ipAddress": null
-    };
-    Countly.setOptionalParametersForInitialization(optionsSecond);
-
-    Map<String, Object> optionsThird = {
-      "city": "Tampa",
-      "country": "US",
-      "latitude": null,
-      "longitude": null,
-      "ipAddress": "255.255.255.255"
-    };
-    Countly.setOptionalParametersForInitialization(optionsThird);
-
-    Map<String, Object> optionsFourth = {
-      "city": "Tampa",
-      "country": "US",
-      "latitude": "28.006324",
-      "longitude": "-82.7166183",
-      "ipAddress": null
-    };
-    Countly.setOptionalParametersForInitialization(optionsFourth);
-
-    Map<String, Object> optionsFifth = {
-      "city": null,
-      "country": null,
-      "latitude": "28.006324",
-      "longitude": "-82.7166183",
-      "ipAddress": "255.255.255.255"
-    };
-    Countly.setOptionalParametersForInitialization(optionsFifth);
-
     Map<String, Object> options = {
       "city": "Tampa",
       "country": "US",
@@ -486,42 +450,9 @@ class _MyAppState extends State<MyApp> {
     Countly.setHttpPostForced(true);
   }
   setLocation(){
-    Countly.setLocation(null,null);
     Countly.setLocation("-33.9142687","18.0955802");
   }
 
-  // APM Examples
-  apm(){
-    Countly.apm();
-  }
-  startTrace(){
-    String traceKey = "Trace Key";
-    Countly.startTrace(traceKey);
-  }
-  endTrace(){
-    String traceKey = "Trace Key";
-    Map<String, Object> customMetric = {
-      "ABC": 1233,
-      "C44C": 1337
-    };
-    Countly.endTrace(traceKey, customMetric);
-  }
-  startNetworkRequest(){
-    String networkTraceKey = "networkTraceKey";
-    String uniqueId = "112233";
-    Countly.startNetworkRequest(networkTraceKey, uniqueId);
-  }
-  endNetworkRequest(){
-    String networkTraceKey = "networkTraceKey";
-    String uniqueId = "112233";
-    int responseCode = 200;
-    int requestPayloadSize = 1024;
-    int responsePayloadSize = 1024;
-    Countly.endNetworkRequest(networkTraceKey, uniqueId, responseCode, requestPayloadSize, responsePayloadSize);
-  }
-  setRecordAppStartTime(){
-    Countly.setRecordAppStartTime(true);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -620,12 +551,6 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Open rating modal", color: "orange", onPressed: askForStarRating),
               MyButton(text: "Open feedback modal", color: "orange", onPressed: askForFeedback),
 
-              MyButton(text: "APM", color: "black", onPressed: apm),
-              MyButton(text: "Start Trace", color: "black", onPressed: startTrace),
-              MyButton(text: "End Trace", color: "black", onPressed: endTrace),
-              MyButton(text: "Start Network Request", color: "black", onPressed: startNetworkRequest),
-              MyButton(text: "End Network Request", color: "black", onPressed: endNetworkRequest),
-              MyButton(text: "Set Record App Start Time", color: "black", onPressed: setRecordAppStartTime),
 
             ],),
           )

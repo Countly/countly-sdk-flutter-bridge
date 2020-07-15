@@ -19,3 +19,17 @@ pubspec.lock
 
 # Visual Studio Code related
 .vscode/
+android/.classpath
+android/.project
+android/.settings
+android/app/.classpath
+
+example/android/.classpath
+example/android/.project
+example/android/.settings
+example/android/app/.classpath
+example/android/app/.project
+example/android/app/.settings
+
+
+example/ios/Podfile.lock
