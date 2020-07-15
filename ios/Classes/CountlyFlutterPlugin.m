@@ -60,6 +60,7 @@ Boolean isInitialized = false;
             dispatch_async(dispatch_get_main_queue(), ^ {
               isInitialized = true;
               [[Countly sharedInstance] startWithConfig:config];
+              [self recordPushAction];
             });
             result(@"initialized.");
         } else {
