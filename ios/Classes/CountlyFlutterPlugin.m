@@ -4,11 +4,14 @@
 #import "CountlyDeviceInfo.h"
 #import "CountlyRemoteConfig.h"
 
+FlutterResult notificationListener = nil;
+NSDictionary *lastStoredNotification = nil;
+NSMutableArray *notificationIDs = nil;        // alloc here
 
 @implementation CountlyFlutterPlugin
 
 CountlyConfig* config = nil;
-
+Boolean isInitialized = false;
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   FlutterMethodChannel* channel = [FlutterMethodChannel
       methodChannelWithName:@"countly_flutter"
@@ -54,7 +57,11 @@ CountlyConfig* config = nil;
         }
 
         if (serverurl != nil && [serverurl length] > 0) {
-            [[Countly sharedInstance] startWithConfig:config];
+            dispatch_async(dispatch_get_main_queue(), ^ {
+              isInitialized = true;
+              [[Countly sharedInstance] startWithConfig:config];
+              [self recordPushAction];
+            });
             result(@"initialized.");
         } else {
             result(@"initialization failed!");
@@ -65,6 +72,12 @@ CountlyConfig* config = nil;
         //     deviceID = [command objectAtIndex:2];
         //     [Countly.sharedInstance setNewDeviceID:deviceID onServer:YES];   //replace and merge on server
         // }
+    }else if ([@"isInitialized" isEqualToString:call.method]) {
+        if(isInitialized){
+            result(@"true");
+        }else{
+            result(@"false");
+        }
     }else if ([@"recordEvent" isEqualToString:call.method]) {
         NSString* key = [command objectAtIndex:0];
         NSString* countString = [command objectAtIndex:1];
@@ -196,11 +209,23 @@ CountlyConfig* config = nil;
         NSString* latitudeString = [command objectAtIndex:0];
         NSString* longitudeString = [command objectAtIndex:1];
 
-        double latitudeDouble = [latitudeString doubleValue];
-        double longitudeDouble = [longitudeString doubleValue];
+        if([@"null" isEqualToString:latitudeString]){
+            latitudeString = nil;
+        }
+        if([@"null" isEqualToString:longitudeString]){
+            longitudeString = nil;
+        }
 
-        config.location = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
-
+        if(latitudeString != nil && longitudeString != nil){
+            @try{
+                double latitudeDouble = [latitudeString doubleValue];
+                double longitudeDouble = [longitudeString doubleValue];
+                config.location = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
+            }
+            @catch(NSException *execption){
+                NSLog(@"[Countly] Invalid latitude or longitude.");
+            }
+        }
         result(@"setLocation!");
 
     }else if ([@"enableCrashReporting" isEqualToString:call.method]) {
@@ -230,26 +255,26 @@ CountlyConfig* config = nil;
         result(@"logException!");
 
     }else if ([@"askForNotificationPermission" isEqualToString:call.method]) {
-        // UNAuthorizationOptions authorizationOptions = UNAuthorizationOptionProvisional;
-
-        // [Countly.sharedInstance askForNotificationPermissionWithOptions:authorizationOptions completionHandler:^(BOOL granted, NSError *error)
-        // {
-        //     NSLog(@"granted: %d", granted);
-        //     NSLog(@"error: %@", error);
-        // }];
-        [Countly.sharedInstance askForNotificationPermission];
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            [Countly.sharedInstance askForNotificationPermission];
+        });
         result(@"askForNotificationPermission!");
     }else if ([@"pushTokenType" isEqualToString:call.method]) {
         config.sendPushTokenAlways = YES;
         NSString* tokenType = [command objectAtIndex:0];
         if([tokenType isEqualToString: @"1"]){
             config.pushTestMode = @"CLYPushTestModeDevelopment";
-        }else if([tokenType isEqualToString: @"2"]){
+        } else {
             config.pushTestMode = @"CLYPushTestModeTestFlightOrAdHoc";
-        }else{
-
         }
         result(@"pushTokenType!");
+    }else if ([@"registerForNotification" isEqualToString:call.method]) {
+        NSLog(@"Countly Native: registerForNotification");
+        notificationListener = result;
+        if(lastStoredNotification != nil){
+            result([lastStoredNotification description]);
+            lastStoredNotification = nil;
+        }
     }else if ([@"userData_setProperty" isEqualToString:call.method]) {
         NSString* keyName = [command objectAtIndex:0];
         NSString* keyValue = [command objectAtIndex:1];
@@ -384,14 +409,10 @@ CountlyConfig* config = nil;
                 [Countly.sharedInstance giveConsentForFeature:CLYConsentAppleWatch];
             }
         }
-
-
-        NSString *resultString = @"giveConsent for: ";
         result(@"giveConsent!");
 
     }else if ([@"removeConsent" isEqualToString:call.method]) {
         NSString* consent = @"";
-//        NSMutableDictionary *removeConsent = [[NSMutableDictionary alloc] init];
         for(int i=0,il=(int)command.count; i<il;i++){
             consent = [command objectAtIndex:i];
             if([@"sessions" isEqualToString:consent]){
@@ -444,10 +465,33 @@ CountlyConfig* config = nil;
         NSString* longitudeString = [command objectAtIndex:3];
         NSString* ipAddress = [command objectAtIndex:4];
 
-        double latitudeDouble = [latitudeString doubleValue];
-        double longitudeDouble = [longitudeString doubleValue];
+        if([@"null" isEqualToString:city]){
+            city = nil;
+        }
+        if([@"null" isEqualToString:country]){
+            country = nil;
+        }
+        if([@"null" isEqualToString:latitudeString]){
+            latitudeString = nil;
+        }
+        if([@"null" isEqualToString:longitudeString]){
+            longitudeString = nil;
+        }
+        if([@"null" isEqualToString:ipAddress]){
+            ipAddress = nil;
+        }
 
-        [Countly.sharedInstance recordLocation:(CLLocationCoordinate2D){latitudeDouble,longitudeDouble}];
+        if(latitudeString != nil && longitudeString != nil){
+            @try{
+                double latitudeDouble = [latitudeString doubleValue];
+                double longitudeDouble = [longitudeString doubleValue];
+                [Countly.sharedInstance recordLocation:(CLLocationCoordinate2D){latitudeDouble,longitudeDouble}];
+            }
+            @catch(NSException *execption){
+                NSLog(@"[Countly] Invalid latitude or longitude.");
+            }
+        }
+
         [Countly.sharedInstance recordCity:city andISOCountryCode:country];
         [Countly.sharedInstance recordIP:ipAddress];
         result(@"setOptionalParametersForInitialization!");
@@ -551,5 +595,34 @@ CountlyConfig* config = nil;
         result(FlutterMethodNotImplemented);
     }
 }
-
++ (void)onNotification: (NSDictionary *) notificationMessage{
+    NSLog(@"Notification received");
+    NSLog(@"The notification %@", notificationMessage);
+    if(notificationMessage && notificationListener != nil){
+        notificationListener([NSString stringWithFormat:@"%@",notificationMessage]);
+    }else{
+        lastStoredNotification = notificationMessage;
+    }
+    if(notificationMessage){
+        if(notificationIDs == nil){
+            notificationIDs = [[NSMutableArray alloc] init];
+        }
+        NSDictionary* countlyPayload = notificationMessage[@"c"];
+        NSString *notificationID = countlyPayload[@"i"];
+        [notificationIDs insertObject:notificationID atIndex:[notificationIDs count]];
+    }
+}
+- (void)recordPushAction
+{
+    for(int i=0,il = (int) notificationIDs.count;i<il;i++){
+        NSString *notificationID = notificationIDs[i];
+        NSDictionary* segmentation =
+        @{
+            @"i": notificationID,
+            @"b": @(0)
+        };
+        [Countly.sharedInstance recordEvent:@"[CLY]_push_action" segmentation: segmentation];
+    }
+    notificationIDs = nil;
+}
 @end

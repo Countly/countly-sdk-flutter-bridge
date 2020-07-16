@@ -16,15 +16,32 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    Countly.isInitialized().then((bool isInitialized){
+      if(!isInitialized){
+        Countly.onNotification((String notification){
+          print("The notification");
+          print(notification);
+        });
+        Countly.pushTokenType(Countly.messagingMode["TEST"]);
+        Countly.setLoggingEnabled(true);
+        Countly.enableCrashReporting();
+        Countly.init(SERVER_URL, APP_KEY);
+      }else{
+        print("Countly: Already initialized.");
+      }
+    });
   }
+
+  // ignore: non_constant_identifier_names
   static String SERVER_URL = "https://trinisoft.count.ly";
+  // ignore: non_constant_identifier_names
   static String APP_KEY = "f0b2ac6919f718a13821575db28c0e2971e05ec5";
+
   onInit(){
     Countly.pushTokenType(Countly.messagingMode["TEST"]);
     Countly.setLoggingEnabled(true);
     Countly.enableCrashReporting();
     Countly.init(SERVER_URL, APP_KEY);
-    
   }
   initWithID(){
     Countly.setLoggingEnabled(true);
@@ -430,8 +447,9 @@ class _MyAppState extends State<MyApp> {
     Countly.setHttpPostForced(true);
   }
   setLocation(){
-    Countly.setLocation("latitude","longitude");
+    Countly.setLocation("-33.9142687","18.0955802");
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -522,12 +540,14 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Change Device ID Without Merge", color: "violet", onPressed: changeDeviceIdWithoutMerge),
               MyButton(text: "Enable Parameter Tapmering Protection", color: "violet", onPressed: enableParameterTamperingProtection),
               MyButton(text: "City, State, and Location", color: "violet", onPressed: setOptionalParametersForInitialization),
+              MyButton(text: "setLocation", color: "violet", onPressed: setLocation),
               MyButton(text: "Send Crash Report", color: "violet", onPressed: addCrashLog),
               MyButton(text: "Throw Exception", color: "violet", onPressed: throwException),
               MyButton(text: "Enabling logging", color: "violet", onPressed: setLoggingEnabled),
 
               MyButton(text: "Open rating modal", color: "orange", onPressed: askForStarRating),
               MyButton(text: "Open feedback modal", color: "orange", onPressed: askForFeedback),
+
 
             ],),
           )
@@ -578,29 +598,13 @@ Map<String, Object> theColor = {
     "button": Color(0xff6435c9),
     "text": Color(0xff000000)
   },
-  "blue": {
-    "button": Color(0xff00b5ad),
-    "text": Color(0xff000000)
+  "yellow": {
+    "button": Color(0xfffbbd08),
+    "text": Color(0xffffffff)
   },
   "black": {
     "button": Color(0xff1b1c1d),
-    "text": Color(0xff000000)
-  },
-  "grey": {
-    "button": Color(0xff767676),
-    "text": Color(0xff000000)
-  },
-  "brown": {
-    "button": Color(0xffa5673f),
-    "text": Color(0xff000000)
-  },
-  "purple": {
-    "button": Color(0xffa333c8),
-    "text": Color(0xff000000)
-  },
-  "violet": {
-    "button": Color(0xff6435c9),
-    "text": Color(0xff000000)
+    "text": Color(0xffffffff)
   },
   "olive": {
     "button": Color(0xffd9e778),

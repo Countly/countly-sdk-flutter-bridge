@@ -60,11 +60,8 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
-    implementation 'com.google.firebase:firebase-auth:19.1.0'
-    implementation 'com.google.firebase:firebase-firestore:21.2.1'
-
     implementation 'ly.count.android:sdk:20.04.3'
-    implementation 'com.google.firebase:firebase-messaging:20.0.0'
+    implementation 'com.google.firebase:firebase-messaging:20.2.1'
 }
 apply plugin: 'com.google.gms.google-services'  // Google Play services Gradle plugin
 

@@ -19,6 +19,8 @@ import android.app.Activity;
 import android.content.Context;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.util.Log;
 import java.util.List;
 import java.util.Set;
@@ -49,8 +51,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
     private Activity activity;
     private Boolean isDebug = false;
     private CountlyConfig config = null;
+    private static Callback notificationListener = null;
+    private static String lastStoredNotification = null;
 
-  public static void registerWith(Registrar registrar) {
+    public static void registerWith(Registrar registrar) {
       final Activity __activity  = registrar.activity();
       final Context __context = registrar.context();
 
@@ -92,7 +96,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               this.config.setAppKey(appKey);
               if (args.length() == 2) {
                  this.config.setIdMode(DeviceId.Type.OPEN_UDID);
-                
+
               } else if (args.length() == 3) {
                   String yourDeviceID = args.getString(2);
                   if(yourDeviceID.equals("TemporaryDeviceID")){
@@ -105,7 +109,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               }
               Countly.sharedInstance().init(this.config);
               result.success("initialized!");
-          } else if ("changeDeviceId".equals(call.method)) {
+        } else if ("isInitialized".equals(call.method)) {
+            Boolean isInitialized = Countly.sharedInstance().isInitialized();
+            if(isInitialized){
+                result.success("true");
+
+            }else{
+                result.success("false");
+            }
+        }else if ("changeDeviceId".equals(call.method)) {
               String newDeviceID = args.getString(0);
               String onServerString = args.getString(1);
               if(newDeviceID.equals("TemporaryDeviceID")){
@@ -138,8 +150,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
           } else if ("setLocation".equals(call.method)) {
               String latitude = args.getString(0);
               String longitude = args.getString(1);
-              String latlng = (latitude + "," + longitude);
-              Countly.sharedInstance().setLocation(null, null, latlng, null);
+              if(!latitude.equals("null") && !longitude.equals("null")) {
+                String latlng = latitude + "," + longitude;
+                Countly.sharedInstance().setLocation(null, null, latlng, null);
+              }
               result.success("setLocation success!");
           } else if ("enableCrashReporting".equals(call.method)) {
               this.setConfig();
@@ -154,18 +168,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
           } else if ("logException".equals(call.method)) {
               String exceptionString = args.getString(0);
               Exception exception = new Exception(exceptionString);
-
-              // Boolean nonfatal = args.getBoolean(1);
-
-              // HashMap<String, Object> segments = new HashMap<String, Object>();
-              // for (int i = 2, il = args.length(); i < il; i += 2) {
-              //     segments.put(args.getString(i), args.getString(i + 1));
-              // }
-              // segments.put("nonfatal", nonfatal.toString());
-              // this.setConfig();
-              // this.config.setCustomCrashSegment(segments);
-              // Countly.sharedInstance().setCustomCrashSegments(segments);
-
               Countly.sharedInstance().crashes().recordHandledException(exception);
 
               result.success("logException success!");
@@ -214,11 +216,22 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                   pushTokenType = Countly.CountlyMessagingMode.PRODUCTION;
               }
               result.success("pushTokenType!");
+          } else if ("registerForNotification".equals(call.method)) {
+              registerForNotification(args, new Callback() {
+                  @Override
+                  public void callback(final String resultString) {
+                      activity.runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              result.success(resultString);
+                          }
+                      });
+                  }
+              });
           } else if ("start".equals(call.method)) {
               Countly.sharedInstance().onStart(activity);
               result.success("started!");
           } else if ("manualSessionHandling".equals(call.method)) {
-//              Countly.sharedInstance().manualSessionHandling();
               result.success("deafult!");
 
           } else if ("stop".equals(call.method)) {
@@ -226,7 +239,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               result.success("stoped!");
 
           } else if ("updateSessionPeriod".equals(call.method)) {
-//              Countly.sharedInstance().updateSessionPeriod();
               result.success("default!");
 
           } else if ("eventSendThreshold".equals(call.method)) {
@@ -236,7 +248,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
 
           } else if ("storedRequestsLimit".equals(call.method)) {
               int queueSize = Integer.parseInt(args.getString(0));
-//              Countly.sharedInstance().storedRequestsLimit();
               result.success("default!");
 
           } else if ("startEvent".equals(call.method)) {
@@ -279,8 +290,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               }
               result.success("setLoggingEnabled success!");
           } else if ("setuserdata".equals(call.method)) {
-              // Bundle bundle = new Bundle();
-
               Map<String, String> bundle = new HashMap<String, String>();
 
               bundle.put("name", args.getString(0));
@@ -363,7 +372,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               Boolean consentFlag = args.getBoolean(0);
               this.setConfig();
               this.config.setRequiresConsent(consentFlag);
-              // Countly.sharedInstance().setRequiresConsent(consentFlag);
               result.success("setRequiresConsent!");
           } else if ("giveConsent".equals(call.method)) {
               List<String> features = new ArrayList<>();
@@ -462,19 +470,19 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               if(city.length() == 0){
                   city = null;
               }
-              if(country.length() == 0){
+              if(country.equals("null")){
                   country = null;
               }
-              if(latitude.equals("0.00")){
+              if(latitude.equals("null")){
                   latitude = null;
               }
-              if(longitude.equals("0.00")){
+              if(longitude.equals("null")){
                   longitude = null;
               }
-              if(latitude == null && longitude == null){
+              if(latitude == null || longitude == null){
                   latlng = null;
               }
-              if(ipAddress.equals("0.0.0.0")){
+              if(ipAddress.equals("null")){
                   ipAddress = null;
               }
               Countly.sharedInstance().setLocation(country, city, latlng, ipAddress);
@@ -556,7 +564,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                   }
               });
           } else if (call.method.equals("askForStarRating")) {
-              // Countly.sharedInstance().(context, 5);
               Countly.sharedInstance().ratings().showStarRating(activity, new StarRatingCallback() {
                   @Override
                   public void onRate(int rating) {
@@ -576,4 +583,26 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
           result.success(jsonException.toString());
       }
   }
+    public String registerForNotification(JSONArray args, final Callback theCallback){
+        notificationListener = theCallback;
+        Log.i("CountlyNative", "registerForNotification theCallback");
+        if(lastStoredNotification != null){
+            theCallback.callback(lastStoredNotification);
+            lastStoredNotification = null;
+        }
+        return "pushTokenType: success";
+    }
+    public static void onNotification(Map<String, String>  notification){
+        JSONObject json = new JSONObject(notification);
+        String notificationString = json.toString();
+        Log.i("Countly onNotification", notificationString);
+        if(notificationListener != null){
+            notificationListener.callback(notificationString);
+        }else{
+            lastStoredNotification = notificationString;
+        }
+    }
+    public interface Callback {
+        void callback(String result);
+    }
 }
