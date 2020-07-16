@@ -150,19 +150,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
           } else if ("setLocation".equals(call.method)) {
               String latitude = args.getString(0);
               String longitude = args.getString(1);
-              String latlng = latitude + "," + longitude;
-
-              if(latitude.equals("null")){
-                  latitude = null;
+              if(!latitude.equals("null") && !longitude.equals("null")) {
+                String latlng = latitude + "," + longitude;
+                Countly.sharedInstance().setLocation(null, null, latlng, null);
               }
-              if(longitude.equals("null")){
-                  longitude = null;
-              }
-              if(latitude == null || longitude == null){
-                  latlng = null;
-              }
-
-              Countly.sharedInstance().setLocation(null, null, latlng, null);
               result.success("setLocation success!");
           } else if ("enableCrashReporting".equals(call.method)) {
               this.setConfig();

@@ -16,9 +16,12 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    onNotification();
     Countly.isInitialized().then((bool isInitialized){
       if(!isInitialized){
+        Countly.onNotification((String notification){
+          print("The notification");
+          print(notification);
+        });
         Countly.pushTokenType(Countly.messagingMode["TEST"]);
         Countly.setLoggingEnabled(true);
         Countly.enableCrashReporting();
@@ -26,12 +29,6 @@ class _MyAppState extends State<MyApp> {
       }else{
         print("Countly: Already initialized.");
       }
-    });
-  }
-  onNotification(){
-    Countly.onNotification((String notification){
-      print("The notification");
-      print(notification);
     });
   }
 
