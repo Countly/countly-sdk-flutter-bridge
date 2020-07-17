@@ -22,7 +22,7 @@ class Countly {
   };
 
   static log(String message, {LogLevel logLevel = LogLevel.DEBUG}) async {
-    String logLevelStr = logLevel.toString().split('.').last;
+    String logLevelStr = describeEnum(logLevel);
     if(isDebug){
       print('[$TAG] ${logLevelStr}: ${message}');
     }
