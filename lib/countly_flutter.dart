@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 
+
+enum LogLevel {INFO, DEBUG, VERBOSE, WARNING, ERROR}
 class Countly {
   static const MethodChannel _channel =
   const MethodChannel('countly_flutter');
@@ -12,15 +14,17 @@ class Countly {
   // static variable
   static Function listenerCallback;
   static bool isDebug = false;
+  static final String TAG = "CountlyFlutter";
   static bool enableCrashReportingFlag = false;
   static Map<String, Object> messagingMode = {"TEST": "1", "PRODUCTION": "0", "ADHOC": "2"};
   static Map<String, Object> deviceIDType = {
     "TemporaryDeviceID": "TemporaryDeviceID"
   };
 
-  static log(String message) async {
+  static log(String message, {LogLevel logLevel = LogLevel.DEBUG}) async {
+    String logLevelStr = logLevel.toString().split('.').last;
     if(isDebug){
-      print(message);
+      print('[$TAG] ${logLevelStr}: ${message}');
     }
   }
   static Future<String> init(String serverUrl, String appKey, [String deviceId]) async {
