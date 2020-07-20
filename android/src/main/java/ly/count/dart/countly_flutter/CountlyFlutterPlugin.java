@@ -466,21 +466,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               String latitude = args.getString(2);
               String longitude = args.getString(3);
               String ipAddress = args.getString(4);
-              String latlng = latitude + "," + longitude;
+              String latlng = null;
               if(city.length() == 0){
                   city = null;
               }
               if(country.equals("null")){
                   country = null;
               }
-              if(latitude.equals("null")){
-                  latitude = null;
-              }
-              if(longitude.equals("null")){
-                  longitude = null;
-              }
-              if(latitude == null || longitude == null){
-                  latlng = null;
+              if(!latitude.equals("null") && !longitude.equals("null")) {
+                latlng = latitude + "," + longitude;
               }
               if(ipAddress.equals("null")){
                   ipAddress = null;
