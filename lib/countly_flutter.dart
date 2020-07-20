@@ -414,8 +414,8 @@ class Countly {
       log(error);
       return "Error : $error";
     }
-    if(isNullOrEmpty(keyValue)){
-      String error = "setProperty, value cannot be null or empty";
+    if(keyValue == null){
+      String error = "setProperty, value cannot be null";
       log(error);
       return "Error : $error";
     }
@@ -450,11 +450,6 @@ class Countly {
       log(error);
       return "Error : $error";
     }
-    if(keyIncrement <= 0){
-      String error = "incrementBy, increment value should be greater than 0";
-      log(error);
-      return "Error : $error";
-    }
     List <String> args = [];
     args.add(keyName);
     args.add(keyIncrement.toString());
@@ -468,11 +463,6 @@ class Countly {
   static Future<String> multiply(String keyName, int multiplyValue) async {
     if(isNullOrEmpty(keyName)){
       String error = "multiply, key cannot be null or empty";
-      log(error);
-      return "Error : $error";
-    }
-    if(multiplyValue <= 0){
-      String error = "multiply, multiply value should be greater than 0";
       log(error);
       return "Error : $error";
     }
@@ -493,11 +483,6 @@ class Countly {
       log(error);
       return "Error : $error";
     }
-    if(saveMax <= 0){
-      String error = "saveMax, max value should be greater than 0";
-      log(error);
-      return "Error : $error";
-    }
     List <String> args = [];
     args.add(keyName);
     args.add(saveMax.toString());
@@ -514,11 +499,6 @@ class Countly {
       log(error);
       return "Error : $error";
     }
-    if(saveMin <= 0){
-      String error = "saveMin, min value should be greater than 0";
-      log(error);
-      return "Error : $error";
-    }
     List <String> args = [];
     args.add(keyName);
     args.add(saveMin.toString());
@@ -529,20 +509,20 @@ class Countly {
     log(result);
     return result;
   }
-  static Future<String> setOnce(String keyName, int setOnce) async {
+  static Future<String> setOnce(String keyName, String setOnce) async {
     if(isNullOrEmpty(keyName)){
       String error = "setOnce, key cannot be null or empty";
       log(error);
       return "Error : $error";
     }
-    if(setOnce <= 0){
-      String error = "setOnce, value should be greater than 0";
+    if(setOnce == null){
+      String error = "setOnce, value cannot be null";
       log(error);
       return "Error : $error";
     }
     List <String> args = [];
     args.add(keyName);
-    args.add(setOnce.toString());
+    args.add(setOnce);
     log(args.toString());
     final String result = await _channel.invokeMethod('userData_setOnce', <String, dynamic>{
       'data': json.encode(args)
@@ -557,8 +537,8 @@ class Countly {
       log(error);
       return "Error : $error";
     }
-    if(isNullOrEmpty(pushUniqueValue)){
-      String error = "pushUniqueValue, value cannot be null or empty";
+    if(pushUniqueValue == null){
+      String error = "pushUniqueValue, value cannot be null";
       log(error);
       return "Error : $error";
     }
@@ -579,8 +559,8 @@ class Countly {
       log(error);
       return "Error : $error";
     }
-    if(isNullOrEmpty(pushValue)){
-      String error = "pushValue, key cannot be null or empty";
+    if(pushValue == null){
+      String error = "pushValue, value cannot be null";
       log(error);
       return "Error : $error";
     }
@@ -601,8 +581,8 @@ class Countly {
       log(error);
       return "Error : $error";
     }
-    if(isNullOrEmpty(pullValue)){
-      String error = "pullValue, key cannot be null or empty";
+    if(pullValue == null){
+      String error = "pullValue, value cannot be null";
       log(error);
       return "Error : $error";
     }
@@ -629,10 +609,14 @@ class Countly {
     return result;
   }
   static Future<String> giveConsent(List <String> consents) async {
-    if(consents == null || consents.length == 0){
-      String error = "giveConsent, consents List cannot be null or empty";
+    if(consents == null){
+      String error = "giveConsent, consents List cannot be null";
       log(error);
       return "Error : $error";
+    }
+    if(consents.length == 0){
+      String error = "giveConsent, consents List is empty";
+      log(error, logLevel: LogLevel.WARNING);
     }
     List <String> args = consents;
     log(args.toString());
@@ -643,10 +627,14 @@ class Countly {
     return result;
   }
   static Future<String> removeConsent(List <String> consents) async {
-    if(consents == null || consents.length == 0){
-      String error = "removeConsent, consents List cannot be null or empty";
+    if(consents == null){
+      String error = "removeConsent, consents List cannot be null";
       log(error);
       return "Error : $error";
+    }
+    if(consents.length == 0){
+      String error = "removeConsent, consents List is empty";
+      log(error, logLevel: LogLevel.WARNING);
     }
     List <String> args = consents;
     log(args.toString());
@@ -699,10 +687,14 @@ class Countly {
     return result;
   }
   static Future<String> updateRemoteConfigForKeysOnly(List<String> keys, Function callback) async {
-    if(keys == null || keys.length == 0){
-      String error = "updateRemoteConfigExceptKeys, keys List cannot be null or empty";
+    if(keys == null){
+      String error = "updateRemoteConfigExceptKeys, keys List cannot be null";
       log(error);
       return "Error : $error";
+    }
+    if(keys.length == 0){
+      String error = "updateRemoteConfigExceptKeys, keys List is empty";
+      log(error, logLevel: LogLevel.WARNING);
     }
     log(keys.toString());
     final String result = await _channel.invokeMethod('updateRemoteConfigForKeysOnly', <String, dynamic>{
@@ -713,10 +705,14 @@ class Countly {
     return result;
   }
   static Future<String> updateRemoteConfigExceptKeys(List<String> keys, Function callback) async {
-    if(keys == null || keys.length == 0){
-      String error = "updateRemoteConfigExceptKeys, keys List cannot be null or empty";
+    if(keys == null){
+      String error = "updateRemoteConfigExceptKeys, keys List cannot be null";
       log(error);
       return "Error : $error";
+    }
+    if(keys.length == 0){
+      String error = "updateRemoteConfigExceptKeys, keys List is empty";
+      log(error, logLevel: LogLevel.WARNING);
     }
     log(keys.toString());
     final String result = await _channel.invokeMethod('updateRemoteConfigExceptKeys', <String, dynamic>{
