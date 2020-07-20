@@ -57,12 +57,17 @@ class Countly {
       return false;
     }
   }
+
+  static bool isNullOrEmpty(String s) => s == null || s.isEmpty;
+
   static Future<String> recordEvent( Map<String, Object> options) async {
     List <String> args = [];
     var segmentation = {};
 
-    if(options["key"] == null){
-      options["key"] = "default";
+    if(isNullOrEmpty(options["key"])){
+      String error = "recordEvent, Valid Countly event key is required";
+      log(error);
+      return "Error : $error";
     }
     args.add(options["key"].toString());
 
@@ -99,6 +104,11 @@ class Countly {
 
   ////// 001
   static Future<String> recordView(String view) async {
+    if(isNullOrEmpty(view)){
+      String error = "recordView, Trying to record view with null or empty view name, ignoring request";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(view);
     log(args.toString());
@@ -169,6 +179,11 @@ class Countly {
   }
 
   static Future<String> pushTokenType(String tokenType) async {
+    if(isNullOrEmpty(tokenType)){
+      String error = "pushTokenType, tokenType cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(tokenType);
     log(args.toString());
@@ -238,7 +253,7 @@ class Countly {
   static Future<String> eventSendThreshold() async {
     List <String> args = [];
     log(args.toString());
-    final String result = await _channel.invokeMethod('updateSessionPeriod', <String, dynamic>{
+    final String result = await _channel.invokeMethod('eventSendThreshold', <String, dynamic>{
       'data': json.encode(args)
     });
     log(result);
@@ -295,6 +310,11 @@ class Countly {
   }
 
   static Future<String> changeDeviceId(String newDeviceID ,bool onServer) async {
+    if(isNullOrEmpty(newDeviceID)){
+      String error = "changeDeviceId, deviceId cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     String onServerString;
     if(onServer == false){
@@ -314,6 +334,11 @@ class Countly {
   }
 
   static Future<String> addCrashLog(String logs) async {
+    if(isNullOrEmpty(logs)){
+      String error = "addCrashLog, Can't add a null or empty crash logs";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(logs);
     log(args.toString());
@@ -337,6 +362,11 @@ class Countly {
   }
 
   static Future<String> enableParameterTamperingProtection(String salt) async {
+    if(isNullOrEmpty(salt)){
+      String error = "enableParameterTamperingProtection, salt cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(salt);
     log(args.toString());
@@ -357,14 +387,17 @@ class Countly {
     return result;
   }
   static Future<String> setLocation(String latitude, String longitude) async {
+    if(isNullOrEmpty(latitude)){
+      String error = "setLocation, latitude cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    if(isNullOrEmpty(longitude)){
+      String error = "setLocation, longitude cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
-
-    if(latitude == null){
-      latitude = "null";
-    }
-    if(longitude == null){
-      longitude = "null";
-    }
 
     args.add(latitude);
     args.add(longitude);
@@ -376,6 +409,16 @@ class Countly {
     return result;
   }
   static Future<String> setProperty(String keyName , String keyValue) async {
+    if(isNullOrEmpty(keyName)){
+      String error = "setProperty, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    if(isNullOrEmpty(keyValue)){
+      String error = "setProperty, value cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(keyName);
     args.add(keyValue);
@@ -387,6 +430,11 @@ class Countly {
     return result;
   }
   static Future<String> increment(String keyName) async {
+    if(isNullOrEmpty(keyName)){
+      String error = "increment, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(keyName);
     log(args.toString());
@@ -397,6 +445,16 @@ class Countly {
     return result;
   }
   static Future<String> incrementBy(String keyName, int keyIncrement) async {
+    if(isNullOrEmpty(keyName)){
+      String error = "incrementBy, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    if(keyIncrement <= 0){
+      String error = "incrementBy, increment value should be greater than 0";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(keyName);
     args.add(keyIncrement.toString());
@@ -408,6 +466,16 @@ class Countly {
     return result;
   }
   static Future<String> multiply(String keyName, int multiplyValue) async {
+    if(isNullOrEmpty(keyName)){
+      String error = "multiply, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    if(multiplyValue <= 0){
+      String error = "multiply, multiply value should be greater than 0";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(keyName);
     args.add(multiplyValue.toString());
@@ -420,6 +488,16 @@ class Countly {
   }
 
   static Future<String> saveMax(String keyName, int saveMax) async {
+    if(isNullOrEmpty(keyName)){
+      String error = "saveMax, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    if(saveMax <= 0){
+      String error = "saveMax, max value should be greater than 0";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(keyName);
     args.add(saveMax.toString());
@@ -431,6 +509,16 @@ class Countly {
     return result;
   }
   static Future<String> saveMin(String keyName, int saveMin) async {
+    if(isNullOrEmpty(keyName)){
+      String error = "saveMin, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    if(saveMin <= 0){
+      String error = "saveMin, min value should be greater than 0";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(keyName);
     args.add(saveMin.toString());
@@ -442,6 +530,16 @@ class Countly {
     return result;
   }
   static Future<String> setOnce(String keyName, int setOnce) async {
+    if(isNullOrEmpty(keyName)){
+      String error = "setOnce, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    if(setOnce <= 0){
+      String error = "setOnce, value should be greater than 0";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(keyName);
     args.add(setOnce.toString());
@@ -454,6 +552,16 @@ class Countly {
   }
 
   static Future<String> pushUniqueValue(String type, String pushUniqueValue) async {
+    if(isNullOrEmpty(type)){
+      String error = "pushUniqueValue, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    if(isNullOrEmpty(pushUniqueValue)){
+      String error = "pushUniqueValue, value cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(type);
     args.add(pushUniqueValue);
@@ -466,6 +574,16 @@ class Countly {
   }
 
   static Future<String> pushValue(String type, String pushValue) async {
+    if(isNullOrEmpty(type)){
+      String error = "pushValue, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    if(isNullOrEmpty(pushValue)){
+      String error = "pushValue, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(type);
     args.add(pushValue);
@@ -478,6 +596,16 @@ class Countly {
   }
 
   static Future<String> pullValue(String type, String pullValue) async {
+    if(isNullOrEmpty(type)){
+      String error = "pullValue, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    if(isNullOrEmpty(pullValue)){
+      String error = "pullValue, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(type);
     args.add(pullValue);
@@ -501,6 +629,11 @@ class Countly {
     return result;
   }
   static Future<String> giveConsent(List <String> consents) async {
+    if(consents == null || consents.length == 0){
+      String error = "giveConsent, consents List cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = consents;
     log(args.toString());
     final String result = await _channel.invokeMethod('giveConsent', <String, dynamic>{
@@ -510,6 +643,11 @@ class Countly {
     return result;
   }
   static Future<String> removeConsent(List <String> consents) async {
+    if(consents == null || consents.length == 0){
+      String error = "removeConsent, consents List cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = consents;
     log(args.toString());
     final String result = await _channel.invokeMethod('removeConsent', <String, dynamic>{
@@ -560,21 +698,29 @@ class Countly {
     callback(result);
     return result;
   }
-  static Future<String> updateRemoteConfigForKeysOnly(List<String> args, Function callback) async {
-    log(args.toString());
+  static Future<String> updateRemoteConfigForKeysOnly(List<String> keys, Function callback) async {
+    if(keys == null || keys.length == 0){
+      String error = "updateRemoteConfigExceptKeys, keys List cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    log(keys.toString());
     final String result = await _channel.invokeMethod('updateRemoteConfigForKeysOnly', <String, dynamic>{
-      'data': json.encode(args)
+      'data': json.encode(keys)
     });
     log(result);
     callback(result);
     return result;
   }
-  static Future<String> updateRemoteConfigExceptKeys(Object keys, Function callback) async {
-    List <String> args = [];
-
-    log(args.toString());
+  static Future<String> updateRemoteConfigExceptKeys(List<String> keys, Function callback) async {
+    if(keys == null || keys.length == 0){
+      String error = "updateRemoteConfigExceptKeys, keys List cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    log(keys.toString());
     final String result = await _channel.invokeMethod('updateRemoteConfigExceptKeys', <String, dynamic>{
-      'data': json.encode(args)
+      'data': json.encode(keys)
     });
     log(result);
     callback(result);
@@ -591,6 +737,11 @@ class Countly {
     return result;
   }
   static Future<String> getRemoteConfigValueForKey(String key, Function callback) async {
+    if(isNullOrEmpty(key)){
+      String error = "getRemoteConfigValueForKey, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(key);
     log(args.toString());
@@ -612,6 +763,14 @@ class Countly {
   }
 
   static Future<String> askForFeedback(String widgetId, String closeButtonText) async {
+    if(isNullOrEmpty(widgetId)){
+      String error = "askForFeedback, widgetId cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    if(closeButtonText == null){
+      closeButtonText = "";
+    }
     List <String> args = [];
     args.add(widgetId);
     args.add(closeButtonText);
@@ -624,6 +783,11 @@ class Countly {
   }
 
   static Future<String> startEvent(String key) async {
+    if(isNullOrEmpty(key)){
+      String error = "startEvent, Can't start event with a null or empty key";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(key);
     log(args.toString());
@@ -638,8 +802,10 @@ class Countly {
     List <String> args = [];
     var segmentation = {};
 
-    if(options["key"] == null){
-      options["key"] = "default";
+    if(isNullOrEmpty(options["key"])){
+      String error = "endEvent, Can't end event with a null or empty key";
+      log(error);
+      return "Error : $error";
     }
     args.add(options["key"].toString());
 
@@ -688,10 +854,14 @@ class Countly {
     return result;
   }
 
-  static Future<String> logException(String execption,bool nonfatal, Map<String, Object> segmentation) async {
+  static Future<String> logException(String exception,bool nonfatal, Map<String, Object> segmentation) async {
     List <String> args = [];
-
-    args.add(execption);
+    if(exception == null) {
+      String error = "logException, provided exception was null, returning";
+      log(error);
+      return "Error : $error";
+    }
+    args.add(exception);
     args.add(nonfatal.toString());
     if(segmentation != null){
       segmentation.forEach((k, v){
