@@ -309,7 +309,7 @@ class Countly {
     return result;
   }
 
-  static Future<String> changeDeviceId(String newDeviceID ,bool onServer) async {
+  static Future<String> changeDeviceId(String newDeviceID, bool onServer) async {
     if(isNullOrEmpty(newDeviceID)){
       String error = "changeDeviceId, deviceId cannot be null or empty";
       log(error);
