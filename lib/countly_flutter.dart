@@ -688,12 +688,12 @@ class Countly {
   }
   static Future<String> updateRemoteConfigForKeysOnly(List<String> keys, Function callback) async {
     if(keys == null){
-      String error = "updateRemoteConfigExceptKeys, keys List cannot be null";
+      String error = "updateRemoteConfigForKeysOnly, keys List cannot be null";
       log(error);
       return "Error : $error";
     }
     if(keys.length == 0){
-      String error = "updateRemoteConfigExceptKeys, keys List is empty";
+      String error = "updateRemoteConfigForKeysOnly, keys List is empty";
       log(error, logLevel: LogLevel.WARNING);
     }
     log(keys.toString());
