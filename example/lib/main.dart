@@ -450,7 +450,58 @@ class _MyAppState extends State<MyApp> {
     Countly.setLocation("-33.9142687","18.0955802");
   }
 
-
+  // APM Examples
+  apm(){
+    Countly.apm();
+  }
+  startTrace(){
+    String traceKey = "Trace Key";
+    Countly.startTrace(traceKey);
+  }
+  endTrace(){
+    String traceKey = "Trace Key";
+    Map<String, Object> customMetric = {
+      "ABC": 1233,
+      "C44C": 1337
+    };
+    Countly.endTrace(traceKey, customMetric);
+  }
+  startNetworkRequestSuccess(){
+    String networkTraceKey = "api/endpoint.1";
+    String uniqueId = "1337";
+    Countly.startNetworkRequest(networkTraceKey, uniqueId);
+  }
+  List<int> successCodes = [100, 101, 200, 201, 202, 205, 300, 301, 303, 305];
+  List<int> failureCodes = [400, 402, 405, 408, 500, 501, 502, 505];
+  endNetworkRequestSuccess(){
+    String networkTraceKey = "api/endpoint.1";
+    String uniqueId = "1337";
+    var rnd = new Random();
+    int responseCode = successCodes[rnd.nextInt(successCodes.length)];
+    int requestPayloadSize = rnd.nextInt(700) + 200;
+    int responsePayloadSize = rnd.nextInt(700) + 200;
+    Countly.endNetworkRequest(networkTraceKey, uniqueId, responseCode, requestPayloadSize, responsePayloadSize);
+  }
+  startNetworkRequestFailure(){
+    String networkTraceKey = "api/endpoint.1";
+    String uniqueId = "7331";
+    Countly.startNetworkRequest(networkTraceKey, uniqueId);
+  }
+  endNetworkRequestFailure(){
+    String networkTraceKey = "api/endpoint.1";
+    String uniqueId = "7331";
+    var rnd = new Random();
+    int responseCode = failureCodes[rnd.nextInt(failureCodes.length)];
+    int requestPayloadSize = rnd.nextInt(700) + 250;
+    int responsePayloadSize = rnd.nextInt(700) + 250;
+    Countly.endNetworkRequest(networkTraceKey, uniqueId, responseCode, requestPayloadSize, responsePayloadSize);
+  }
+  setRecordAppStartTime(){
+    Countly.setRecordAppStartTime(true);
+  }
+  applicationOnCreate(){
+    Countly.applicationOnCreate();
+  }
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -548,7 +599,15 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Open rating modal", color: "orange", onPressed: askForStarRating),
               MyButton(text: "Open feedback modal", color: "orange", onPressed: askForFeedback),
 
-
+              MyButton(text: "APM", color: "black", onPressed: apm),
+              MyButton(text: "Start Trace", color: "black", onPressed: startTrace),
+              MyButton(text: "End Trace", color: "black", onPressed: endTrace),
+              MyButton(text: "Start Network Request Success", color: "black", onPressed: startNetworkRequestSuccess),
+              MyButton(text: "End Network Request Success", color: "black", onPressed: endNetworkRequestSuccess),
+              MyButton(text: "Start Network Request Failure", color: "black", onPressed: startNetworkRequestFailure),
+              MyButton(text: "End Network Request Failure", color: "black", onPressed: endNetworkRequestFailure),
+              MyButton(text: "Set Record App Start Time", color: "black", onPressed: setRecordAppStartTime),
+              MyButton(text: "Application on create", color: "black", onPressed: applicationOnCreate),
             ],),
           )
         ),

@@ -569,9 +569,48 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                       result.success("Rating: Modal dismissed.");
                   }
               });
-          } else {
-              result.notImplemented();
-          }
+          } else if ("apm".equals(call.method)) {
+            Countly.sharedInstance().apm();
+            result.success("apm: success");
+        } else if ("startTrace".equals(call.method)) {
+            String traceKey = args.getString(0);
+            Countly.sharedInstance().apm().startTrace(traceKey);
+            result.success("startTrace: success");
+        } else if ("endTrace".equals(call.method)) {
+            String traceKey = args.getString(0);
+            HashMap<String, Integer> customMetric = new HashMap<String, Integer>();
+            for (int i = 1, il = args.length(); i < il; i += 2) {
+                customMetric.put(args.getString(i), Integer.parseInt(args.getString(i + 1)));
+            }
+            Countly.sharedInstance().apm().endTrace(traceKey, customMetric);
+            result.success("endTrace: success");
+        } else if ("startNetworkRequest".equals(call.method)) {
+            String networkTraceKey = args.getString(0);
+            String uniqueId = args.getString(1);
+            Countly.sharedInstance().apm().startNetworkRequest(networkTraceKey, uniqueId);
+            result.success("startNetworkRequest: success");
+        } else if ("endNetworkRequest".equals(call.method)) {
+            String networkTraceKey = args.getString(0);
+            String uniqueId = args.getString(1);
+            int responseCode = Integer.parseInt(args.getString(1));
+            int requestPayloadSize = Integer.parseInt(args.getString(1));
+            int responsePayloadSize = Integer.parseInt(args.getString(1));
+            Countly.sharedInstance().apm().endNetworkRequest(networkTraceKey, uniqueId, responseCode, requestPayloadSize, responsePayloadSize);
+            result.success("endNetworkRequest: success");
+        } else if ("setRecordAppStartTime".equals(call.method)) {
+            String isStart = args.getString(0);
+            if(isStart.equals("true")){
+                this.config.setRecordAppStartTime(true);
+            }else{
+                this.config.setRecordAppStartTime(false);
+            }
+            result.success("setRecordAppStartTime: success");
+        } else if ("applicationOnCreate".equals(call.method)) {
+            Countly.applicationOnCreate();
+            result.success("applicationOnCreate: success");
+        } else {
+            result.notImplemented();
+        }
 
       } catch (JSONException jsonException) {
           result.success(jsonException.toString());
