@@ -592,9 +592,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
         } else if ("endNetworkRequest".equals(call.method)) {
             String networkTraceKey = args.getString(0);
             String uniqueId = args.getString(1);
-            int responseCode = Integer.parseInt(args.getString(1));
-            int requestPayloadSize = Integer.parseInt(args.getString(1));
-            int responsePayloadSize = Integer.parseInt(args.getString(1));
+            int responseCode = Integer.parseInt(args.getString(2));
+            int requestPayloadSize = Integer.parseInt(args.getString(3));
+            int responsePayloadSize = Integer.parseInt(args.getString(4));
             Countly.sharedInstance().apm().endNetworkRequest(networkTraceKey, uniqueId, responseCode, requestPayloadSize, responsePayloadSize);
             result.success("endNetworkRequest: success");
         } else if ("setRecordAppStartTime".equals(call.method)) {

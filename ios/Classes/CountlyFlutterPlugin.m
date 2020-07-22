@@ -12,6 +12,7 @@ NSMutableArray *notificationIDs = nil;        // alloc here
 
 CountlyConfig* config = nil;
 Boolean isInitialized = false;
+NSMutableDictionary *networkRequest = nil;
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   FlutterMethodChannel* channel = [FlutterMethodChannel
       methodChannelWithName:@"countly_flutter"
@@ -675,9 +676,80 @@ Boolean isInitialized = false;
             }];
         });
     }
+    else if ([@"apm" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            config.enablePerformanceMonitoring = YES;
+        });
+        result(@"apm: success");
+    } else if ([@"startTrace" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            NSString* traceKey = [command objectAtIndex:0];
+            [Countly.sharedInstance startCustomTrace: traceKey];
+        });
+        result(@"startTrace: success");
+    } else if ([@"cancelTrace" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            NSString* traceKey = [command objectAtIndex:0];
+            [Countly.sharedInstance cancelCustomTrace: traceKey];
+        });
+        result(@"cancelTrace: success");
+    } else if ([@"clearAllTrace" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            [Countly.sharedInstance clearAllCustomTraces];
+        });
+        result(@"clearAllTrace: success");
+    } else if ([@"endTrace" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            NSString* traceKey = [command objectAtIndex:0];
+            NSMutableDictionary *metrics = [[NSMutableDictionary alloc] init];
+            for(int i=1,il=(int)command.count;i<il;i+=2){
+                metrics[[command objectAtIndex:i]] = [command objectAtIndex:i+1];
+            }
+            [Countly.sharedInstance endCustomTrace: traceKey metrics: metrics];
+        });
+        result(@"endTrace: success");
+    } else if ([@"startNetworkRequest" isEqualToString:call.method]) {
+        // NSString* networkTraceKey = [command objectAtIndex:0];
+        NSString* uniqueId = [command objectAtIndex:1];
+        int startTime = [self getTime];
+        if(networkRequest == nil){
+            networkRequest = [[NSMutableDictionary alloc] init];
+        }
+        [networkRequest setValue: [NSNumber numberWithInt: startTime] forKey:uniqueId];
+    } else if ([@"endNetworkRequest" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            NSString* networkTraceKey = [command objectAtIndex:0];
+            NSString* uniqueId = [command objectAtIndex:1];
+            if(networkRequest == nil){
+                networkRequest = [[NSMutableDictionary alloc] init];
+            }
+            if(networkRequest[uniqueId]){
+                int responseCode = [[command objectAtIndex:2] intValue];
+                int requestPayloadSize = [[command objectAtIndex:3] intValue];
+                int responsePayloadSize = [[command objectAtIndex:4] intValue];
+                int startTime = [networkRequest[uniqueId] intValue];
+                int endTime = [self getTime];
+                [Countly.sharedInstance recordNetworkTrace: networkTraceKey requestPayloadSize: requestPayloadSize responsePayloadSize: responsePayloadSize responseStatusCode: responseCode startTime: startTime endTime: endTime];
+            }
+        });
+        result(@"endNetworkRequest: success");
+    } else if ([@"setRecordAppStartTime" isEqualToString:call.method]) {
+        result(@"No implementation for iOS for setRecordAppStartTime.");
+    } else if ([@"applicationOnCreate" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            [Countly.sharedInstance appLoadingFinished];
+        });
+        result(@"applicationOnCreate: success");
+    }
     else {
         result(FlutterMethodNotImplemented);
     }
+}
+- (int)getTime
+{
+    NSTimeInterval time = ([[NSDate date] timeIntervalSince1970]); // returned as a double
+    int decimalDigits = (int)(fmod(time, 1) * 1000); // this will get the 3 missing digits
+    return decimalDigits;
 }
 + (void)onNotification: (NSDictionary *) notificationMessage{
     NSLog(@"Notification received");
