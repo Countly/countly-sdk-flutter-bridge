@@ -1,5 +1,9 @@
 package ly.count.dart.countly_flutter;
 
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.embedding.engine.plugins.activity.ActivityAware;
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
+import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -11,8 +15,6 @@ import ly.count.android.sdk.CountlyConfig;
 import ly.count.android.sdk.DeviceId;
 import ly.count.android.sdk.FeedbackRatingCallback;
 import ly.count.android.sdk.RemoteConfig;
-import ly.count.android.sdk.CountlyStarRating;
-//import ly.count.android.sdk.DeviceInfo;
 import java.util.HashMap;
 import java.util.Map;
 import android.app.Activity;
@@ -23,15 +25,14 @@ import org.json.JSONObject;
 
 import android.util.Log;
 import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Arrays;
 import java.util.ArrayList;
 
 //Push Plugin
 import android.os.Build;
 import android.app.NotificationManager;
 import android.app.NotificationChannel;
+
+import androidx.annotation.NonNull;
 
 import ly.count.android.sdk.RemoteConfigCallback;
 import ly.count.android.sdk.StarRatingCallback;
@@ -44,7 +45,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.FirebaseApp;
 
 /** CountlyFlutterPlugin */
-public class CountlyFlutterPlugin implements MethodCallHandler {
+public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware {
   /** Plugin registration. */
     private Countly.CountlyMessagingMode pushTokenType = Countly.CountlyMessagingMode.PRODUCTION;
     private Context context;
@@ -53,19 +54,62 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
     private CountlyConfig config = null;
     private static Callback notificationListener = null;
     private static String lastStoredNotification = null;
+    private MethodChannel methodChannel;
 
     public static void registerWith(Registrar registrar) {
-      final Activity __activity  = registrar.activity();
-      final Context __context = registrar.context();
+        final CountlyFlutterPlugin instance = new CountlyFlutterPlugin();
+        instance.activity  = registrar.activity();
+        final Context __context = registrar.context();
+        instance.onAttachedToEngine(__context, registrar.messenger());
+    }
 
-      final MethodChannel channel = new MethodChannel(registrar.messenger(), "countly_flutter");
-      channel.setMethodCallHandler(new CountlyFlutterPlugin(__activity, __context));
-  }
+    @Override
+    public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
+        onAttachedToEngine(binding.getApplicationContext(), binding.getBinaryMessenger());
+    }
+
+    @Override
+    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+        context = null;
+        methodChannel.setMethodCallHandler(null);
+        methodChannel = null;
+    }
+
+    private void onAttachedToEngine(Context context, BinaryMessenger messenger) {
+        this.context = context;
+        methodChannel = new MethodChannel(messenger, "countly_flutter");
+        methodChannel.setMethodCallHandler(this);
+    }
+
+
+    @Override
+    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+        this.activity = binding.getActivity();
+    }
+
+    @Override
+    public void onDetachedFromActivityForConfigChanges() {
+        this.activity = null; // TODO : Verify this line is required or not
+    }
+
+    @Override
+    public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
+        this.activity = binding.getActivity();
+    }
+
+    @Override
+    public void onDetachedFromActivity() {
+        this.activity = null; // TODO : Verify this line is required or not
+    }
 
   private void setConfig(){
       if(this.config == null){
           this.config = new CountlyConfig();
       }
+  }
+
+  public CountlyFlutterPlugin() {
+
   }
 
   public CountlyFlutterPlugin(Activity _activity, Context _context){
@@ -191,7 +235,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                       notificationManager.createNotificationChannel(channel);
                   }
               }
-              CountlyPush.init(activity.getApplication(), pushTokenType);
+              if (activity != null) {
+                  CountlyPush.init(activity.getApplication(), pushTokenType);
+              }
               FirebaseApp.initializeApp(context);
               FirebaseInstanceId.getInstance().getInstanceId()
                   .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
@@ -220,16 +266,20 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               registerForNotification(args, new Callback() {
                   @Override
                   public void callback(final String resultString) {
-                      activity.runOnUiThread(new Runnable() {
-                          @Override
-                          public void run() {
-                              result.success(resultString);
-                          }
-                      });
+                      if (activity != null) {
+                          activity.runOnUiThread(new Runnable() {
+                              @Override
+                              public void run() {
+                                  result.success(resultString);
+                              }
+                          });
+                      }
                   }
               });
           } else if ("start".equals(call.method)) {
-              Countly.sharedInstance().onStart(activity);
+              if (activity != null) {
+                  Countly.sharedInstance().onStart(activity);
+              }
               result.success("started!");
           } else if ("manualSessionHandling".equals(call.method)) {
               result.success("deafult!");
@@ -547,28 +597,32 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
           } else if ("askForFeedback".equals(call.method)) {
               String widgetId = args.getString(0);
               String closeButtonText = args.getString(1);
-              Countly.sharedInstance().ratings().showFeedbackPopup(widgetId, closeButtonText, activity, new FeedbackRatingCallback() {
-                  @Override
-                  public void callback(String error) {
-                      if (error != null) {
-                          result.success("Error: Encountered error while showing feedback dialog: [" + error + "]");
-                      } else {
-                          result.success("Feedback submitted.");
+              if (activity != null) {
+                  Countly.sharedInstance().ratings().showFeedbackPopup(widgetId, closeButtonText, activity, new FeedbackRatingCallback() {
+                      @Override
+                      public void callback(String error) {
+                          if (error != null) {
+                              result.success("Error: Encountered error while showing feedback dialog: [" + error + "]");
+                          } else {
+                              result.success("Feedback submitted.");
+                          }
                       }
-                  }
-              });
+                  });
+              }
           } else if (call.method.equals("askForStarRating")) {
-              Countly.sharedInstance().ratings().showStarRating(activity, new StarRatingCallback() {
-                  @Override
-                  public void onRate(int rating) {
-                      result.success("Rating: " +rating);
-                  }
+              if (activity != null) {
+                  Countly.sharedInstance().ratings().showStarRating(activity, new StarRatingCallback() {
+                      @Override
+                      public void onRate(int rating) {
+                          result.success("Rating: " + rating);
+                      }
 
-                  @Override
-                  public void onDismiss() {
-                      result.success("Rating: Modal dismissed.");
-                  }
-              });
+                      @Override
+                      public void onDismiss() {
+                          result.success("Rating: Modal dismissed.");
+                      }
+                  });
+              }
           } else {
               result.notImplemented();
           }

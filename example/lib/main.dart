@@ -255,7 +255,7 @@ class _MyAppState extends State<MyApp> {
     Countly.saveMin("saveMin", 50);
   }
   setOnce(){
-    Countly.setOnce("setOnce", 200);
+    Countly.setOnce("setOnce", "200");
   }
   pushUniqueValue(){
     Countly.pushUniqueValue("pushUniqueValue", "morning");
