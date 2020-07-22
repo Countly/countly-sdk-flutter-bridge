@@ -60,12 +60,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         final CountlyFlutterPlugin instance = new CountlyFlutterPlugin();
         instance.activity  = registrar.activity();
         final Context __context = registrar.context();
-        instance.onAttachedToEngine(__context, registrar.messenger());
+        instance.onAttachedToEngineInternal(__context, registrar.messenger());
     }
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
-        onAttachedToEngine(binding.getApplicationContext(), binding.getBinaryMessenger());
+        onAttachedToEngineInternal(binding.getApplicationContext(), binding.getBinaryMessenger());
     }
 
     @Override
@@ -75,7 +75,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         methodChannel = null;
     }
 
-    private void onAttachedToEngine(Context context, BinaryMessenger messenger) {
+    private void onAttachedToEngineInternal(Context context, BinaryMessenger messenger) {
         this.context = context;
         methodChannel = new MethodChannel(messenger, "countly_flutter");
         methodChannel.setMethodCallHandler(this);
@@ -89,7 +89,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
     @Override
     public void onDetachedFromActivityForConfigChanges() {
-        this.activity = null; // TODO : Verify this line is required or not
+        this.activity = null;
     }
 
     @Override
@@ -99,7 +99,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
     @Override
     public void onDetachedFromActivity() {
-        this.activity = null; // TODO : Verify this line is required or not
+        this.activity = null;
     }
 
   private void setConfig(){
@@ -237,23 +237,25 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               }
               if (activity != null) {
                   CountlyPush.init(activity.getApplication(), pushTokenType);
-              }
-              FirebaseApp.initializeApp(context);
-              FirebaseInstanceId.getInstance().getInstanceId()
-                  .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                      @Override
-                      public void onComplete(Task<InstanceIdResult> task) {
-                          if (!task.isSuccessful()) {
-                              if(Countly.sharedInstance().isLoggingEnabled()) {
-                                  Log.w(Countly.TAG, "[CountlyFlutterPlugin] getInstanceId failed", task.getException());
+                  FirebaseApp.initializeApp(context);
+                  FirebaseInstanceId.getInstance().getInstanceId()
+                          .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                              @Override
+                              public void onComplete(Task<InstanceIdResult> task) {
+                                  if (!task.isSuccessful()) {
+                                      if (Countly.sharedInstance().isLoggingEnabled()) {
+                                          Log.w(Countly.TAG, "[CountlyFlutterPlugin] getInstanceId failed", task.getException());
+                                      }
+                                      return;
+                                  }
+                                  String token = task.getResult().getToken();
+                                  CountlyPush.onTokenRefresh(token);
                               }
-                              return;
-                          }
-                          String token = task.getResult().getToken();
-                          CountlyPush.onTokenRefresh(token);
-                      }
-                  });
-              result.success(" askForNotificationPermission!");
+                          });
+                  result.success(" askForNotificationPermission!");
+              } else {
+                  result.success("nullActivity");
+              }
           } else if ("pushTokenType".equals(call.method)) {
               String tokenType = args.getString(0);
               if("2".equals(tokenType)){
@@ -279,8 +281,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
           } else if ("start".equals(call.method)) {
               if (activity != null) {
                   Countly.sharedInstance().onStart(activity);
+                  result.success("started!");
               }
-              result.success("started!");
+              else {
+                  result.success("nullActivity");
+              }
           } else if ("manualSessionHandling".equals(call.method)) {
               result.success("deafult!");
 
@@ -608,6 +613,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                           }
                       }
                   });
+              } else {
+                  result.success("nullActivity");
               }
           } else if (call.method.equals("askForStarRating")) {
               if (activity != null) {
@@ -622,6 +629,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                           result.success("Rating: Modal dismissed.");
                       }
                   });
+              } else {
+                  result.success("nullActivity");
               }
           } else {
               result.notImplemented();
