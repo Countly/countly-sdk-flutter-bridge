@@ -234,38 +234,40 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               if (activity == null) {
                   Log.e(Countly.TAG, "[CountlyFlutterPlugin] askForNotificationPermission failed : Activity is null");
                   result.error("askForNotificationPermission Failed", "Activity is null", null);
-              } else if(context == null) {
+                  return;
+              }
+              if(context == null) {
                   Log.e(Countly.TAG, "[CountlyFlutterPlugin] valid context is required in askForNotificationPermission, but was provided 'null'");
                   result.error("askForNotificationPermission Failed", "valid context is required in Countly askForNotificationPermission, but was provided 'null'", null);
-              } else {
-                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                      String channelName = "Default Name";
-                      String channelDescription = "Default Description";
-                      NotificationManager notificationManager = (NotificationManager) context.getSystemService(context.NOTIFICATION_SERVICE);
-                      if (notificationManager != null) {
-                          NotificationChannel channel = new NotificationChannel(CountlyPush.CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_DEFAULT);
-                          channel.setDescription(channelDescription);
-                          notificationManager.createNotificationChannel(channel);
-                      }
-                  }
-                  CountlyPush.init(activity.getApplication(), pushTokenType);
-                  FirebaseApp.initializeApp(context);
-                  FirebaseInstanceId.getInstance().getInstanceId()
-                          .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                              @Override
-                              public void onComplete(Task<InstanceIdResult> task) {
-                                  if (!task.isSuccessful()) {
-                                      if (Countly.sharedInstance().isLoggingEnabled()) {
-                                          Log.w(Countly.TAG, "[CountlyFlutterPlugin] getInstanceId failed", task.getException());
-                                      }
-                                      return;
-                                  }
-                                  String token = task.getResult().getToken();
-                                  CountlyPush.onTokenRefresh(token);
-                              }
-                          });
-                  result.success(" askForNotificationPermission!");
+                  return;
               }
+              if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                  String channelName = "Default Name";
+                  String channelDescription = "Default Description";
+                  NotificationManager notificationManager = (NotificationManager) context.getSystemService(context.NOTIFICATION_SERVICE);
+                  if (notificationManager != null) {
+                      NotificationChannel channel = new NotificationChannel(CountlyPush.CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_DEFAULT);
+                      channel.setDescription(channelDescription);
+                      notificationManager.createNotificationChannel(channel);
+                  }
+              }
+              CountlyPush.init(activity.getApplication(), pushTokenType);
+              FirebaseApp.initializeApp(context);
+              FirebaseInstanceId.getInstance().getInstanceId()
+                      .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                          @Override
+                          public void onComplete(Task<InstanceIdResult> task) {
+                              if (!task.isSuccessful()) {
+                                  if (Countly.sharedInstance().isLoggingEnabled()) {
+                                      Log.w(Countly.TAG, "[CountlyFlutterPlugin] getInstanceId failed", task.getException());
+                                  }
+                                  return;
+                              }
+                              String token = task.getResult().getToken();
+                              CountlyPush.onTokenRefresh(token);
+                          }
+                      });
+              result.success(" askForNotificationPermission!");
           } else if ("pushTokenType".equals(call.method)) {
               String tokenType = args.getString(0);
               if("2".equals(tokenType)){
@@ -292,10 +294,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               if (activity == null) {
                   Log.e(Countly.TAG, "[CountlyFlutterPlugin] start failed : Activity is null");
                   result.error("Start Failed", "Activity is null", null);
-              } else {
-                  Countly.sharedInstance().onStart(activity);
-                  result.success("started!");
+                  return;
               }
+              Countly.sharedInstance().onStart(activity);
+              result.success("started!");
           } else if ("manualSessionHandling".equals(call.method)) {
               result.success("deafult!");
 
@@ -613,37 +615,37 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               if (activity == null) {
                   Log.e(Countly.TAG, "[CountlyFlutterPlugin] askForFeedback failed : Activity is null");
                   result.error("askForFeedback Failed", "Activity is null", null);
-              } else {
-                  String widgetId = args.getString(0);
-                  String closeButtonText = args.getString(1);
-                  Countly.sharedInstance().ratings().showFeedbackPopup(widgetId, closeButtonText, activity, new FeedbackRatingCallback() {
-                      @Override
-                      public void callback(String error) {
-                          if (error != null) {
-                              result.success("Error: Encountered error while showing feedback dialog: [" + error + "]");
-                          } else {
-                              result.success("Feedback submitted.");
-                          }
-                      }
-                  });
+                  return;
               }
+              String widgetId = args.getString(0);
+              String closeButtonText = args.getString(1);
+              Countly.sharedInstance().ratings().showFeedbackPopup(widgetId, closeButtonText, activity, new FeedbackRatingCallback() {
+                  @Override
+                  public void callback(String error) {
+                      if (error != null) {
+                          result.success("Error: Encountered error while showing feedback dialog: [" + error + "]");
+                      } else {
+                          result.success("Feedback submitted.");
+                      }
+                  }
+              });
           } else if (call.method.equals("askForStarRating")) {
               if (activity == null) {
                   Log.e(Countly.TAG, "[CountlyFlutterPlugin] askForStarRating failed : Activity is null");
                   result.error("askForStarRating Failed", "Activity is null", null);
-              } else {
-                  Countly.sharedInstance().ratings().showStarRating(activity, new StarRatingCallback() {
-                      @Override
-                      public void onRate(int rating) {
-                          result.success("Rating: " + rating);
-                      }
-
-                      @Override
-                      public void onDismiss() {
-                          result.success("Rating: Modal dismissed.");
-                      }
-                  });
+                  return;
               }
+              Countly.sharedInstance().ratings().showStarRating(activity, new StarRatingCallback() {
+                  @Override
+                  public void onRate(int rating) {
+                      result.success("Rating: " + rating);
+                  }
+
+                  @Override
+                  public void onDismiss() {
+                      result.success("Rating: Modal dismissed.");
+                  }
+              });
           } else {
               result.notImplemented();
           }
