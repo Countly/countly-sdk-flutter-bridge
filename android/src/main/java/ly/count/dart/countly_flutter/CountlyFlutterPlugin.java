@@ -231,7 +231,13 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               }
               result.success(" success!");
           } else if ("askForNotificationPermission".equals(call.method)) {
-              if (activity != null && context != null) {
+              if (activity == null) {
+                  Log.e(Countly.TAG, "[CountlyFlutterPlugin] askForNotificationPermission failed : Activity is null");
+                  result.error("askForNotificationPermission Failed", "Activity is null", null);
+              } else if(context == null) {
+                  Log.e(Countly.TAG, "[CountlyFlutterPlugin] valid context is required in askForNotificationPermission, but was provided 'null'");
+                  result.error("askForNotificationPermission Failed", "valid context is required in Countly askForNotificationPermission, but was provided 'null'", null);
+              } else {
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                       String channelName = "Default Name";
                       String channelDescription = "Default Description";
@@ -259,15 +265,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                               }
                           });
                   result.success(" askForNotificationPermission!");
-              } else {
-                  if(context == null) {
-                      Log.e(Countly.TAG, "[CountlyFlutterPlugin] valid context is required in askForNotificationPermission, but was provided 'null'");
-                      result.error("askForNotificationPermission Failed", "valid context is required in Countly askForNotificationPermission, but was provided 'null'", null);
-                  }
-                  else {
-                      Log.e(Countly.TAG, "[CountlyFlutterPlugin] askForNotificationPermission failed : Activity is null");
-                      result.error("askForNotificationPermission Failed", "Activity is null", null);
-                  }
               }
           } else if ("pushTokenType".equals(call.method)) {
               String tokenType = args.getString(0);
@@ -292,13 +289,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                   }
               });
           } else if ("start".equals(call.method)) {
-              if (activity != null) {
-                  Countly.sharedInstance().onStart(activity);
-                  result.success("started!");
-              }
-              else {
+              if (activity == null) {
                   Log.e(Countly.TAG, "[CountlyFlutterPlugin] start failed : Activity is null");
                   result.error("Start Failed", "Activity is null", null);
+              } else {
+                  Countly.sharedInstance().onStart(activity);
+                  result.success("started!");
               }
           } else if ("manualSessionHandling".equals(call.method)) {
               result.success("deafult!");
@@ -614,7 +610,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               String getRemoteConfigValueForKeyResult = Countly.sharedInstance().remoteConfig().getValueForKey(args.getString(0)).toString();
               result.success(getRemoteConfigValueForKeyResult);
           } else if ("askForFeedback".equals(call.method)) {
-              if (activity != null) {
+              if (activity == null) {
+                  Log.e(Countly.TAG, "[CountlyFlutterPlugin] askForFeedback failed : Activity is null");
+                  result.error("askForFeedback Failed", "Activity is null", null);
+              } else {
                   String widgetId = args.getString(0);
                   String closeButtonText = args.getString(1);
                   Countly.sharedInstance().ratings().showFeedbackPopup(widgetId, closeButtonText, activity, new FeedbackRatingCallback() {
@@ -627,12 +626,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                           }
                       }
                   });
-              } else {
-                  Log.e(Countly.TAG, "[CountlyFlutterPlugin] askForFeedback failed : Activity is null");
-                  result.error("askForFeedback Failed", "Activity is null", null);
               }
           } else if (call.method.equals("askForStarRating")) {
-              if (activity != null) {
+              if (activity == null) {
+                  Log.e(Countly.TAG, "[CountlyFlutterPlugin] askForStarRating failed : Activity is null");
+                  result.error("askForStarRating Failed", "Activity is null", null);
+              } else {
                   Countly.sharedInstance().ratings().showStarRating(activity, new StarRatingCallback() {
                       @Override
                       public void onRate(int rating) {
@@ -644,9 +643,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                           result.success("Rating: Modal dismissed.");
                       }
                   });
-              } else {
-                  Log.e(Countly.TAG, "[CountlyFlutterPlugin] askForStarRating failed : Activity is null");
-                  result.error("askForStarRating Failed", "Activity is null", null);
               }
           } else {
               result.notImplemented();
