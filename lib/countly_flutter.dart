@@ -174,12 +174,7 @@ class Countly {
     final String result = await _channel.invokeMethod('askForNotificationPermission', <String, dynamic>{
       'data': json.encode(args)
     });
-    if(result == "nullActivity") {
-      log("Activity is null", logLevel: LogLevel.WARNING);
-    }
-    else {
-      log(result);
-    }
+    log(result);
     return result;
   }
 
@@ -221,12 +216,7 @@ class Countly {
     final String result = await _channel.invokeMethod('start', <String, dynamic>{
       'data': json.encode(args)
     });
-    if(result == "nullActivity") {
-      log("Activity is null", logLevel: LogLevel.WARNING);
-    }
-    else {
-      log(result);
-    }
+    log(result);
     return result;
   }
 
@@ -764,12 +754,7 @@ class Countly {
     final String result = await _channel.invokeMethod('askForStarRating', <String, dynamic>{
       'data': json.encode(args)
     });
-    if(result == "nullActivity") {
-      log("Activity is null", logLevel: LogLevel.WARNING);
-    }
-    else {
-      log(result);
-    }
+    log(result);
     return result;
   }
 
@@ -789,12 +774,7 @@ class Countly {
     final String result = await _channel.invokeMethod('askForFeedback', <String, dynamic>{
       'data': json.encode(args)
     });
-    if(result == "nullActivity") {
-      log("Activity is null", logLevel: LogLevel.WARNING);
-    }
-    else {
-      log(result);
-    }
+    log(result);
     return result;
   }
 

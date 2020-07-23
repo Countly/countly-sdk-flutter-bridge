@@ -132,27 +132,33 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
           }
 
           if ("init".equals(call.method)) {
-              String serverUrl = args.getString(0);
-              String appKey = args.getString(1);
-              this.setConfig();
-              this.config.setContext(context);
-              this.config.setServerURL(serverUrl);
-              this.config.setAppKey(appKey);
-              if (args.length() == 2) {
-                 this.config.setIdMode(DeviceId.Type.OPEN_UDID);
-
-              } else if (args.length() == 3) {
-                  String yourDeviceID = args.getString(2);
-                  if(yourDeviceID.equals("TemporaryDeviceID")){
-                    this.config.enableTemporaryDeviceIdMode();
-                  }else{
-                    this.config.setDeviceId(yourDeviceID);
-                  }
-              } else {
-                  this.config.setIdMode(DeviceId.Type.ADVERTISING_ID);
+              if(context == null) {
+                  Log.e(Countly.TAG, "[CountlyFlutterPlugin] valid context is required in Countly init, but was provided 'null'");
+                  result.error("init Failed", "valid context is required in Countly init, but was provided 'null'", null);
               }
-              Countly.sharedInstance().init(this.config);
-              result.success("initialized!");
+              else {
+                  String serverUrl = args.getString(0);
+                  String appKey = args.getString(1);
+                  this.setConfig();
+                  this.config.setContext(context);
+                  this.config.setServerURL(serverUrl);
+                  this.config.setAppKey(appKey);
+                  if (args.length() == 2) {
+                      this.config.setIdMode(DeviceId.Type.OPEN_UDID);
+
+                  } else if (args.length() == 3) {
+                      String yourDeviceID = args.getString(2);
+                      if (yourDeviceID.equals("TemporaryDeviceID")) {
+                          this.config.enableTemporaryDeviceIdMode();
+                      } else {
+                          this.config.setDeviceId(yourDeviceID);
+                      }
+                  } else {
+                      this.config.setIdMode(DeviceId.Type.ADVERTISING_ID);
+                  }
+                  Countly.sharedInstance().init(this.config);
+                  result.success("initialized!");
+              }
         } else if ("isInitialized".equals(call.method)) {
             Boolean isInitialized = Countly.sharedInstance().isInitialized();
             if(isInitialized){
@@ -225,17 +231,17 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               }
               result.success(" success!");
           } else if ("askForNotificationPermission".equals(call.method)) {
-              if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                  String channelName = "Default Name";
-                  String channelDescription = "Default Description";
-                  NotificationManager notificationManager = (NotificationManager) context.getSystemService(context.NOTIFICATION_SERVICE);
-                  if (notificationManager != null) {
-                      NotificationChannel channel = new NotificationChannel(CountlyPush.CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_DEFAULT);
-                      channel.setDescription(channelDescription);
-                      notificationManager.createNotificationChannel(channel);
+              if (activity != null && context != null) {
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                      String channelName = "Default Name";
+                      String channelDescription = "Default Description";
+                      NotificationManager notificationManager = (NotificationManager) context.getSystemService(context.NOTIFICATION_SERVICE);
+                      if (notificationManager != null) {
+                          NotificationChannel channel = new NotificationChannel(CountlyPush.CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_DEFAULT);
+                          channel.setDescription(channelDescription);
+                          notificationManager.createNotificationChannel(channel);
+                      }
                   }
-              }
-              if (activity != null) {
                   CountlyPush.init(activity.getApplication(), pushTokenType);
                   FirebaseApp.initializeApp(context);
                   FirebaseInstanceId.getInstance().getInstanceId()
@@ -254,7 +260,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                           });
                   result.success(" askForNotificationPermission!");
               } else {
-                  result.success("nullActivity");
+                  if(context == null) {
+                      Log.e(Countly.TAG, "[CountlyFlutterPlugin] valid context is required in askForNotificationPermission, but was provided 'null'");
+                      result.error("askForNotificationPermission Failed", "valid context is required in Countly askForNotificationPermission, but was provided 'null'", null);
+                  }
+                  else {
+                      Log.e(Countly.TAG, "[CountlyFlutterPlugin] askForNotificationPermission failed : Activity is null");
+                      result.error("askForNotificationPermission Failed", "Activity is null", null);
+                  }
               }
           } else if ("pushTokenType".equals(call.method)) {
               String tokenType = args.getString(0);
@@ -284,7 +297,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                   result.success("started!");
               }
               else {
-                  result.success("nullActivity");
+                  Log.e(Countly.TAG, "[CountlyFlutterPlugin] start failed : Activity is null");
+                  result.error("Start Failed", "Activity is null", null);
               }
           } else if ("manualSessionHandling".equals(call.method)) {
               result.success("deafult!");
@@ -600,9 +614,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               String getRemoteConfigValueForKeyResult = Countly.sharedInstance().remoteConfig().getValueForKey(args.getString(0)).toString();
               result.success(getRemoteConfigValueForKeyResult);
           } else if ("askForFeedback".equals(call.method)) {
-              String widgetId = args.getString(0);
-              String closeButtonText = args.getString(1);
               if (activity != null) {
+                  String widgetId = args.getString(0);
+                  String closeButtonText = args.getString(1);
                   Countly.sharedInstance().ratings().showFeedbackPopup(widgetId, closeButtonText, activity, new FeedbackRatingCallback() {
                       @Override
                       public void callback(String error) {
@@ -614,7 +628,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                       }
                   });
               } else {
-                  result.success("nullActivity");
+                  Log.e(Countly.TAG, "[CountlyFlutterPlugin] askForFeedback failed : Activity is null");
+                  result.error("askForFeedback Failed", "Activity is null", null);
               }
           } else if (call.method.equals("askForStarRating")) {
               if (activity != null) {
@@ -630,7 +645,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                       }
                   });
               } else {
-                  result.success("nullActivity");
+                  Log.e(Countly.TAG, "[CountlyFlutterPlugin] askForStarRating failed : Activity is null");
+                  result.error("askForStarRating Failed", "Activity is null", null);
               }
           } else {
               result.notImplemented();
