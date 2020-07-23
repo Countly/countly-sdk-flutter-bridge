@@ -1,5 +1,9 @@
 package ly.count.dart.countly_flutter;
 
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.embedding.engine.plugins.activity.ActivityAware;
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
+import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -11,8 +15,6 @@ import ly.count.android.sdk.CountlyConfig;
 import ly.count.android.sdk.DeviceId;
 import ly.count.android.sdk.FeedbackRatingCallback;
 import ly.count.android.sdk.RemoteConfig;
-import ly.count.android.sdk.CountlyStarRating;
-//import ly.count.android.sdk.DeviceInfo;
 import java.util.HashMap;
 import java.util.Map;
 import android.app.Activity;
@@ -23,15 +25,14 @@ import org.json.JSONObject;
 
 import android.util.Log;
 import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Arrays;
 import java.util.ArrayList;
 
 //Push Plugin
 import android.os.Build;
 import android.app.NotificationManager;
 import android.app.NotificationChannel;
+
+import androidx.annotation.NonNull;
 
 import ly.count.android.sdk.RemoteConfigCallback;
 import ly.count.android.sdk.StarRatingCallback;
@@ -44,7 +45,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.FirebaseApp;
 
 /** CountlyFlutterPlugin */
-public class CountlyFlutterPlugin implements MethodCallHandler {
+public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware {
   /** Plugin registration. */
     private Countly.CountlyMessagingMode pushTokenType = Countly.CountlyMessagingMode.PRODUCTION;
     private Context context;
@@ -53,19 +54,62 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
     private CountlyConfig config = null;
     private static Callback notificationListener = null;
     private static String lastStoredNotification = null;
+    private MethodChannel methodChannel;
 
     public static void registerWith(Registrar registrar) {
-      final Activity __activity  = registrar.activity();
-      final Context __context = registrar.context();
+        final CountlyFlutterPlugin instance = new CountlyFlutterPlugin();
+        instance.activity  = registrar.activity();
+        final Context __context = registrar.context();
+        instance.onAttachedToEngineInternal(__context, registrar.messenger());
+    }
 
-      final MethodChannel channel = new MethodChannel(registrar.messenger(), "countly_flutter");
-      channel.setMethodCallHandler(new CountlyFlutterPlugin(__activity, __context));
-  }
+    @Override
+    public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
+        onAttachedToEngineInternal(binding.getApplicationContext(), binding.getBinaryMessenger());
+    }
+
+    @Override
+    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+        context = null;
+        methodChannel.setMethodCallHandler(null);
+        methodChannel = null;
+    }
+
+    private void onAttachedToEngineInternal(Context context, BinaryMessenger messenger) {
+        this.context = context;
+        methodChannel = new MethodChannel(messenger, "countly_flutter");
+        methodChannel.setMethodCallHandler(this);
+    }
+
+
+    @Override
+    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+        this.activity = binding.getActivity();
+    }
+
+    @Override
+    public void onDetachedFromActivityForConfigChanges() {
+        this.activity = null;
+    }
+
+    @Override
+    public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
+        this.activity = binding.getActivity();
+    }
+
+    @Override
+    public void onDetachedFromActivity() {
+        this.activity = null;
+    }
 
   private void setConfig(){
       if(this.config == null){
           this.config = new CountlyConfig();
       }
+  }
+
+  public CountlyFlutterPlugin() {
+
   }
 
   public CountlyFlutterPlugin(Activity _activity, Context _context){
@@ -88,6 +132,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
           }
 
           if ("init".equals(call.method)) {
+              if(context == null) {
+                  Log.e(Countly.TAG, "[CountlyFlutterPlugin] valid context is required in Countly init, but was provided 'null'");
+                  result.error("init Failed", "valid context is required in Countly init, but was provided 'null'", null);
+                  return;
+              }
               String serverUrl = args.getString(0);
               String appKey = args.getString(1);
               this.setConfig();
@@ -95,14 +144,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               this.config.setServerURL(serverUrl);
               this.config.setAppKey(appKey);
               if (args.length() == 2) {
-                 this.config.setIdMode(DeviceId.Type.OPEN_UDID);
+                  this.config.setIdMode(DeviceId.Type.OPEN_UDID);
 
               } else if (args.length() == 3) {
                   String yourDeviceID = args.getString(2);
-                  if(yourDeviceID.equals("TemporaryDeviceID")){
-                    this.config.enableTemporaryDeviceIdMode();
-                  }else{
-                    this.config.setDeviceId(yourDeviceID);
+                  if (yourDeviceID.equals("TemporaryDeviceID")) {
+                      this.config.enableTemporaryDeviceIdMode();
+                  } else {
+                      this.config.setDeviceId(yourDeviceID);
                   }
               } else {
                   this.config.setIdMode(DeviceId.Type.ADVERTISING_ID);
@@ -181,6 +230,16 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               }
               result.success(" success!");
           } else if ("askForNotificationPermission".equals(call.method)) {
+              if (activity == null) {
+                  Log.e(Countly.TAG, "[CountlyFlutterPlugin] askForNotificationPermission failed : Activity is null");
+                  result.error("askForNotificationPermission Failed", "Activity is null", null);
+                  return;
+              }
+              if(context == null) {
+                  Log.e(Countly.TAG, "[CountlyFlutterPlugin] valid context is required in askForNotificationPermission, but was provided 'null'");
+                  result.error("askForNotificationPermission Failed", "valid context is required in Countly askForNotificationPermission, but was provided 'null'", null);
+                  return;
+              }
               if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                   String channelName = "Default Name";
                   String channelDescription = "Default Description";
@@ -194,19 +253,19 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               CountlyPush.init(activity.getApplication(), pushTokenType);
               FirebaseApp.initializeApp(context);
               FirebaseInstanceId.getInstance().getInstanceId()
-                  .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                      @Override
-                      public void onComplete(Task<InstanceIdResult> task) {
-                          if (!task.isSuccessful()) {
-                              if(Countly.sharedInstance().isLoggingEnabled()) {
-                                  Log.w(Countly.TAG, "[CountlyFlutterPlugin] getInstanceId failed", task.getException());
+                      .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                          @Override
+                          public void onComplete(Task<InstanceIdResult> task) {
+                              if (!task.isSuccessful()) {
+                                  if (Countly.sharedInstance().isLoggingEnabled()) {
+                                      Log.w(Countly.TAG, "[CountlyFlutterPlugin] getInstanceId failed", task.getException());
+                                  }
+                                  return;
                               }
-                              return;
+                              String token = task.getResult().getToken();
+                              CountlyPush.onTokenRefresh(token);
                           }
-                          String token = task.getResult().getToken();
-                          CountlyPush.onTokenRefresh(token);
-                      }
-                  });
+                      });
               result.success(" askForNotificationPermission!");
           } else if ("pushTokenType".equals(call.method)) {
               String tokenType = args.getString(0);
@@ -220,15 +279,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               registerForNotification(args, new Callback() {
                   @Override
                   public void callback(final String resultString) {
-                      activity.runOnUiThread(new Runnable() {
-                          @Override
-                          public void run() {
-                              result.success(resultString);
-                          }
-                      });
+                      result.success(resultString);
                   }
               });
           } else if ("start".equals(call.method)) {
+              if (activity == null) {
+                  Log.e(Countly.TAG, "[CountlyFlutterPlugin] start failed : Activity is null");
+                  result.error("Start Failed", "Activity is null", null);
+                  return;
+              }
               Countly.sharedInstance().onStart(activity);
               result.success("started!");
           } else if ("manualSessionHandling".equals(call.method)) {
@@ -545,6 +604,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               String getRemoteConfigValueForKeyResult = Countly.sharedInstance().remoteConfig().getValueForKey(args.getString(0)).toString();
               result.success(getRemoteConfigValueForKeyResult);
           } else if ("askForFeedback".equals(call.method)) {
+              if (activity == null) {
+                  Log.e(Countly.TAG, "[CountlyFlutterPlugin] askForFeedback failed : Activity is null");
+                  result.error("askForFeedback Failed", "Activity is null", null);
+                  return;
+              }
               String widgetId = args.getString(0);
               String closeButtonText = args.getString(1);
               Countly.sharedInstance().ratings().showFeedbackPopup(widgetId, closeButtonText, activity, new FeedbackRatingCallback() {
@@ -558,10 +622,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                   }
               });
           } else if (call.method.equals("askForStarRating")) {
+              if (activity == null) {
+                  Log.e(Countly.TAG, "[CountlyFlutterPlugin] askForStarRating failed : Activity is null");
+                  result.error("askForStarRating Failed", "Activity is null", null);
+                  return;
+              }
               Countly.sharedInstance().ratings().showStarRating(activity, new StarRatingCallback() {
                   @Override
                   public void onRate(int rating) {
-                      result.success("Rating: " +rating);
+                      result.success("Rating: " + rating);
                   }
 
                   @Override
