@@ -137,29 +137,27 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                   result.error("init Failed", "valid context is required in Countly init, but was provided 'null'", null);
                   return;
               }
-              else {
-                  String serverUrl = args.getString(0);
-                  String appKey = args.getString(1);
-                  this.setConfig();
-                  this.config.setContext(context);
-                  this.config.setServerURL(serverUrl);
-                  this.config.setAppKey(appKey);
-                  if (args.length() == 2) {
-                      this.config.setIdMode(DeviceId.Type.OPEN_UDID);
+              String serverUrl = args.getString(0);
+              String appKey = args.getString(1);
+              this.setConfig();
+              this.config.setContext(context);
+              this.config.setServerURL(serverUrl);
+              this.config.setAppKey(appKey);
+              if (args.length() == 2) {
+                  this.config.setIdMode(DeviceId.Type.OPEN_UDID);
 
-                  } else if (args.length() == 3) {
-                      String yourDeviceID = args.getString(2);
-                      if (yourDeviceID.equals("TemporaryDeviceID")) {
-                          this.config.enableTemporaryDeviceIdMode();
-                      } else {
-                          this.config.setDeviceId(yourDeviceID);
-                      }
+              } else if (args.length() == 3) {
+                  String yourDeviceID = args.getString(2);
+                  if (yourDeviceID.equals("TemporaryDeviceID")) {
+                      this.config.enableTemporaryDeviceIdMode();
                   } else {
-                      this.config.setIdMode(DeviceId.Type.ADVERTISING_ID);
+                      this.config.setDeviceId(yourDeviceID);
                   }
-                  Countly.sharedInstance().init(this.config);
-                  result.success("initialized!");
+              } else {
+                  this.config.setIdMode(DeviceId.Type.ADVERTISING_ID);
               }
+              Countly.sharedInstance().init(this.config);
+              result.success("initialized!");
         } else if ("isInitialized".equals(call.method)) {
             Boolean isInitialized = Countly.sharedInstance().isInitialized();
             if(isInitialized){
