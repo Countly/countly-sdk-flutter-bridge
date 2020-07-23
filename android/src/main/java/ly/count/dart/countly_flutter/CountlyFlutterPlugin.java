@@ -135,6 +135,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               if(context == null) {
                   Log.e(Countly.TAG, "[CountlyFlutterPlugin] valid context is required in Countly init, but was provided 'null'");
                   result.error("init Failed", "valid context is required in Countly init, but was provided 'null'", null);
+                  return;
               }
               else {
                   String serverUrl = args.getString(0);
@@ -280,14 +281,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               registerForNotification(args, new Callback() {
                   @Override
                   public void callback(final String resultString) {
-                      if (activity != null) {
-                          activity.runOnUiThread(new Runnable() {
-                              @Override
-                              public void run() {
-                                  result.success(resultString);
-                              }
-                          });
-                      }
+                      result.success(resultString);
                   }
               });
           } else if ("start".equals(call.method)) {
