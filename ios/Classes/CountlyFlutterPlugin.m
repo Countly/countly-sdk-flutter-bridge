@@ -1,8 +1,12 @@
 #import "CountlyFlutterPlugin.h"
 #import "Countly.h"
 #import "CountlyConfig.h"
+#import "CountlyCommon.h"
 #import "CountlyDeviceInfo.h"
 #import "CountlyRemoteConfig.h"
+
+NSString* const kCountlyFlutterSDKVersion = @"20.04.1";
+NSString* const kCountlyFlutterSDKName = @"dart_flutter_ios";
 
 FlutterResult notificationListener = nil;
 NSDictionary *lastStoredNotification = nil;
@@ -41,6 +45,9 @@ Boolean isInitialized = false;
 
         config.appKey = appkey;
         config.host = serverurl;
+        
+        CountlyCommon.sharedInstance.SDKName = kCountlyFlutterSDKName;
+        CountlyCommon.sharedInstance.SDKVersion = kCountlyFlutterSDKVersion;
 
         //should only be used for silent pushes if explicitly enabled
         //config.sendPushTokenAlways = YES;
