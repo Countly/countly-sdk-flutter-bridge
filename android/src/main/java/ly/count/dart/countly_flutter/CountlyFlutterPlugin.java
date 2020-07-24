@@ -582,6 +582,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
             String traceKey = args.getString(0);
             Countly.sharedInstance().apm().startTrace(traceKey);
             result.success("startTrace: success");
+        } else if ("cancelTrace".equals(call.method)) {
+            result.success("cancelTrace: not implemented");
+        } else if ("clearAllTrace".equals(call.method)) {
+            result.success("clearAllTrace: not implemented");
         } else if ("endTrace".equals(call.method)) {
             String traceKey = args.getString(0);
             HashMap<String, Integer> customMetric = new HashMap<String, Integer>();

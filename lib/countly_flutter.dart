@@ -722,6 +722,24 @@ class Countly {
     log(result);
     return result;
   }
+
+  static Future<String> cancelTrace() async {
+    List <String> args = [];
+    final String result = await _channel.invokeMethod('cancelTrace', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
+
+  static Future<String> clearAllTrace(String traceKey) async {
+    List <String> args = [];
+    final String result = await _channel.invokeMethod('clearAllTrace', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
   static Future<String> endTrace(String traceKey, Map<String, Object> customMetric) async {
     List <String> args = [];
     args.add(traceKey);
