@@ -283,9 +283,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                           public void onComplete(Task<InstanceIdResult> task) {
                               if (!task.isSuccessful()) {
                                   if (Countly.sharedInstance().isLoggingEnabled()) {
-                                      if(Countly.sharedInstance().isLoggingEnabled()) {
-                                          Log.w(Countly.TAG, "[CountlyFlutterPlugin] getInstanceId failed", task.getException());
-                                      }
+                                      Log.w(Countly.TAG, "[CountlyFlutterPlugin] getInstanceId failed", task.getException());
                                   }
                                   return;
                               }
