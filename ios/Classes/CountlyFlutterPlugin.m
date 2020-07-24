@@ -6,7 +6,7 @@
 #import "CountlyRemoteConfig.h"
 
 NSString* const kCountlyFlutterSDKVersion = @"20.04.1";
-NSString* const kCountlyFlutterSDKName = @"dart_flutter_ios";
+NSString* const kCountlyFlutterSDKName = @"dart-flutter-ios";
 
 FlutterResult notificationListener = nil;
 NSDictionary *lastStoredNotification = nil;
