@@ -471,6 +471,9 @@ NSMutableDictionary *networkRequest = nil;
             if([@"accessory-devices" isEqualToString:consent]){
                 [Countly.sharedInstance giveConsentForFeature:CLYConsentAppleWatch];
             }
+            if([@"performance" isEqualToString:consent]){
+                [Countly.sharedInstance giveConsentForFeature:CLYConsentPerformanceMonitoring];
+            }
         }
         result(@"giveConsent!");
         });
@@ -509,6 +512,9 @@ NSMutableDictionary *networkRequest = nil;
             }
             if([@"accessory-devices" isEqualToString:consent]){
                 [Countly.sharedInstance cancelConsentForFeature:CLYConsentAppleWatch];
+            }
+            if([@"performance" isEqualToString:consent]){
+                [Countly.sharedInstance cancelConsentForFeature:CLYConsentPerformanceMonitoring];
             }
         }
 

@@ -404,6 +404,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                   if (theConsent.equals("starRating")) {
                       Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.starRating});
                   }
+                  if (theConsent.equals("performance")) {
+                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.apm});
+                  }
               }
               result.success("giveConsent!");
 
@@ -437,6 +440,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                   }
                   if (theConsent.equals("starRating")) {
                       Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.starRating});
+                  }
+                  if (theConsent.equals("performance")) {
+                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.apm});
                   }
               }
               result.success("removeConsent!");

@@ -16,7 +16,16 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    Countly.isInitialized().then((bool isInitialized){
+    // this.startup();
+  }
+
+  // ignore: non_constant_identifier_names
+  static String SERVER_URL = "https://trinisoft.count.ly";
+  // ignore: non_constant_identifier_names
+  static String APP_KEY = "f0b2ac6919f718a13821575db28c0e2971e05ec5";
+
+  startup(){
+      Countly.isInitialized().then((bool isInitialized){
       if(!isInitialized){
         Countly.onNotification((String notification){
           print("The notification");
@@ -31,11 +40,6 @@ class _MyAppState extends State<MyApp> {
       }
     });
   }
-
-  // ignore: non_constant_identifier_names
-  static String SERVER_URL = "https://trinisoft.count.ly";
-  // ignore: non_constant_identifier_names
-  static String APP_KEY = "f0b2ac6919f718a13821575db28c0e2971e05ec5";
 
   onInit(){
     Countly.pushTokenType(Countly.messagingMode["TEST"]);
@@ -310,7 +314,9 @@ class _MyAppState extends State<MyApp> {
   giveConsentStarRating(){
     Countly.giveConsent(["star-rating"]);
   }
-
+  giveConsentPerformance(){
+  Countly.giveConsent(["performance"]);
+  }
 
   removeConsentsessions(){
     Countly.removeConsent(["sessions"]);
@@ -338,6 +344,9 @@ class _MyAppState extends State<MyApp> {
   }
   removeConsentstarRating(){
     Countly.removeConsent(["star-rating"]);
+  }
+  removeConsentPerformance(){
+    Countly.removeConsent(["performance"]);
   }
 
   askForNotificationPermission(){
@@ -560,6 +569,7 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Give Consent Users", color: "blue", onPressed: giveConsentUsers),
               MyButton(text: "Give Consent Push", color: "blue", onPressed: giveConsentPush),
               MyButton(text: "Give Consent starRating", color: "blue", onPressed: giveConsentStarRating),
+              MyButton(text: "Give Consent Performance", color: "blue", onPressed: giveConsentPerformance),
 
 
               MyButton(text: "Remove Consent Sessions", color: "blue", onPressed: removeConsentsessions),
@@ -571,6 +581,7 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Remove Consent Users", color: "blue", onPressed: removeConsentusers),
               MyButton(text: "Remove Consent Push", color: "blue", onPressed: removeConsentpush),
               MyButton(text: "Remove Consent starRating", color: "blue", onPressed: removeConsentstarRating),
+              MyButton(text: "Remove Consent Performance", color: "blue", onPressed: removeConsentPerformance),
 
 
 
