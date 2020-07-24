@@ -46,7 +46,10 @@ import com.google.firebase.FirebaseApp;
 
 /** CountlyFlutterPlugin */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware {
-  /** Plugin registration. */
+    private String COUNTLY_FLUTTER_SDK_VERSION_STRING = "20.04.1";
+    private String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
+
+    /** Plugin registration. */
     private Countly.CountlyMessagingMode pushTokenType = Countly.CountlyMessagingMode.PRODUCTION;
     private Context context;
     private Activity activity;
@@ -164,6 +167,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               this.config.setContext(context);
               this.config.setServerURL(serverUrl);
               this.config.setAppKey(appKey);
+              Countly.sharedInstance().COUNTLY_SDK_NAME = COUNTLY_FLUTTER_SDK_NAME;
+              Countly.sharedInstance().COUNTLY_SDK_VERSION_STRING = COUNTLY_FLUTTER_SDK_VERSION_STRING;
+
               if (args.length() == 2) {
                   this.config.setIdMode(DeviceId.Type.OPEN_UDID);
 
