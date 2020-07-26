@@ -723,8 +723,10 @@ class Countly {
     return result;
   }
 
-  static Future<String> cancelTrace() async {
+  static Future<String> cancelTrace(String traceKey) async {
     List <String> args = [];
+    args.add(traceKey);
+    log(args.toString());
     final String result = await _channel.invokeMethod('cancelTrace', <String, dynamic>{
       'data': json.encode(args)
     });
@@ -732,7 +734,7 @@ class Countly {
     return result;
   }
 
-  static Future<String> clearAllTrace(String traceKey) async {
+  static Future<String> clearAllTrace() async {
     List <String> args = [];
     final String result = await _channel.invokeMethod('clearAllTrace', <String, dynamic>{
       'data': json.encode(args)
@@ -761,7 +763,7 @@ class Countly {
     args.add(networkTraceKey);
     args.add(uniqueId);
     log(args.toString());
-    final String result = await _channel.invokeMethod('startNetworkRequest', <String, dynamic>{
+    final String result = await _channel.invokeMethod('networkTraceKey', <String, dynamic>{
       'data': json.encode(args)
     });
     log(result);
