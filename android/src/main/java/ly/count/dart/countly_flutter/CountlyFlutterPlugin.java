@@ -682,6 +682,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                       result.success("Rating: Modal dismissed.");
                   }
               });
+          } else if ("throwNativeException".equals(call.method)) {
+              throw new IllegalStateException("Native Exception Crashhh!");
+//            throw new RuntimeException("Native Exception Crash!");
+
           } else {
               result.notImplemented();
           }
