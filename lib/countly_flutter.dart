@@ -830,6 +830,16 @@ class Countly {
     return result;
   }
 
+  static Future<String> throwNativeException() async {
+    List <String> args = [];
+    log(args.toString());
+    final String result = await _channel.invokeMethod('throwNativeException', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
+  
   static Future<String> enableCrashReporting() async {
     FlutterError.onError = (FlutterErrorDetails details, {bool forceReport = false}) {
       try {
