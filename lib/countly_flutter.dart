@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 
 enum LogLevel {INFO, DEBUG, VERBOSE, WARNING, ERROR}
@@ -867,7 +868,7 @@ class Countly {
     return result;
   }
 
-  static Future<String> logException(String exception,bool nonfatal, List<Map<String, String>> stackTraceElements, String information) async {
+  static Future<String> logExceptionWithStack(String exception,bool nonfatal, List<Map<String, String>> stackTraceElements, String information) async {
     List <String> args = [];
     if(exception == null) {
       String error = "logException, provided exception was null, returning";
@@ -1027,7 +1028,7 @@ class Countly {
       final List<Map<String, String>> stackTraceElements =
       getStackTraceElements(stackTraceLines);
       try {
-        logException(exception.toString(), true, stackTraceElements, _information);
+        logExceptionWithStack(exception.toString(), true, stackTraceElements, _information);
       } catch (e) {
         log('Sending crash report to Countly failed: $e');
       }

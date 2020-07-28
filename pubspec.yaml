@@ -8,6 +8,7 @@ environment:
   flutter: ">=1.0.0"
 
 dependencies:
+  stack_trace: ^1.9.5
   flutter:
     sdk: flutter
 

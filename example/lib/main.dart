@@ -5,7 +5,11 @@ import 'dart:convert';
 
 import 'package:countly_flutter/countly_flutter.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  runZonedGuarded<Future<void>>(() async {
+    runApp(MyApp());
+  }, Countly.recordError);
+}
 
 class MyApp extends StatefulWidget {
   @override
