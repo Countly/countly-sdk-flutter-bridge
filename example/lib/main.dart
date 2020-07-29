@@ -433,9 +433,37 @@ class _MyAppState extends State<MyApp> {
       timer.cancel();
     });
   }
-
-  throwException(){
+  causeException(){
     Map<String, Object> options = json.decode("This is a on purpose error.");
+  }
+
+  throwException() {
+    throw new StateError('This is an thrown Dart exception.');
+  }
+
+  throwNativeException() {
+    Countly.throwNativeException();
+  }
+
+  throwExceptionAsync() async {
+    foo() async {
+      throw new StateError('This is an async Dart exception.');
+    }
+    bar() async {
+      await foo();
+    }
+    await bar();
+  }
+
+  recordExceptionManually() {
+    Countly.logException("This is a manually created exception", true, null);
+  }
+
+  dividedByZero() {
+    int a = 25;
+    int b = 0;
+    double c = a / b;
+    print(c);
   }
 
   setLoggingEnabled(){
@@ -545,8 +573,15 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Enable Parameter Tapmering Protection", color: "violet", onPressed: enableParameterTamperingProtection),
               MyButton(text: "City, State, and Location", color: "violet", onPressed: setOptionalParametersForInitialization),
               MyButton(text: "setLocation", color: "violet", onPressed: setLocation),
+
               MyButton(text: "Send Crash Report", color: "violet", onPressed: addCrashLog),
+              MyButton(text: "Cause Exception", color: "violet", onPressed: causeException),
               MyButton(text: "Throw Exception", color: "violet", onPressed: throwException),
+              MyButton(text: "Throw Exception Async", color: "violet", onPressed: throwExceptionAsync),
+              MyButton(text: "Throw Native Exception", color: "violet", onPressed: throwNativeException),
+              MyButton(text: "Record Exception Manually", color: "violet", onPressed: recordExceptionManually),
+              MyButton(text: "Divided By Zero Exception", color: "violet", onPressed: dividedByZero),
+
               MyButton(text: "Enabling logging", color: "violet", onPressed: setLoggingEnabled),
 
               MyButton(text: "Open rating modal", color: "orange", onPressed: askForStarRating),

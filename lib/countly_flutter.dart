@@ -854,6 +854,16 @@ class Countly {
     log(result);
     return result;
   }
+  
+  static Future<String> throwNativeException() async {
+    List <String> args = [];
+    log(args.toString());
+    final String result = await _channel.invokeMethod('throwNativeException', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
 
   static Future<String> enableCrashReporting([bool enableInDevMode]) async {
     enableCrashReportingInDevMode = enableInDevMode ?? true;
