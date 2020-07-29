@@ -853,14 +853,15 @@ class Countly {
   }
 
   static Future<String> logExceptionEx(Exception exception,bool nonfatal, [Map<String, Object> segmentation]) async {
-    logException(exception.toString(), nonfatal, segmentation).then((String result) {
+    StackTrace stacktrace = StackTrace.current ?? StackTrace.fromString('');
+    logException("${exception.toString()}\n\n$stacktrace", nonfatal, segmentation).then((String result) {
       return result;
     });
   }
 
   static Future<String> logExceptionManual(String exception,bool nonfatal, [StackTrace stacktrace, Map<String, Object> segmentation]) async {
     stacktrace ??= StackTrace.current ?? StackTrace.fromString('');
-    logException("$exception\n StackTrace : $stacktrace", nonfatal, segmentation).then((String result) {
+    logException("$exception\n\n$stacktrace", nonfatal, segmentation).then((String result) {
       return result;
     });
   }
@@ -921,7 +922,7 @@ class Countly {
 
       stack ??= StackTrace.fromString('');
       try {
-        logException('${exception.toString()}\n StackTrace : $stack', true);
+        logException('${exception.toString()}\n\n$stack', true);
       } catch (e) {
         log('Sending crash report to Countly failed: $e');
       }
