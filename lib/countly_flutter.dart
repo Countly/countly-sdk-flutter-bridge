@@ -841,7 +841,7 @@ class Countly {
   }
 
   static Future<String> enableCrashReporting() async {
-    FlutterError.onError = recordFlutterError;
+    FlutterError.onError = _recordFlutterError;
     List <String> args = [];
     enableCrashReportingFlag = true;
     log(args.toString());
@@ -852,7 +852,13 @@ class Countly {
     return result;
   }
 
-  static Future<String> logException(String exception,bool nonfatal, Map<String, Object> segmentation) async {
+  static Future<String> logExceptionEx(Exception exception,bool nonfatal, [Map<String, Object> segmentation]) async {
+    logException(exception.toString(), nonfatal, segmentation).then((String result) {
+      return result;
+    });
+  }
+
+  static Future<String> logException(String exception,bool nonfatal, [Map<String, Object> segmentation]) async {
     List <String> args = [];
     if(exception == null) {
       String error = "logException, provided exception was null, returning";
@@ -875,45 +881,40 @@ class Countly {
     return result;
   }
 
-  static Future<void> recordFlutterError(FlutterErrorDetails details) async {
-    log('recordFlutterError, Flutter error caught by Countly:');
+  static Future<void> _recordFlutterError(FlutterErrorDetails details) async {
+    log('_recordFlutterError, Flutter error caught by Countly:');
     if(!enableCrashReportingFlag) {
-      log('recordFlutterError, Crash Reporting must be enabled to report crash on Countly',logLevel: LogLevel.WARNING);
+      log('_recordFlutterError, Crash Reporting must be enabled to report crash on Countly',logLevel: LogLevel.WARNING);
       return;
     }
     if(isDebug) {
       FlutterError.dumpErrorToConsole(details, forceReport: true);
     }
-    _internalRecordError(details.exceptionAsString(), details.stack, context: details.context, information: details.informationCollector());
+    _internalRecordError(details.exceptionAsString(), details.stack);
   }
 
-  static Future<void> recordError(dynamic exception, StackTrace stack, {dynamic context}) async {
+  static Future<void> recordDartError(dynamic exception, StackTrace stack, {dynamic context}) async {
     log('recordError, Error caught by Countly :');
     if(!enableCrashReportingFlag) {
       log('recordError, Crash Reporting must be enabled to report crash on Countly',logLevel: LogLevel.WARNING);
       return;
     }
-    _internalRecordError(exception, stack, context: context);
+    _internalRecordError(exception, stack);
   }
 
-  static Future<void> _internalRecordError(dynamic exception, StackTrace stack, {dynamic context, Iterable<DiagnosticsNode> information}) async {
+  static Future<void> _internalRecordError(dynamic exception, StackTrace stack) async {
     isInitialized().then((bool isInitialized){
       if(!isInitialized) {
         log('_internalRecordError, countly is not initialized',logLevel: LogLevel.WARNING);
         return;
       }
 
-      final String _information = (information == null || information.isEmpty) ? '' : (StringBuffer()..writeAll(information, '\n')).toString();
-      if (context != null) {
-        log('_internalRecordError, The following exception was thrown $context:');
-      }
-      log(exception.toString());
-      if (_information.isNotEmpty) log('\n$_information');
-      if (stack != null) log('\n$stack');
+      log('_internalRecordError, Exception : ${exception.toString()}');
+      if (stack != null) log('\n_internalRecordError, Stack : $stack');
 
-      stack ??= StackTrace.current ?? StackTrace.fromString('');
+      stack ??= StackTrace.fromString('');
       try {
-        logException('${exception.toString()}\n StackTrace : $stack', true, {"Information": _information});
+        logException('${exception.toString()}\n StackTrace : $stack', true);
       } catch (e) {
         log('Sending crash report to Countly failed: $e');
       }
