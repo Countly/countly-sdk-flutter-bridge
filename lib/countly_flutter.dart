@@ -15,7 +15,6 @@ class Countly {
   static Function listenerCallback;
   static bool isDebug = false;
   static final String TAG = "CountlyFlutter";
-  static bool enableCrashReportingInDevMode = true;
   static bool enableCrashReportingFlag = false;
   static Map<String, Object> messagingMode = {"TEST": "1", "PRODUCTION": "0", "ADHOC": "2"};
   static Map<String, Object> deviceIDType = {
@@ -864,8 +863,7 @@ class Countly {
     return result;
   }
 
-  static Future<String> enableCrashReporting([bool enableInDevMode]) async {
-    enableCrashReportingInDevMode = enableInDevMode ?? true;
+  static Future<String> enableCrashReporting() async {
     FlutterError.onError = recordFlutterError;
     List <String> args = [];
     enableCrashReportingFlag = true;
@@ -887,16 +885,16 @@ class Countly {
       FlutterError.dumpErrorToConsole(details, forceReport: true);
     }
     isInitialized().then((bool isInitialized){
-      if(isInitialized) {
+      if(!isInitialized) {
+        log('recordError, countly is not initialized',logLevel: LogLevel.WARNING);
+        return;
+      } else {
         _internalRecordError(details.exceptionAsString(), details.stack,
             context: details.context,
             information: details.informationCollector == null
                 ? null
                 : details.informationCollector(),
             printDetails: false);
-      }
-      else {
-        log('recordFlutterError, countly is not initialized', logLevel: LogLevel.WARNING);
       }
     });
   }
@@ -909,46 +907,29 @@ class Countly {
       return;
     }
     isInitialized().then((bool isInitialized){
-      if(isInitialized) {
-        _internalRecordError(exception, stack, context: context);
-      }
-      else {
+      if(!isInitialized) {
         log('recordError, countly is not initialized',logLevel: LogLevel.WARNING);
+        return;
+      } else {
+        _internalRecordError(exception, stack, context: context);
       }
     });
   }
 
-  static Future<void> _internalRecordError(
-      dynamic exception,
-      StackTrace stack, {
-        dynamic context,
-        Iterable<DiagnosticsNode> information,
-        bool printDetails,
-      }) async {
-    bool inDebugMode = false;
-    if (!enableCrashReportingInDevMode) {
-      assert(inDebugMode = true);
+  static Future<void> _internalRecordError(dynamic exception, StackTrace stack, {dynamic context, Iterable<DiagnosticsNode> information, bool printDetails}) async {
+    final String _information = (information == null || information.isEmpty) ? '' : (StringBuffer()..writeAll(information, '\n')).toString();
+    if (context != null) {
+      log('The following exception was thrown $context:');
     }
+    log(exception);
+    if (_information.isNotEmpty) log('\n$_information');
+    if (stack != null) log('\n$stack');
 
-    printDetails ??= inDebugMode;
-    final String _information = (information == null || information.isEmpty)
-        ? ''
-        : (StringBuffer()..writeAll(information, '\n')).toString();
-
-    if (printDetails) {
-      if (context != null)
-        log('The following exception was thrown $context:');
-        log(exception);
-        if (_information.isNotEmpty) log('\n$_information');
-        if (stack != null) log('\n$stack');
-    }
-    if (!inDebugMode || enableCrashReportingInDevMode) {
-      stack ??= StackTrace.current ?? StackTrace.fromString('');
-      try {
-        logException('${exception.toString()}\n StackTrace : $stack', true, {"Information": _information});
-      } catch (e) {
-        log('Sending crash report to Countly failed: $e');
-      }
+    stack ??= StackTrace.current ?? StackTrace.fromString('');
+    try {
+      logException('${exception.toString()}\n StackTrace : $stack', true, {"Information": _information});
+    } catch (e) {
+      log('Sending crash report to Countly failed: $e');
     }
   }
 
