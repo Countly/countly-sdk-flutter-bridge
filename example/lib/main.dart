@@ -8,7 +8,7 @@ import 'package:countly_flutter/countly_flutter.dart';
 void main() {
   runZonedGuarded<Future<void>>(() async {
     runApp(MyApp());
-  }, Countly.recordError);
+  }, Countly.recordDartError);
 }
 
 class MyApp extends StatefulWidget {
