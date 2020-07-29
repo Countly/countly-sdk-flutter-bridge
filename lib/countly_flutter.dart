@@ -13,9 +13,9 @@ class Countly {
 
   // static variable
   static Function listenerCallback;
-  static bool isDebug = false;
+  static bool _isDebug = false;
   static final String TAG = "CountlyFlutter";
-  static bool enableCrashReportingFlag = false;
+  static bool _enableCrashReportingFlag = false;
   static Map<String, Object> messagingMode = {"TEST": "1", "PRODUCTION": "0", "ADHOC": "2"};
   static Map<String, Object> deviceIDType = {
     "TemporaryDeviceID": "TemporaryDeviceID"
@@ -23,7 +23,7 @@ class Countly {
 
   static log(String message, {LogLevel logLevel = LogLevel.DEBUG}) async {
     String logLevelStr = describeEnum(logLevel);
-    if(isDebug){
+    if(_isDebug){
       print('[$TAG] ${logLevelStr}: ${message}');
     }
   }
@@ -351,7 +351,7 @@ class Countly {
 
   static Future<String> setLoggingEnabled(bool flag) async {
     List <String> args = [];
-    isDebug = flag;
+    _isDebug = flag;
     args.add(flag.toString());
     log(args.toString());
     final String result = await _channel.invokeMethod('setLoggingEnabled', <String, dynamic>{
@@ -843,7 +843,7 @@ class Countly {
   static Future<String> enableCrashReporting() async {
     FlutterError.onError = _recordFlutterError;
     List <String> args = [];
-    enableCrashReportingFlag = true;
+    _enableCrashReportingFlag = true;
     log(args.toString());
     final String result = await _channel.invokeMethod('enableCrashReporting', <String, dynamic>{
       'data': json.encode(args)
@@ -854,6 +854,13 @@ class Countly {
 
   static Future<String> logExceptionEx(Exception exception,bool nonfatal, [Map<String, Object> segmentation]) async {
     logException(exception.toString(), nonfatal, segmentation).then((String result) {
+      return result;
+    });
+  }
+
+  static Future<String> logExceptionManual(String exception,bool nonfatal, [StackTrace stacktrace, Map<String, Object> segmentation]) async {
+    stacktrace ??= StackTrace.current ?? StackTrace.fromString('');
+    logException("$exception\n StackTrace : $stacktrace", nonfatal, segmentation).then((String result) {
       return result;
     });
   }
@@ -883,11 +890,11 @@ class Countly {
 
   static Future<void> _recordFlutterError(FlutterErrorDetails details) async {
     log('_recordFlutterError, Flutter error caught by Countly:');
-    if(!enableCrashReportingFlag) {
+    if(!_enableCrashReportingFlag) {
       log('_recordFlutterError, Crash Reporting must be enabled to report crash on Countly',logLevel: LogLevel.WARNING);
       return;
     }
-    if(isDebug) {
+    if(_isDebug) {
       FlutterError.dumpErrorToConsole(details, forceReport: true);
     }
     _internalRecordError(details.exceptionAsString(), details.stack);
@@ -895,7 +902,7 @@ class Countly {
 
   static Future<void> recordDartError(dynamic exception, StackTrace stack, {dynamic context}) async {
     log('recordError, Error caught by Countly :');
-    if(!enableCrashReportingFlag) {
+    if(!_enableCrashReportingFlag) {
       log('recordError, Crash Reporting must be enabled to report crash on Countly',logLevel: LogLevel.WARNING);
       return;
     }
