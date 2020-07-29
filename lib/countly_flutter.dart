@@ -318,9 +318,9 @@ class Countly {
     List <String> args = [];
     String onServerString;
     if(onServer == false){
-        onServerString = "0";
+      onServerString = "0";
     }else{
-        onServerString = "1";
+      onServerString = "1";
     }
     newDeviceID = newDeviceID.toString();
     args.add(newDeviceID);
@@ -829,7 +829,7 @@ class Countly {
     log(result);
     return result;
   }
-  
+
   static Future<String> throwNativeException() async {
     List <String> args = [];
     log(args.toString());
@@ -851,7 +851,7 @@ class Countly {
     log(result);
     return result;
   }
-  
+
   static Future<String> logException(String exception,bool nonfatal, Map<String, Object> segmentation) async {
     List <String> args = [];
     if(exception == null) {
@@ -876,7 +876,7 @@ class Countly {
   }
 
   static Future<void> recordFlutterError(FlutterErrorDetails details) async {
-    log('Flutter error caught by Countly:');
+    log('recordFlutterError, Flutter error caught by Countly:');
     if(!enableCrashReportingFlag) {
       log('recordFlutterError, Crash Reporting must be enabled to report crash on Countly',logLevel: LogLevel.WARNING);
       return;
@@ -884,53 +884,39 @@ class Countly {
     if(isDebug) {
       FlutterError.dumpErrorToConsole(details, forceReport: true);
     }
-    isInitialized().then((bool isInitialized){
-      if(!isInitialized) {
-        log('recordError, countly is not initialized',logLevel: LogLevel.WARNING);
-        return;
-      } else {
-        _internalRecordError(details.exceptionAsString(), details.stack,
-            context: details.context,
-            information: details.informationCollector == null
-                ? null
-                : details.informationCollector(),
-            printDetails: false);
-      }
-    });
+    _internalRecordError(details.exceptionAsString(), details.stack, context: details.context, information: details.informationCollector());
   }
 
-  static Future<void> recordError(dynamic exception, StackTrace stack,
-      {dynamic context}) async {
-    log('Error caught by Countly <recordError>:');
+  static Future<void> recordError(dynamic exception, StackTrace stack, {dynamic context}) async {
+    log('recordError, Error caught by Countly :');
     if(!enableCrashReportingFlag) {
       log('recordError, Crash Reporting must be enabled to report crash on Countly',logLevel: LogLevel.WARNING);
       return;
     }
+    _internalRecordError(exception, stack, context: context);
+  }
+
+  static Future<void> _internalRecordError(dynamic exception, StackTrace stack, {dynamic context, Iterable<DiagnosticsNode> information}) async {
     isInitialized().then((bool isInitialized){
       if(!isInitialized) {
-        log('recordError, countly is not initialized',logLevel: LogLevel.WARNING);
+        log('_internalRecordError, countly is not initialized',logLevel: LogLevel.WARNING);
         return;
-      } else {
-        _internalRecordError(exception, stack, context: context);
+      }
+
+      final String _information = (information == null || information.isEmpty) ? '' : (StringBuffer()..writeAll(information, '\n')).toString();
+      if (context != null) {
+        log('_internalRecordError, The following exception was thrown $context:');
+      }
+      log(exception.toString());
+      if (_information.isNotEmpty) log('\n$_information');
+      if (stack != null) log('\n$stack');
+
+      stack ??= StackTrace.current ?? StackTrace.fromString('');
+      try {
+        logException('${exception.toString()}\n StackTrace : $stack', true, {"Information": _information});
+      } catch (e) {
+        log('Sending crash report to Countly failed: $e');
       }
     });
   }
-
-  static Future<void> _internalRecordError(dynamic exception, StackTrace stack, {dynamic context, Iterable<DiagnosticsNode> information, bool printDetails}) async {
-    final String _information = (information == null || information.isEmpty) ? '' : (StringBuffer()..writeAll(information, '\n')).toString();
-    if (context != null) {
-      log('The following exception was thrown $context:');
-    }
-    log(exception);
-    if (_information.isNotEmpty) log('\n$_information');
-    if (stack != null) log('\n$stack');
-
-    stack ??= StackTrace.current ?? StackTrace.fromString('');
-    try {
-      logException('${exception.toString()}\n StackTrace : $stack', true, {"Information": _information});
-    } catch (e) {
-      log('Sending crash report to Countly failed: $e');
-    }
-  }
-
 }
