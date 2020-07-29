@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
-import 'package:stack_trace/stack_trace.dart';
 
 
 enum LogLevel {INFO, DEBUG, VERBOSE, WARNING, ERROR}
@@ -878,43 +877,12 @@ class Countly {
     return result;
   }
 
-  static Future<String> logExceptionWithStack(String exception,bool nonfatal, List<Map<String, String>> stackTraceElements, String information) async {
-    List <String> args = [];
-    if(exception == null) {
-      String error = "logException, provided exception was null, returning";
-      log(error);
-      return "Error : $error";
-    }
-    args.add(exception);
-    args.add(nonfatal.toString());
-    if(information != null && information != "") {
-      args.add("information");
-      args.add(information);
-    }
-    if(stackTraceElements != null){
-      for (Map<String, String> stackTraceElement in stackTraceElements) {
-        stackTraceElement.forEach((k, v){
-          args.add(k.toString());
-          args.add(v.toString());
-        });
-      }
-    }
-    log(args.toString());
-    final String result = await _channel.invokeMethod('logException', <String, dynamic>{
-      'data': json.encode(args)
-    });
-    log(result);
-    return result;
-  }
-
   static Future<void> recordFlutterError(FlutterErrorDetails details) async {
     log('Flutter error caught by Countly:');
     if(!enableCrashReportingFlag) {
       log('recordFlutterError, Crash Reporting must be enabled to report crash on Countly',logLevel: LogLevel.WARNING);
       return;
     }
-    // Since multiple errors can be caught during a single session, we set
-    // forceReport=true.
     if(isDebug) {
       FlutterError.dumpErrorToConsole(details, forceReport: true);
     }
@@ -930,13 +898,12 @@ class Countly {
       else {
         log('recordFlutterError, countly is not initialized', logLevel: LogLevel.WARNING);
       }
-
     });
   }
 
   static Future<void> recordError(dynamic exception, StackTrace stack,
       {dynamic context}) async {
-    log('Error caught by CountlyCrashReporter <recordError>:');
+    log('Error caught by Countly <recordError>:');
     if(!enableCrashReportingFlag) {
       log('recordError, Crash Reporting must be enabled to report crash on Countly',logLevel: LogLevel.WARNING);
       return;
@@ -948,49 +915,7 @@ class Countly {
       else {
         log('recordError, countly is not initialized',logLevel: LogLevel.WARNING);
       }
-
     });
-  }
-
-  static List<Map<String, String>> getStackTraceElements(List<String> lines) {
-    final List<Map<String, String>> elements = <Map<String, String>>[];
-    for (String line in lines) {
-      final List<String> lineParts = line.split(RegExp('\\s+'));
-      try {
-        final String fileName = lineParts[0];
-        final String lineNumber = lineParts[1].contains(":")
-            ? lineParts[1].substring(0, lineParts[1].indexOf(":")).trim()
-            : lineParts[1];
-
-        final Map<String, String> element = <String, String>{
-          'file': fileName,
-          'line': lineNumber,
-        };
-
-        // The next section would throw an exception in some cases if there was no stop here.
-        if (lineParts.length < 3) {
-          elements.add(element);
-          continue;
-        }
-
-        if (lineParts[2].contains(".")) {
-          final String className =
-          lineParts[2].substring(0, lineParts[2].indexOf(".")).trim();
-          final String methodName =
-          lineParts[2].substring(lineParts[2].indexOf(".") + 1).trim();
-
-          element['class'] = className;
-          element['method'] = methodName;
-        } else {
-          element['method'] = lineParts[2];
-        }
-
-        elements.add(element);
-      } catch (e) {
-        log(e.toString());
-      }
-    }
-    return elements;
   }
 
   static Future<void> _internalRecordError(
@@ -1006,43 +931,24 @@ class Countly {
     }
 
     printDetails ??= inDebugMode;
-
     final String _information = (information == null || information.isEmpty)
         ? ''
         : (StringBuffer()..writeAll(information, '\n')).toString();
 
     if (printDetails) {
-      // If available, give context to the exception.
       if (context != null)
         log('The following exception was thrown $context:');
-
-      // Need to print the exception to explain why the exception was thrown.
-      log(exception);
-
-      // Print information provided by the Flutter framework about the exception.
-      if (_information.isNotEmpty) log('\n$_information');
-
-      // Not using Trace.format here to stick to the default stack trace format
-      // that Flutter developers are used to seeing.
-      if (stack != null) log('\n$stack');
+        log(exception);
+        if (_information.isNotEmpty) log('\n$_information');
+        if (stack != null) log('\n$stack');
     }
     if (!inDebugMode || enableCrashReportingInDevMode) {
-      // The stack trace can be null. To avoid the following exception:
-      // Invalid argument(s): Cannot create a Trace from null.
-      // We can check for null and provide an empty stack trace.
       stack ??= StackTrace.current ?? StackTrace.fromString('');
-
-      // Report error.
-      final List<String> stackTraceLines =
-      Trace.format(stack).trimRight().split('\n');
-      final List<Map<String, String>> stackTraceElements =
-      getStackTraceElements(stackTraceLines);
       try {
-        logExceptionWithStack(exception.toString(), true, stackTraceElements, _information);
+        logException('${exception.toString()}\n StackTrace : $stack', true, {"Information": _information});
       } catch (e) {
         log('Sending crash report to Countly failed: $e');
       }
-
     }
   }
 
