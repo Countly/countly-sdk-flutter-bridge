@@ -243,8 +243,13 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               result.success("addCrashLog success!");
           } else if ("logException".equals(call.method)) {
               String exceptionString = args.getString(0);
+              Boolean fatal = args.getBoolean(1);
               Exception exception = new Exception(exceptionString);
-              Countly.sharedInstance().crashes().recordHandledException(exception);
+              if(fatal) {
+                  Countly.sharedInstance().crashes().recordUnhandledException(exception);
+              } else {
+                  Countly.sharedInstance().crashes().recordHandledException(exception);
+              }
 
               result.success("logException success!");
           } else if ("sendPushToken".equals(call.method)) {
