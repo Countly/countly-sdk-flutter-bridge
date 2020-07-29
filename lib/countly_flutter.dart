@@ -830,6 +830,28 @@ class Countly {
     return result;
   }
   
+  static Future<String> throwNativeException() async {
+    List <String> args = [];
+    log(args.toString());
+    final String result = await _channel.invokeMethod('throwNativeException', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
+
+  static Future<String> enableCrashReporting() async {
+    FlutterError.onError = recordFlutterError;
+    List <String> args = [];
+    enableCrashReportingFlag = true;
+    log(args.toString());
+    final String result = await _channel.invokeMethod('enableCrashReporting', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
+  
   static Future<String> logException(String exception,bool nonfatal, Map<String, Object> segmentation) async {
     List <String> args = [];
     if(exception == null) {
@@ -847,28 +869,6 @@ class Countly {
     }
     log(args.toString());
     final String result = await _channel.invokeMethod('logException', <String, dynamic>{
-      'data': json.encode(args)
-    });
-    log(result);
-    return result;
-  }
-  
-  static Future<String> throwNativeException() async {
-    List <String> args = [];
-    log(args.toString());
-    final String result = await _channel.invokeMethod('throwNativeException', <String, dynamic>{
-      'data': json.encode(args)
-    });
-    log(result);
-    return result;
-  }
-
-  static Future<String> enableCrashReporting() async {
-    FlutterError.onError = recordFlutterError;
-    List <String> args = [];
-    enableCrashReportingFlag = true;
-    log(args.toString());
-    final String result = await _channel.invokeMethod('enableCrashReporting', <String, dynamic>{
       'data': json.encode(args)
     });
     log(result);
