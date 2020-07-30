@@ -5,8 +5,9 @@ import 'dart:convert';
 
 import 'package:countly_flutter/countly_flutter.dart';
 
-/// To catch and report Dart Errors to Countly,
-/// need to run app inside a Zone and provide a [Countly.recordDartError] callback for [onError()].
+/// This or a similar call needs to added to catch and report Dart Errors to Countly,
+/// You need to run app inside a Zone
+/// and provide the [Countly.recordDartError] callback for [onError()]
 void main() {
   runZonedGuarded<Future<void>>(() async {
     runApp(MyApp());
