@@ -13,8 +13,10 @@ class Countly {
 
   // static variable
   static Function listenerCallback;
+  /// Use for logging, update its value in [setLoggingEnabled(bool flag)].
   static bool _isDebug = false;
   static final String TAG = "CountlyFlutter";
+  /// Use for crash reporting, set true when [enableCrashReporting()] is call.
   static bool _enableCrashReportingFlag = false;
   static Map<String, Object> messagingMode = {"TEST": "1", "PRODUCTION": "0", "ADHOC": "2"};
   static Map<String, Object> deviceIDType = {
@@ -855,7 +857,10 @@ class Countly {
 
   /// To Report Exception call logExceptionEx or logExceptionManual or logException
   ///
-  /// Similar to [logException], but exception is [Exception] object instead of [String].
+  /// Similar to [logException], but exception is [Exception] object instead of [String],
+  /// also with optional stacktrace parameter.
+  ///
+  /// Use [StackTrace.current] if no stacktrace is provided.
   static Future<String> logExceptionEx(Exception exception,bool nonfatal, {StackTrace stacktrace, Map<String, Object> segmentation}) async {
     stacktrace ??= StackTrace.current ?? StackTrace.fromString('');
     logException("${exception.toString()}\n\n$stacktrace", nonfatal, segmentation).then((String result) {
@@ -864,6 +869,8 @@ class Countly {
   }
 
   /// Similar to [logException], but with optional stacktrace parameter.
+  ///
+  /// Use [StackTrace.current] if no stacktrace is provided.
   static Future<String> logExceptionManual(String exception,bool nonfatal, {StackTrace stacktrace, Map<String, Object> segmentation}) async {
     stacktrace ??= StackTrace.current ?? StackTrace.fromString('');
     logException("$exception\n\n$stacktrace", nonfatal, segmentation).then((String result) {
@@ -872,6 +879,8 @@ class Countly {
   }
 
   /// Report handled and unhandled exception to countly.
+  ///
+  /// Expects the stacktrace to already be added to the exception and a common usecase would be [exception.toString()]
   static Future<String> logException(String exception,bool nonfatal, [Map<String, Object> segmentation]) async {
     List <String> args = [];
     if(exception == null) {
@@ -894,7 +903,7 @@ class Countly {
     return result;
   }
 
-  /// Internal fucntion to catch and report Flutter errors.
+  /// Internal function to catch and report Flutter errors.
   ///
   /// Must call [enableCrashReporting()] to override the [FlutterError.onError] property with [_recordFlutterError].
   static Future<void> _recordFlutterError(FlutterErrorDetails details) async {
