@@ -840,6 +840,7 @@ class Countly {
     return result;
   }
 
+  /// Enable crash reporting to report errors to counlty.
   static Future<String> enableCrashReporting() async {
     FlutterError.onError = _recordFlutterError;
     List <String> args = [];
@@ -852,6 +853,9 @@ class Countly {
     return result;
   }
 
+  /// To Report Exception call logExceptionEx or logExceptionManual or logException
+  ///
+  /// Similar to [logException], but exception is [Exception] object instead of [String].
   static Future<String> logExceptionEx(Exception exception,bool nonfatal, [Map<String, Object> segmentation]) async {
     StackTrace stacktrace = StackTrace.current ?? StackTrace.fromString('');
     logException("${exception.toString()}\n\n$stacktrace", nonfatal, segmentation).then((String result) {
@@ -859,6 +863,7 @@ class Countly {
     });
   }
 
+  /// Similar to [logException], but with optional stacktrace parameter.
   static Future<String> logExceptionManual(String exception,bool nonfatal, [StackTrace stacktrace, Map<String, Object> segmentation]) async {
     stacktrace ??= StackTrace.current ?? StackTrace.fromString('');
     logException("$exception\n\n$stacktrace", nonfatal, segmentation).then((String result) {
@@ -866,6 +871,7 @@ class Countly {
     });
   }
 
+  /// Report handled and unhandled exception to countly.
   static Future<String> logException(String exception,bool nonfatal, [Map<String, Object> segmentation]) async {
     List <String> args = [];
     if(exception == null) {
@@ -889,6 +895,9 @@ class Countly {
     return result;
   }
 
+  /// Internal fucntion to catch and report Flutter errors.
+  ///
+  /// Must call [enableCrashReporting()] to override the [FlutterError.onError] property with [_recordFlutterError].
   static Future<void> _recordFlutterError(FlutterErrorDetails details) async {
     log('_recordFlutterError, Flutter error caught by Countly:');
     if(!_enableCrashReportingFlag) {
@@ -901,6 +910,17 @@ class Countly {
     _internalRecordError(details.exceptionAsString(), details.stack);
   }
 
+  /// Catch and report Dart errors, [enableCrashReporting()] must call after [init] to make it work.
+  ///
+  /// Run your app inside a custom Zone by providing [Countly.recordDartError] in onError() callback.
+  ///
+  /// ```
+  /// void main() {
+  ///   runZonedGuarded<Future<void>>(() async {
+  ///     runApp(MyApp());
+  ///   }, Countly.recordDartError);
+  /// }
+  ///
   static Future<void> recordDartError(dynamic exception, StackTrace stack, {dynamic context}) async {
     log('recordError, Error caught by Countly :');
     if(!_enableCrashReportingFlag) {
@@ -910,6 +930,9 @@ class Countly {
     _internalRecordError(exception, stack);
   }
 
+  /// Internal function to report errors.
+  ///
+  /// [recordDartError] and [_recordFlutterError] both use this function to report errors to countly.
   static Future<void> _internalRecordError(dynamic exception, StackTrace stack) async {
     isInitialized().then((bool isInitialized){
       if(!isInitialized) {
