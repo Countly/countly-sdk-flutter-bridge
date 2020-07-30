@@ -5,7 +5,14 @@ import 'dart:convert';
 
 import 'package:countly_flutter/countly_flutter.dart';
 
-void main() => runApp(MyApp());
+/// This or a similar call needs to added to catch and report Dart Errors to Countly,
+/// You need to run app inside a Zone
+/// and provide the [Countly.recordDartError] callback for [onError()]
+void main() {
+  runZonedGuarded<Future<void>>(() async {
+    runApp(MyApp());
+  }, Countly.recordDartError);
+}
 
 class MyApp extends StatefulWidget {
   @override
@@ -456,10 +463,16 @@ class _MyAppState extends State<MyApp> {
   }
 
   dividedByZero() {
-    int a = 25;
-    int b = 0;
-    double c = a / b;
-    print(c);
+    try {
+      int firstInput = 20;
+      int secondInput = 0;
+      int result = firstInput ~/ secondInput;
+      print('The result of $firstInput divided by $secondInput is $result');
+    } catch (e, s) {
+      print('Exception occurs: $e');
+      print('STACK TRACE\n: $s');
+      Countly.logExceptionEx(e, true, stacktrace: s);
+    }
   }
 
   setLoggingEnabled(){

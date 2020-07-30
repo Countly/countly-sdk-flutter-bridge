@@ -13,9 +13,18 @@ class Countly {
 
   // static variable
   static Function listenerCallback;
-  static bool isDebug = false;
+
+  /// Used to determine if log messages should be printed to the console
+  /// its value should be updated from [setLoggingEnabled(bool flag)].
+  static bool _isDebug = false;
+
   static final String TAG = "CountlyFlutter";
-  static bool enableCrashReportingFlag = false;
+
+  /// Flag to determine if crash logging functionality should be enabled
+  /// If false the intercepted crashes will be ignored
+  /// Set true when user enabled crash logging
+  static bool _enableCrashReportingFlag = false;
+
   static Map<String, Object> messagingMode = {"TEST": "1", "PRODUCTION": "0", "ADHOC": "2"};
   static Map<String, Object> deviceIDType = {
     "TemporaryDeviceID": "TemporaryDeviceID"
@@ -23,7 +32,7 @@ class Countly {
 
   static log(String message, {LogLevel logLevel = LogLevel.DEBUG}) async {
     String logLevelStr = describeEnum(logLevel);
-    if(isDebug){
+    if(_isDebug){
       print('[$TAG] ${logLevelStr}: ${message}');
     }
   }
@@ -318,9 +327,9 @@ class Countly {
     List <String> args = [];
     String onServerString;
     if(onServer == false){
-        onServerString = "0";
+      onServerString = "0";
     }else{
-        onServerString = "1";
+      onServerString = "1";
     }
     newDeviceID = newDeviceID.toString();
     args.add(newDeviceID);
@@ -351,7 +360,7 @@ class Countly {
 
   static Future<String> setLoggingEnabled(bool flag) async {
     List <String> args = [];
-    isDebug = flag;
+    _isDebug = flag;
     args.add(flag.toString());
     log(args.toString());
     final String result = await _channel.invokeMethod('setLoggingEnabled', <String, dynamic>{
@@ -830,6 +839,8 @@ class Countly {
     return result;
   }
 
+  /// Call used for testing error handling
+  /// Should not be used 
   static Future<String> throwNativeException() async {
     List <String> args = [];
     log(args.toString());
@@ -839,19 +850,12 @@ class Countly {
     log(result);
     return result;
   }
-  
+
+  /// Enable crash reporting to report uncaught errors to Countly.
   static Future<String> enableCrashReporting() async {
-    FlutterError.onError = (FlutterErrorDetails details, {bool forceReport = false}) {
-      try {
-        Countly.logException("${details.exception} \n ${details.stack}", true, {});
-      } catch (e) {
-        print('Sending report to sentry.io failed: $e');
-      } finally {
-        FlutterError.dumpErrorToConsole(details, forceReport: forceReport);
-      }
-    };
+    FlutterError.onError = _recordFlutterError;
     List <String> args = [];
-    enableCrashReportingFlag = true;
+    _enableCrashReportingFlag = true;
     log(args.toString());
     final String result = await _channel.invokeMethod('enableCrashReporting', <String, dynamic>{
       'data': json.encode(args)
@@ -860,7 +864,17 @@ class Countly {
     return result;
   }
 
-  static Future<String> logException(String exception,bool nonfatal, Map<String, Object> segmentation) async {
+  /// Report a handled or unhandled exception/error to Countly.
+  ///
+  /// This call does not add a stacktrace automatically
+  /// if it's needed, it should already be added to the [exception] variable
+  ///
+  /// A potential use case would be to provide [exception.toString()]
+  ///
+  /// [String exception] - the exception / crash information sent to the server
+  /// [bool nonfatal] - reports if the error was fatal or not
+  /// [Map<String, Object> segmentation] - allows to add optional segmentation
+  static Future<String> logException(String exception, bool nonfatal, [Map<String, Object> segmentation]) async {
     List <String> args = [];
     if(exception == null) {
       String error = "logException, provided exception was null, returning";
@@ -875,7 +889,6 @@ class Countly {
         args.add(v.toString());
       });
     }
-    log(args.toString());
     final String result = await _channel.invokeMethod('logException', <String, dynamic>{
       'data': json.encode(args)
     });
@@ -883,4 +896,91 @@ class Countly {
     return result;
   }
 
+  /// Report a handled or unhandled exception/error to Countly.
+  ///
+  /// The exception is provided with an [Exception] object
+  /// If no stack trace is provided, [StackTrace.current] will be used
+  ///
+  /// [String exception] - the exception that is recorded
+  /// [bool nonfatal] - reports if the exception was fatal or not
+  /// [StackTrace stacktrace] - stacktrace for the crash
+  /// [Map<String, Object> segmentation] - allows to add optional segmentation
+  static Future<String> logExceptionEx(Exception exception, bool nonfatal, {StackTrace stacktrace, Map<String, Object> segmentation}) async {
+    stacktrace ??= StackTrace.current ?? StackTrace.fromString('');
+    logException("${exception.toString()}\n\n$stacktrace", nonfatal, segmentation).then((String result) {
+      return result;
+    });
+  }
+
+  /// Report a handled or unhandled exception/error to Countly.
+  ///
+  /// The exception/error is provided with a string message
+  /// If no stack trace is provided, [StackTrace.current] will be used
+  ///
+  /// [String message] - the error / crash information sent to the server
+  /// [bool nonfatal] - reports if the error was fatal or not
+  /// [StackTrace stacktrace] - stacktrace for the crash
+  /// [Map<String, Object> segmentation] - allows to add optional segmentation
+  static Future<String> logExceptionManual(String message, bool nonfatal, {StackTrace stacktrace, Map<String, Object> segmentation}) async {
+    stacktrace ??= StackTrace.current ?? StackTrace.fromString('');
+    logException("$message\n\n$stacktrace", nonfatal, segmentation).then((String result) {
+      return result;
+    });
+  }
+
+  /// Internal callback to record "FlutterError.onError" errors
+  ///
+  /// Must call [enableCrashReporting()] to enable it
+  static Future<void> _recordFlutterError(FlutterErrorDetails details) async {
+    log('_recordFlutterError, Flutter error caught by Countly:');
+    if(!_enableCrashReportingFlag) {
+      log('_recordFlutterError, Crash Reporting must be enabled to report crash on Countly',logLevel: LogLevel.WARNING);
+      return;
+    }
+
+    _internalRecordError(details.exceptionAsString(), details.stack);
+  }
+
+  /// Callback to catch and report Dart errors, [enableCrashReporting()] must call before [init] to make it work.
+  ///
+  /// This callback has to be provided when the app is about to be run.
+  /// It has to be done inside a custom Zone by providing [Countly.recordDartError] in onError() callback.
+  ///
+  /// ```
+  /// void main() {
+  ///   runZonedGuarded<Future<void>>(() async {
+  ///     runApp(MyApp());
+  ///   }, Countly.recordDartError);
+  /// }
+  ///
+  static Future<void> recordDartError(dynamic exception, StackTrace stack, {dynamic context}) async {
+    log('recordError, Error caught by Countly :');
+    if(!_enableCrashReportingFlag) {
+      log('recordError, Crash Reporting must be enabled to report crash on Countly',logLevel: LogLevel.WARNING);
+      return;
+    }
+    _internalRecordError(exception, stack);
+  }
+
+  /// A common call for crashes coming from [_recordFlutterError] and [recordDartError]
+  ///
+  /// They are then further reported to countly
+  static Future<void> _internalRecordError(dynamic exception, StackTrace stack) async {
+    isInitialized().then((bool isInitialized){
+      if(!isInitialized) {
+        log('_internalRecordError, countly is not initialized',logLevel: LogLevel.WARNING);
+        return;
+      }
+
+      log('_internalRecordError, Exception : ${exception.toString()}');
+      if (stack != null) log('\n_internalRecordError, Stack : $stack');
+
+      stack ??= StackTrace.fromString('');
+      try {
+        logException('${exception.toString()}\n\n$stack', true);
+      } catch (e) {
+        log('Sending crash report to Countly failed: $e');
+      }
+    });
+  }
 }

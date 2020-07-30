@@ -681,6 +681,11 @@ Boolean isInitialized = false;
                 result([NSString stringWithFormat: @"Rating:%d", (int)rating]);
             }];
         });
+    } else if ([@"throwNativeException" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            NSException *e = [NSException exceptionWithName:@"Native Exception Crash!" reason:@"Throw Native Exception..." userInfo:nil];
+            @throw e;
+        });
     }
     else {
         result(FlutterMethodNotImplemented);
