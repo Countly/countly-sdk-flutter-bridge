@@ -460,10 +460,16 @@ class _MyAppState extends State<MyApp> {
   }
 
   dividedByZero() {
-    int a = 25;
-    int b = 0;
-    double c = a / b;
-    print(c);
+    try {
+      int firstInput = 20;
+      int secondInput = 0;
+      int result = firstInput ~/ secondInput;
+      print('The result of $firstInput divided by $secondInput is $result');
+    } catch (e, s) {
+      print('Exception occurs: $e');
+      print('STACK TRACE\n: $s');
+      Countly.logExceptionEx(e, true, stacktrace: s);
+    }
   }
 
   setLoggingEnabled(){

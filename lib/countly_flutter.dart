@@ -856,15 +856,15 @@ class Countly {
   /// To Report Exception call logExceptionEx or logExceptionManual or logException
   ///
   /// Similar to [logException], but exception is [Exception] object instead of [String].
-  static Future<String> logExceptionEx(Exception exception,bool nonfatal, [Map<String, Object> segmentation]) async {
-    StackTrace stacktrace = StackTrace.current ?? StackTrace.fromString('');
+  static Future<String> logExceptionEx(Exception exception,bool nonfatal, {StackTrace stacktrace, Map<String, Object> segmentation}) async {
+    stacktrace ??= StackTrace.current ?? StackTrace.fromString('');
     logException("${exception.toString()}\n\n$stacktrace", nonfatal, segmentation).then((String result) {
       return result;
     });
   }
 
   /// Similar to [logException], but with optional stacktrace parameter.
-  static Future<String> logExceptionManual(String exception,bool nonfatal, [StackTrace stacktrace, Map<String, Object> segmentation]) async {
+  static Future<String> logExceptionManual(String exception,bool nonfatal, {StackTrace stacktrace, Map<String, Object> segmentation}) async {
     stacktrace ??= StackTrace.current ?? StackTrace.fromString('');
     logException("$exception\n\n$stacktrace", nonfatal, segmentation).then((String result) {
       return result;
@@ -887,7 +887,6 @@ class Countly {
         args.add(v.toString());
       });
     }
-    log(args.toString());
     final String result = await _channel.invokeMethod('logException', <String, dynamic>{
       'data': json.encode(args)
     });
@@ -904,9 +903,9 @@ class Countly {
       log('_recordFlutterError, Crash Reporting must be enabled to report crash on Countly',logLevel: LogLevel.WARNING);
       return;
     }
-    if(_isDebug) {
-      FlutterError.dumpErrorToConsole(details, forceReport: true);
-    }
+//    if(_isDebug) {
+//      FlutterError.dumpErrorToConsole(details, forceReport: true);
+//    }
     _internalRecordError(details.exceptionAsString(), details.stack);
   }
 
