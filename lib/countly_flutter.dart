@@ -702,16 +702,21 @@ class Countly {
     log(result);
     return result;
   }
-    static Future<String> apm() async {
+  static Future<String> setCustomCrashSegments(Map<String, Object> segments) async {
     List <String> args = [];
+    if(segments != null){
+      segments.forEach((k, v){
+        args.add(k.toString());
+        args.add(v.toString());
+      });
+    }
     log(args.toString());
-    final String result = await _channel.invokeMethod('apm', <String, dynamic>{
+    final String result = await _channel.invokeMethod('setCustomCrashSegments', <String, dynamic>{
       'data': json.encode(args)
     });
     log(result);
     return result;
   }
-
   static Future<String> startTrace(String traceKey) async {
     List <String> args = [];
     args.add(traceKey);
@@ -734,9 +739,9 @@ class Countly {
     return result;
   }
 
-  static Future<String> clearAllTrace() async {
+  static Future<String> clearAllTraces() async {
     List <String> args = [];
-    final String result = await _channel.invokeMethod('clearAllTrace', <String, dynamic>{
+    final String result = await _channel.invokeMethod('clearAllTraces', <String, dynamic>{
       'data': json.encode(args)
     });
     log(result);
@@ -758,49 +763,26 @@ class Countly {
     log(result);
     return result;
   }
-  static Future<String> startNetworkRequest(String networkTraceKey, String uniqueId) async {
-    List <String> args = [];
-    args.add(networkTraceKey);
-    args.add(uniqueId);
-    log(args.toString());
-    final String result = await _channel.invokeMethod('networkTraceKey', <String, dynamic>{
-      'data': json.encode(args)
-    });
-    log(result);
-    return result;
-  }
-  static Future<String> endNetworkRequest(String networkTraceKey, String uniqueId, int responseCode, int requestPayloadSize, int responsePayloadSize) async {
+  static Future<String> recordNetworkTrace(String networkTraceKey, String uniqueId, int responseCode, int requestPayloadSize, int responsePayloadSize, int startTime, int endTime) async {
     List <String> args = [];
     args.add(networkTraceKey);
     args.add(uniqueId);
     args.add(responseCode.toString());
     args.add(requestPayloadSize.toString());
     args.add(responsePayloadSize.toString());
+    args.add(startTime.toString());
+    args.add(endTime.toString());
     log(args.toString());
-    final String result = await _channel.invokeMethod('endNetworkRequest', <String, dynamic>{
+    final String result = await _channel.invokeMethod('recordNetworkTrace', <String, dynamic>{
       'data': json.encode(args)
     });
     log(result);
     return result;
   }
-  static Future<String> setRecordAppStartTime(bool isRecordAppStartTime) async {
-    List <String> args = [];
-    if(isRecordAppStartTime){
-      args.add("true");
-    }else{
-      args.add("false");
-    }
-    log(args.toString());
-    final String result = await _channel.invokeMethod('setRecordAppStartTime', <String, dynamic>{
-      'data': json.encode(args)
-    });
-    log(result);
-    return result;
-  }
-  static Future<String> applicationOnCreate() async {
+  static Future<String> enableApm() async {
     List <String> args = [];
     log(args.toString());
-    final String result = await _channel.invokeMethod('applicationOnCreate', <String, dynamic>{
+    final String result = await _channel.invokeMethod('enableApm', <String, dynamic>{
       'data': json.encode(args)
     });
     log(result);

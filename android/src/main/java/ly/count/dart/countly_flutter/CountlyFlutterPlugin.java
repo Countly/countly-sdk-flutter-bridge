@@ -171,6 +171,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               Countly.sharedInstance().crashes().recordHandledException(exception);
 
               result.success("logException success!");
+          } else if ("setCustomCrashSegments".equals(call.method)) {
+            Map<String, Object> segments = new HashMap<String, Object>();
+            for(int i=0,il=args.size();i<il;i+=2){
+                segments.put(args.getString(i), args.getString(i+1));
+            }
+            this.config.setCustomCrashSegment(segments);
+
+            result.success("setCustomCrashSegments success!");
           } else if ("sendPushToken".equals(call.method)) {
               String token = args.getString(0);
               int messagingMode = Integer.parseInt(args.getString(1));
@@ -575,49 +583,40 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                       result.success("Rating: Modal dismissed.");
                   }
               });
-          } else if ("apm".equals(call.method)) {
-            Countly.sharedInstance().apm();
-            result.success("apm: success");
-        } else if ("startTrace".equals(call.method)) {
+          } else if ("startTrace".equals(call.method)) {
             String traceKey = args.getString(0);
             Countly.sharedInstance().apm().startTrace(traceKey);
             result.success("startTrace: success");
         } else if ("cancelTrace".equals(call.method)) {
             result.success("cancelTrace: not implemented");
-        } else if ("clearAllTrace".equals(call.method)) {
-            result.success("clearAllTrace: not implemented");
+        } else if ("clearAllTraces".equals(call.method)) {
+            result.success("clearAllTraces: not implemented");
         } else if ("endTrace".equals(call.method)) {
             String traceKey = args.getString(0);
             HashMap<String, Integer> customMetric = new HashMap<String, Integer>();
             for (int i = 1, il = args.length(); i < il; i += 2) {
-                customMetric.put(args.getString(i), Integer.parseInt(args.getString(i + 1)));
+                try{
+                    customMetric.put(args.getString(i), Integer.parseInt(args.getString(i + 1)));
+                }catch(Exception exception){
+                    if(Countly.sharedInstance().isLoggingEnabled()) {
+                        Log.e(Countly.TAG, "[CountlyReactNative] endTrace, could not parse metrics, skipping it. ");
+                    }
+                }
             }
             Countly.sharedInstance().apm().endTrace(traceKey, customMetric);
             result.success("endTrace: success");
-        } else if ("startNetworkRequest".equals(call.method)) {
+        } else if ("recordNetworkTrace".equals(call.method)) {
             String networkTraceKey = args.getString(0);
-            String uniqueId = args.getString(1);
-            Countly.sharedInstance().apm().startNetworkRequest(networkTraceKey, uniqueId);
-            result.success("startNetworkRequest: success");
-        } else if ("endNetworkRequest".equals(call.method)) {
-            String networkTraceKey = args.getString(0);
-            String uniqueId = args.getString(1);
-            int responseCode = Integer.parseInt(args.getString(2));
-            int requestPayloadSize = Integer.parseInt(args.getString(3));
-            int responsePayloadSize = Integer.parseInt(args.getString(4));
-            Countly.sharedInstance().apm().endNetworkRequest(networkTraceKey, uniqueId, responseCode, requestPayloadSize, responsePayloadSize);
-            result.success("endNetworkRequest: success");
-        } else if ("setRecordAppStartTime".equals(call.method)) {
-            String isStart = args.getString(0);
-            if(isStart.equals("true")){
-                this.config.setRecordAppStartTime(true);
-            }else{
-                this.config.setRecordAppStartTime(false);
-            }
-            result.success("setRecordAppStartTime: success");
-        } else if ("applicationOnCreate".equals(call.method)) {
-            Countly.applicationOnCreate();
-            result.success("applicationOnCreate: success");
+            int responseCode = Integer.parseInt(args.getString(1));
+            int requestPayloadSize = Integer.parseInt(args.getString(2));
+            int responsePayloadSize = Integer.parseInt(args.getString(3));
+            int startTime = Integer.parseInt(args.getString(4));
+            int endTime = Integer.parseInt(args.getString(5));
+            // Countly.sharedInstance().apm().endNetworkRequest(networkTraceKey, null, responseCode, requestPayloadSize, responsePayloadSize);
+            result.success("recordNetworkTrace: success");
+        } else if ("enableApm".equals(call.method)) {
+            this.config.setRecordAppStartTime(true);
+            result.success("enableApm: success");
         } else {
             result.notImplemented();
         }
