@@ -763,10 +763,9 @@ class Countly {
     log(result);
     return result;
   }
-  static Future<String> recordNetworkTrace(String networkTraceKey, String uniqueId, int responseCode, int requestPayloadSize, int responsePayloadSize, int startTime, int endTime) async {
+  static Future<String> recordNetworkTrace(String networkTraceKey, int responseCode, int requestPayloadSize, int responsePayloadSize, int startTime, int endTime) async {
     List <String> args = [];
     args.add(networkTraceKey);
-    args.add(uniqueId);
     args.add(responseCode.toString());
     args.add(requestPayloadSize.toString());
     args.add(responsePayloadSize.toString());

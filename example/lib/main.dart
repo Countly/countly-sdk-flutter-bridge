@@ -314,8 +314,8 @@ class _MyAppState extends State<MyApp> {
   giveConsentStarRating(){
     Countly.giveConsent(["star-rating"]);
   }
-  giveConsentPerformance(){
-  Countly.giveConsent(["performance"]);
+  giveConsentAPM(){
+  Countly.giveConsent(["apm"]);
   }
 
   removeConsentsessions(){
@@ -345,8 +345,8 @@ class _MyAppState extends State<MyApp> {
   removeConsentstarRating(){
     Countly.removeConsent(["star-rating"]);
   }
-  removeConsentPerformance(){
-    Countly.removeConsent(["performance"]);
+  removeConsentAPM(){
+    Countly.removeConsent(["apm"]);
   }
 
   askForNotificationPermission(){
@@ -476,25 +476,23 @@ class _MyAppState extends State<MyApp> {
   List<int> failureCodes = [400, 402, 405, 408, 500, 501, 502, 505];
   recordNetworkTraceSuccess(){
     String networkTraceKey = "api/endpoint.1";
-    String uniqueId = "1337";
     var rnd = new Random();
     int responseCode = successCodes[rnd.nextInt(successCodes.length)];
     int requestPayloadSize = rnd.nextInt(700) + 200;
     int responsePayloadSize = rnd.nextInt(700) + 200;
     int startTime = new DateTime.now().millisecondsSinceEpoch;
     int endTime = startTime + 500;
-    Countly.recordNetworkTrace(networkTraceKey, uniqueId, responseCode, requestPayloadSize, responsePayloadSize, startTime, endTime);
+    Countly.recordNetworkTrace(networkTraceKey, responseCode, requestPayloadSize, responsePayloadSize, startTime, endTime);
   }
   recordNetworkTraceFailure(){
     String networkTraceKey = "api/endpoint.1";
-    String uniqueId = "7331";
     var rnd = new Random();
     int responseCode = failureCodes[rnd.nextInt(failureCodes.length)];
     int requestPayloadSize = rnd.nextInt(700) + 250;
     int responsePayloadSize = rnd.nextInt(700) + 250;
     int startTime = new DateTime.now().millisecondsSinceEpoch;
     int endTime = startTime + 500;
-    Countly.recordNetworkTrace(networkTraceKey, uniqueId, responseCode, requestPayloadSize, responsePayloadSize, startTime, endTime);
+    Countly.recordNetworkTrace(networkTraceKey, responseCode, requestPayloadSize, responsePayloadSize, startTime, endTime);
   }
   enableApm(){
     Countly.enableApm();
@@ -561,7 +559,7 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Give Consent Users", color: "blue", onPressed: giveConsentUsers),
               MyButton(text: "Give Consent Push", color: "blue", onPressed: giveConsentPush),
               MyButton(text: "Give Consent starRating", color: "blue", onPressed: giveConsentStarRating),
-              MyButton(text: "Give Consent Performance", color: "blue", onPressed: giveConsentPerformance),
+              MyButton(text: "Give Consent Performance", color: "blue", onPressed: giveConsentAPM),
 
 
               MyButton(text: "Remove Consent Sessions", color: "blue", onPressed: removeConsentsessions),
@@ -573,7 +571,7 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Remove Consent Users", color: "blue", onPressed: removeConsentusers),
               MyButton(text: "Remove Consent Push", color: "blue", onPressed: removeConsentpush),
               MyButton(text: "Remove Consent starRating", color: "blue", onPressed: removeConsentstarRating),
-              MyButton(text: "Remove Consent Performance", color: "blue", onPressed: removeConsentPerformance),
+              MyButton(text: "Remove Consent Performance", color: "blue", onPressed: removeConsentAPM),
 
 
 

@@ -480,7 +480,7 @@ NSMutableDictionary *networkRequest = nil;
             if([@"accessory-devices" isEqualToString:consent]){
                 [Countly.sharedInstance giveConsentForFeature:CLYConsentAppleWatch];
             }
-            if([@"performance" isEqualToString:consent]){
+            if([@"apm" isEqualToString:consent]){
                 [Countly.sharedInstance giveConsentForFeature:CLYConsentPerformanceMonitoring];
             }
         }
@@ -522,7 +522,7 @@ NSMutableDictionary *networkRequest = nil;
             if([@"accessory-devices" isEqualToString:consent]){
                 [Countly.sharedInstance cancelConsentForFeature:CLYConsentAppleWatch];
             }
-            if([@"performance" isEqualToString:consent]){
+            if([@"apm" isEqualToString:consent]){
                 [Countly.sharedInstance cancelConsentForFeature:CLYConsentPerformanceMonitoring];
             }
         }

@@ -176,7 +176,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
             for(int i=0,il=args.size();i<il;i+=2){
                 segments.put(args.getString(i), args.getString(i+1));
             }
-            this.config.setCustomCrashSegment(segments);
+            this.config.setCustomCrashSegments(segments);
 
             result.success("setCustomCrashSegments success!");
           } else if ("sendPushToken".equals(call.method)) {
@@ -412,7 +412,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                   if (theConsent.equals("starRating")) {
                       Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.starRating});
                   }
-                  if (theConsent.equals("performance")) {
+                  if (theConsent.equals("apm")) {
                       Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.apm});
                   }
               }
@@ -449,7 +449,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                   if (theConsent.equals("starRating")) {
                       Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.starRating});
                   }
-                  if (theConsent.equals("performance")) {
+                  if (theConsent.equals("apm")) {
                       Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.apm});
                   }
               }
