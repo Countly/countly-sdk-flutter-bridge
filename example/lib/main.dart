@@ -497,9 +497,9 @@ class _MyAppState extends State<MyApp> {
   enableApm(){
     Countly.enableApm();
   }
-  setCustomCrashSegments(){
+  setCustomCrashSegment(){
     var segment = {"Key": "Value"};
-    Countly.setCustomCrashSegments(segment);
+    Countly.setCustomCrashSegment(segment);
   }
   @override
   Widget build(BuildContext context) {
@@ -599,7 +599,7 @@ class _MyAppState extends State<MyApp> {
 
               MyButton(text: "Open rating modal", color: "orange", onPressed: askForStarRating),
               MyButton(text: "Open feedback modal", color: "orange", onPressed: askForFeedback),
-              MyButton(text: "Set Custom Crash Segment", color: "orange", onPressed: setCustomCrashSegments),
+              MyButton(text: "Set Custom Crash Segment", color: "orange", onPressed: setCustomCrashSegment),
 
               MyButton(text: "Start Trace", color: "black", onPressed: startTrace),
               MyButton(text: "End Trace", color: "black", onPressed: endTrace),

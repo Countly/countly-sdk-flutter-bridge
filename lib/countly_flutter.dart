@@ -702,7 +702,7 @@ class Countly {
     log(result);
     return result;
   }
-  static Future<String> setCustomCrashSegments(Map<String, Object> segments) async {
+  static Future<String> setCustomCrashSegment(Map<String, Object> segments) async {
     List <String> args = [];
     if(segments != null){
       segments.forEach((k, v){
@@ -711,7 +711,7 @@ class Countly {
       });
     }
     log(args.toString());
-    final String result = await _channel.invokeMethod('setCustomCrashSegments', <String, dynamic>{
+    final String result = await _channel.invokeMethod('setCustomCrashSegment', <String, dynamic>{
       'data': json.encode(args)
     });
     log(result);

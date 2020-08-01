@@ -292,7 +292,7 @@ NSMutableDictionary *networkRequest = nil;
         result(@"logException!");
         });
 
-    }else if ([@"setCustomCrashSegments" isEqualToString:call.method]) {
+    }else if ([@"setCustomCrashSegment" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
         for(int i=0,il=(int)command.count;i<il;i+=2){
@@ -300,7 +300,7 @@ NSMutableDictionary *networkRequest = nil;
         }
         config.crashSegmentation = dict;
         });
-        result(@"setCustomCrashSegments!");
+        result(@"setCustomCrashSegment!");
     }else if ([@"askForNotificationPermission" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
             [Countly.sharedInstance askForNotificationPermission];

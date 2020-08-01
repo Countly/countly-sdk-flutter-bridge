@@ -171,14 +171,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               Countly.sharedInstance().crashes().recordHandledException(exception);
 
               result.success("logException success!");
-          } else if ("setCustomCrashSegments".equals(call.method)) {
+          } else if ("setCustomCrashSegment".equals(call.method)) {
             Map<String, Object> segments = new HashMap<String, Object>();
-            for(int i=0,il=args.size();i<il;i+=2){
+            for(int i=0,il=args.length();i<il;i+=2){
                 segments.put(args.getString(i), args.getString(i+1));
             }
-            this.config.setCustomCrashSegments(segments);
+            this.config.setCustomCrashSegment(segments);
 
-            result.success("setCustomCrashSegments success!");
+            result.success("setCustomCrashSegment success!");
           } else if ("sendPushToken".equals(call.method)) {
               String token = args.getString(0);
               int messagingMode = Integer.parseInt(args.getString(1));
