@@ -446,88 +446,13 @@ NSMutableDictionary *networkRequest = nil;
 
     }else if ([@"giveConsent" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
-        NSString* consent = @"";
-        // NSMutableDictionary *giveConsentAll = [[NSMutableDictionary alloc] init];
-        for(int i=0,il=(int)command.count; i<il;i++){
-            consent = [command objectAtIndex:i];
-            if([@"sessions" isEqualToString:consent]){
-                [Countly.sharedInstance giveConsentForFeature:CLYConsentSessions];
-            }
-            if([@"events" isEqualToString:consent]){
-                [Countly.sharedInstance giveConsentForFeature:CLYConsentEvents];
-            }
-            if([@"users" isEqualToString:consent]){
-                [Countly.sharedInstance giveConsentForFeature:CLYConsentUserDetails];
-            }
-            if([@"crashes" isEqualToString:consent]){
-                [Countly.sharedInstance giveConsentForFeature:CLYConsentCrashReporting];
-            }
-            if([@"push" isEqualToString:consent]){
-                [Countly.sharedInstance giveConsentForFeature:CLYConsentPushNotifications];
-            }
-            if([@"location" isEqualToString:consent]){
-                [Countly.sharedInstance giveConsentForFeature:CLYConsentLocation];
-            }
-            if([@"views" isEqualToString:consent]){
-                [Countly.sharedInstance giveConsentForFeature:CLYConsentViewTracking];
-            }
-            if([@"attribution" isEqualToString:consent]){
-                [Countly.sharedInstance giveConsentForFeature:CLYConsentAttribution];
-            }
-            if([@"star-rating" isEqualToString:consent]){
-                [Countly.sharedInstance giveConsentForFeature:CLYConsentStarRating];
-            }
-            if([@"accessory-devices" isEqualToString:consent]){
-                [Countly.sharedInstance giveConsentForFeature:CLYConsentAppleWatch];
-            }
-            if([@"apm" isEqualToString:consent]){
-                [Countly.sharedInstance giveConsentForFeature:CLYConsentPerformanceMonitoring];
-            }
-        }
+        [Countly.sharedInstance giveConsentForFeatures:command];
         result(@"giveConsent!");
         });
 
     }else if ([@"removeConsent" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
-        NSString* consent = @"";
-        for(int i=0,il=(int)command.count; i<il;i++){
-            consent = [command objectAtIndex:i];
-            if([@"sessions" isEqualToString:consent]){
-                [Countly.sharedInstance cancelConsentForFeature:CLYConsentSessions];
-            }
-            if([@"events" isEqualToString:consent]){
-                [Countly.sharedInstance cancelConsentForFeature:CLYConsentEvents];
-            }
-            if([@"users" isEqualToString:consent]){
-                [Countly.sharedInstance cancelConsentForFeature:CLYConsentUserDetails];
-            }
-            if([@"crashes" isEqualToString:consent]){
-                [Countly.sharedInstance cancelConsentForFeature:CLYConsentCrashReporting];
-            }
-            if([@"push" isEqualToString:consent]){
-                [Countly.sharedInstance cancelConsentForFeature:CLYConsentPushNotifications];
-            }
-            if([@"location" isEqualToString:consent]){
-                [Countly.sharedInstance cancelConsentForFeature:CLYConsentLocation];
-            }
-            if([@"views" isEqualToString:consent]){
-                [Countly.sharedInstance cancelConsentForFeature:CLYConsentViewTracking];
-            }
-            if([@"attribution" isEqualToString:consent]){
-                [Countly.sharedInstance cancelConsentForFeature:CLYConsentAttribution];
-            }
-            if([@"star-rating" isEqualToString:consent]){
-                [Countly.sharedInstance cancelConsentForFeature:CLYConsentStarRating];
-            }
-            if([@"accessory-devices" isEqualToString:consent]){
-                [Countly.sharedInstance cancelConsentForFeature:CLYConsentAppleWatch];
-            }
-            if([@"apm" isEqualToString:consent]){
-                [Countly.sharedInstance cancelConsentForFeature:CLYConsentPerformanceMonitoring];
-            }
-        }
-
-        NSString *resultString = @"removeConsent for: ";
+        [Countly.sharedInstance cancelConsentForFeatures:command];
         result(@"removeConsent!");
         });
 
@@ -712,20 +637,30 @@ NSMutableDictionary *networkRequest = nil;
             NSString* traceKey = [command objectAtIndex:0];
             NSMutableDictionary *metrics = [[NSMutableDictionary alloc] init];
             for(int i=1,il=(int)command.count;i<il;i+=2){
-                metrics[[command objectAtIndex:i]] = [command objectAtIndex:i+1];
+                @try{
+                    metrics[[command objectAtIndex:i]] = [command objectAtIndex:i+1];
+                }
+                @catch(NSException *exception){
+                    NSLog(@"[CountlyFlutter] Exception occured while parsing metrics: %@", locationString);
+                }
             }
             [Countly.sharedInstance endCustomTrace: traceKey metrics: metrics];
         });
         result(@"endTrace: success");
     } else if ([@"recordNetworkTrace" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
-            NSString* networkTraceKey = [command objectAtIndex:0];
-            int responseCode = [[command objectAtIndex:1] intValue];
-            int requestPayloadSize = [[command objectAtIndex:2] intValue];
-            int responsePayloadSize = [[command objectAtIndex:3] intValue];
-            int startTime = [[command objectAtIndex:4] intValue];
-            int endTime = [[command objectAtIndex:5] intValue];
-            [Countly.sharedInstance recordNetworkTrace: networkTraceKey requestPayloadSize: requestPayloadSize responsePayloadSize: responsePayloadSize responseStatusCode: responseCode startTime: startTime endTime: endTime];
+            @try{
+                NSString* networkTraceKey = [command objectAtIndex:0];
+                int responseCode = [[command objectAtIndex:1] intValue];
+                int requestPayloadSize = [[command objectAtIndex:2] intValue];
+                int responsePayloadSize = [[command objectAtIndex:3] intValue];
+                int startTime = [[command objectAtIndex:4] intValue];
+                int endTime = [[command objectAtIndex:5] intValue];
+                [Countly.sharedInstance recordNetworkTrace: networkTraceKey requestPayloadSize: requestPayloadSize responsePayloadSize: responsePayloadSize responseStatusCode: responseCode startTime: startTime endTime: endTime];
+            }
+            @catch(NSException *exception){
+                NSLog(@"[CountlyFlutter] Exception occured at recordNetworkTrace method: %@", exception);
+            }
         });
         result(@"recordNetworkTrace: success");
     } else if ([@"enableApm" isEqualToString:call.method]) {

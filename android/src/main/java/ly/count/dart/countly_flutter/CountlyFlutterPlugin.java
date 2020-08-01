@@ -382,78 +382,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               this.config.setRequiresConsent(consentFlag);
               result.success("setRequiresConsent!");
           } else if ("giveConsent".equals(call.method)) {
-              List<String> features = new ArrayList<>();
-              for (int i = 0; i < args.length(); i++) {
-                  String theConsent = args.getString(i);
-                  if (theConsent.equals("sessions")) {
-                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.sessions});
-                  }
-                  if (theConsent.equals("events")) {
-                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.events});
-                  }
-                  if (theConsent.equals("views")) {
-                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.views});
-                  }
-                  if (theConsent.equals("location")) {
-                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.location});
-                  }
-                  if (theConsent.equals("crashes")) {
-                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.crashes});
-                  }
-                  if (theConsent.equals("attribution")) {
-                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.attribution});
-                  }
-                  if (theConsent.equals("users")) {
-                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.users});
-                  }
-                  if (theConsent.equals("push")) {
-                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.push});
-                  }
-                  if (theConsent.equals("starRating")) {
-                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.starRating});
-                  }
-                  if (theConsent.equals("apm")) {
-                      Countly.sharedInstance().consent().giveConsent(new String[]{Countly.CountlyFeatureNames.apm});
-                  }
-              }
+              Countly.sharedInstance().consent().giveConsent(getStringArray(args));
               result.success("giveConsent!");
 
           } else if ("removeConsent".equals(call.method)) {
-              List<String> features = new ArrayList<>();
-              for (int i = 0; i < args.length(); i++) {
-                  String theConsent = args.getString(i);
-                  if (theConsent.equals("sessions")) {
-                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.sessions});
-                  }
-                  if (theConsent.equals("events")) {
-                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.events});
-                  }
-                  if (theConsent.equals("views")) {
-                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.views});
-                  }
-                  if (theConsent.equals("location")) {
-                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.location});
-                  }
-                  if (theConsent.equals("crashes")) {
-                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.crashes});
-                  }
-                  if (theConsent.equals("attribution")) {
-                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.attribution});
-                  }
-                  if (theConsent.equals("users")) {
-                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.users});
-                  }
-                  if (theConsent.equals("push")) {
-                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.push});
-                  }
-                  if (theConsent.equals("starRating")) {
-                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.starRating});
-                  }
-                  if (theConsent.equals("apm")) {
-                      Countly.sharedInstance().consent().removeConsent(new String[]{Countly.CountlyFeatureNames.apm});
-                  }
-              }
-              result.success("removeConsent!");
+            Countly.sharedInstance().consent().removeConsent(getStringArray(args));
+            result.success("removeConsent!");
 
           } else if ("giveAllConsent".equals(call.method)) {
               Countly.sharedInstance().consent().giveConsentAll();
@@ -606,13 +540,19 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
             Countly.sharedInstance().apm().endTrace(traceKey, customMetric);
             result.success("endTrace: success");
         } else if ("recordNetworkTrace".equals(call.method)) {
-            String networkTraceKey = args.getString(0);
-            int responseCode = Integer.parseInt(args.getString(1));
-            int requestPayloadSize = Integer.parseInt(args.getString(2));
-            int responsePayloadSize = Integer.parseInt(args.getString(3));
-            int startTime = Integer.parseInt(args.getString(4));
-            int endTime = Integer.parseInt(args.getString(5));
-            // Countly.sharedInstance().apm().endNetworkRequest(networkTraceKey, null, responseCode, requestPayloadSize, responsePayloadSize);
+            try{
+                String networkTraceKey = args.getString(0);
+                int responseCode = Integer.parseInt(args.getString(1));
+                int requestPayloadSize = Integer.parseInt(args.getString(2));
+                int responsePayloadSize = Integer.parseInt(args.getString(3));
+                int startTime = Integer.parseInt(args.getString(4));
+                int endTime = Integer.parseInt(args.getString(5));
+                // Countly.sharedInstance().apm().endNetworkRequest(networkTraceKey, null, responseCode, requestPayloadSize, responsePayloadSize);
+            }catch(Exception exception){
+                if(Countly.sharedInstance().isLoggingEnabled()){
+                    Log.e(Countly.TAG, "Exception occured at recordNetworkTrace method: " +exception.toString());
+                }
+            }
             result.success("recordNetworkTrace: success");
         } else if ("enableApm".equals(call.method)) {
             this.config.setRecordAppStartTime(true);
@@ -646,5 +586,16 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
     }
     public interface Callback {
         void callback(String result);
+    }
+    public static String[] getStringArray(JSONArray jsonArray) {
+        String[] stringArray = null;
+        if (jsonArray != null) {
+            int length = jsonArray.length();
+            stringArray = new String[length];
+            for (int i = 0; i < length; i++) {
+                stringArray[i] = jsonArray.optString(i);
+            }
+        }
+        return stringArray;
     }
 }
