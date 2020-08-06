@@ -127,7 +127,7 @@ class Countly {
     if(segmentation != null){
       segmentation.forEach((k, v){
         if(v is String || v is int || v is double || v is bool) {
-          args.add(k.toString());
+          args.add(k);
           args.add(v.toString());
         }
         else {
