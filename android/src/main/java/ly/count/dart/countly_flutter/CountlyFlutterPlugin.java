@@ -705,6 +705,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 //            throw new RuntimeException("Native Exception Crash!");
 
           } else if ("enableAttribution".equals(call.method)) {
+              this.setConfig();
               this.config.setEnableAttribution(true);
               result.success("enableAttribution: success");
           } else {

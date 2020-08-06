@@ -114,7 +114,8 @@ class Countly {
   /// Record custom view to Countly.
   ///
   /// [String view] - name of the view
-  /// [Map<String, Object> segmentation] - allows to add optional segmentation
+  /// [Map<String, Object> segmentation] - allows to add optional segmentation,
+  /// Supported data type for segmentation values are String, int, double and bool
   static Future<String> recordView(String view, [Map<String, Object> segmentation]) async {
     if(isNullOrEmpty(view)){
       String error = "recordView, Trying to record view with null or empty view name, ignoring request";
@@ -125,8 +126,13 @@ class Countly {
     args.add(view);
     if(segmentation != null){
       segmentation.forEach((k, v){
-        args.add(k.toString());
-        args.add(v.toString());
+        if(v is String || v is int || v is double || v is bool) {
+          args.add(k.toString());
+          args.add(v.toString());
+        }
+        else {
+          log("recordView, unsupported segmentation data type [${v.runtimeType}], View [$view]", logLevel: LogLevel.WARNING);
+        }
       });
     }
     log(args.toString());
