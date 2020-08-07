@@ -593,7 +593,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
             int length = jsonArray.length();
             stringArray = new String[length];
             for (int i = 0; i < length; i++) {
-                stringArray[i] = jsonArray.optString(i);
+                stringArray[i] = jsonArray.getString(i);
             }
         }
         return stringArray;
