@@ -45,6 +45,7 @@ class _MyAppState extends State<MyApp> {
     Countly.pushTokenType(Countly.messagingMode["TEST"]);
     Countly.setLoggingEnabled(true);
     Countly.enableCrashReporting();
+    Countly.enableApm();
     Countly.init(SERVER_URL, APP_KEY);
   }
   initWithID(){
@@ -494,9 +495,6 @@ class _MyAppState extends State<MyApp> {
     int endTime = startTime + 500;
     Countly.recordNetworkTrace(networkTraceKey, responseCode, requestPayloadSize, responsePayloadSize, startTime, endTime);
   }
-  enableApm(){
-    Countly.enableApm();
-  }
   setCustomCrashSegment(){
     var segment = {"Key": "Value"};
     Countly.setCustomCrashSegment(segment);
@@ -605,7 +603,6 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "End Trace", color: "black", onPressed: endTrace),
               MyButton(text: "Record Network Trace Success", color: "black", onPressed: recordNetworkTraceSuccess),
               MyButton(text: "Record Network Trace Failure", color: "black", onPressed: recordNetworkTraceFailure),
-              MyButton(text: "Enable APM", color: "black", onPressed: enableApm)
             ],),
           )
         ),
