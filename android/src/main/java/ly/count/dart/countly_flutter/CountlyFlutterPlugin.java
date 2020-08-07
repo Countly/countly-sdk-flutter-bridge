@@ -562,7 +562,20 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               result.success("sendRating: " + ratingString);
           } else if ("recordView".equals(call.method)) {
               String viewName = args.getString(0);
-              Countly.sharedInstance().views().recordView(viewName);
+              Map<String, Object> segments = new HashMap<String, Object>();
+              int il = args.length();
+              if (il > 2) {
+                  for (int i = 1; i < il; i += 2) {
+                      try{
+                          segments.put(args.getString(i), args.getString(i + 1));
+                      }catch(Exception exception){
+                          if(Countly.sharedInstance().isLoggingEnabled()) {
+                              Log.e(Countly.TAG, "[CountlyReactNative] recordView, could not parse segments, skipping it. ");
+                          }
+                      }
+                  }
+              }
+              Countly.sharedInstance().views().recordView(viewName, segments);
               result.success("View name sent: " + viewName);
           } else if ("setOptionalParametersForInitialization".equals(call.method)) {
               String city = args.getString(0);
@@ -691,6 +704,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               throw new IllegalStateException("Native Exception Crashhh!");
 //            throw new RuntimeException("Native Exception Crash!");
 
+          } else if ("enableAttribution".equals(call.method)) {
+              this.setConfig();
+              this.config.setEnableAttribution(true);
+              result.success("enableAttribution: success");
           } else {
               result.notImplemented();
           }

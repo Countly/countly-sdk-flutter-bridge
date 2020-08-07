@@ -109,7 +109,19 @@ Boolean isInitialized = false;
     }else if ([@"recordView" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         NSString* recordView = [command objectAtIndex:0];
-        [Countly.sharedInstance recordView:recordView];
+        NSMutableDictionary *segments = [[NSMutableDictionary alloc] init];
+        int il=(int)command.count;
+        if(il > 2) {
+            for(int i=1;i<il;i+=2){
+                @try{
+                    segments[[command objectAtIndex:i]] = [command objectAtIndex:i+1];
+                }
+                @catch(NSException *exception){
+                    NSLog(@"[CountlyFlutter] recordView: Exception occured while parsing segments: %@", exception);
+                }
+            }
+        }
+        [Countly.sharedInstance recordView:recordView segmentation:segments];
         result(@"recordView Sent!");
         });
     }else if ([@"setLoggingEnabled" isEqualToString:call.method]) {
@@ -686,8 +698,12 @@ Boolean isInitialized = false;
             NSException *e = [NSException exceptionWithName:@"Native Exception Crash!" reason:@"Throw Native Exception..." userInfo:nil];
             @throw e;
         });
-    }
-    else {
+    }else if ([@"enableAttribution" isEqualToString:call.method]) {
+           dispatch_async(dispatch_get_main_queue(), ^ {
+               config.enableAttribution = YES;
+           });
+           result(@"enableAttribution: success");
+    } else {
         result(FlutterMethodNotImplemented);
     }
 }

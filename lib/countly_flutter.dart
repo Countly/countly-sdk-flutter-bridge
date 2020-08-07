@@ -111,8 +111,12 @@ class Countly {
     return result;
   }
 
-  ////// 001
-  static Future<String> recordView(String view) async {
+  /// Record custom view to Countly.
+  ///
+  /// [String view] - name of the view
+  /// [Map<String, Object> segmentation] - allows to add optional segmentation,
+  /// Supported data type for segmentation values are String, int, double and bool
+  static Future<String> recordView(String view, [Map<String, Object> segmentation]) async {
     if(isNullOrEmpty(view)){
       String error = "recordView, Trying to record view with null or empty view name, ignoring request";
       log(error);
@@ -120,6 +124,17 @@ class Countly {
     }
     List <String> args = [];
     args.add(view);
+    if(segmentation != null){
+      segmentation.forEach((k, v){
+        if(v is String || v is int || v is double || v is bool) {
+          args.add(k);
+          args.add(v.toString());
+        }
+        else {
+          log("recordView, unsupported segmentation data type [${v.runtimeType}], View [$view]", logLevel: LogLevel.WARNING);
+        }
+      });
+    }
     log(args.toString());
     final String result = await _channel.invokeMethod('recordView', <String, dynamic>{
       'data': json.encode(args)
@@ -982,5 +997,14 @@ class Countly {
         log('Sending crash report to Countly failed: $e');
       }
     });
+  }
+  /// Enable campaign attribution reporting to Countly.
+  static Future<String> enableAttribution() async {
+    List <String> args = [];
+    final String result = await _channel.invokeMethod('enableAttribution', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
   }
 }

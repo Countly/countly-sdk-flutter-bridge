@@ -163,7 +163,11 @@ class _MyAppState extends State<MyApp> {
     });
   }
   recordViewHome(){
-    Countly.recordView("HomePage");
+    Map<String, Object> segments = {
+      "Key_1": "Value_1",
+      "Key_2": "Value_2"
+    };
+    Countly.recordView("HomePage", segments);
   }
   recordViewDashboard(){
     Countly.recordView("Dashboard");
