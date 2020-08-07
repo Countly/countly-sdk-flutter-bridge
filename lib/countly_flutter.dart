@@ -747,7 +747,7 @@ class Countly {
     log(result);
     return result;
   }
-  static Future<String> endTrace(String traceKey, Map<String, Object> customMetric) async {
+  static Future<String> endTrace(String traceKey, Map<String, int> customMetric) async {
     List <String> args = [];
     args.add(traceKey);
     if(customMetric != null){

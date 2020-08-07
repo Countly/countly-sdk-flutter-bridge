@@ -20,9 +20,9 @@ class _MyAppState extends State<MyApp> {
   }
 
   // ignore: non_constant_identifier_names
-  static String SERVER_URL = "https://trinisoft.count.ly";
+  static String SERVER_URL = "https://try.count.ly";
   // ignore: non_constant_identifier_names
-  static String APP_KEY = "f0b2ac6919f718a13821575db28c0e2971e05ec5";
+  static String APP_KEY = "YOUR_APP_KEY";
 
   startup(){
       Countly.isInitialized().then((bool isInitialized){
@@ -466,7 +466,7 @@ class _MyAppState extends State<MyApp> {
   }
   endTrace(){
     String traceKey = "Trace Key";
-    Map<String, Object> customMetric = {
+    Map<String, int> customMetric = {
       "ABC": 1233,
       "C44C": 1337
     };

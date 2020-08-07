@@ -533,7 +533,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                     customMetric.put(args.getString(i), Integer.parseInt(args.getString(i + 1)));
                 }catch(Exception exception){
                     if(Countly.sharedInstance().isLoggingEnabled()) {
-                        Log.e(Countly.TAG, "[CountlyReactNative] endTrace, could not parse metrics, skipping it. ");
+                        Log.e(Countly.TAG, "[CountlyFlutter] endTrace, could not parse metric, skipping it. ");
                     }
                 }
             }

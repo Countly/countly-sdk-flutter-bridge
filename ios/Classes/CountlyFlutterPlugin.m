@@ -641,7 +641,7 @@ NSMutableDictionary *networkRequest = nil;
                     metrics[[command objectAtIndex:i]] = [command objectAtIndex:i+1];
                 }
                 @catch(NSException *exception){
-                    NSLog(@"[CountlyFlutter] Exception occured while parsing metrics: %@", exception);
+                    NSLog(@"[CountlyFlutter] Exception occured while parsing metric: %@", exception);
                 }
             }
             [Countly.sharedInstance endCustomTrace: traceKey metrics: metrics];
