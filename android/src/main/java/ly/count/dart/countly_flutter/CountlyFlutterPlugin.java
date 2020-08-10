@@ -382,11 +382,19 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               this.config.setRequiresConsent(consentFlag);
               result.success("setRequiresConsent!");
           } else if ("giveConsent".equals(call.method)) {
-              Countly.sharedInstance().consent().giveConsent(getStringArray(args));
-              result.success("giveConsent!");
+            String[] features = new String[args.length()];
+            for (int i = 0; i < length; i++) {
+                features[i] = jsonArray.getString(i);
+            }
+            Countly.sharedInstance().consent().giveConsent(features);
+            result.success("giveConsent!");
 
           } else if ("removeConsent".equals(call.method)) {
-            Countly.sharedInstance().consent().removeConsent(getStringArray(args));
+            String[] features = new String[args.length()];
+            for (int i = 0; i < length; i++) {
+                  features[i] = jsonArray.getString(i);
+            }
+            Countly.sharedInstance().consent().removeConsent(features);
             result.success("removeConsent!");
 
           } else if ("giveAllConsent".equals(call.method)) {
@@ -586,16 +594,5 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
     }
     public interface Callback {
         void callback(String result);
-    }
-    public static String[] getStringArray(JSONArray jsonArray) {
-        String[] stringArray = null;
-        if (jsonArray != null) {
-            int length = jsonArray.length();
-            stringArray = new String[length];
-            for (int i = 0; i < length; i++) {
-                stringArray[i] = jsonArray.getString(i);
-            }
-        }
-        return stringArray;
     }
 }
