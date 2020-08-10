@@ -553,8 +553,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
                 int responseCode = Integer.parseInt(args.getString(1));
                 int requestPayloadSize = Integer.parseInt(args.getString(2));
                 int responsePayloadSize = Integer.parseInt(args.getString(3));
-                int startTime = Integer.parseInt(args.getString(4));
-                int endTime = Integer.parseInt(args.getString(5));
+                float startTime = Float.parseFloat(args.getString(4));
+                float endTime = Float.parseFloat(args.getString(5));
                 // Countly.sharedInstance().apm().endNetworkRequest(networkTraceKey, null, responseCode, requestPayloadSize, responsePayloadSize);
             }catch(Exception exception){
                 if(Countly.sharedInstance().isLoggingEnabled()){

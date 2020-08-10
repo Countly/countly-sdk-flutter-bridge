@@ -16,24 +16,25 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    // this.startup();
+    this.startup();
   }
 
   // ignore: non_constant_identifier_names
-  static String SERVER_URL = "https://try.count.ly";
+  static String SERVER_URL = "https://trinisoft.count.ly";
   // ignore: non_constant_identifier_names
-  static String APP_KEY = "YOUR_APP_KEY";
+  static String APP_KEY = "f0b2ac6919f718a13821575db28c0e2971e05ec5";
 
   startup(){
       Countly.isInitialized().then((bool isInitialized){
       if(!isInitialized){
+        Countly.setLoggingEnabled(true);
         Countly.onNotification((String notification){
           print("The notification");
           print(notification);
         });
         Countly.pushTokenType(Countly.messagingMode["TEST"]);
-        Countly.setLoggingEnabled(true);
         Countly.enableCrashReporting();
+        Countly.enableApm();
         Countly.init(SERVER_URL, APP_KEY);
       }else{
         print("Countly: Already initialized.");
@@ -42,8 +43,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   onInit(){
-    Countly.pushTokenType(Countly.messagingMode["TEST"]);
     Countly.setLoggingEnabled(true);
+    Countly.pushTokenType(Countly.messagingMode["TEST"]);
     Countly.enableCrashReporting();
     Countly.enableApm();
     Countly.init(SERVER_URL, APP_KEY);
