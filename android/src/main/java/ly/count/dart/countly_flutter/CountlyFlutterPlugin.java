@@ -383,16 +383,16 @@ public class CountlyFlutterPlugin implements MethodCallHandler {
               result.success("setRequiresConsent!");
           } else if ("giveConsent".equals(call.method)) {
             String[] features = new String[args.length()];
-            for (int i = 0; i < length; i++) {
-                features[i] = jsonArray.getString(i);
+            for (int i = 0; i < args.length(); i++) {
+                features[i] = args.getString(i);
             }
             Countly.sharedInstance().consent().giveConsent(features);
             result.success("giveConsent!");
 
           } else if ("removeConsent".equals(call.method)) {
             String[] features = new String[args.length()];
-            for (int i = 0; i < length; i++) {
-                  features[i] = jsonArray.getString(i);
+            for (int i = 0; i < args.length(); i++) {
+                  features[i] = args.getString(i);
             }
             Countly.sharedInstance().consent().removeConsent(features);
             result.success("removeConsent!");
