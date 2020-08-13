@@ -16,16 +16,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    this.startup();
-  }
-
-  // ignore: non_constant_identifier_names
-  static String SERVER_URL = "https://try.count.ly";
-  // ignore: non_constant_identifier_names
-  static String APP_KEY = "YOUR_API_KEY";
-
-  startup(){
-      Countly.isInitialized().then((bool isInitialized){
+    Countly.isInitialized().then((bool isInitialized){
       if(!isInitialized){
         Countly.setLoggingEnabled(true);
         Countly.onNotification((String notification){
@@ -50,6 +41,11 @@ class _MyAppState extends State<MyApp> {
       }
     });
   }
+
+  // ignore: non_constant_identifier_names
+  static String SERVER_URL = "https://try.count.ly";
+  // ignore: non_constant_identifier_names
+  static String APP_KEY = "YOUR_API_KEY";
 
   onInit(){
     Countly.setLoggingEnabled(true);
