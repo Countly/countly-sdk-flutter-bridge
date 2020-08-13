@@ -47,21 +47,6 @@ class _MyAppState extends State<MyApp> {
   // ignore: non_constant_identifier_names
   static String APP_KEY = "YOUR_API_KEY";
 
-  onInit(){
-    Countly.setLoggingEnabled(true);
-    Countly.pushTokenType(Countly.messagingMode["TEST"]);
-    Countly.enableCrashReporting();
-    Countly.enableApm();
-    Countly.init(SERVER_URL, APP_KEY);
-  }
-  initWithID(){
-    Countly.setLoggingEnabled(true);
-    Countly.init(SERVER_URL, APP_KEY, "1234567890");
-  }
-  initWithTemporaryDeviceID(){
-    Countly.setLoggingEnabled(true);
-    Countly.init(SERVER_URL, APP_KEY, Countly.deviceIDType["TemporaryDeviceID"]);
-  }
   enableTemporaryIdMode(){
     Countly.changeDeviceId(Countly.deviceIDType["TemporaryDeviceID"], false);
   }
@@ -491,9 +476,6 @@ class _MyAppState extends State<MyApp> {
         body: Center(
           child: SingleChildScrollView(child:
             Column(children: <Widget>[
-              MyButton(text: "Init", color: "green", onPressed: onInit),
-              MyButton(text: "Init with ID", color: "green", onPressed: initWithID),
-              MyButton(text: "Init with TemporaryDeviceID", color: "green", onPressed: initWithTemporaryDeviceID),
               MyButton(text: "Start", color: "green", onPressed: start),
               MyButton(text: "Stop", color: "red", onPressed: stop),
 
