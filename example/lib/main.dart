@@ -282,17 +282,11 @@ class _MyAppState extends State<MyApp> {
     Countly.pullValue("pushValue", "morning");
   }
   //
-  setRequiresConsent(){
-    Countly.setRequiresConsent(true);
-  }
   giveMultipleConsent(){
     Countly.giveConsent(["events", "views", "star-rating", "crashes"]);
   }
   removeMultipleConsent(){
     Countly.removeConsent(["events", "views", "star-rating", "crashes"]);
-  }
-  giveAllConsent(){
-    Countly.giveAllConsent();
   }
   removeAllConsent(){
     Countly.removeAllConsent();
@@ -363,11 +357,6 @@ class _MyAppState extends State<MyApp> {
   askForNotificationPermission(){
     Countly.askForNotificationPermission();
   }
-  setRemoteConfigAutomaticDownload(){
-    Countly.setRemoteConfigAutomaticDownload((result){
-      print(result);
-    });
-  }
   remoteConfigUpdate(){
     Countly.remoteConfigUpdate((result){
       print(result);
@@ -437,9 +426,6 @@ class _MyAppState extends State<MyApp> {
     Countly.setOptionalParametersForInitialization(options);
   }
 
-  enableCrashReporting(){
-    Countly.enableCrashReporting();
-  }
   addCrashLog(){
     Countly.enableCrashReporting();
     Countly.addCrashLog("User Performed Step A");
@@ -454,17 +440,11 @@ class _MyAppState extends State<MyApp> {
     Map<String, Object> options = json.decode("This is a on purpose error.");
   }
 
-  setLoggingEnabled(){
-    Countly.setLoggingEnabled(false);
-  }
   askForStarRating(){
     Countly.askForStarRating();
   }
   askForFeedback(){
     Countly.askForFeedback("5e391ef47975d006a22532c0", "Close");
-  }
-  setHttpPostForced(){
-    Countly.setHttpPostForced(true);
   }
   setLocation(){
     Countly.setLocation("-33.9142687","18.0955802");
@@ -504,10 +484,6 @@ class _MyAppState extends State<MyApp> {
     int startTime = new DateTime.now().millisecondsSinceEpoch;
     int endTime = startTime + 500;
     Countly.recordNetworkTrace(networkTraceKey, responseCode, requestPayloadSize, responsePayloadSize, startTime, endTime);
-  }
-  setCustomCrashSegment(){
-    var segment = {"Key": "Value"};
-    Countly.setCustomCrashSegment(segment);
   }
   @override
   Widget build(BuildContext context) {
@@ -552,10 +528,8 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "UserData.pushValue", color: "teal", onPressed: pushValue),
               MyButton(text: "UserData.pullValue", color: "teal", onPressed: pullValue),
 
-              MyButton(text: "Init Consent", color: "blue", onPressed: setRequiresConsent),
               MyButton(text: "Give multiple consent", color: "blue", onPressed: giveMultipleConsent),
               MyButton(text: "Remove multiple consent", color: "blue", onPressed: removeMultipleConsent),
-              MyButton(text: "Give all Consent", color: "blue", onPressed: giveAllConsent),
               MyButton(text: "Remove all Consent", color: "blue", onPressed: removeAllConsent),
 
               MyButton(text: "Give Consent Sessions", color: "blue", onPressed: giveConsentSessions),
@@ -583,7 +557,6 @@ class _MyAppState extends State<MyApp> {
 
 
 
-              MyButton(text: "Countly.setRemoteConfigAutomaticDownload", color: "purple", onPressed: setRemoteConfigAutomaticDownload),
               MyButton(text: "Countly.remoteConfigUpdate", color: "purple", onPressed: remoteConfigUpdate),
               MyButton(text: "Countly.updateRemoteConfigForKeysOnly", color: "purple", onPressed: updateRemoteConfigForKeysOnly),
               MyButton(text: "Countly.updateRemoteConfigExceptKeys", color: "purple", onPressed: updateRemoteConfigExceptKeys),
@@ -603,11 +576,9 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "setLocation", color: "violet", onPressed: setLocation),
               MyButton(text: "Send Crash Report", color: "violet", onPressed: addCrashLog),
               MyButton(text: "Throw Exception", color: "violet", onPressed: throwException),
-              MyButton(text: "Enabling logging", color: "violet", onPressed: setLoggingEnabled),
 
               MyButton(text: "Open rating modal", color: "orange", onPressed: askForStarRating),
               MyButton(text: "Open feedback modal", color: "orange", onPressed: askForFeedback),
-              MyButton(text: "Set Custom Crash Segment", color: "orange", onPressed: setCustomCrashSegment),
 
               MyButton(text: "Start Trace", color: "black", onPressed: startTrace),
               MyButton(text: "End Trace", color: "black", onPressed: endTrace),

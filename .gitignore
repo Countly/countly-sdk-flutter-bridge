@@ -34,3 +34,4 @@ example/android/app/.settings
 
 example/ios/Podfile.lock
 example/android/app/debug
+example/lib/backup.dart
