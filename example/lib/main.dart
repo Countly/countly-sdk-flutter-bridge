@@ -280,6 +280,9 @@ class _MyAppState extends State<MyApp> {
   removeMultipleConsent(){
     Countly.removeConsent(["events", "views", "star-rating", "crashes"]);
   }
+  giveAllConsent() {
+    Countly.giveAllConsent();
+  }
   removeAllConsent(){
     Countly.removeAllConsent();
   }
@@ -556,6 +559,7 @@ class _MyAppState extends State<MyApp> {
 
               MyButton(text: "Give multiple consent", color: "blue", onPressed: giveMultipleConsent),
               MyButton(text: "Remove multiple consent", color: "blue", onPressed: removeMultipleConsent),
+              MyButton(text: "Give all Consent", color: "blue", onPressed: giveAllConsent),
               MyButton(text: "Remove all Consent", color: "blue", onPressed: removeAllConsent),
 
               MyButton(text: "Give Consent Sessions", color: "blue", onPressed: giveConsentSessions),

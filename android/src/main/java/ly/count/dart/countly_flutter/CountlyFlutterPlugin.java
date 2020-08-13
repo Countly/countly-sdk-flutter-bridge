@@ -754,7 +754,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 // Countly.sharedInstance().apm().endNetworkRequest(networkTraceKey, null, responseCode, requestPayloadSize, responsePayloadSize);
             }catch(Exception exception){
                 if(Countly.sharedInstance().isLoggingEnabled()){
-                    Log.e(Countly.TAG, "Exception occured at recordNetworkTrace method: " +exception.toString());
+                    Log.e(Countly.TAG, "Exception occurred at recordNetworkTrace method: " +exception.toString());
                 }
             }
             result.success("recordNetworkTrace: success");
