@@ -1,9 +1,9 @@
 PODS:
-  - Countly (19.08):
-    - Countly/NotificationService (= 19.08)
-  - Countly/NotificationService (19.08)
+  - Countly (20.04.1):
+    - Countly/Core (= 20.04.1)
+  - Countly/Core (20.04.1)
   - countly_flutter (0.0.1):
-    - Countly
+    - Countly (= 20.04.1)
     - Flutter
   - Flutter (1.0.0)
 
@@ -12,7 +12,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
 
 SPEC REPOS:
-  https://github.com/CocoaPods/Specs.git:
+  trunk:
     - Countly
 
 EXTERNAL SOURCES:
@@ -22,10 +22,10 @@ EXTERNAL SOURCES:
     :path: Flutter
 
 SPEC CHECKSUMS:
-  Countly: 7c596e00a90a35b7978713a384455fe9a18f28aa
-  countly_flutter: fa56e5b518d1ce18c89e2cab66a1880962d04610
+  Countly: 6ec96226ada1f7bbf2cfcb16a664c2b2d72be8d3
+  countly_flutter: 61654461177e2283c956cbbe0bede26ab998255d
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
 
 PODFILE CHECKSUM: 025eae5b1fea6aaf1cbb1438df7b69c30f4c8f0b
 
-COCOAPODS: 1.8.4
+COCOAPODS: 1.9.3
