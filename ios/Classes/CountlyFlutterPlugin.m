@@ -188,9 +188,14 @@ NSMutableDictionary *networkRequest = nil;
 
     }else if ([@"eventSendThreshold" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
-        int limit = [[command objectAtIndex:1] intValue];
-        config.eventSendThreshold = limit;
-        result(@"eventSendThreshold!");
+        @try{
+            int limit = [[command objectAtIndex:1] intValue];
+            config.eventSendThreshold = limit;
+            result(@"eventSendThreshold!")
+        }
+        @catch(NSException *exception){
+            NSLog(@"[CountlyFlutter] Exception occurred at eventSendThreshold method: %@", exception);
+        };
         });
 
     }else if ([@"storedRequestsLimit" isEqualToString:call.method]) {
@@ -661,7 +666,7 @@ NSMutableDictionary *networkRequest = nil;
                     metrics[[command objectAtIndex:i]] = [command objectAtIndex:i+1];
                 }
                 @catch(NSException *exception){
-                    NSLog(@"[CountlyFlutter] Exception occured while parsing metric: %@", exception);
+                    NSLog(@"[CountlyFlutter] Exception occurred while parsing metric: %@", exception);
                 }
             }
             [Countly.sharedInstance endCustomTrace: traceKey metrics: metrics];

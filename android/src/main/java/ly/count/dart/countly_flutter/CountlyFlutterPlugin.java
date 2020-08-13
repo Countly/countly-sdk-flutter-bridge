@@ -3,6 +3,7 @@ package ly.count.dart.countly_flutter;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
+import io.flutter.embedding.engine.plugins.lifecycle.FlutterLifecycleAdapter;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -33,6 +34,9 @@ import android.app.NotificationManager;
 import android.app.NotificationChannel;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.DefaultLifecycleObserver;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleOwner;
 
 import ly.count.android.sdk.RemoteConfigCallback;
 import ly.count.android.sdk.StarRatingCallback;
@@ -45,7 +49,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.FirebaseApp;
 
 /** CountlyFlutterPlugin */
-public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware {
+public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
     private String COUNTLY_FLUTTER_SDK_VERSION_STRING = "20.04.1";
     private String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
 
@@ -58,6 +62,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private static Callback notificationListener = null;
     private static String lastStoredNotification = null;
     private MethodChannel methodChannel;
+    private Lifecycle lifecycle;
+    private Boolean isSessionStarted_ = false;
 
     public static void registerWith(Registrar registrar) {
         final CountlyFlutterPlugin instance = new CountlyFlutterPlugin();
@@ -100,6 +106,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     @Override
     public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
         this.activity = binding.getActivity();
+        lifecycle = FlutterLifecycleAdapter.getActivityLifecycle(binding);
+        lifecycle.addObserver(this);
         if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
             Log.i(Countly.TAG, "[CountlyFlutterPlugin] onAttachedToActivity : Activity attached!");
         }
@@ -107,6 +115,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
     @Override
     public void onDetachedFromActivityForConfigChanges() {
+        lifecycle.removeObserver(this);
         this.activity = null;
         if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
             Log.i(Countly.TAG, "[CountlyFlutterPlugin] onDetachedFromActivityForConfigChanges : Activity is no more valid");
@@ -116,6 +125,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     @Override
     public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
         this.activity = binding.getActivity();
+        lifecycle = FlutterLifecycleAdapter.getActivityLifecycle(binding);
+        lifecycle.addObserver(this);
         if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
             Log.i(Countly.TAG, "[CountlyFlutterPlugin] onReattachedToActivityForConfigChanges : Activity attached!");
         }
@@ -123,9 +134,61 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
     @Override
     public void onDetachedFromActivity() {
+        lifecycle.removeObserver(this);
         this.activity = null;
         if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
             Log.i(Countly.TAG, "[CountlyFlutterPlugin] onDetachedFromActivity : Activity is no more valid");
+        }
+    }
+
+    // DefaultLifecycleObserver callbacks
+
+    @Override
+    public void onCreate(@NonNull LifecycleOwner owner) {
+        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
+            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onCreate");
+        }
+
+    }
+
+    @Override
+    public void onStart(@NonNull LifecycleOwner owner) {
+        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
+            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onStart");
+        }
+        if(isSessionStarted_) {
+            Countly.sharedInstance().onStart(activity);
+        }
+    }
+
+    @Override
+    public void onResume(@NonNull LifecycleOwner owner) {
+        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
+            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onResume");
+        }
+    }
+
+    @Override
+    public void onPause(@NonNull LifecycleOwner owner) {
+        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
+            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onPause");
+        }
+    }
+
+    @Override
+    public void onStop(@NonNull LifecycleOwner owner) {
+        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
+            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onStop");
+        }
+        if(isSessionStarted_) {
+            Countly.sharedInstance().onStop();
+        }
+    }
+
+    @Override
+    public void onDestroy(@NonNull LifecycleOwner owner) {
+        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
+            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onDestroy");
         }
     }
 
@@ -342,12 +405,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                   return;
               }
               Countly.sharedInstance().onStart(activity);
+              isSessionStarted_ = true;
               result.success("started!");
           } else if ("manualSessionHandling".equals(call.method)) {
               result.success("deafult!");
 
           } else if ("stop".equals(call.method)) {
               Countly.sharedInstance().onStop();
+              isSessionStarted_ = false;
               result.success("stoped!");
 
           } else if ("updateSessionPeriod".equals(call.method)) {
@@ -689,7 +754,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 // Countly.sharedInstance().apm().endNetworkRequest(networkTraceKey, null, responseCode, requestPayloadSize, responsePayloadSize);
             }catch(Exception exception){
                 if(Countly.sharedInstance().isLoggingEnabled()){
-                    Log.e(Countly.TAG, "Exception occured at recordNetworkTrace method: " +exception.toString());
+                    Log.e(Countly.TAG, "Exception occurred at recordNetworkTrace method: " +exception.toString());
                 }
             }
             result.success("recordNetworkTrace: success");
