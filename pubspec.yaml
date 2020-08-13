@@ -8,6 +8,7 @@ environment:
   flutter: ">=1.0.0"
 
 dependencies:
+  flutter_plugin_android_lifecycle: ^1.0.8
   flutter:
     sdk: flutter
 
