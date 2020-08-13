@@ -274,8 +274,9 @@ class Countly {
     return result;
   }
 
-  static Future<String> eventSendThreshold() async {
+  static Future<String> eventSendThreshold(int limit) async {
     List <String> args = [];
+    args.add(limit.toString());
     log(args.toString());
     final String result = await _channel.invokeMethod('eventSendThreshold', <String, dynamic>{
       'data': json.encode(args)
@@ -910,7 +911,91 @@ class Countly {
     log(result);
     return result;
   }
+  static Future<String> setCustomCrashSegment(Map<String, Object> segments) async {
+    List <String> args = [];
+    if(segments != null){
+      segments.forEach((k, v){
+        args.add(k.toString());
+        args.add(v.toString());
+      });
+    }
+    log(args.toString());
+    final String result = await _channel.invokeMethod('setCustomCrashSegment', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
+  static Future<String> startTrace(String traceKey) async {
+    List <String> args = [];
+    args.add(traceKey);
+    log(args.toString());
+    final String result = await _channel.invokeMethod('startTrace', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
 
+  static Future<String> cancelTrace(String traceKey) async {
+    List <String> args = [];
+    args.add(traceKey);
+    log(args.toString());
+    final String result = await _channel.invokeMethod('cancelTrace', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
+
+  static Future<String> clearAllTraces() async {
+    List <String> args = [];
+    final String result = await _channel.invokeMethod('clearAllTraces', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
+  static Future<String> endTrace(String traceKey, Map<String, int> customMetric) async {
+    List <String> args = [];
+    args.add(traceKey);
+    if(customMetric != null){
+      customMetric.forEach((k, v){
+        args.add(k.toString());
+        args.add(v.toString());
+      });
+    }
+    log(args.toString());
+    final String result = await _channel.invokeMethod('endTrace', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
+  static Future<String> recordNetworkTrace(String networkTraceKey, int responseCode, int requestPayloadSize, int responsePayloadSize, int startTime, int endTime) async {
+    List <String> args = [];
+    args.add(networkTraceKey);
+    args.add(responseCode.toString());
+    args.add(requestPayloadSize.toString());
+    args.add(responsePayloadSize.toString());
+    args.add(startTime.toString());
+    args.add(endTime.toString());
+    log(args.toString());
+    final String result = await _channel.invokeMethod('recordNetworkTrace', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
+  static Future<String> enableApm() async {
+    List <String> args = [];
+    log(args.toString());
+    final String result = await _channel.invokeMethod('enableApm', <String, dynamic>{
+            'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
   /// Report a handled or unhandled exception/error to Countly.
   ///
   /// The exception is provided with an [Exception] object
