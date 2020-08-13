@@ -5,7 +5,14 @@ import 'dart:convert';
 
 import 'package:countly_flutter/countly_flutter.dart';
 
-void main() => runApp(MyApp());
+/// This or a similar call needs to added to catch and report Dart Errors to Countly,
+/// You need to run app inside a Zone
+/// and provide the [Countly.recordDartError] callback for [onError()]
+void main() {
+  runZonedGuarded<Future<void>>(() async {
+    runApp(MyApp());
+  }, Countly.recordDartError);
+}
 
 class MyApp extends StatefulWidget {
   @override
@@ -152,7 +159,11 @@ class _MyAppState extends State<MyApp> {
     });
   }
   recordViewHome(){
-    Countly.recordView("HomePage");
+    Map<String, Object> segments = {
+      "Key_1": "Value_1",
+      "Key_2": "Value_2"
+    };
+    Countly.recordView("HomePage", segments);
   }
   recordViewDashboard(){
     Countly.recordView("Dashboard");
@@ -251,7 +262,7 @@ class _MyAppState extends State<MyApp> {
     Countly.saveMin("saveMin", 50);
   }
   setOnce(){
-    Countly.setOnce("setOnce", 200);
+    Countly.setOnce("setOnce", "200");
   }
   pushUniqueValue(){
     Countly.pushUniqueValue("pushUniqueValue", "morning");
@@ -416,11 +427,48 @@ class _MyAppState extends State<MyApp> {
       timer.cancel();
     });
   }
-
-  throwException(){
+  causeException(){
     Map<String, Object> options = json.decode("This is a on purpose error.");
   }
 
+  throwException() {
+    throw new StateError('This is an thrown Dart exception.');
+  }
+
+  throwNativeException() {
+    Countly.throwNativeException();
+  }
+
+  throwExceptionAsync() async {
+    foo() async {
+      throw new StateError('This is an async Dart exception.');
+    }
+    bar() async {
+      await foo();
+    }
+    await bar();
+  }
+
+  recordExceptionManually() {
+    Countly.logException("This is a manually created exception", true, null);
+  }
+
+  dividedByZero() {
+    try {
+      int firstInput = 20;
+      int secondInput = 0;
+      int result = firstInput ~/ secondInput;
+      print('The result of $firstInput divided by $secondInput is $result');
+    } catch (e, s) {
+      print('Exception occurs: $e');
+      print('STACK TRACE\n: $s');
+      Countly.logExceptionEx(e, true, stacktrace: s);
+    }
+  }
+
+  setLoggingEnabled(){
+    Countly.setLoggingEnabled(false);
+  }
   askForStarRating(){
     Countly.askForStarRating();
   }
@@ -552,8 +600,17 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Enable Parameter Tapmering Protection", color: "violet", onPressed: enableParameterTamperingProtection),
               MyButton(text: "City, State, and Location", color: "violet", onPressed: setOptionalParametersForInitialization),
               MyButton(text: "setLocation", color: "violet", onPressed: setLocation),
+
               MyButton(text: "Send Crash Report", color: "violet", onPressed: addCrashLog),
+              MyButton(text: "Cause Exception", color: "violet", onPressed: causeException),
               MyButton(text: "Throw Exception", color: "violet", onPressed: throwException),
+
+              MyButton(text: "Throw Exception Async", color: "violet", onPressed: throwExceptionAsync),
+              MyButton(text: "Throw Native Exception", color: "violet", onPressed: throwNativeException),
+              MyButton(text: "Record Exception Manually", color: "violet", onPressed: recordExceptionManually),
+              MyButton(text: "Divided By Zero Exception", color: "violet", onPressed: dividedByZero),
+
+              MyButton(text: "Enabling logging", color: "violet", onPressed: setLoggingEnabled),
 
               MyButton(text: "Open rating modal", color: "orange", onPressed: askForStarRating),
               MyButton(text: "Open feedback modal", color: "orange", onPressed: askForFeedback),

@@ -45,12 +45,7 @@ public class CountlyMessagingService extends FirebaseMessagingService {
             return;
         }
 
-        Intent notificationIntent = null;
-        if (message.has("anotherActivity")) {
-            notificationIntent = new Intent(getApplicationContext(), getApplication().getClass());
-        }
-
-        Boolean result = CountlyPush.displayMessage(getApplicationContext(), message, R.drawable.ic_message, notificationIntent);
+        Boolean result = CountlyPush.displayNotification(getApplicationContext(), message, R.drawable.ic_message, null);
         if (result == null) {
             Log.i(TAG, "Message wasn't sent from Countly server, so it cannot be handled by Countly SDK");
         } else if (result) {

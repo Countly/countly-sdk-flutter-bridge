@@ -5,22 +5,35 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 
+
+enum LogLevel {INFO, DEBUG, VERBOSE, WARNING, ERROR}
 class Countly {
   static const MethodChannel _channel =
   const MethodChannel('countly_flutter');
 
   // static variable
   static Function listenerCallback;
-  static bool isDebug = false;
-  static bool enableCrashReportingFlag = false;
+
+  /// Used to determine if log messages should be printed to the console
+  /// its value should be updated from [setLoggingEnabled(bool flag)].
+  static bool _isDebug = false;
+
+  static final String TAG = "CountlyFlutter";
+
+  /// Flag to determine if crash logging functionality should be enabled
+  /// If false the intercepted crashes will be ignored
+  /// Set true when user enabled crash logging
+  static bool _enableCrashReportingFlag = false;
+
   static Map<String, Object> messagingMode = {"TEST": "1", "PRODUCTION": "0", "ADHOC": "2"};
   static Map<String, Object> deviceIDType = {
     "TemporaryDeviceID": "TemporaryDeviceID"
   };
 
-  static log(String message) async {
-    if(isDebug){
-      print(message);
+  static log(String message, {LogLevel logLevel = LogLevel.DEBUG}) async {
+    String logLevelStr = describeEnum(logLevel);
+    if(_isDebug){
+      print('[$TAG] ${logLevelStr}: ${message}');
     }
   }
   static Future<String> init(String serverUrl, String appKey, [String deviceId]) async {
@@ -53,12 +66,17 @@ class Countly {
       return false;
     }
   }
+
+  static bool isNullOrEmpty(String s) => s == null || s.isEmpty;
+
   static Future<String> recordEvent( Map<String, Object> options) async {
     List <String> args = [];
     var segmentation = {};
 
-    if(options["key"] == null){
-      options["key"] = "default";
+    if(isNullOrEmpty(options["key"])){
+      String error = "recordEvent, Valid Countly event key is required";
+      log(error);
+      return "Error : $error";
     }
     args.add(options["key"].toString());
 
@@ -93,10 +111,30 @@ class Countly {
     return result;
   }
 
-  ////// 001
-  static Future<String> recordView(String view) async {
+  /// Record custom view to Countly.
+  ///
+  /// [String view] - name of the view
+  /// [Map<String, Object> segmentation] - allows to add optional segmentation,
+  /// Supported data type for segmentation values are String, int, double and bool
+  static Future<String> recordView(String view, [Map<String, Object> segmentation]) async {
+    if(isNullOrEmpty(view)){
+      String error = "recordView, Trying to record view with null or empty view name, ignoring request";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(view);
+    if(segmentation != null){
+      segmentation.forEach((k, v){
+        if(v is String || v is int || v is double || v is bool) {
+          args.add(k);
+          args.add(v.toString());
+        }
+        else {
+          log("recordView, unsupported segmentation data type [${v.runtimeType}], View [$view]", logLevel: LogLevel.WARNING);
+        }
+      });
+    }
     log(args.toString());
     final String result = await _channel.invokeMethod('recordView', <String, dynamic>{
       'data': json.encode(args)
@@ -165,6 +203,11 @@ class Countly {
   }
 
   static Future<String> pushTokenType(String tokenType) async {
+    if(isNullOrEmpty(tokenType)){
+      String error = "pushTokenType, tokenType cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(tokenType);
     log(args.toString());
@@ -291,13 +334,18 @@ class Countly {
     return result;
   }
 
-  static Future<String> changeDeviceId(String newDeviceID ,bool onServer) async {
+  static Future<String> changeDeviceId(String newDeviceID, bool onServer) async {
+    if(isNullOrEmpty(newDeviceID)){
+      String error = "changeDeviceId, deviceId cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     String onServerString;
     if(onServer == false){
-        onServerString = "0";
+      onServerString = "0";
     }else{
-        onServerString = "1";
+      onServerString = "1";
     }
     newDeviceID = newDeviceID.toString();
     args.add(newDeviceID);
@@ -311,6 +359,11 @@ class Countly {
   }
 
   static Future<String> addCrashLog(String logs) async {
+    if(isNullOrEmpty(logs)){
+      String error = "addCrashLog, Can't add a null or empty crash logs";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(logs);
     log(args.toString());
@@ -323,7 +376,7 @@ class Countly {
 
   static Future<String> setLoggingEnabled(bool flag) async {
     List <String> args = [];
-    isDebug = flag;
+    _isDebug = flag;
     args.add(flag.toString());
     log(args.toString());
     final String result = await _channel.invokeMethod('setLoggingEnabled', <String, dynamic>{
@@ -334,6 +387,11 @@ class Countly {
   }
 
   static Future<String> enableParameterTamperingProtection(String salt) async {
+    if(isNullOrEmpty(salt)){
+      String error = "enableParameterTamperingProtection, salt cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(salt);
     log(args.toString());
@@ -354,14 +412,17 @@ class Countly {
     return result;
   }
   static Future<String> setLocation(String latitude, String longitude) async {
+    if(isNullOrEmpty(latitude)){
+      String error = "setLocation, latitude cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    if(isNullOrEmpty(longitude)){
+      String error = "setLocation, longitude cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
-
-    if(latitude == null){
-      latitude = "null";
-    }
-    if(longitude == null){
-      longitude = "null";
-    }
 
     args.add(latitude);
     args.add(longitude);
@@ -373,6 +434,16 @@ class Countly {
     return result;
   }
   static Future<String> setProperty(String keyName , String keyValue) async {
+    if(isNullOrEmpty(keyName)){
+      String error = "setProperty, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    if(keyValue == null){
+      String error = "setProperty, value cannot be null";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(keyName);
     args.add(keyValue);
@@ -384,6 +455,11 @@ class Countly {
     return result;
   }
   static Future<String> increment(String keyName) async {
+    if(isNullOrEmpty(keyName)){
+      String error = "increment, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(keyName);
     log(args.toString());
@@ -394,6 +470,11 @@ class Countly {
     return result;
   }
   static Future<String> incrementBy(String keyName, int keyIncrement) async {
+    if(isNullOrEmpty(keyName)){
+      String error = "incrementBy, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(keyName);
     args.add(keyIncrement.toString());
@@ -405,6 +486,11 @@ class Countly {
     return result;
   }
   static Future<String> multiply(String keyName, int multiplyValue) async {
+    if(isNullOrEmpty(keyName)){
+      String error = "multiply, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(keyName);
     args.add(multiplyValue.toString());
@@ -417,6 +503,11 @@ class Countly {
   }
 
   static Future<String> saveMax(String keyName, int saveMax) async {
+    if(isNullOrEmpty(keyName)){
+      String error = "saveMax, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(keyName);
     args.add(saveMax.toString());
@@ -428,6 +519,11 @@ class Countly {
     return result;
   }
   static Future<String> saveMin(String keyName, int saveMin) async {
+    if(isNullOrEmpty(keyName)){
+      String error = "saveMin, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(keyName);
     args.add(saveMin.toString());
@@ -438,10 +534,20 @@ class Countly {
     log(result);
     return result;
   }
-  static Future<String> setOnce(String keyName, int setOnce) async {
+  static Future<String> setOnce(String keyName, String setOnce) async {
+    if(isNullOrEmpty(keyName)){
+      String error = "setOnce, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    if(setOnce == null){
+      String error = "setOnce, value cannot be null";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(keyName);
-    args.add(setOnce.toString());
+    args.add(setOnce);
     log(args.toString());
     final String result = await _channel.invokeMethod('userData_setOnce', <String, dynamic>{
       'data': json.encode(args)
@@ -451,6 +557,16 @@ class Countly {
   }
 
   static Future<String> pushUniqueValue(String type, String pushUniqueValue) async {
+    if(isNullOrEmpty(type)){
+      String error = "pushUniqueValue, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    if(pushUniqueValue == null){
+      String error = "pushUniqueValue, value cannot be null";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(type);
     args.add(pushUniqueValue);
@@ -463,6 +579,16 @@ class Countly {
   }
 
   static Future<String> pushValue(String type, String pushValue) async {
+    if(isNullOrEmpty(type)){
+      String error = "pushValue, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    if(pushValue == null){
+      String error = "pushValue, value cannot be null";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(type);
     args.add(pushValue);
@@ -475,6 +601,16 @@ class Countly {
   }
 
   static Future<String> pullValue(String type, String pullValue) async {
+    if(isNullOrEmpty(type)){
+      String error = "pullValue, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    if(pullValue == null){
+      String error = "pullValue, value cannot be null";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(type);
     args.add(pullValue);
@@ -498,6 +634,15 @@ class Countly {
     return result;
   }
   static Future<String> giveConsent(List <String> consents) async {
+    if(consents == null){
+      String error = "giveConsent, consents List cannot be null";
+      log(error);
+      return "Error : $error";
+    }
+    if(consents.length == 0){
+      String error = "giveConsent, consents List is empty";
+      log(error, logLevel: LogLevel.WARNING);
+    }
     List <String> args = consents;
     log(args.toString());
     final String result = await _channel.invokeMethod('giveConsent', <String, dynamic>{
@@ -507,6 +652,15 @@ class Countly {
     return result;
   }
   static Future<String> removeConsent(List <String> consents) async {
+    if(consents == null){
+      String error = "removeConsent, consents List cannot be null";
+      log(error);
+      return "Error : $error";
+    }
+    if(consents.length == 0){
+      String error = "removeConsent, consents List is empty";
+      log(error, logLevel: LogLevel.WARNING);
+    }
     List <String> args = consents;
     log(args.toString());
     final String result = await _channel.invokeMethod('removeConsent', <String, dynamic>{
@@ -557,21 +711,37 @@ class Countly {
     callback(result);
     return result;
   }
-  static Future<String> updateRemoteConfigForKeysOnly(List<String> args, Function callback) async {
-    log(args.toString());
+  static Future<String> updateRemoteConfigForKeysOnly(List<String> keys, Function callback) async {
+    if(keys == null){
+      String error = "updateRemoteConfigForKeysOnly, keys List cannot be null";
+      log(error);
+      return "Error : $error";
+    }
+    if(keys.length == 0){
+      String error = "updateRemoteConfigForKeysOnly, keys List is empty";
+      log(error, logLevel: LogLevel.WARNING);
+    }
+    log(keys.toString());
     final String result = await _channel.invokeMethod('updateRemoteConfigForKeysOnly', <String, dynamic>{
-      'data': json.encode(args)
+      'data': json.encode(keys)
     });
     log(result);
     callback(result);
     return result;
   }
-  static Future<String> updateRemoteConfigExceptKeys(Object keys, Function callback) async {
-    List <String> args = [];
-
-    log(args.toString());
+  static Future<String> updateRemoteConfigExceptKeys(List<String> keys, Function callback) async {
+    if(keys == null){
+      String error = "updateRemoteConfigExceptKeys, keys List cannot be null";
+      log(error);
+      return "Error : $error";
+    }
+    if(keys.length == 0){
+      String error = "updateRemoteConfigExceptKeys, keys List is empty";
+      log(error, logLevel: LogLevel.WARNING);
+    }
+    log(keys.toString());
     final String result = await _channel.invokeMethod('updateRemoteConfigExceptKeys', <String, dynamic>{
-      'data': json.encode(args)
+      'data': json.encode(keys)
     });
     log(result);
     callback(result);
@@ -588,6 +758,11 @@ class Countly {
     return result;
   }
   static Future<String> getRemoteConfigValueForKey(String key, Function callback) async {
+    if(isNullOrEmpty(key)){
+      String error = "getRemoteConfigValueForKey, key cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(key);
     log(args.toString());
@@ -609,6 +784,14 @@ class Countly {
   }
 
   static Future<String> askForFeedback(String widgetId, String closeButtonText) async {
+    if(isNullOrEmpty(widgetId)){
+      String error = "askForFeedback, widgetId cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    if(closeButtonText == null){
+      closeButtonText = "";
+    }
     List <String> args = [];
     args.add(widgetId);
     args.add(closeButtonText);
@@ -621,6 +804,11 @@ class Countly {
   }
 
   static Future<String> startEvent(String key) async {
+    if(isNullOrEmpty(key)){
+      String error = "startEvent, Can't start event with a null or empty key";
+      log(error);
+      return "Error : $error";
+    }
     List <String> args = [];
     args.add(key);
     log(args.toString());
@@ -635,8 +823,10 @@ class Countly {
     List <String> args = [];
     var segmentation = {};
 
-    if(options["key"] == null){
-      options["key"] = "default";
+    if(isNullOrEmpty(options["key"])){
+      String error = "endEvent, Can't end event with a null or empty key";
+      log(error);
+      return "Error : $error";
     }
     args.add(options["key"].toString());
 
@@ -665,18 +855,23 @@ class Countly {
     return result;
   }
 
-  static Future<String> enableCrashReporting() async {
-    FlutterError.onError = (FlutterErrorDetails details, {bool forceReport = false}) {
-      try {
-        Countly.logException("${details.exception} \n ${details.stack}", true, {});
-      } catch (e) {
-        print('Sending report to sentry.io failed: $e');
-      } finally {
-        FlutterError.dumpErrorToConsole(details, forceReport: forceReport);
-      }
-    };
+  /// Call used for testing error handling
+  /// Should not be used 
+  static Future<String> throwNativeException() async {
     List <String> args = [];
-    enableCrashReportingFlag = true;
+    log(args.toString());
+    final String result = await _channel.invokeMethod('throwNativeException', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
+
+  /// Enable crash reporting to report uncaught errors to Countly.
+  static Future<String> enableCrashReporting() async {
+    FlutterError.onError = _recordFlutterError;
+    List <String> args = [];
+    _enableCrashReportingFlag = true;
     log(args.toString());
     final String result = await _channel.invokeMethod('enableCrashReporting', <String, dynamic>{
       'data': json.encode(args)
@@ -685,10 +880,24 @@ class Countly {
     return result;
   }
 
-  static Future<String> logException(String execption,bool nonfatal, Map<String, Object> segmentation) async {
+  /// Report a handled or unhandled exception/error to Countly.
+  ///
+  /// This call does not add a stacktrace automatically
+  /// if it's needed, it should already be added to the [exception] variable
+  ///
+  /// A potential use case would be to provide [exception.toString()]
+  ///
+  /// [String exception] - the exception / crash information sent to the server
+  /// [bool nonfatal] - reports if the error was fatal or not
+  /// [Map<String, Object> segmentation] - allows to add optional segmentation
+  static Future<String> logException(String exception, bool nonfatal, [Map<String, Object> segmentation]) async {
     List <String> args = [];
-
-    args.add(execption);
+    if(exception == null) {
+      String error = "logException, provided exception was null, returning";
+      log(error);
+      return "Error : $error";
+    }
+    args.add(exception);
     args.add(nonfatal.toString());
     if(segmentation != null){
       segmentation.forEach((k, v){
@@ -696,7 +905,6 @@ class Countly {
         args.add(v.toString());
       });
     }
-    log(args.toString());
     final String result = await _channel.invokeMethod('logException', <String, dynamic>{
       'data': json.encode(args)
     });
@@ -783,6 +991,102 @@ class Countly {
     List <String> args = [];
     log(args.toString());
     final String result = await _channel.invokeMethod('enableApm', <String, dynamic>{
+            'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
+  /// Report a handled or unhandled exception/error to Countly.
+  ///
+  /// The exception is provided with an [Exception] object
+  /// If no stack trace is provided, [StackTrace.current] will be used
+  ///
+  /// [String exception] - the exception that is recorded
+  /// [bool nonfatal] - reports if the exception was fatal or not
+  /// [StackTrace stacktrace] - stacktrace for the crash
+  /// [Map<String, Object> segmentation] - allows to add optional segmentation
+  static Future<String> logExceptionEx(Exception exception, bool nonfatal, {StackTrace stacktrace, Map<String, Object> segmentation}) async {
+    stacktrace ??= StackTrace.current ?? StackTrace.fromString('');
+    logException("${exception.toString()}\n\n$stacktrace", nonfatal, segmentation).then((String result) {
+      return result;
+    });
+  }
+
+  /// Report a handled or unhandled exception/error to Countly.
+  ///
+  /// The exception/error is provided with a string message
+  /// If no stack trace is provided, [StackTrace.current] will be used
+  ///
+  /// [String message] - the error / crash information sent to the server
+  /// [bool nonfatal] - reports if the error was fatal or not
+  /// [StackTrace stacktrace] - stacktrace for the crash
+  /// [Map<String, Object> segmentation] - allows to add optional segmentation
+  static Future<String> logExceptionManual(String message, bool nonfatal, {StackTrace stacktrace, Map<String, Object> segmentation}) async {
+    stacktrace ??= StackTrace.current ?? StackTrace.fromString('');
+    logException("$message\n\n$stacktrace", nonfatal, segmentation).then((String result) {
+      return result;
+    });
+  }
+
+  /// Internal callback to record "FlutterError.onError" errors
+  ///
+  /// Must call [enableCrashReporting()] to enable it
+  static Future<void> _recordFlutterError(FlutterErrorDetails details) async {
+    log('_recordFlutterError, Flutter error caught by Countly:');
+    if(!_enableCrashReportingFlag) {
+      log('_recordFlutterError, Crash Reporting must be enabled to report crash on Countly',logLevel: LogLevel.WARNING);
+      return;
+    }
+
+    _internalRecordError(details.exceptionAsString(), details.stack);
+  }
+
+  /// Callback to catch and report Dart errors, [enableCrashReporting()] must call before [init] to make it work.
+  ///
+  /// This callback has to be provided when the app is about to be run.
+  /// It has to be done inside a custom Zone by providing [Countly.recordDartError] in onError() callback.
+  ///
+  /// ```
+  /// void main() {
+  ///   runZonedGuarded<Future<void>>(() async {
+  ///     runApp(MyApp());
+  ///   }, Countly.recordDartError);
+  /// }
+  ///
+  static Future<void> recordDartError(dynamic exception, StackTrace stack, {dynamic context}) async {
+    log('recordError, Error caught by Countly :');
+    if(!_enableCrashReportingFlag) {
+      log('recordError, Crash Reporting must be enabled to report crash on Countly',logLevel: LogLevel.WARNING);
+      return;
+    }
+    _internalRecordError(exception, stack);
+  }
+
+  /// A common call for crashes coming from [_recordFlutterError] and [recordDartError]
+  ///
+  /// They are then further reported to countly
+  static Future<void> _internalRecordError(dynamic exception, StackTrace stack) async {
+    isInitialized().then((bool isInitialized){
+      if(!isInitialized) {
+        log('_internalRecordError, countly is not initialized',logLevel: LogLevel.WARNING);
+        return;
+      }
+
+      log('_internalRecordError, Exception : ${exception.toString()}');
+      if (stack != null) log('\n_internalRecordError, Stack : $stack');
+
+      stack ??= StackTrace.fromString('');
+      try {
+        logException('${exception.toString()}\n\n$stack', true);
+      } catch (e) {
+        log('Sending crash report to Countly failed: $e');
+      }
+    });
+  }
+  /// Enable campaign attribution reporting to Countly.
+  static Future<String> enableAttribution() async {
+    List <String> args = [];
+    final String result = await _channel.invokeMethod('enableAttribution', <String, dynamic>{
       'data': json.encode(args)
     });
     log(result);

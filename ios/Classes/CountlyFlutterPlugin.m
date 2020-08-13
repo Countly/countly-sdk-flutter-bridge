@@ -1,8 +1,12 @@
 #import "CountlyFlutterPlugin.h"
 #import "Countly.h"
 #import "CountlyConfig.h"
+#import "CountlyCommon.h"
 #import "CountlyDeviceInfo.h"
 #import "CountlyRemoteConfig.h"
+
+NSString* const kCountlyFlutterSDKVersion = @"20.04.1";
+NSString* const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 
 FlutterResult notificationListener = nil;
 NSDictionary *lastStoredNotification = nil;
@@ -42,6 +46,9 @@ NSMutableDictionary *networkRequest = nil;
 
         config.appKey = appkey;
         config.host = serverurl;
+        
+        CountlyCommon.sharedInstance.SDKName = kCountlyFlutterSDKName;
+        CountlyCommon.sharedInstance.SDKVersion = kCountlyFlutterSDKVersion;
 
         //should only be used for silent pushes if explicitly enabled
         //config.sendPushTokenAlways = YES;
@@ -103,7 +110,19 @@ NSMutableDictionary *networkRequest = nil;
     }else if ([@"recordView" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         NSString* recordView = [command objectAtIndex:0];
-        [Countly.sharedInstance recordView:recordView];
+        NSMutableDictionary *segments = [[NSMutableDictionary alloc] init];
+        int il=(int)command.count;
+        if(il > 2) {
+            for(int i=1;i<il;i+=2){
+                @try{
+                    segments[[command objectAtIndex:i]] = [command objectAtIndex:i+1];
+                }
+                @catch(NSException *exception){
+                    NSLog(@"[CountlyFlutter] recordView: Exception occured while parsing segments: %@", exception);
+                }
+            }
+        }
+        [Countly.sharedInstance recordView:recordView segmentation:segments];
         result(@"recordView Sent!");
         });
     }else if ([@"setLoggingEnabled" isEqualToString:call.method]) {
@@ -669,8 +688,18 @@ NSMutableDictionary *networkRequest = nil;
             config.enablePerformanceMonitoring = YES;
         });
         result(@"enableApm: success");
-    }
-    else {
+   
+    } else if ([@"throwNativeException" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            NSException *e = [NSException exceptionWithName:@"Native Exception Crash!" reason:@"Throw Native Exception..." userInfo:nil];
+            @throw e;
+        });
+    }else if ([@"enableAttribution" isEqualToString:call.method]) {
+           dispatch_async(dispatch_get_main_queue(), ^ {
+               config.enableAttribution = YES;
+           });
+           result(@"enableAttribution: success");
+    } else {
         result(FlutterMethodNotImplemented);
     }
 }
