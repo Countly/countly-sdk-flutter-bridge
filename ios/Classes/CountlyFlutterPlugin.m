@@ -169,7 +169,8 @@ NSMutableDictionary *networkRequest = nil;
 
     }else if ([@"eventSendThreshold" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
-        config.eventSendThreshold = 1;
+        int limit = [[command objectAtIndex:1] intValue];
+        config.eventSendThreshold = limit;
         result(@"eventSendThreshold!");
         });
 

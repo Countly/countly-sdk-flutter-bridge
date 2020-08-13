@@ -231,10 +231,11 @@ class Countly {
     return result;
   }
 
-  static Future<String> eventSendThreshold() async {
+  static Future<String> eventSendThreshold(int limit) async {
     List <String> args = [];
+    args.add(limit.toString());
     log(args.toString());
-    final String result = await _channel.invokeMethod('updateSessionPeriod', <String, dynamic>{
+    final String result = await _channel.invokeMethod('eventSendThreshold', <String, dynamic>{
       'data': json.encode(args)
     });
     log(result);

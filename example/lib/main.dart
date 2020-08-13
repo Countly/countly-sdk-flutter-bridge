@@ -35,7 +35,16 @@ class _MyAppState extends State<MyApp> {
         Countly.pushTokenType(Countly.messagingMode["TEST"]);
         Countly.enableCrashReporting();
         Countly.enableApm();
+        Countly.setRequiresConsent(true);
+        Countly.setHttpPostForced(true);
+        Countly.setRemoteConfigAutomaticDownload((result){
+          print(result);
+        });
+        var segment = {"Key": "Value"};
+        Countly.setCustomCrashSegment(segment);
+        Countly.eventSendThreshold(1);
         Countly.init(SERVER_URL, APP_KEY);
+        Countly.giveAllConsent();
       }else{
         print("Countly: Already initialized.");
       }
