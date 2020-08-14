@@ -142,6 +142,19 @@ class Countly {
     log(result);
     return result;
   }
+  
+  /// Enable automatic view tracking
+  /// Should be call before Countly init
+  static Future<String> setAutomaticViewTracking(bool flag) async {
+    List <String> args = [];
+    args.add(flag);
+    log(args.toString());
+    final String result = await _channel.invokeMethod('setAutomaticViewTracking', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
 
   static Future<String> setUserData(Map<String, Object> options) async {
     List <String> args = [];
@@ -192,6 +205,8 @@ class Countly {
     return result;
   }
 
+  /// This method will ask for permission, enables push notification and send push token to countly server.
+  /// Should be call after Countly init
   static Future<String> askForNotificationPermission() async {
     List <String> args = [];
     log(args.toString());
@@ -202,6 +217,8 @@ class Countly {
     return result;
   }
 
+  /// Set Push notification messaging mode and callbacks for push notifications
+  /// Should be call after Countly init
   static Future<String> pushTokenType(String tokenType) async {
     if(isNullOrEmpty(tokenType)){
       String error = "pushTokenType, tokenType cannot be null or empty";
@@ -218,8 +235,9 @@ class Countly {
     return result;
   }
 
-
-  static Future<String> onNotification(Function callback) async {
+  /// Set callback to receive push notifications
+  /// @param { callback listner } callback
+static Future<String> onNotification(Function callback) async {
     List <String> args = [];
     listenerCallback = callback;
     log("registerForNotification");
@@ -274,6 +292,8 @@ class Countly {
     return result;
   }
 
+  /// Events get grouped together and are sent either every minute or after the unsent event count reaches a threshold. By default it is 10
+  /// Should be call before Countly init
   static Future<String> eventSendThreshold(int limit) async {
     List <String> args = [];
     args.add(limit.toString());
@@ -373,7 +393,8 @@ class Countly {
     log(result);
     return result;
   }
-
+  /// Set to true if you want to enable countly internal debugging logs
+  /// Should be call before Countly init
   static Future<String> setLoggingEnabled(bool flag) async {
     List <String> args = [];
     _isDebug = flag;
@@ -386,6 +407,8 @@ class Countly {
     return result;
   }
 
+  /// Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request, using the &checksum field
+  /// Should be call before Countly init
   static Future<String> enableParameterTamperingProtection(String salt) async {
     if(isNullOrEmpty(salt)){
       String error = "enableParameterTamperingProtection, salt cannot be null or empty";
@@ -401,6 +424,9 @@ class Countly {
     log(result);
     return result;
   }
+
+  /// Set to "true" if you want HTTP POST to be used for all requests
+  /// Should be call before Countly init
   static Future<String> setHttpPostForced(bool isEnabled) async {
     List <String> args = [];
     args.add(isEnabled.toString());
@@ -622,7 +648,8 @@ class Countly {
     return result;
   }
 
-  //setRequiresConsent
+  /// Set that consent should be required for features to work.
+  /// Should be call before Countly init
   static Future<String> setRequiresConsent(bool flag) async {
     List <String> args = [];
     args.add(flag.toString());
@@ -669,6 +696,9 @@ class Countly {
     log(result);
     return result;
   }
+
+  /// Give consent for all features, should be call after init
+  /// Should be call after Countly init
   static Future<String> giveAllConsent() async {
     List <String> args = [];
 
@@ -690,6 +720,8 @@ class Countly {
     return result;
   }
 
+  /// Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
+  /// Should be call before Countly init
   static Future<String> setRemoteConfigAutomaticDownload(Function callback) async {
     List <String> args = [];
     log(args.toString());
@@ -868,6 +900,7 @@ class Countly {
   }
 
   /// Enable crash reporting to report uncaught errors to Countly.
+  /// Should be call before Countly init
   static Future<String> enableCrashReporting() async {
     FlutterError.onError = _recordFlutterError;
     List <String> args = [];
@@ -911,6 +944,8 @@ class Countly {
     log(result);
     return result;
   }
+  /// Set optional key/value segment added for crash reports.
+  /// Should be call before Countly init
   static Future<String> setCustomCrashSegment(Map<String, Object> segments) async {
     List <String> args = [];
     if(segments != null){
@@ -987,6 +1022,9 @@ class Countly {
     log(result);
     return result;
   }
+
+  /// Enable APM features, which includes the recording of app start time.
+  /// Should be call before Countly init
   static Future<String> enableApm() async {
     List <String> args = [];
     log(args.toString());
@@ -1084,6 +1122,7 @@ class Countly {
     });
   }
   /// Enable campaign attribution reporting to Countly.
+  /// Should be call before Countly init
   static Future<String> enableAttribution() async {
     List <String> args = [];
     final String result = await _channel.invokeMethod('enableAttribution', <String, dynamic>{

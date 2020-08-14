@@ -11,6 +11,7 @@ NSString* const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 FlutterResult notificationListener = nil;
 NSDictionary *lastStoredNotification = nil;
 NSMutableArray *notificationIDs = nil;        // alloc here
+NSMutableArray<CLYFeature>* countlyFeatures = nil;
 
 @implementation CountlyFlutterPlugin
 
@@ -53,7 +54,7 @@ NSMutableDictionary *networkRequest = nil;
         //should only be used for silent pushes if explicitly enabled
         //config.sendPushTokenAlways = YES;
 
-        config.features = @[CLYCrashReporting, CLYPushNotifications];
+        [self addCountlyFeature:CLYPushNotifications];
 
         if(command.count == 3){
             deviceID = [command objectAtIndex:2];
@@ -125,7 +126,21 @@ NSMutableDictionary *networkRequest = nil;
         [Countly.sharedInstance recordView:recordView segmentation:segments];
         result(@"recordView Sent!");
         });
-    }else if ([@"setLoggingEnabled" isEqualToString:call.method]) {
+    }else if ([@"setAutomaticViewTracking" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+        BOOL boolean = [[command objectAtIndex:0] boolValue];
+        if(boolean) {
+            [self addCountlyFeature:CLYAutoViewTracking];
+        }
+        else {
+            [self removeCountlyFeature:CLYAutoViewTracking];
+        }
+        [Countly.sharedInstance setIsAutoViewTrackingActive:boolean];
+        });
+        result(@"setAutomaticViewTracking!");
+
+    }
+    else if ([@"setLoggingEnabled" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         config.enableDebug = YES;
         result(@"setLoggingEnabled!");
@@ -191,7 +206,7 @@ NSMutableDictionary *networkRequest = nil;
         @try{
             int limit = [[command objectAtIndex:1] intValue];
             config.eventSendThreshold = limit;
-            result(@"eventSendThreshold!")
+            result(@"eventSendThreshold!");
         }
         @catch(NSException *exception){
             NSLog(@"[CountlyFlutter] Exception occurred at eventSendThreshold method: %@", exception);
@@ -288,6 +303,7 @@ NSMutableDictionary *networkRequest = nil;
     }else if ([@"enableCrashReporting" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         // config.features = @[CLYCrashReporting];
+        [self addCountlyFeature:CLYCrashReporting];
         result(@"enableCrashReporting!");
         });
 
@@ -737,5 +753,27 @@ NSMutableDictionary *networkRequest = nil;
         [Countly.sharedInstance recordEvent:@"[CLY]_push_action" segmentation: segmentation];
     }
     notificationIDs = nil;
+}
+
+- (void)addCountlyFeature:(CLYFeature)feature
+{
+    if(countlyFeatures == nil) {
+        countlyFeatures = [[NSMutableArray alloc] init];
+    }
+    if(![countlyFeatures containsObject:feature]) {
+        [countlyFeatures addObject:feature];
+        config.features = countlyFeatures;
+    }
+}
+
+- (void)removeCountlyFeature:(CLYFeature)feature
+{
+    if(countlyFeatures == nil) {
+        return;
+    }
+    if(![countlyFeatures containsObject:feature]) {
+        [countlyFeatures removeObject:feature];
+        config.features = countlyFeatures;
+    }
 }
 @end

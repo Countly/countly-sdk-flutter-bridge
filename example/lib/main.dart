@@ -25,24 +25,39 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     Countly.isInitialized().then((bool isInitialized){
       if(!isInitialized){
-        Countly.setLoggingEnabled(true);
-        Countly.onNotification((String notification){
-          print("The notification");
-          print(notification);
-        });
-        Countly.pushTokenType(Countly.messagingMode["TEST"]);
-        Countly.enableCrashReporting();
-        Countly.enableApm();
-        Countly.setRequiresConsent(true);
-        Countly.setHttpPostForced(true);
+
+        /// Recommended settings for Countly initialisation
+        Countly.setLoggingEnabled(true); // Enable countly internal debugging logs
+        Countly.enableCrashReporting(); // Enable crash reporting to report unhandled crashes to Countly
+        Countly.setRequiresConsent(true); // Set that consent should be required for features to work.
+        Countly.setAutomaticViewTracking(true); // Enable automatic view tracking
+
+        /// Optional settings for Countly initialisation
+        Countly.enableParameterTamperingProtection("salt"); // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
+        Countly.setHttpPostForced(false); // Set to "true" if you want HTTP POST to be used for all requests
+        Countly.enableApm(); // Enable APM features, which includes the recording of app start time.
+        Countly.enableAttribution(); // Enable to measure your marketing campaign performance by attributing installs from specific campaigns.
+
         Countly.setRemoteConfigAutomaticDownload((result){
           print(result);
-        });
+        }); // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
         var segment = {"Key": "Value"};
-        Countly.setCustomCrashSegment(segment);
-        Countly.eventSendThreshold(1);
-        Countly.init(SERVER_URL, APP_KEY);
-        Countly.giveAllConsent();
+        Countly.setCustomCrashSegment(segment); // Set optional key/value segment added for crash reports.
+        Countly.eventSendThreshold(10); // Set event threshold value, Events get grouped together and are sent either every minute or after the unsent event count reaches a threshold. By default it is 10
+        Countly.init(SERVER_URL, APP_KEY).then((value){
+
+          /// Push notifications settings
+          /// Should be call after init
+          Countly.pushTokenType(Countly.messagingMode["TEST"]); // Set messaging mode for push notifications
+          Countly.onNotification((String notification){
+            print("The notification");
+            print(notification);
+          }); // Set callback to receive push notifications
+          Countly.askForNotificationPermission(); // This method will ask for permission, enables push notification and send push token to countly server.;
+
+          Countly.giveAllConsent(); // give consent for all features, should be call after init
+//        Countly.giveConsent(["events", "views"]); // give consent for some specific features, should be call after init.
+        }); // Initialize the countly SDK.
       }else{
         print("Countly: Already initialized.");
       }

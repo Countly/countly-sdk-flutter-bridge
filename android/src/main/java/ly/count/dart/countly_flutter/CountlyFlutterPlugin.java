@@ -581,7 +581,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               segm.put("rating", "" + rating);
               Countly.sharedInstance().events().recordEvent("[CLY]_star_rating", segm, 1);
               result.success("sendRating: " + ratingString);
-          } else if ("recordView".equals(call.method)) {
+          }else if ("setAutomaticViewTracking".equals(call.method)) {
+              Boolean flag = args.getBoolean(0);
+              this.setConfig();
+              this.config.setViewTracking(flag);
+              result.success("setAutomaticViewTracking!");
+          }else if ("recordView".equals(call.method)) {
               String viewName = args.getString(0);
               Map<String, Object> segments = new HashMap<String, Object>();
               int il = args.length();
