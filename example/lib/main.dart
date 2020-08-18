@@ -37,13 +37,12 @@ class _MyAppState extends State<MyApp> {
         Countly.setHttpPostForced(false); // Set to "true" if you want HTTP POST to be used for all requests
         Countly.enableApm(); // Enable APM features, which includes the recording of app start time.
         Countly.enableAttribution(); // Enable to measure your marketing campaign performance by attributing installs from specific campaigns.
-
         Countly.setRemoteConfigAutomaticDownload((result){
           print(result);
         }); // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
         var segment = {"Key": "Value"};
         Countly.setCustomCrashSegment(segment); // Set optional key/value segment added for crash reports.
-        Countly.eventSendThreshold(10); // Should be used only if you know what you are doing. Set event grouping threshold value. The default is 10.
+
         Countly.init(SERVER_URL, APP_KEY).then((value){
 
           /// Push notifications settings
