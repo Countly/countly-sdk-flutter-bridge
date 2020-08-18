@@ -256,7 +256,17 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             }else{
                 result.success("false");
             }
-        }else if ("changeDeviceId".equals(call.method)) {
+        }else if ("getCurrentDeviceId".equals(call.method)) {
+              String deviceID = Countly.sharedInstance().getDeviceID();
+              result.success(deviceID);
+          }else if ("getDeviceIdAuthor".equals(call.method)) {
+              DeviceId.Type deviceIDType = Countly.sharedInstance().getDeviceIDType();
+              if(deviceIDType == DeviceId.Type.DEVELOPER_SUPPLIED){
+                  result.success("developerProvided");
+              }else{
+                  result.success("sdkGenerated");
+              }
+          }else if ("changeDeviceId".equals(call.method)) {
               String newDeviceID = args.getString(0);
               String onServerString = args.getString(1);
               if(newDeviceID.equals("TemporaryDeviceID")){
@@ -273,13 +283,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               Countly.sharedInstance().enableTemporaryIdMode();
               result.success("enableTemporaryIdMode This method doesn't exists!");
           } else if ("setHttpPostForced".equals(call.method)) {
-              int isEnabled = Integer.parseInt(args.getString(0));
+              Boolean isEnabled = args.getBoolean(0);
               this.setConfig();
-              if (isEnabled == 1) {
-                  this.config.setHttpPostForced(true);
-              } else {
-                  this.config.setHttpPostForced(false);
-              }
+              this.config.setHttpPostForced(isEnabled);
               result.success("setHttpPostForced");
           } else if ("enableParameterTamperingProtection".equals(call.method)) {
               String salt = args.getString(0);
@@ -581,7 +587,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               segm.put("rating", "" + rating);
               Countly.sharedInstance().events().recordEvent("[CLY]_star_rating", segm, 1);
               result.success("sendRating: " + ratingString);
-          } else if ("recordView".equals(call.method)) {
+          }else if ("setAutomaticViewTracking".equals(call.method)) {
+              Boolean flag = args.getBoolean(0);
+              this.setConfig();
+              this.config.setViewTracking(flag);
+              result.success("setAutomaticViewTracking!");
+          }else if ("recordView".equals(call.method)) {
               String viewName = args.getString(0);
               Map<String, Object> segments = new HashMap<String, Object>();
               int il = args.length();
