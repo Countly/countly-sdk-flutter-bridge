@@ -43,7 +43,7 @@ class _MyAppState extends State<MyApp> {
         }); // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
         var segment = {"Key": "Value"};
         Countly.setCustomCrashSegment(segment); // Set optional key/value segment added for crash reports.
-        Countly.eventSendThreshold(10); // Should be used only if you know what you are doing, set event threshold value, Events get grouped together and are sent either every minute or after the unsent event count reaches a threshold. By default it is 10
+        Countly.eventSendThreshold(10); // Should be used only if you know what you are doing. Set event grouping threshold value. The default is 10.
         Countly.init(SERVER_URL, APP_KEY).then((value){
 
           /// Push notifications settings

@@ -371,23 +371,6 @@ static Future<String> onNotification(Function callback) async {
     });
   }
 
-  /// Give who set the device Id, developer or Countly
-  /// Should be call after Countly init
-  static Future<String> getDeviceIdAuthor() async {
-    isInitialized().then((bool isInitialized) async {
-      if(!isInitialized) {
-        log('getDeviceIdAuthor, init must be called before getDeviceIdAuthor',logLevel: LogLevel.WARNING);
-        return "init must be called before getDeviceIdAuthor";
-      }
-      List <String> args = [];
-      final String result = await _channel.invokeMethod('getDeviceIdAuthor', <String, dynamic>{
-        'data': json.encode(args)
-      });
-      log(result);
-      return result;
-    });
-  }
-
   static Future<String> changeDeviceId(String newDeviceID, bool onServer) async {
     if(isNullOrEmpty(newDeviceID)){
       String error = "changeDeviceId, deviceId cannot be null or empty";
