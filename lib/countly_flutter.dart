@@ -147,7 +147,7 @@ class Countly {
   /// Should be call before Countly init
   static Future<String> setAutomaticViewTracking(bool flag) async {
     List <String> args = [];
-    args.add(flag);
+    args.add(flag.toString());
     log(args.toString());
     final String result = await _channel.invokeMethod('setAutomaticViewTracking', <String, dynamic>{
       'data': json.encode(args)
@@ -352,6 +352,40 @@ static Future<String> onNotification(Function callback) async {
     });
     log(result);
     return result;
+  }
+  
+  /// Get currently used device Id.
+  /// Should be call after Countly init
+  static Future<String> getCurrentDeviceId() async {
+    isInitialized().then((bool isInitialized) async {
+      if(!isInitialized) {
+        log('getCurrentDeviceId, init must be called before getCurrentDeviceId',logLevel: LogLevel.WARNING);
+        return "init must be called before getCurrentDeviceId";
+      }
+      List <String> args = [];
+      final String result = await _channel.invokeMethod('getCurrentDeviceId', <String, dynamic>{
+        'data': json.encode(args)
+      });
+      log(result);
+      return result;
+    });
+  }
+
+  /// Give who set the device Id, developer or Countly
+  /// Should be call after Countly init
+  static Future<String> getDeviceIdAuthor() async {
+    isInitialized().then((bool isInitialized) async {
+      if(!isInitialized) {
+        log('getDeviceIdAuthor, init must be called before getDeviceIdAuthor',logLevel: LogLevel.WARNING);
+        return "init must be called before getDeviceIdAuthor";
+      }
+      List <String> args = [];
+      final String result = await _channel.invokeMethod('getDeviceIdAuthor', <String, dynamic>{
+        'data': json.encode(args)
+      });
+      log(result);
+      return result;
+    });
   }
 
   static Future<String> changeDeviceId(String newDeviceID, bool onServer) async {
@@ -697,7 +731,7 @@ static Future<String> onNotification(Function callback) async {
     return result;
   }
 
-  /// Give consent for all features, should be call after init
+  /// Give consent for all features
   /// Should be call after Countly init
   static Future<String> giveAllConsent() async {
     List <String> args = [];
