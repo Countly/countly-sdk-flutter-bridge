@@ -701,8 +701,8 @@ NSMutableDictionary *networkRequest = nil;
                 int responseCode = [[command objectAtIndex:1] intValue];
                 int requestPayloadSize = [[command objectAtIndex:2] intValue];
                 int responsePayloadSize = [[command objectAtIndex:3] intValue];
-                int startTime = [[command objectAtIndex:4] intValue];
-                int endTime = [[command objectAtIndex:5] intValue];
+                long long startTime = [[command objectAtIndex:4] longLongValue];
+                long long endTime = [[command objectAtIndex:5] longLongValue];
                 [Countly.sharedInstance recordNetworkTrace: networkTraceKey requestPayloadSize: requestPayloadSize responsePayloadSize: responsePayloadSize responseStatusCode: responseCode startTime: startTime endTime: endTime];
             }
             @catch(NSException *exception){
