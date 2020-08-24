@@ -18,9 +18,5 @@ dev_dependencies:
 
 flutter:
   plugin:
-    platforms:
-      android: 
-        package: ly.count.dart.countly_flutter
-        pluginClass: CountlyFlutterPlugin
-      ios:
-        pluginClass: CountlyFlutterPlugin
+    androidPackage: ly.count.dart.countly_flutter
+    pluginClass: CountlyFlutterPlugin
