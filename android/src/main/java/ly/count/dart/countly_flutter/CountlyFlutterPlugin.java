@@ -737,9 +737,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             Countly.sharedInstance().apm().startTrace(traceKey);
             result.success("startTrace: success");
         } else if ("cancelTrace".equals(call.method)) {
-            result.success("cancelTrace: not implemented");
+            String traceKey = args.getString(0);
+            Countly.sharedInstance().apm().cancelTrace(traceKey);
+            result.success("cancelTrace: success");
         } else if ("clearAllTraces".equals(call.method)) {
-            result.success("clearAllTraces: not implemented");
+            Countly.sharedInstance().apm().cancelAllTraces();
+            result.success("clearAllTraces: success");
         } else if ("endTrace".equals(call.method)) {
             String traceKey = args.getString(0);
             HashMap<String, Integer> customMetric = new HashMap<String, Integer>();
@@ -762,7 +765,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 int responsePayloadSize = Integer.parseInt(args.getString(3));
                 long startTime = Long.parseLong(args.getString(4));
                 long endTime = Long.parseLong(args.getString(5));
-                // Countly.sharedInstance().apm().endNetworkRequest(networkTraceKey, null, responseCode, requestPayloadSize, responsePayloadSize);
+                Countly.sharedInstance().apm().recordNetworkTrace(networkTraceKey, responseCode, requestPayloadSize, responsePayloadSize, startTime, endTime);
             }catch(Exception exception){
                 if(Countly.sharedInstance().isLoggingEnabled()){
                     Log.e(Countly.TAG, "Exception occurred at recordNetworkTrace method: " +exception.toString());
