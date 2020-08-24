@@ -246,6 +246,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               } else {
                   this.config.setIdMode(DeviceId.Type.ADVERTISING_ID);
               }
+              if (activity == null) {
+                  if(Countly.sharedInstance().isLoggingEnabled()) {
+                      Log.w(Countly.TAG, "[CountlyFlutterPlugin] Activity is 'null' during init, cannot set Application");
+                  }
+              }
+              else {
+                  this.config.setApplication(activity.getApplication());
+              }
               Countly.sharedInstance().init(this.config);
               result.success("initialized!");
         } else if ("isInitialized".equals(call.method)) {
@@ -773,7 +781,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             }
             result.success("recordNetworkTrace: success");
         } else if ("enableApm".equals(call.method)) {
-            this.config.setRecordAppStartTime(true);
+            this.config.setRecordAppStartTime(false);
             result.success("enableApm: success");
         } else if ("throwNativeException".equals(call.method)) {
             throw new IllegalStateException("Native Exception Crashhh!");
