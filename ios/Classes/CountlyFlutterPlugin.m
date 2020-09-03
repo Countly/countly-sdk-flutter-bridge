@@ -5,6 +5,12 @@
 #import "CountlyDeviceInfo.h"
 #import "CountlyRemoteConfig.h"
 
+#if DEBUG
+#define COUNTLY_FLUTTER_LOG(fmt, ...) CountlyFlutterInternalLog(fmt, ##__VA_ARGS__)
+#else
+#define COUNTLY_FLUTTER_LOG(...)
+#endif
+
 NSString* const kCountlyFlutterSDKVersion = @"20.04.1";
 NSString* const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 
@@ -12,6 +18,7 @@ FlutterResult notificationListener = nil;
 NSDictionary *lastStoredNotification = nil;
 NSMutableArray *notificationIDs = nil;        // alloc here
 NSMutableArray<CLYFeature>* countlyFeatures = nil;
+NSArray *consents = nil;
 
 @implementation CountlyFlutterPlugin
 
@@ -69,6 +76,9 @@ NSMutableDictionary *networkRequest = nil;
             dispatch_async(dispatch_get_main_queue(), ^ {
               isInitialized = true;
               [[Countly sharedInstance] startWithConfig:config];
+                if(consents != nil) {
+                  [Countly.sharedInstance giveConsentForFeatures:consents];
+                }
               [self recordPushAction];
             });
             result(@"initialized.");
@@ -119,28 +129,14 @@ NSMutableDictionary *networkRequest = nil;
                     segments[[command objectAtIndex:i]] = [command objectAtIndex:i+1];
                 }
                 @catch(NSException *exception){
-                    NSLog(@"[CountlyFlutter] recordView: Exception occured while parsing segments: %@", exception);
+                    COUNTLY_FLUTTER_LOG(@"recordView: Exception occured while parsing segments: %@", exception);
                 }
             }
         }
         [Countly.sharedInstance recordView:recordView segmentation:segments];
         result(@"recordView Sent!");
         });
-    }else if ([@"setAutomaticViewTracking" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^ {
-        BOOL boolean = [[command objectAtIndex:0] boolValue];
-        if(boolean) {
-            [self addCountlyFeature:CLYAutoViewTracking];
-        }
-        else {
-            [self removeCountlyFeature:CLYAutoViewTracking];
-        }
-        [Countly.sharedInstance setIsAutoViewTrackingActive:boolean];
-        });
-        result(@"setAutomaticViewTracking!");
-
-    }
-    else if ([@"setLoggingEnabled" isEqualToString:call.method]) {
+    }else if ([@"setLoggingEnabled" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         config.enableDebug = YES;
         result(@"setLoggingEnabled!");
@@ -209,7 +205,7 @@ NSMutableDictionary *networkRequest = nil;
             result(@"eventSendThreshold!");
         }
         @catch(NSException *exception){
-            NSLog(@"[CountlyFlutter] Exception occurred at eventSendThreshold method: %@", exception);
+            COUNTLY_FLUTTER_LOG(@"Exception occurred at eventSendThreshold method: %@", exception);
         };
         });
 
@@ -281,6 +277,39 @@ NSMutableDictionary *networkRequest = nil;
         resultString = [resultString stringByAppendingString: key];
         result(resultString);
         });
+    }else if ([@"setLocationInit" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            NSString* countryCode = [command objectAtIndex:0];
+            NSString* city = [command objectAtIndex:1];
+            NSString* locationString = [command objectAtIndex:2];
+            NSString* ipAddress = [command objectAtIndex:3];
+
+            if(locationString != nil && ![locationString isEqualToString:@"null"] && [locationString containsString:@","]){
+               @try{
+                   NSArray *locationArray = [locationString componentsSeparatedByString:@","];
+                   NSString* latitudeString = [locationArray objectAtIndex:0];
+                   NSString* longitudeString = [locationArray objectAtIndex:1];
+
+                   double latitudeDouble = [latitudeString doubleValue];
+                   double longitudeDouble = [longitudeString doubleValue];
+                   config.location = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
+               }
+               @catch(NSException *exception){
+                   COUNTLY_FLUTTER_LOG(@"Invalid location: %@", locationString);
+               }
+            }
+            if(city != nil && ![city isEqualToString:@"null"]) {
+               config.city = city;
+            }
+            if(countryCode != nil && ![countryCode isEqualToString:@"null"]) {
+               config.ISOCountryCode = countryCode;
+            }
+            if(ipAddress != nil && ![ipAddress isEqualToString:@"null"]) {
+               config.IP = ipAddress;
+            }
+             result(@"setLocationInit!");
+        });
+
     }else if ([@"setLocation" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         NSString* latitudeString = [command objectAtIndex:0];
@@ -300,7 +329,7 @@ NSMutableDictionary *networkRequest = nil;
                 config.location = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
             }
             @catch(NSException *execption){
-                NSLog(@"[Countly] Invalid latitude or longitude.");
+                COUNTLY_FLUTTER_LOG(@"Invalid latitude or longitude.");
             }
         }
         result(@"setLocation!");
@@ -365,7 +394,7 @@ NSMutableDictionary *networkRequest = nil;
         result(@"pushTokenType!");
         });
     }else if ([@"registerForNotification" isEqualToString:call.method]) {
-        NSLog(@"Countly Native: registerForNotification");
+        COUNTLY_FLUTTER_LOG(@"registerForNotification");
         notificationListener = result;
         if(lastStoredNotification != nil){
             result([lastStoredNotification description]);
@@ -491,6 +520,12 @@ NSMutableDictionary *networkRequest = nil;
         result(@"setRequiresConsent!");
         });
 
+    }else if ([@"giveConsentInit" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+        consents = command;
+        result(@"giveConsentInit!");
+        });
+
     }else if ([@"giveConsent" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         [Countly.sharedInstance giveConsentForFeatures:command];
@@ -546,7 +581,7 @@ NSMutableDictionary *networkRequest = nil;
                 [Countly.sharedInstance recordLocation:(CLLocationCoordinate2D){latitudeDouble,longitudeDouble}];
             }
             @catch(NSException *execption){
-                NSLog(@"[Countly] Invalid latitude or longitude.");
+                COUNTLY_FLUTTER_LOG(@"Invalid latitude or longitude.");
             }
         }
 
@@ -688,7 +723,7 @@ NSMutableDictionary *networkRequest = nil;
                     metrics[[command objectAtIndex:i]] = [command objectAtIndex:i+1];
                 }
                 @catch(NSException *exception){
-                    NSLog(@"[CountlyFlutter] Exception occurred while parsing metric: %@", exception);
+                    COUNTLY_FLUTTER_LOG(@"Exception occurred while parsing metric: %@", exception);
                 }
             }
             [Countly.sharedInstance endCustomTrace: traceKey metrics: metrics];
@@ -706,7 +741,7 @@ NSMutableDictionary *networkRequest = nil;
                 [Countly.sharedInstance recordNetworkTrace: networkTraceKey requestPayloadSize: requestPayloadSize responsePayloadSize: responsePayloadSize responseStatusCode: responseCode startTime: startTime endTime: endTime];
             }
             @catch(NSException *exception){
-                NSLog(@"[CountlyFlutter] Exception occured at recordNetworkTrace method: %@", exception);
+                COUNTLY_FLUTTER_LOG(@"Exception occured at recordNetworkTrace method: %@", exception);
             }
         });
         result(@"recordNetworkTrace: success");
@@ -731,8 +766,8 @@ NSMutableDictionary *networkRequest = nil;
     }
 }
 + (void)onNotification: (NSDictionary *) notificationMessage{
-    NSLog(@"Notification received");
-    NSLog(@"The notification %@", notificationMessage);
+    COUNTLY_FLUTTER_LOG(@"Notification received");
+    COUNTLY_FLUTTER_LOG(@"The notification %@", notificationMessage);
     if(notificationMessage && notificationListener != nil){
         notificationListener([NSString stringWithFormat:@"%@",notificationMessage]);
     }else{
@@ -781,5 +816,24 @@ NSMutableDictionary *networkRequest = nil;
         [countlyFeatures removeObject:feature];
         config.features = countlyFeatures;
     }
+}
+
+void CountlyFlutterInternalLog(NSString *format, ...)
+{
+    if (!config.enableDebug)
+        return;
+
+    va_list args;
+    va_start(args, format);
+
+    NSString* logString = [NSString.alloc initWithFormat:format arguments:args];
+    CountlyFlutterPrint(logString);
+
+    va_end(args);
+}
+
+void CountlyFlutterPrint(NSString *stringToPrint)
+{
+    NSLog(@"[CountlyFlutter] %@", stringToPrint);
 }
 @end

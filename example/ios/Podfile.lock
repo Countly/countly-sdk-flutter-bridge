@@ -1,9 +1,9 @@
 PODS:
-  - Countly (20.04.2):
-    - Countly/Core (= 20.04.2)
-  - Countly/Core (20.04.2)
+  - Countly (20.04.3):
+    - Countly/Core (= 20.04.3)
+  - Countly/Core (20.04.3)
   - countly_flutter (0.0.1):
-    - Countly (= 20.04.2)
+    - Countly (= 20.04.3)
     - Flutter
   - Flutter (1.0.0)
   - flutter_plugin_android_lifecycle (0.0.1):
@@ -27,8 +27,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_plugin_android_lifecycle/ios"
 
 SPEC CHECKSUMS:
-  Countly: 671fafd48d7436e7ddc0c8dc67001ad3cb41ee51
-  countly_flutter: d23e95e44e241b5d70e3591a0f15aecc099cebe0
+  Countly: 6e4af408faaa26192227f06d27899532c4c2317b
+  countly_flutter: 4c090d7f5893e02e94896ea9f9f16d0267156fdb
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   flutter_plugin_android_lifecycle: dc0b544e129eebb77a6bfb1239d4d1c673a60a35
 

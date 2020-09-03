@@ -142,19 +142,6 @@ class Countly {
     log(result);
     return result;
   }
-  
-  /// Enable automatic view tracking
-  /// Should be call before Countly init
-  static Future<String> setAutomaticViewTracking(bool flag) async {
-    List <String> args = [];
-    args.add(flag.toString());
-    log(args.toString());
-    final String result = await _channel.invokeMethod('setAutomaticViewTracking', <String, dynamic>{
-      'data': json.encode(args)
-    });
-    log(result);
-    return result;
-  }
 
   static Future<String> setUserData(Map<String, Object> options) async {
     List <String> args = [];
@@ -454,6 +441,21 @@ static Future<String> onNotification(Function callback) async {
     log(result);
     return result;
   }
+  /// Set user initial location
+  /// Should be call before init
+  static Future<String> setLocationInit(String countryCode, String city, String gpsCoordinates, String ipAddress) async {
+    List <String> args = [];
+    args.add(countryCode);
+    args.add(city);
+    args.add(gpsCoordinates);
+    args.add(ipAddress);
+    log(args.toString());
+    final String result = await _channel.invokeMethod('setLocationInit', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
   static Future<String> setLocation(String latitude, String longitude) async {
     if(isNullOrEmpty(latitude)){
       String error = "setLocation, latitude cannot be null or empty";
@@ -672,6 +674,26 @@ static Future<String> onNotification(Function callback) async {
     args.add(flag.toString());
     log(args.toString());
     final String result = await _channel.invokeMethod('setRequiresConsent', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
+  /// Give consent for specific features.
+  /// Should be call before Countly init
+  static Future<String> giveConsentInit(List <String> consents) async {
+    if(consents == null){
+      String error = "giveConsentInit, consents List cannot be null";
+      log(error);
+      return "Error : $error";
+    }
+    if(consents.length == 0){
+      String error = "giveConsentInit, consents List is empty";
+      log(error, logLevel: LogLevel.WARNING);
+    }
+    List <String> args = consents;
+    log(args.toString());
+    final String result = await _channel.invokeMethod('giveConsentInit', <String, dynamic>{
       'data': json.encode(args)
     });
     log(result);

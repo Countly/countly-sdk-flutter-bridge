@@ -26,11 +26,13 @@ class _MyAppState extends State<MyApp> {
     Countly.isInitialized().then((bool isInitialized){
       if(!isInitialized){
 
+
         /// Recommended settings for Countly initialisation
         Countly.setLoggingEnabled(true); // Enable countly internal debugging logs
         Countly.enableCrashReporting(); // Enable crash reporting to report unhandled crashes to Countly
         Countly.setRequiresConsent(true); // Set that consent should be required for features to work.
-        Countly.setAutomaticViewTracking(true); // Enable automatic view tracking
+        Countly.giveConsentInit(["location", "sessions", "attribution", "push", "events", "views", "crashes", "users", "push", "star-rating", "apm"]);
+        Countly.setLocationInit("TR", "Istanbul", "41.0082,28.9784", "10.2.33.12");// Set user initial location.
 
         /// Optional settings for Countly initialisation
         Countly.enableParameterTamperingProtection("salt"); // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
@@ -174,10 +176,12 @@ class _MyAppState extends State<MyApp> {
   }
   recordViewHome(){
     Map<String, Object> segments = {
-      "Key_1": "Value_1",
-      "Key_2": "Value_2"
+      "Cats": 123,
+      "Moons": 9.98,
+      "Moose": "Deer"
     };
     Countly.recordView("HomePage", segments);
+
   }
   recordViewDashboard(){
     Countly.recordView("Dashboard");
@@ -245,14 +249,14 @@ class _MyAppState extends State<MyApp> {
   }
   setUserData(){
     Map<String, Object> options = {
-      "name": "Trinisoft Technologies",
-      "username": "trinisofttechnologies",
-      "email": "trinisofttechnologies@gmail.com",
-      "organization": "Trinisoft Technologies Pvt. Ltd.",
-      "phone": "+91 812 840 2946",
-      "picture": "https://avatars0.githubusercontent.com/u/10754117?s=400&u=fe019f92d573ac76cbfe7969dde5e20d7206975a&v=4",
+      "name": "Name of User",
+      "username": "Username",
+      "email": "User Email",
+      "organization": "User Organization",
+      "phone": "User Contact number",
+      "picture": "https://count.ly/images/logos/countly-logo.png",
       "picturePath": "",
-      "gender": "M", // "F"
+      "gender": "User Gender",
       "byear": "1989",
     };
     Countly.setUserData(options);
