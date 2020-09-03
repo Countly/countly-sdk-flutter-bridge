@@ -72,13 +72,13 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         instance.activity  = registrar.activity();
         final Context __context = registrar.context();
         instance.onAttachedToEngineInternal(__context, registrar.messenger());
-        logIsDebug("registerWith");
+        log("registerWith");
     }
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
         onAttachedToEngineInternal(binding.getApplicationContext(), binding.getBinaryMessenger());
-        logIsDebug("onAttachedToEngine");
+        log("onAttachedToEngine");
     }
 
     @Override
@@ -86,14 +86,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         context = null;
         methodChannel.setMethodCallHandler(null);
         methodChannel = null;
-        logIsDebug("onDetachedFromEngine");
+        log("onDetachedFromEngine");
     }
 
     private void onAttachedToEngineInternal(Context context, BinaryMessenger messenger) {
         this.context = context;
         methodChannel = new MethodChannel(messenger, "countly_flutter");
         methodChannel.setMethodCallHandler(this);
-        logIsDebug("onAttachedToEngineInternal");
+        log("onAttachedToEngineInternal");
     }
 
 
@@ -102,14 +102,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         this.activity = binding.getActivity();
         lifecycle = FlutterLifecycleAdapter.getActivityLifecycle(binding);
         lifecycle.addObserver(this);
-        logIsDebug("onAttachedToActivity : Activity attached!");
+        log("onAttachedToActivity : Activity attached!");
     }
 
     @Override
     public void onDetachedFromActivityForConfigChanges() {
         lifecycle.removeObserver(this);
         this.activity = null;
-        logIsDebug("onDetachedFromActivityForConfigChanges : Activity is no more valid");
+        log("onDetachedFromActivityForConfigChanges : Activity is no more valid");
     }
 
     @Override
@@ -117,27 +117,27 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         this.activity = binding.getActivity();
         lifecycle = FlutterLifecycleAdapter.getActivityLifecycle(binding);
         lifecycle.addObserver(this);
-        logIsDebug("onReattachedToActivityForConfigChanges : Activity attached!");
+        log("onReattachedToActivityForConfigChanges : Activity attached!");
     }
 
     @Override
     public void onDetachedFromActivity() {
         lifecycle.removeObserver(this);
         this.activity = null;
-        logIsDebug("onDetachedFromActivity : Activity is no more valid");
+        log("onDetachedFromActivity : Activity is no more valid");
     }
 
     // DefaultLifecycleObserver callbacks
 
     @Override
     public void onCreate(@NonNull LifecycleOwner owner) {
-        logIsDebug("onCreate");
+        log("onCreate");
 
     }
 
     @Override
     public void onStart(@NonNull LifecycleOwner owner) {
-        logIsDebug("onStart");
+        log("onStart");
         if(isSessionStarted_) {
             Countly.sharedInstance().onStart(activity);
         }
@@ -145,17 +145,17 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
     @Override
     public void onResume(@NonNull LifecycleOwner owner) {
-        logIsDebug("onResume");
+        log("onResume");
     }
 
     @Override
     public void onPause(@NonNull LifecycleOwner owner) {
-        logIsDebug("onPause");
+        log("onPause");
     }
 
     @Override
     public void onStop(@NonNull LifecycleOwner owner) {
-        logIsDebug("onStop");
+        log("onStop");
         if(isSessionStarted_) {
             Countly.sharedInstance().onStop();
         }
@@ -163,7 +163,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
     @Override
     public void onDestroy(@NonNull LifecycleOwner owner) {
-        logIsDebug("onDestroy");
+        log("onDestroy");
     }
 
   public CountlyFlutterPlugin() {
@@ -178,8 +178,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
       JSONArray args = null;
       try {
           args = new JSONArray(argsString);
-          logIsDebug("Method name: " + call.method);
-          logIsDebug("Method arguments: " + argsString);
+          log("Method name: " + call.method);
+          log("Method arguments: " + argsString);
 
           if ("init".equals(call.method)) {
               if(context == null) {
@@ -771,59 +771,28 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         log(message, LogLevel.INFO);
     }
     static void log(String message, LogLevel logLevel)  {
-        log(message, logLevel, false);
+        log(message, null, logLevel);
     }
-
-    static void logIsDebug(String message)  {
-        log(message, LogLevel.INFO, isDebug);
-    }
-
-    static void logIsDebug(String message, LogLevel logLevel)  {
-        log(message, logLevel, isDebug);
-    }
-
-    static void log(String message, LogLevel logLevel, boolean isDebug )  {
-        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
-            switch (logLevel) {
-                case INFO:
-                    Log.i(TAG, message);
-                    break;
-                case DEBUG:
-                    Log.d(TAG, message);
-                    break;
-                case WARNING:
-                    Log.w(TAG, message);
-                    break;
-                case ERROR:
-                    Log.e(TAG, message);
-                    break;
-                case VERBOSE:
-                    Log.v(TAG, message);
-                    break;
-            }
-        }
-    }
-
-
     static void log(String message, Throwable tr, LogLevel logLevel)  {
-        if(Countly.sharedInstance().isLoggingEnabled()) {
-            switch (logLevel) {
-                case INFO:
-                    Log.i(TAG, message, tr);
-                    break;
-                case DEBUG:
-                    Log.d(TAG, message, tr);
-                    break;
-                case WARNING:
-                    Log.w(TAG, message, tr);
-                    break;
-                case ERROR:
-                    Log.e(TAG, message, tr);
-                    break;
-                case VERBOSE:
-                    Log.v(TAG, message, tr);
-                    break;
-            }
+        if(!isDebug && !Countly.sharedInstance().isLoggingEnabled()) {
+            return;
+        }
+        switch (logLevel) {
+            case INFO:
+                Log.i(TAG, message, tr);
+                break;
+            case DEBUG:
+                Log.d(TAG, message, tr);
+                break;
+            case WARNING:
+                Log.w(TAG, message, tr);
+                break;
+            case ERROR:
+                Log.e(TAG, message, tr);
+                break;
+            case VERBOSE:
+                Log.v(TAG, message, tr);
+                break;
         }
     }
 
