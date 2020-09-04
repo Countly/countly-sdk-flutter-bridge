@@ -72,13 +72,13 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         instance.activity  = registrar.activity();
         final Context __context = registrar.context();
         instance.onAttachedToEngineInternal(__context, registrar.messenger());
-        log("registerWith");
+        log("registerWith", LogLevel.INFO);
     }
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
         onAttachedToEngineInternal(binding.getApplicationContext(), binding.getBinaryMessenger());
-        log("onAttachedToEngine");
+        log("onAttachedToEngine", LogLevel.INFO);
     }
 
     @Override
@@ -86,14 +86,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         context = null;
         methodChannel.setMethodCallHandler(null);
         methodChannel = null;
-        log("onDetachedFromEngine");
+        log("onDetachedFromEngine", LogLevel.INFO);
     }
 
     private void onAttachedToEngineInternal(Context context, BinaryMessenger messenger) {
         this.context = context;
         methodChannel = new MethodChannel(messenger, "countly_flutter");
         methodChannel.setMethodCallHandler(this);
-        log("onAttachedToEngineInternal");
+        log("onAttachedToEngineInternal", LogLevel.INFO);
     }
 
 
@@ -102,14 +102,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         this.activity = binding.getActivity();
         lifecycle = FlutterLifecycleAdapter.getActivityLifecycle(binding);
         lifecycle.addObserver(this);
-        log("onAttachedToActivity : Activity attached!");
+        log("onAttachedToActivity : Activity attached!", LogLevel.INFO);
     }
 
     @Override
     public void onDetachedFromActivityForConfigChanges() {
         lifecycle.removeObserver(this);
         this.activity = null;
-        log("onDetachedFromActivityForConfigChanges : Activity is no more valid");
+        log("onDetachedFromActivityForConfigChanges : Activity is no more valid", LogLevel.INFO);
     }
 
     @Override
@@ -117,27 +117,27 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         this.activity = binding.getActivity();
         lifecycle = FlutterLifecycleAdapter.getActivityLifecycle(binding);
         lifecycle.addObserver(this);
-        log("onReattachedToActivityForConfigChanges : Activity attached!");
+        log("onReattachedToActivityForConfigChanges : Activity attached!", LogLevel.INFO);
     }
 
     @Override
     public void onDetachedFromActivity() {
         lifecycle.removeObserver(this);
         this.activity = null;
-        log("onDetachedFromActivity : Activity is no more valid");
+        log("onDetachedFromActivity : Activity is no more valid", LogLevel.INFO);
     }
 
     // DefaultLifecycleObserver callbacks
 
     @Override
     public void onCreate(@NonNull LifecycleOwner owner) {
-        log("onCreate");
+        log("onCreate", LogLevel.INFO);
 
     }
 
     @Override
     public void onStart(@NonNull LifecycleOwner owner) {
-        log("onStart");
+        log("onStart", LogLevel.INFO);
         if(isSessionStarted_) {
             Countly.sharedInstance().onStart(activity);
         }
@@ -145,17 +145,17 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
     @Override
     public void onResume(@NonNull LifecycleOwner owner) {
-        log("onResume");
+        log("onResume", LogLevel.INFO);
     }
 
     @Override
     public void onPause(@NonNull LifecycleOwner owner) {
-        log("onPause");
+        log("onPause", LogLevel.INFO);
     }
 
     @Override
     public void onStop(@NonNull LifecycleOwner owner) {
-        log("onStop");
+        log("onStop", LogLevel.INFO);
         if(isSessionStarted_) {
             Countly.sharedInstance().onStop();
         }
@@ -163,7 +163,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
     @Override
     public void onDestroy(@NonNull LifecycleOwner owner) {
-        log("onDestroy");
+        log("onDestroy", LogLevel.INFO);
     }
 
   public CountlyFlutterPlugin() {
@@ -178,8 +178,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
       JSONArray args = null;
       try {
           args = new JSONArray(argsString);
-          log("Method name: " + call.method);
-          log("Method arguments: " + argsString);
+          log("Method name: " + call.method, LogLevel.INFO);
+          log("Method arguments: " + argsString, LogLevel.INFO);
 
           if ("init".equals(call.method)) {
               if(context == null) {
@@ -744,7 +744,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     public String registerForNotification(JSONArray args, final Callback theCallback){
         notificationListener = theCallback;
         if(Countly.sharedInstance().isLoggingEnabled()) {
-            log("registerForNotification theCallback");
+            log("registerForNotification theCallback", LogLevel.INFO);
         }
         if(lastStoredNotification != null){
             theCallback.callback(lastStoredNotification);
@@ -755,7 +755,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     public static void onNotification(Map<String, String>  notification){
         JSONObject json = new JSONObject(notification);
         String notificationString = json.toString();
-        log(notificationString);
+        log(notificationString, LogLevel.INFO);
         if(notificationListener != null){
             notificationListener.callback(notificationString);
         }else{
@@ -767,9 +767,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     }
 
     enum LogLevel {INFO, DEBUG, VERBOSE, WARNING, ERROR}
-    static void log(String message)  {
-        log(message, LogLevel.INFO);
-    }
     static void log(String message, LogLevel logLevel)  {
         log(message, null, logLevel);
     }
