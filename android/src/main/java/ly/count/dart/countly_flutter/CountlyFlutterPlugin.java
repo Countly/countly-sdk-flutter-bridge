@@ -50,6 +50,8 @@ import com.google.firebase.FirebaseApp;
 
 /** CountlyFlutterPlugin */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
+
+    private static final String TAG = "CountlyFlutterPlugin";
     private String COUNTLY_FLUTTER_SDK_VERSION_STRING = "20.04.1";
     private String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
 
@@ -57,8 +59,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private Countly.CountlyMessagingMode pushTokenType = Countly.CountlyMessagingMode.PRODUCTION;
     private Context context;
     private Activity activity;
-    private Boolean isDebug = false;
-    private CountlyConfig config = null;
+    private static Boolean isDebug = false;
+    private CountlyConfig config = new CountlyConfig();
     private static Callback notificationListener = null;
     private static String lastStoredNotification = null;
     private MethodChannel methodChannel;
@@ -70,17 +72,13 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         instance.activity  = registrar.activity();
         final Context __context = registrar.context();
         instance.onAttachedToEngineInternal(__context, registrar.messenger());
-        if(instance.isDebug || Countly.sharedInstance().isLoggingEnabled()) {
-            Log.i(Countly.TAG, "[CountlyFlutterPlugin] registerWith");
-        }
+        log("registerWith", LogLevel.INFO);
     }
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
         onAttachedToEngineInternal(binding.getApplicationContext(), binding.getBinaryMessenger());
-        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
-            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onAttachedToEngine");
-        }
+        log("onAttachedToEngine", LogLevel.INFO);
     }
 
     @Override
@@ -88,18 +86,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         context = null;
         methodChannel.setMethodCallHandler(null);
         methodChannel = null;
-        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
-            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onDetachedFromEngine");
-        }
+        log("onDetachedFromEngine", LogLevel.INFO);
     }
 
     private void onAttachedToEngineInternal(Context context, BinaryMessenger messenger) {
         this.context = context;
         methodChannel = new MethodChannel(messenger, "countly_flutter");
         methodChannel.setMethodCallHandler(this);
-        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
-            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onAttachedToEngineInternal");
-        }
+        log("onAttachedToEngineInternal", LogLevel.INFO);
     }
 
 
@@ -108,18 +102,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         this.activity = binding.getActivity();
         lifecycle = FlutterLifecycleAdapter.getActivityLifecycle(binding);
         lifecycle.addObserver(this);
-        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
-            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onAttachedToActivity : Activity attached!");
-        }
+        log("onAttachedToActivity : Activity attached!", LogLevel.INFO);
     }
 
     @Override
     public void onDetachedFromActivityForConfigChanges() {
         lifecycle.removeObserver(this);
         this.activity = null;
-        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
-            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onDetachedFromActivityForConfigChanges : Activity is no more valid");
-        }
+        log("onDetachedFromActivityForConfigChanges : Activity is no more valid", LogLevel.INFO);
     }
 
     @Override
@@ -127,35 +117,27 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         this.activity = binding.getActivity();
         lifecycle = FlutterLifecycleAdapter.getActivityLifecycle(binding);
         lifecycle.addObserver(this);
-        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
-            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onReattachedToActivityForConfigChanges : Activity attached!");
-        }
+        log("onReattachedToActivityForConfigChanges : Activity attached!", LogLevel.INFO);
     }
 
     @Override
     public void onDetachedFromActivity() {
         lifecycle.removeObserver(this);
         this.activity = null;
-        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
-            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onDetachedFromActivity : Activity is no more valid");
-        }
+        log("onDetachedFromActivity : Activity is no more valid", LogLevel.INFO);
     }
 
     // DefaultLifecycleObserver callbacks
 
     @Override
     public void onCreate(@NonNull LifecycleOwner owner) {
-        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
-            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onCreate");
-        }
+        log("onCreate", LogLevel.INFO);
 
     }
 
     @Override
     public void onStart(@NonNull LifecycleOwner owner) {
-        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
-            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onStart");
-        }
+        log("onStart", LogLevel.INFO);
         if(isSessionStarted_) {
             Countly.sharedInstance().onStart(activity);
         }
@@ -163,23 +145,17 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
     @Override
     public void onResume(@NonNull LifecycleOwner owner) {
-        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
-            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onResume");
-        }
+        log("onResume", LogLevel.INFO);
     }
 
     @Override
     public void onPause(@NonNull LifecycleOwner owner) {
-        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
-            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onPause");
-        }
+        log("onPause", LogLevel.INFO);
     }
 
     @Override
     public void onStop(@NonNull LifecycleOwner owner) {
-        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
-            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onStop");
-        }
+        log("onStop", LogLevel.INFO);
         if(isSessionStarted_) {
             Countly.sharedInstance().onStop();
         }
@@ -187,16 +163,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
     @Override
     public void onDestroy(@NonNull LifecycleOwner owner) {
-        if(isDebug || Countly.sharedInstance().isLoggingEnabled()) {
-            Log.i(Countly.TAG, "[CountlyFlutterPlugin] onDestroy");
-        }
+        log("onDestroy", LogLevel.INFO);
     }
-
-  private void setConfig(){
-      if(this.config == null){
-          this.config = new CountlyConfig();
-      }
-  }
 
   public CountlyFlutterPlugin() {
 
@@ -210,23 +178,17 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
       JSONArray args = null;
       try {
           args = new JSONArray(argsString);
-
-          if (isDebug) {
-              Log.i(Countly.TAG, "[CountlyFlutterPlugin] Method name: " + call.method);
-              Log.i(Countly.TAG, "[CountlyFlutterPlugin] Method arguments: " + argsString);
-          }
+          log("Method name: " + call.method, LogLevel.INFO);
+          log("Method arguments: " + argsString, LogLevel.INFO);
 
           if ("init".equals(call.method)) {
               if(context == null) {
-                  if(Countly.sharedInstance().isLoggingEnabled()) {
-                      Log.e(Countly.TAG, "[CountlyFlutterPlugin] valid context is required in Countly init, but was provided 'null'");
-                  }
+                  log("valid context is required in Countly init, but was provided 'null'", LogLevel.ERROR);
                   result.error("init Failed", "valid context is required in Countly init, but was provided 'null'", null);
                   return;
               }
               String serverUrl = args.getString(0);
               String appKey = args.getString(1);
-              this.setConfig();
               this.config.setContext(context);
               this.config.setServerURL(serverUrl);
               this.config.setAppKey(appKey);
@@ -240,6 +202,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                   String yourDeviceID = args.getString(2);
                   if (yourDeviceID.equals("TemporaryDeviceID")) {
                       this.config.enableTemporaryDeviceIdMode();
+
                   } else {
                       this.config.setDeviceId(yourDeviceID);
                   }
@@ -247,9 +210,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                   this.config.setIdMode(DeviceId.Type.ADVERTISING_ID);
               }
               if (activity == null) {
-                  if(Countly.sharedInstance().isLoggingEnabled()) {
-                      Log.w(Countly.TAG, "[CountlyFlutterPlugin] Activity is 'null' during init, cannot set Application");
-                  }
+                  log("Activity is 'null' during init, cannot set Application", LogLevel.WARNING);
               }
               else {
                   this.config.setApplication(activity.getApplication());
@@ -292,14 +253,20 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               result.success("enableTemporaryIdMode This method doesn't exists!");
           } else if ("setHttpPostForced".equals(call.method)) {
               Boolean isEnabled = args.getBoolean(0);
-              this.setConfig();
               this.config.setHttpPostForced(isEnabled);
               result.success("setHttpPostForced");
           } else if ("enableParameterTamperingProtection".equals(call.method)) {
               String salt = args.getString(0);
-              this.setConfig();
               this.config.setParameterTamperingProtectionSalt(salt);
               result.success("enableParameterTamperingProtection success!");
+          } else if ("setLocationInit".equals(call.method)) {
+              String countryCode = args.getString(0);
+              String city = args.getString(1);
+              String location = args.getString(2);
+              String ipAddress = args.getString(3);
+              this.config.setLocation(countryCode, city, location, ipAddress);
+
+              result.success("setLocationInit success!");
           } else if ("setLocation".equals(call.method)) {
               String latitude = args.getString(0);
               String longitude = args.getString(1);
@@ -309,7 +276,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               }
               result.success("setLocation success!");
           } else if ("enableCrashReporting".equals(call.method)) {
-              this.setConfig();
               this.config.enableCrashReporting();
               // Countly.sharedInstance().enableCrashReporting();
               result.success("enableCrashReporting success!");
@@ -339,25 +305,16 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             result.success("setCustomCrashSegment success!");
           } else if ("sendPushToken".equals(call.method)) {
               String token = args.getString(0);
-              int messagingMode = Integer.parseInt(args.getString(1));
-              if (messagingMode == 0) {
-                  // Countly.sharedInstance().sendPushToken(token, Countly.CountlyMessagingMode.PRODUCTION);
-              } else {
-                  // Countly.sharedInstance().sendPushToken(token, Countly.CountlyMessagingMode.TEST);
-              }
+              CountlyPush.onTokenRefresh(token);
               result.success(" success!");
           } else if ("askForNotificationPermission".equals(call.method)) {
               if (activity == null) {
-                  if(Countly.sharedInstance().isLoggingEnabled()) {
-                      Log.e(Countly.TAG, "[CountlyFlutterPlugin] askForNotificationPermission failed : Activity is null");
-                  }
+                  log("askForNotificationPermission failed : Activity is null", LogLevel.ERROR);
                   result.error("askForNotificationPermission Failed", "Activity is null", null);
                   return;
               }
               if(context == null) {
-                  if(Countly.sharedInstance().isLoggingEnabled()) {
-                      Log.e(Countly.TAG, "[CountlyFlutterPlugin] valid context is required in askForNotificationPermission, but was provided 'null'");
-                  }
+                  log("valid context is required in askForNotificationPermission, but was provided 'null'", LogLevel.ERROR);
                   result.error("askForNotificationPermission Failed", "valid context is required in Countly askForNotificationPermission, but was provided 'null'", null);
                   return;
               }
@@ -378,9 +335,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                           @Override
                           public void onComplete(Task<InstanceIdResult> task) {
                               if (!task.isSuccessful()) {
-                                  if (Countly.sharedInstance().isLoggingEnabled()) {
-                                      Log.w(Countly.TAG, "[CountlyFlutterPlugin] getInstanceId failed", task.getException());
-                                  }
+                                  log("getInstanceId failed", task.getException(), LogLevel.WARNING);
                                   return;
                               }
                               String token = task.getResult().getToken();
@@ -412,9 +367,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               });
           } else if ("start".equals(call.method)) {
               if (activity == null) {
-                  if(Countly.sharedInstance().isLoggingEnabled()) {
-                      Log.e(Countly.TAG, "[CountlyFlutterPlugin] start failed : Activity is null");
-                  }
+                  log("start failed : Activity is null", LogLevel.ERROR);
                   result.error("Start Failed", "Activity is null", null);
                   return;
               }
@@ -471,7 +424,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               result.success("recordEvent for: " + key);
           } else if ("setLoggingEnabled".equals(call.method)) {
               String loggingEnable = args.getString(0);
-              this.setConfig();
               if (loggingEnable.equals("true")) {
                   this.config.setLoggingEnabled(true);
                   // Countly.sharedInstance().setLoggingEnabled(true);
@@ -561,10 +513,17 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
           //setRequiresConsent
           else if ("setRequiresConsent".equals(call.method)) {
               Boolean consentFlag = args.getBoolean(0);
-              this.setConfig();
               this.config.setRequiresConsent(consentFlag);
               result.success("setRequiresConsent!");
-          } else if ("giveConsent".equals(call.method)) {
+          } else if ("giveConsentInit".equals(call.method)) {
+              String[] features = new String[args.length()];
+              for (int i = 0; i < args.length(); i++) {
+                  features[i] = args.getString(i);
+              }
+              this.config.setConsentEnabled(features);
+              result.success("giveConsent!");
+
+          }else if ("giveConsent".equals(call.method)) {
             String[] features = new String[args.length()];
             for (int i = 0; i < args.length(); i++) {
                 features[i] = args.getString(i);
@@ -595,11 +554,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               segm.put("rating", "" + rating);
               Countly.sharedInstance().events().recordEvent("[CLY]_star_rating", segm, 1);
               result.success("sendRating: " + ratingString);
-          }else if ("setAutomaticViewTracking".equals(call.method)) {
-              Boolean flag = args.getBoolean(0);
-              this.setConfig();
-              this.config.setViewTracking(flag);
-              result.success("setAutomaticViewTracking!");
           }else if ("recordView".equals(call.method)) {
               String viewName = args.getString(0);
               Map<String, Object> segments = new HashMap<String, Object>();
@@ -609,9 +563,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                       try{
                           segments.put(args.getString(i), args.getString(i + 1));
                       }catch(Exception exception){
-                          if(Countly.sharedInstance().isLoggingEnabled()) {
-                              Log.e(Countly.TAG, "[CountlyReactNative] recordView, could not parse segments, skipping it. ");
-                          }
+                          log("recordView, could not parse segments, skipping it. ", exception, LogLevel.ERROR);
                       }
                   }
               }
@@ -640,7 +592,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
               result.success("setOptionalParametersForInitialization sent.");
           } else if ("setRemoteConfigAutomaticDownload".equals(call.method)) {
-              this.setConfig();
               this.config.setRemoteConfigAutomaticDownload(true, new RemoteConfig.RemoteConfigCallback() {
                   @Override
                   public void callback(String error) {
@@ -703,9 +654,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               result.success(getRemoteConfigValueForKeyResult);
           } else if ("askForFeedback".equals(call.method)) {
               if (activity == null) {
-                  if(Countly.sharedInstance().isLoggingEnabled()) {
-                      Log.e(Countly.TAG, "[CountlyFlutterPlugin] askForFeedback failed : Activity is null");
-                  }
+                  log("askForFeedback failed : Activity is null", LogLevel.ERROR);
                   result.error("askForFeedback Failed", "Activity is null", null);
                   return;
               }
@@ -723,9 +672,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               });
           } else if (call.method.equals("askForStarRating")) {
               if (activity == null) {
-                  if(Countly.sharedInstance().isLoggingEnabled()) {
-                      Log.e(Countly.TAG, "[CountlyFlutterPlugin] askForStarRating failed : Activity is null");
-                  }
+                  log("askForStarRating failed : Activity is null", LogLevel.ERROR);
                   result.error("askForStarRating Failed", "Activity is null", null);
                   return;
               }
@@ -758,9 +705,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 try{
                     customMetric.put(args.getString(i), Integer.parseInt(args.getString(i + 1)));
                 }catch(Exception exception){
-                    if(Countly.sharedInstance().isLoggingEnabled()) {
-                        Log.e(Countly.TAG, "[CountlyFlutter] endTrace, could not parse metric, skipping it. ");
-                    }
+                    log("endTrace, could not parse metric, skipping it. ", exception, LogLevel.ERROR);
                 }
             }
             Countly.sharedInstance().apm().endTrace(traceKey, customMetric);
@@ -775,9 +720,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 long endTime = Long.parseLong(args.getString(5));
                 Countly.sharedInstance().apm().recordNetworkTrace(networkTraceKey, responseCode, requestPayloadSize, responsePayloadSize, startTime, endTime);
             }catch(Exception exception){
-                if(Countly.sharedInstance().isLoggingEnabled()){
-                    Log.e(Countly.TAG, "Exception occurred at recordNetworkTrace method: " +exception.toString());
-                }
+                log("Exception occurred at recordNetworkTrace method: ", exception, LogLevel.ERROR);
             }
             result.success("recordNetworkTrace: success");
         } else if ("enableApm".equals(call.method)) {
@@ -788,7 +731,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 //            throw new RuntimeException("Native Exception Crash!");
 
         } else if ("enableAttribution".equals(call.method)) {
-            this.setConfig();
             this.config.setEnableAttribution(true);
             result.success("enableAttribution: success");
         } else {
@@ -802,7 +744,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     public String registerForNotification(JSONArray args, final Callback theCallback){
         notificationListener = theCallback;
         if(Countly.sharedInstance().isLoggingEnabled()) {
-            Log.i(Countly.TAG, "[CountlyFlutterPlugin] registerForNotification theCallback");
+            log("registerForNotification theCallback", LogLevel.INFO);
         }
         if(lastStoredNotification != null){
             theCallback.callback(lastStoredNotification);
@@ -813,9 +755,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     public static void onNotification(Map<String, String>  notification){
         JSONObject json = new JSONObject(notification);
         String notificationString = json.toString();
-        if(Countly.sharedInstance().isLoggingEnabled()) {
-            Log.i(Countly.TAG, "[CountlyFlutterPlugin] " + notificationString);
-        }
+        log(notificationString, LogLevel.INFO);
         if(notificationListener != null){
             notificationListener.callback(notificationString);
         }else{
@@ -825,4 +765,33 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     public interface Callback {
         void callback(String result);
     }
+
+    enum LogLevel {INFO, DEBUG, VERBOSE, WARNING, ERROR}
+    static void log(String message, LogLevel logLevel)  {
+        log(message, null, logLevel);
+    }
+    static void log(String message, Throwable tr, LogLevel logLevel)  {
+        if(!isDebug && !Countly.sharedInstance().isLoggingEnabled()) {
+            return;
+        }
+        switch (logLevel) {
+            case INFO:
+                Log.i(TAG, message, tr);
+                break;
+            case DEBUG:
+                Log.d(TAG, message, tr);
+                break;
+            case WARNING:
+                Log.w(TAG, message, tr);
+                break;
+            case ERROR:
+                Log.e(TAG, message, tr);
+                break;
+            case VERBOSE:
+                Log.v(TAG, message, tr);
+                break;
+        }
+    }
+
+
 }
