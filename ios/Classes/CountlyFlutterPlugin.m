@@ -827,7 +827,7 @@ void CountlyFlutterInternalLog(NSString *format, ...)
     va_start(args, format);
 
     NSString* logString = [NSString.alloc initWithFormat:format arguments:args];
-    NSLog(@"[CountlyFlutter] %@", logString);
+    NSLog(@"[CountlyFlutterPlugin] %@", logString);
 
     va_end(args);
 }
