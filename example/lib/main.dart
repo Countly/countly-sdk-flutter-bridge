@@ -25,8 +25,6 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     Countly.isInitialized().then((bool isInitialized){
       if(!isInitialized){
-
-
         /// Recommended settings for Countly initialisation
         Countly.setLoggingEnabled(true); // Enable countly internal debugging logs
         Countly.enableCrashReporting(); // Enable crash reporting to report unhandled crashes to Countly
@@ -44,12 +42,12 @@ class _MyAppState extends State<MyApp> {
         }); // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
         var segment = {"Key": "Value"};
         Countly.setCustomCrashSegment(segment); // Set optional key/value segment added for crash reports.
+        Countly.pushTokenType(Countly.messagingMode["TEST"]); // Set messaging mode for push notifications
 
         Countly.init(SERVER_URL, APP_KEY).then((value){
 
           /// Push notifications settings
           /// Should be call after init
-          Countly.pushTokenType(Countly.messagingMode["TEST"]); // Set messaging mode for push notifications
           Countly.onNotification((String notification){
             print("The notification");
             print(notification);
