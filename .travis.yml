@@ -53,6 +53,7 @@ jobs:
 before_script:
   - git clone https://github.com/flutter/flutter.git -b $FLUTTER_VERSION
   - "./flutter/bin/flutter doctor"
+  - cd example/
 
 cache:
   cocoapods: true
