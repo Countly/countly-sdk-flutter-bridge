@@ -51,9 +51,9 @@ jobs:
     - env: FLUTTER_VERSION=beta
 
 before_script:
+  - cd example/
   - git clone https://github.com/flutter/flutter.git -b $FLUTTER_VERSION
   - "./flutter/bin/flutter doctor"
-  - cd example/
 
 cache:
   cocoapods: true
