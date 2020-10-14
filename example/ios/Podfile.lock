@@ -6,13 +6,10 @@ PODS:
     - Countly (= 20.04.3)
     - Flutter
   - Flutter (1.0.0)
-  - flutter_plugin_android_lifecycle (0.0.1):
-    - Flutter
 
 DEPENDENCIES:
   - countly_flutter (from `.symlinks/plugins/countly_flutter/ios`)
   - Flutter (from `Flutter`)
-  - flutter_plugin_android_lifecycle (from `.symlinks/plugins/flutter_plugin_android_lifecycle/ios`)
 
 SPEC REPOS:
   trunk:
@@ -23,15 +20,12 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/countly_flutter/ios"
   Flutter:
     :path: Flutter
-  flutter_plugin_android_lifecycle:
-    :path: ".symlinks/plugins/flutter_plugin_android_lifecycle/ios"
 
 SPEC CHECKSUMS:
   Countly: 6e4af408faaa26192227f06d27899532c4c2317b
   countly_flutter: 4c090d7f5893e02e94896ea9f9f16d0267156fdb
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
-  flutter_plugin_android_lifecycle: dc0b544e129eebb77a6bfb1239d4d1c673a60a35
 
-PODFILE CHECKSUM: 025eae5b1fea6aaf1cbb1438df7b69c30f4c8f0b
+PODFILE CHECKSUM: 11995424b7ecc05f57041e80b3c65e1a6971a76e
 
 COCOAPODS: 1.9.3

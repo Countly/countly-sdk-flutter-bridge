@@ -204,8 +204,8 @@ class Countly {
     return result;
   }
 
-  /// Set Push notification messaging mode and callbacks for push notifications
-  /// Should be call after Countly init
+  /// Set messaging mode for push notifications
+  /// Should be call before Countly init
   static Future<String> pushTokenType(String tokenType) async {
     if(isNullOrEmpty(tokenType)){
       String error = "pushTokenType, tokenType cannot be null or empty";
