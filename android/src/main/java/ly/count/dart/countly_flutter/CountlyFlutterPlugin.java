@@ -366,6 +366,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                   }
               });
           } else if ("start".equals(call.method)) {
+              if(isSessionStarted_) {
+                  log("session already started", LogLevel.INFO);
+                  result.error("Start Failed", "session already started", null);
+                  return;
+              }
               if (activity == null) {
                   log("start failed : Activity is null", LogLevel.ERROR);
                   result.error("Start Failed", "Activity is null", null);
@@ -378,6 +383,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               result.success("deafult!");
 
           } else if ("stop".equals(call.method)) {
+              if(!isSessionStarted_) {
+                  log("must call Start before Stop", LogLevel.INFO);
+                  result.error("Stop Failed", "must call Start before Stop", null);
+                  return;
+              }
               Countly.sharedInstance().onStop();
               isSessionStarted_ = false;
               result.success("stoped!");

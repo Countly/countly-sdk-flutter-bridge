@@ -46,6 +46,8 @@ class _MyAppState extends State<MyApp> {
 
         Countly.init(SERVER_URL, APP_KEY).then((value){
 
+          Countly.start();
+
           /// Push notifications settings
           /// Should be call after init
           Countly.onNotification((String notification){
@@ -71,14 +73,8 @@ class _MyAppState extends State<MyApp> {
   enableTemporaryIdMode(){
     Countly.changeDeviceId(Countly.deviceIDType["TemporaryDeviceID"], false);
   }
-  start(){
-    Countly.start();
-  }
   manualSessionHandling(){
     Countly.manualSessionHandling();
-  }
-  stop(){
-    Countly.stop();
   }
   basicEvent(){
     // example for basic event
@@ -189,61 +185,6 @@ class _MyAppState extends State<MyApp> {
     String random = code.toString();
     print(random);
     return random;
-  }
-  setCaptianAmericaData(){
-    // example for setCaptianAmericaData
-    var deviceId = makeid();
-    Countly.changeDeviceId(deviceId, false);
-
-    Map<String, Object> options = {
-      "name": "Captian America",
-      "username": "captianamerica",
-      "email": "captianamerica@avengers.com",
-      "organization": "Avengers",
-      "phone": "+91 555 555 5555",
-      "picture": "http://icons.iconarchive.com/icons/hopstarter/superhero-avatar/256/Avengers-Captain-America-icon.png",
-      "picturePath": "",
-      "gender": "M", // "F"
-      "byear": "1989",
-    };
-    Countly.setUserData(options);
-  }
-  setIronManData(){
-    // example for setIronManData
-    var deviceId = makeid();
-    Countly.changeDeviceId(deviceId, false);
-
-    Map<String, Object> options = {
-      "name": "Iron Man",
-      "username": "ironman",
-      "email": "ironman@avengers.com",
-      "organization": "Avengers",
-      "phone": "+91 555 555 5555",
-      "picture": "http://icons.iconarchive.com/icons/hopstarter/superhero-avatar/256/Avengers-Iron-Man-icon.png",
-      "picturePath": "",
-      "gender": "M", // "F"
-      "byear": "1989",
-    };
-    Countly.setUserData(options);
-    Countly.start();
-  }
-  setSpiderManData(){
-    var deviceId = makeid();
-    Countly.changeDeviceId(deviceId, false);
-
-    Map<String, Object> options = {
-      "name": "Spider-Man",
-      "username": "spiderman",
-      "email": "spiderman@avengers.com",
-      "organization": "Avengers",
-      "phone": "+91 555 555 5555",
-      "picture": "http://icons.iconarchive.com/icons/mattahan/ultrabuuf/512/Comics-Spiderman-Morales-icon.png",
-      "picturePath": "",
-      "gender": "M", // "F"
-      "byear": "1989"
-    };
-    Countly.setUserData(options);
-    Countly.start();
   }
   setUserData(){
     Map<String, Object> options = {
@@ -543,9 +484,6 @@ class _MyAppState extends State<MyApp> {
         body: Center(
           child: SingleChildScrollView(child:
             Column(children: <Widget>[
-              MyButton(text: "Start", color: "green", onPressed: start),
-              MyButton(text: "Stop", color: "red", onPressed: stop),
-
               MyButton(text: "Basic event", color: "brown", onPressed: basicEvent),
               MyButton(text: "Event with Sum", color: "brown", onPressed: eventWithSum),
               MyButton(text: "Event with Segment", color: "brown", onPressed: eventWithSegment),
@@ -558,9 +496,6 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Record View: 'HomePage'", color: "olive", onPressed: recordViewHome),
               MyButton(text: "Record View: 'Dashboard'", color: "olive", onPressed: recordViewDashboard),
 
-              MyButton(text: "Send Captian America Data", color: "teal", onPressed: setCaptianAmericaData),
-              MyButton(text: "Send Iron Man Data", color: "teal", onPressed: setIronManData),
-              MyButton(text: "Send Spider-Man Data", color: "teal", onPressed: setSpiderManData),
               MyButton(text: "Send Users Data", color: "teal", onPressed: setUserData),
               MyButton(text: "UserData.setProperty", color: "teal", onPressed: setProperty),
               MyButton(text: "UserData.increment", color: "teal", onPressed: increment),
