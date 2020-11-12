@@ -67,6 +67,24 @@ class Countly {
     }
   }
 
+  /// Replaces all requests with a different app key with the current app key.
+  /// In request queue, if there are any request whose app key is different than the current app key,
+  /// these requests' app key will be replaced with the current app key.
+  static Future<String> replaceAllAppKeysInQueueWithCurrentAppKey() async {
+      final String result = await _channel.invokeMethod('replaceAllAppKeysInQueueWithCurrentAppKey');
+      log(result);
+      return result;
+  }
+
+  /// Removes all requests with a different app key in request queue.
+  /// In request queue, if there are any request whose app key is different than the current app key,
+  /// these requests will be removed from request queue.
+  static Future<String> removeDifferentAppKeysFromQueue() async {
+    final String result = await _channel.invokeMethod('removeDifferentAppKeysFromQueue');
+    log(result);
+    return result;
+  }
+
   static bool isNullOrEmpty(String s) => s == null || s.isEmpty;
 
   static Future<String> recordEvent( Map<String, Object> options) async {
@@ -844,6 +862,25 @@ static Future<String> onNotification(Function callback) async {
     callback(result);
     return result;
   }
+
+  /// Set's the text's for the different fields in the star rating dialog. Set value null if for some field you want to keep the old value
+  /// [String starRatingTextTitle] - dialog's title text (Only for Android)
+  /// [String starRatingTextMessage] - dialog's message text
+  /// [String starRatingTextDismiss] - dialog's dismiss buttons text (Only for Android)
+  static Future<String> setStarRatingDialogTexts(String starRatingTextTitle, String starRatingTextMessage, String starRatingTextDismiss) async {
+    List <String> args = [];
+    args.add(starRatingTextTitle);
+    args.add(starRatingTextMessage);
+    args.add(starRatingTextDismiss);
+    log(args.toString());
+    final String result = await _channel.invokeMethod('setStarRatingDialogTexts', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
+
+
   static Future<String> askForStarRating() async {
     List <String> args = [];
     log(args.toString());
@@ -870,6 +907,64 @@ static Future<String> onNotification(Function callback) async {
     final String result = await _channel.invokeMethod('askForFeedback', <String, dynamic>{
       'data': json.encode(args)
     });
+    log(result);
+    return result;
+  }
+
+  /// Get a list of available feedback widgets for this device ID
+  static Future<FeedbackWidgetsResponse> getAvailableFeedbackWidgets() async {
+    List<CountlyPresentableFeedback> presentableFeedback;
+    String error;
+    try {
+      final Map<dynamic, dynamic> retrievedWidgets = await _channel.invokeMethod(
+          'getAvailableFeedbackWidgets');
+      log("getAvailableFeedbackWidgets retrievedWidgets : $retrievedWidgets");
+    presentableFeedback = retrievedWidgets.entries.map( (entry) => CountlyPresentableFeedback(entry.key, entry.value)).toList();
+
+      for(CountlyPresentableFeedback widget in presentableFeedback) {
+        String type = widget.type;
+        String Id = widget.widgetId;
+
+        log("getAvailableFeedbackWidgets presentableFeedback Widget Type : $type");
+        log("getAvailableFeedbackWidgets presentableFeedback Widget ID : $Id");
+      }
+    }
+    on PlatformException catch (e) {
+      error = e.message;
+    }
+
+    log("getAvailableFeedbackWidgets feedbackWidgetsResponse with Erro : $presentableFeedback Errors: $error");
+    FeedbackWidgetsResponse feedbackWidgetsResponse = FeedbackWidgetsResponse(presentableFeedback, error);
+
+    log("getAvailableFeedbackWidgets feedbackWidgetsResponse : $feedbackWidgetsResponse");
+    return feedbackWidgetsResponse;
+  }
+
+  /// Present a chosen feedback widget
+  /// [CountlyPresentableFeedback widgetInfo] - Get available list of feedback widgets by calling "getAvailableFeedbackWidgets()" and pass the widget object as a parameter.
+  /// [String closeButtonText] - Text for cancel/close button.
+  static Future<String> presentFeedbackWidget(CountlyPresentableFeedback widgetInfo, String closeButtonText) async {
+    if(widgetInfo == null){
+      String error = "presentFeedbackWidget, Can't show survey widgetInfo is null";
+      log(error);
+      return "Error : $error";
+    }
+
+    List <String> args = [];
+    args.add(widgetInfo.widgetId);
+    args.add(widgetInfo.type);
+    args.add(closeButtonText);
+    log(args.toString());
+    String result;
+    try {
+      result = await _channel.invokeMethod(
+          'presentFeedbackWidget', <String, dynamic>{
+        'data': json.encode(args)
+      });
+    }
+    on PlatformException catch (e) {
+      result = e.message;
+    }
     log(result);
     return result;
   }
@@ -1160,7 +1255,9 @@ static Future<String> onNotification(Function callback) async {
       }
     });
   }
+
   /// Enable campaign attribution reporting to Countly.
+  /// For iOS use "recordAttributionID" instead of "enableAttribution"
   /// Should be call before Countly init
   static Future<String> enableAttribution() async {
     List <String> args = [];
@@ -1170,4 +1267,36 @@ static Future<String> onNotification(Function callback) async {
     log(result);
     return result;
   }
+
+  /// set attribution Id for campaign attribution reporting.
+  /// Currently implemented for iOS only
+  /// For Android just call the enableAttribution to enable campaign attribution.
+  static Future<String> recordAttributionID(String attributionID) async {
+    if(!Platform.isIOS) {
+      return "recordAttributionID : To be implemented";
+    }
+    if(isNullOrEmpty(attributionID)){
+      String error = "recordAttributionID, attributionID cannot be null or empty";
+      log(error);
+      return "Error : $error";
+    }
+    List <String> args = [];
+    args.add(attributionID);
+    final String result = await _channel.invokeMethod('recordAttributionID', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
+}
+class CountlyPresentableFeedback {
+  CountlyPresentableFeedback(this.widgetId, this.type);
+  final String widgetId;
+  final String type;
+}
+
+class FeedbackWidgetsResponse {
+  FeedbackWidgetsResponse(this.presentableFeedback, this.error);
+  final String error;
+  final List<CountlyPresentableFeedback> presentableFeedback;
 }

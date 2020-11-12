@@ -1,10 +1,10 @@
 PODS:
-  - Countly (20.04.3):
-    - Countly/Core (= 20.04.3)
-  - Countly/Core (20.04.3)
   - countly_flutter (0.0.1):
-    - Countly (= 20.04.3)
+    - CountlyPod (= 20.11.0)
     - Flutter
+  - CountlyPod (20.11.0):
+    - CountlyPod/Core (= 20.11.0)
+  - CountlyPod/Core (20.11.0)
   - Flutter (1.0.0)
 
 DEPENDENCIES:
@@ -13,7 +13,7 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
-    - Countly
+    - CountlyPod
 
 EXTERNAL SOURCES:
   countly_flutter:
@@ -22,10 +22,10 @@ EXTERNAL SOURCES:
     :path: Flutter
 
 SPEC CHECKSUMS:
-  Countly: 6e4af408faaa26192227f06d27899532c4c2317b
-  countly_flutter: 4c090d7f5893e02e94896ea9f9f16d0267156fdb
+  countly_flutter: c8b215652554c2b995c7d33c526379e9b110c645
+  CountlyPod: b3f85ae441a7c05173a2d2e9756a81472612ccde
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
 
-PODFILE CHECKSUM: 11995424b7ecc05f57041e80b3c65e1a6971a76e
+PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
 
 COCOAPODS: 1.9.3

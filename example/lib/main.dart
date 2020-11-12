@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
@@ -29,14 +31,19 @@ class _MyAppState extends State<MyApp> {
         Countly.setLoggingEnabled(true); // Enable countly internal debugging logs
         Countly.enableCrashReporting(); // Enable crash reporting to report unhandled crashes to Countly
         Countly.setRequiresConsent(true); // Set that consent should be required for features to work.
-        Countly.giveConsentInit(["location", "sessions", "attribution", "push", "events", "views", "crashes", "users", "push", "star-rating", "apm"]);
+        Countly.giveConsentInit(["location", "sessions", "attribution", "push", "events", "views", "crashes", "users", "push", "star-rating", "apm", "surveys"]);
         Countly.setLocationInit("TR", "Istanbul", "41.0082,28.9784", "10.2.33.12");// Set user initial location.
 
         /// Optional settings for Countly initialisation
         Countly.enableParameterTamperingProtection("salt"); // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
         Countly.setHttpPostForced(false); // Set to "true" if you want HTTP POST to be used for all requests
         Countly.enableApm(); // Enable APM features, which includes the recording of app start time.
-        Countly.enableAttribution(); // Enable to measure your marketing campaign performance by attributing installs from specific campaigns.
+        if (Platform.isIOS) {
+          Countly.recordAttributionID("ADVERTISING_ID");
+        }
+        else {
+          Countly.enableAttribution(); // Enable to measure your marketing campaign performance by attributing installs from specific campaigns.
+        }
         Countly.setRemoteConfigAutomaticDownload((result){
           print(result);
         }); // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
@@ -44,10 +51,11 @@ class _MyAppState extends State<MyApp> {
         Countly.setCustomCrashSegment(segment); // Set optional key/value segment added for crash reports.
         Countly.pushTokenType(Countly.messagingMode["TEST"]); // Set messaging mode for push notifications
 
-        Countly.init(SERVER_URL, APP_KEY).then((value){
+        Countly.setStarRatingDialogTexts("Title", "Message", "Dismiss");
 
+        Countly.init(SERVER_URL, APP_KEY ).then((value){
+          Countly.requestQueueOverwriteAppKeys();
           Countly.start();
-
           /// Push notifications settings
           /// Should be call after init
           Countly.onNotification((String notification){
@@ -435,6 +443,45 @@ class _MyAppState extends State<MyApp> {
   askForFeedback(){
     Countly.askForFeedback("5e391ef47975d006a22532c0", "Close");
   }
+
+  showSurvey() async {
+    FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets() ;
+    List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
+    String error = feedbackWidgetsResponse.error;
+
+    if(error != null) {
+      return;
+    }
+
+    CountlyPresentableFeedback chosenWidget = null;
+    for(CountlyPresentableFeedback widget in widgets) {
+      if(widget.type == "survey") {
+        chosenWidget = widget;
+        break;
+      }
+    }
+    String result = await Countly.presentFeedbackWidget(chosenWidget, "Cancel");
+  }
+
+  showNPS() async {
+    FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets() ;
+    List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
+    String error = feedbackWidgetsResponse.error;
+
+    if(error != null) {
+      return;
+    }
+
+    CountlyPresentableFeedback chosenWidget = null;
+    for(CountlyPresentableFeedback widget in widgets) {
+      if(widget.type == "nps") {
+        chosenWidget = widget;
+        break;
+      }
+    }
+    String result = await Countly.presentFeedbackWidget(chosenWidget, "Close");
+  }
+
   setLocation(){
     Countly.setLocation("-33.9142687","18.0955802");
   }
@@ -569,6 +616,8 @@ class _MyAppState extends State<MyApp> {
 
               MyButton(text: "Open rating modal", color: "orange", onPressed: askForStarRating),
               MyButton(text: "Open feedback modal", color: "orange", onPressed: askForFeedback),
+              MyButton(text: "Show Survey", color: "orange", onPressed: showSurvey),
+              MyButton(text: "Show NPS", color: "orange", onPressed: showNPS),
 
               MyButton(text: "Start Trace", color: "black", onPressed: startTrace),
               MyButton(text: "End Trace", color: "black", onPressed: endTrace),
