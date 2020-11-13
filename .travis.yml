@@ -62,7 +62,3 @@ cache:
 
 notifications:
   email: junaid.akram@count.ly
-
-branches:
-  only:
-    - dev-junaid
