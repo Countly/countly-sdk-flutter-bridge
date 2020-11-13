@@ -5,7 +5,7 @@ jobs:
   include:
     - name: iOS tests, stable channel
       os: osx
-      osx_image: xcode11.2
+      osx_image: xcode12.2
       language: objective-c
       script:
         - ./flutter/bin/flutter build ios --release --no-codesign
@@ -27,7 +27,7 @@ jobs:
 
     - name: iOS tests, beta channel
       os: osx
-      osx_image: xcode11.2
+      osx_image: xcode12.2
       language: objective-c
       script:
         - ./flutter/bin/flutter build ios --release --no-codesign
