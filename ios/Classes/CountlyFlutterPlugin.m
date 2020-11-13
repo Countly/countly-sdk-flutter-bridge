@@ -22,7 +22,6 @@ FlutterResult notificationListener = nil;
 NSDictionary *lastStoredNotification = nil;
 NSMutableArray *notificationIDs = nil;        // alloc here
 NSMutableArray<CLYFeature>* countlyFeatures = nil;
-NSArray *consents = nil;
 
 @implementation CountlyFlutterPlugin
 
@@ -80,9 +79,6 @@ NSMutableDictionary *networkRequest = nil;
             dispatch_async(dispatch_get_main_queue(), ^ {
               isInitialized = true;
               [[Countly sharedInstance] startWithConfig:config];
-                if(consents != nil) {
-                  [Countly.sharedInstance giveConsentForFeatures:consents];
-                }
               [self recordPushAction];
             });
             result(@"initialized.");
@@ -223,7 +219,8 @@ NSMutableDictionary *networkRequest = nil;
         NSString* deviceId = [Countly.sharedInstance deviceID];
         result(deviceId);
     }else if ([@"getDeviceIdAuthor" isEqualToString:call.method]) {
-        result(@"Not implemented for iOS");
+        NSString* deviceIDType = [Countly.sharedInstance deviceIDType];
+        result(deviceIDType);
     }else if ([@"changeDeviceId" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         NSString* newDeviceID = [command objectAtIndex:0];
@@ -526,7 +523,7 @@ NSMutableDictionary *networkRequest = nil;
 
     }else if ([@"giveConsentInit" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
-        consents = command;
+        config.consents = command;
         result(@"giveConsentInit!");
         });
 
