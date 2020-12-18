@@ -18,5 +18,6 @@ A new flutter plugin project.
   s.dependency 'Countly', '20.04.2'
 
   s.ios.deployment_target = '8.0'
+  s.static_framework = true
 end
 

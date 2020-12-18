@@ -50,7 +50,7 @@ import com.google.firebase.FirebaseApp;
 
 /** CountlyFlutterPlugin */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
-    private String COUNTLY_FLUTTER_SDK_VERSION_STRING = "20.04.1";
+    private String COUNTLY_FLUTTER_SDK_VERSION_STRING = "20.04.2";
     private String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
 
     /** Plugin registration. */

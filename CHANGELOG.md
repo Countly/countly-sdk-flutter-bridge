@@ -1,3 +1,6 @@
+## 20.04.2
+* Pod transitive dependencies issue fixed for iOS.
+
 ## 20.04.1
 * Adding APM calls
 * Improved unhandled crash catching
