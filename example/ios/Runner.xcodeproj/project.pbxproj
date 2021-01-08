@@ -8,17 +8,17 @@
 
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
+		2F8F5915255AADAE0044F026 /* CountlyNotificationService.h in Sources */ = {isa = PBXBuildFile; fileRef = 2F8F5914255AADAE0044F026 /* CountlyNotificationService.h */; };
+		2F8F591B255AAE030044F026 /* CountlyNotificationService.m in Sources */ = {isa = PBXBuildFile; fileRef = 2F8F591A255AADF90044F026 /* CountlyNotificationService.m */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
-		8B0E61192490DD96002E7C46 /* CountlyNotificationService.h in Sources */ = {isa = PBXBuildFile; fileRef = 8B0E61182490DD96002E7C46 /* CountlyNotificationService.h */; };
-		8B0E611B2490DDA5002E7C46 /* CountlyNotificationService.m in Sources */ = {isa = PBXBuildFile; fileRef = 8B0E611A2490DD9C002E7C46 /* CountlyNotificationService.m */; };
 		8BBBA8C42370080100543AAF /* NotificationService.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BBBA8C32370080100543AAF /* NotificationService.m */; };
 		8BBBA8C82370080200543AAF /* CountlyNSE.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 8BBBA8C02370080100543AAF /* CountlyNSE.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9740EEB41CF90195004384FC /* Debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 9740EEB21CF90195004384FC /* Debug.xcconfig */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
-		CE34B677E04E0EE904CAFCB6 /* libPods-Runner.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 594B1B8A9E325349F018B9E3 /* libPods-Runner.a */; };
+		ACF04F6DBA774077D98AAC84 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 935A8366CFF95587314EC652 /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,19 +58,19 @@
 /* Begin PBXFileReference section */
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
+		2F8F5914255AADAE0044F026 /* CountlyNotificationService.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CountlyNotificationService.h; path = Pods/CountlyPod/CountlyNotificationService.h; sourceTree = "<group>"; };
+		2F8F591A255AADF90044F026 /* CountlyNotificationService.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = CountlyNotificationService.m; path = Pods/CountlyPod/CountlyNotificationService.m; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
 		43A5439BF4A8475C0F1E7A45 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
-		594B1B8A9E325349F018B9E3 /* libPods-Runner.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Runner.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
-		8B0E61182490DD96002E7C46 /* CountlyNotificationService.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CountlyNotificationService.h; path = Pods/Countly/CountlyNotificationService.h; sourceTree = "<group>"; };
-		8B0E611A2490DD9C002E7C46 /* CountlyNotificationService.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = CountlyNotificationService.m; path = Pods/Countly/CountlyNotificationService.m; sourceTree = "<group>"; };
 		8BBBA8C02370080100543AAF /* CountlyNSE.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CountlyNSE.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BBBA8C22370080100543AAF /* NotificationService.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NotificationService.h; sourceTree = "<group>"; };
 		8BBBA8C32370080100543AAF /* NotificationService.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NotificationService.m; sourceTree = "<group>"; };
 		8BBBA8C52370080100543AAF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8BBBA8D023700A2A00543AAF /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
+		935A8366CFF95587314EC652 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
 		97C146EE1CF9000F007C117D /* Runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Runner.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -94,7 +94,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE34B677E04E0EE904CAFCB6 /* libPods-Runner.a in Frameworks */,
+				ACF04F6DBA774077D98AAC84 /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -135,8 +135,8 @@
 		97C146E51CF9000F007C117D = {
 			isa = PBXGroup;
 			children = (
-				8B0E611A2490DD9C002E7C46 /* CountlyNotificationService.m */,
-				8B0E61182490DD96002E7C46 /* CountlyNotificationService.h */,
+				2F8F591A255AADF90044F026 /* CountlyNotificationService.m */,
+				2F8F5914255AADAE0044F026 /* CountlyNotificationService.h */,
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
 				8BBBA8C12370080100543AAF /* CountlyNSE */,
@@ -182,7 +182,7 @@
 		9E95533CAC5FE27EB3934149 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				594B1B8A9E325349F018B9E3 /* libPods-Runner.a */,
+				935A8366CFF95587314EC652 /* Pods_Runner.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -218,8 +218,8 @@
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
-				0AFD46FA2C7AA03006350EFB /* [CP] Embed Pods Frameworks */,
 				8BBBA8CD2370080200543AAF /* Embed App Extensions */,
+				6093F0C073FA0FD024D7B2DA /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -294,21 +294,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		0AFD46FA2C7AA03006350EFB /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		3B06AD1E1E4923F5004D2608 /* Thin Binary */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -322,6 +307,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin";
+		};
+		6093F0C073FA0FD024D7B2DA /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh",
+				"${PODS_ROOT}/../Flutter/Flutter.framework",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Flutter.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
 		};
 		9740EEB61CF901F6004384FC /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -366,9 +369,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2F8F591B255AAE030044F026 /* CountlyNotificationService.m in Sources */,
 				8BBBA8C42370080100543AAF /* NotificationService.m in Sources */,
-				8B0E61192490DD96002E7C46 /* CountlyNotificationService.h in Sources */,
-				8B0E611B2490DDA5002E7C46 /* CountlyNotificationService.m in Sources */,
+				2F8F5915255AADAE0044F026 /* CountlyNotificationService.h in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

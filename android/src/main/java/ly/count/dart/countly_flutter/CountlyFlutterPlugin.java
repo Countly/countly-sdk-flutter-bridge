@@ -15,6 +15,7 @@ import ly.count.android.sdk.Countly;
 import ly.count.android.sdk.CountlyConfig;
 import ly.count.android.sdk.DeviceId;
 import ly.count.android.sdk.FeedbackRatingCallback;
+import ly.count.android.sdk.ModuleFeedback.*;
 import ly.count.android.sdk.RemoteConfig;
 import java.util.HashMap;
 import java.util.Map;
@@ -52,9 +53,8 @@ import com.google.firebase.FirebaseApp;
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
 
     private static final String TAG = "CountlyFlutterPlugin";
-    private String COUNTLY_FLUTTER_SDK_VERSION_STRING = "20.04.1";
+    private String COUNTLY_FLUTTER_SDK_VERSION_STRING = "20.11.0";
     private String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
-
     /** Plugin registration. */
     private Countly.CountlyMessagingMode pushTokenType = Countly.CountlyMessagingMode.PRODUCTION;
     private Context context;
@@ -177,6 +177,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
       }
       JSONArray args = null;
       try {
+          Countly.sharedInstance();
           args = new JSONArray(argsString);
           log("Method name: " + call.method, LogLevel.INFO);
           log("Method arguments: " + argsString, LogLevel.INFO);
@@ -225,7 +226,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             }else{
                 result.success("false");
             }
-        }else if ("getCurrentDeviceId".equals(call.method)) {
+        } else if ("getCurrentDeviceId".equals(call.method)) {
               String deviceID = Countly.sharedInstance().getDeviceID();
               result.success(deviceID);
           }else if ("getDeviceIdAuthor".equals(call.method)) {
@@ -680,6 +681,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                       }
                   }
               });
+          } else if (call.method.equals("setStarRatingDialogTexts")) {
+              this.config.setStarRatingTextTitle(args.getString(0));
+              this.config.setStarRatingTextMessage(args.getString(1));
+              this.config.setStarRatingTextDismiss(args.getString(2));
+
+              result.success("setStarRatingDialogTexts Success");
           } else if (call.method.equals("askForStarRating")) {
               if (activity == null) {
                   log("askForStarRating failed : Activity is null", LogLevel.ERROR);
@@ -697,6 +704,51 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                       result.success("Rating: Modal dismissed.");
                   }
               });
+          } else if ("getAvailableFeedbackWidgets".equals(call.method)) {
+              Countly.sharedInstance().feedback().getAvailableFeedbackWidgets(new RetrieveFeedbackWidgets() {
+                  @Override
+                  public void onFinished(List<CountlyFeedbackWidget> retrievedWidgets, String error) {
+                      if(error != null) {
+                          result.error("getAvailableFeedbackWidgets", error, null);
+                          return;
+                      }
+                      Map<String, String> retrievedWidgetsMap = new HashMap<String, String>();
+                      for (CountlyFeedbackWidget presentableFeedback : retrievedWidgets) {
+                          retrievedWidgetsMap.put(presentableFeedback.widgetId, presentableFeedback.type.name());
+                      }
+                      result.success(retrievedWidgetsMap);
+                  }
+              });
+          } else if ("presentFeedbackWidget".equals(call.method)) {
+              if (activity == null) {
+                  log("presentFeedbackWidget failed : Activity is null", LogLevel.ERROR);
+                  result.error("presentFeedbackWidget Failed", "Activity is null", null);
+                  return;
+              }
+              String widgetId = args.getString(0);
+              String type = args.getString(1);
+              String closeBtnText = args.getString(2);
+
+              CountlyFeedbackWidget presentableFeedback = new CountlyFeedbackWidget();
+              presentableFeedback.widgetId = widgetId;
+              presentableFeedback.type = FeedbackWidgetType.valueOf(type);
+              Countly.sharedInstance().feedback().presentFeedbackWidget(presentableFeedback, activity, closeBtnText, new FeedbackCallback() {
+                  @Override
+                  public void onFinished(String error) {
+                      if(error != null) {
+                          result.error("presentFeedbackWidget", error, null);
+                      }
+                      else {
+                          result.success("presentFeedbackWidget success");
+                      }
+                  }
+              });
+          } else if ("replaceAllAppKeysInQueueWithCurrentAppKey".equals(call.method)) {
+              Countly.sharedInstance().requestQueueOverwriteAppKeys();
+              result.success("replaceAllAppKeysInQueueWithCurrentAppKey Success");
+          } else if ("removeDifferentAppKeysFromQueue".equals(call.method)) {
+              Countly.sharedInstance().requestQueueEraseAppKeysRequests();
+              result.success("removeDifferentAppKeysFromQueue Success");
           } else if ("startTrace".equals(call.method)) {
             String traceKey = args.getString(0);
             Countly.sharedInstance().apm().startTrace(traceKey);

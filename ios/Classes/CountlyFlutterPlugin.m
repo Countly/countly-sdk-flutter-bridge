@@ -11,14 +11,17 @@
 #define COUNTLY_FLUTTER_LOG(...)
 #endif
 
-NSString* const kCountlyFlutterSDKVersion = @"20.04.1";
+@interface CountlyFeedbackWidget ()
++ (CountlyFeedbackWidget *)createWithDictionary:(NSDictionary *)dictionary;
+@end
+
+NSString* const kCountlyFlutterSDKVersion = @"20.11.0";
 NSString* const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 
 FlutterResult notificationListener = nil;
 NSDictionary *lastStoredNotification = nil;
 NSMutableArray *notificationIDs = nil;        // alloc here
 NSMutableArray<CLYFeature>* countlyFeatures = nil;
-NSArray *consents = nil;
 
 @implementation CountlyFlutterPlugin
 
@@ -76,9 +79,6 @@ NSMutableDictionary *networkRequest = nil;
             dispatch_async(dispatch_get_main_queue(), ^ {
               isInitialized = true;
               [[Countly sharedInstance] startWithConfig:config];
-                if(consents != nil) {
-                  [Countly.sharedInstance giveConsentForFeatures:consents];
-                }
               [self recordPushAction];
             });
             result(@"initialized.");
@@ -219,7 +219,8 @@ NSMutableDictionary *networkRequest = nil;
         NSString* deviceId = [Countly.sharedInstance deviceID];
         result(deviceId);
     }else if ([@"getDeviceIdAuthor" isEqualToString:call.method]) {
-        result(@"Not implemented for iOS");
+        NSString* deviceIDType = [Countly.sharedInstance deviceIDType];
+        result(deviceIDType);
     }else if ([@"changeDeviceId" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         NSString* newDeviceID = [command objectAtIndex:0];
@@ -522,7 +523,7 @@ NSMutableDictionary *networkRequest = nil;
 
     }else if ([@"giveConsentInit" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
-        consents = command;
+        config.consents = command;
         result(@"giveConsentInit!");
         });
 
@@ -573,20 +574,19 @@ NSMutableDictionary *networkRequest = nil;
         if([@"null" isEqualToString:ipAddress]){
             ipAddress = nil;
         }
-
+        CLLocationCoordinate2D location;
         if(latitudeString != nil && longitudeString != nil){
             @try{
                 double latitudeDouble = [latitudeString doubleValue];
                 double longitudeDouble = [longitudeString doubleValue];
-                [Countly.sharedInstance recordLocation:(CLLocationCoordinate2D){latitudeDouble,longitudeDouble}];
+                
+                location = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
             }
             @catch(NSException *execption){
                 COUNTLY_FLUTTER_LOG(@"Invalid latitude or longitude.");
             }
         }
-
-        [Countly.sharedInstance recordCity:city andISOCountryCode:country];
-        [Countly.sharedInstance recordIP:ipAddress];
+        [Countly.sharedInstance recordLocation:location city:city ISOCountryCode:country IP:ipAddress];
         result(@"setOptionalParametersForInitialization!");
         });
 
@@ -691,12 +691,50 @@ NSMutableDictionary *networkRequest = nil;
             }
         }];
         });
+    }else if ([@"setStarRatingDialogTexts" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            NSString* starRatingTextMessage = [command objectAtIndex:1];
+            config.starRatingMessage = starRatingTextMessage;
+        });
+        result(@"setStarRatingDialogTexts: success");
     }else if ([@"askForStarRating" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
             [Countly.sharedInstance askForStarRating:^(NSInteger rating){
                 result([NSString stringWithFormat: @"Rating:%d", (int)rating]);
             }];
         });
+    }else if ([@"getAvailableFeedbackWidgets" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            [Countly.sharedInstance getFeedbackWidgets:^(NSArray<CountlyFeedbackWidget *> * _Nonnull feedbackWidgets, NSError * _Nonnull error) {
+                NSMutableDictionary* feedbackWidgetsDict = [NSMutableDictionary dictionaryWithCapacity:feedbackWidgets.count];
+                for (CountlyFeedbackWidget* feedbackWidget in feedbackWidgets) {
+                    feedbackWidgetsDict[feedbackWidget.ID] = feedbackWidget.type;
+                }
+                result(feedbackWidgetsDict);
+            }];
+        });
+    } else if ([@"presentFeedbackWidget" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+        NSString* widgetId = [command objectAtIndex:0];
+        NSString* widgetType = [command objectAtIndex:1];
+            NSMutableDictionary* feedbackWidgetsDict = [NSMutableDictionary dictionaryWithCapacity:3];
+            
+            feedbackWidgetsDict[@"_id"] = widgetId;
+            feedbackWidgetsDict[@"type"] = widgetType;
+            feedbackWidgetsDict[@"name"] = widgetType;
+            CountlyFeedbackWidget *feedback = [CountlyFeedbackWidget createWithDictionary:feedbackWidgetsDict];
+            [feedback present];
+        });
+    } else if ([@"replaceAllAppKeysInQueueWithCurrentAppKey" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            [Countly.sharedInstance replaceAllAppKeysInQueueWithCurrentAppKey];
+        });
+        result(@"requestQueueOverwriteAppKeys: success");
+    } else if ([@"removeDifferentAppKeysFromQueue" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            [Countly.sharedInstance removeDifferentAppKeysFromQueue];
+        });
+        result(@"requestQueueEraseAppKeysRequests: success");
     } else if ([@"startTrace" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
             NSString* traceKey = [command objectAtIndex:0];
@@ -761,6 +799,16 @@ NSMutableDictionary *networkRequest = nil;
                config.enableAttribution = YES;
            });
            result(@"enableAttribution: success");
+    } else if([@"recordAttributionID" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            NSString* attributionID = [command objectAtIndex:0];
+            if(CountlyCommon.sharedInstance.hasStarted) {
+              [Countly.sharedInstance recordAttributionID: attributionID];
+            }
+            else {
+              config.attributionID = attributionID;
+            }
+        });
     } else {
         result(FlutterMethodNotImplemented);
     }
