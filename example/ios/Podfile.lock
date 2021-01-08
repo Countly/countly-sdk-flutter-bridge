@@ -1,19 +1,11 @@
 PODS:
   - countly_flutter (0.0.1):
-    - CountlyPod (= 20.11.0)
     - Flutter
-  - CountlyPod (20.11.0):
-    - CountlyPod/Core (= 20.11.0)
-  - CountlyPod/Core (20.11.0)
   - Flutter (1.0.0)
 
 DEPENDENCIES:
   - countly_flutter (from `.symlinks/plugins/countly_flutter/ios`)
   - Flutter (from `Flutter`)
-
-SPEC REPOS:
-  trunk:
-    - CountlyPod
 
 EXTERNAL SOURCES:
   countly_flutter:
@@ -22,8 +14,7 @@ EXTERNAL SOURCES:
     :path: Flutter
 
 SPEC CHECKSUMS:
-  countly_flutter: c8b215652554c2b995c7d33c526379e9b110c645
-  CountlyPod: b3f85ae441a7c05173a2d2e9756a81472612ccde
+  countly_flutter: ca652dcebe421c2a7925b3c4bcbd39e24a42c220
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
 
 PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c

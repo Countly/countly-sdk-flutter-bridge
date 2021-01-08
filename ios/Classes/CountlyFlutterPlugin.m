@@ -138,8 +138,9 @@ NSMutableDictionary *networkRequest = nil;
         });
     }else if ([@"setLoggingEnabled" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
-        config.enableDebug = YES;
-        result(@"setLoggingEnabled!");
+            BOOL boolean = [[command objectAtIndex:0] boolValue];
+            config.enableDebug = boolean;
+            result(@"setLoggingEnabled!");
         });
 
     }else if ([@"setuserdata" isEqualToString:call.method]) {
