@@ -289,10 +289,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               String exceptionString = args.getString(0);
               Boolean fatal = args.getBoolean(1);
               Exception exception = new Exception(exceptionString);
+              Map<String, Object> segments = new HashMap<String, Object>();
+              for(int i=2,il=args.length();i<il;i+=2){
+                  segments.put(args.getString(i), args.getString(i+1));
+              }
               if(fatal) {
-                  Countly.sharedInstance().crashes().recordUnhandledException(exception);
+                  Countly.sharedInstance().crashes().recordUnhandledException(exception, segments);
               } else {
-                  Countly.sharedInstance().crashes().recordHandledException(exception);
+                  Countly.sharedInstance().crashes().recordHandledException(exception, segments);
               }
 
               result.success("logException success!");
