@@ -716,11 +716,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                           result.error("getAvailableFeedbackWidgets", error, null);
                           return;
                       }
-                      Map<String, String> retrievedWidgetsMap = new HashMap<String, String>();
+                      List<Map<String, String>> retrievedWidgetsArray = new ArrayList<>();
                       for (CountlyFeedbackWidget presentableFeedback : retrievedWidgets) {
-                          retrievedWidgetsMap.put(presentableFeedback.widgetId, presentableFeedback.type.name());
+                          Map<String, String> feedbackWidget = new HashMap<String, String>();
+                          feedbackWidget.put("id", presentableFeedback.widgetId);
+                          feedbackWidget.put("type", presentableFeedback.type.name());
+                          feedbackWidget.put("name", presentableFeedback.name);
+                          retrievedWidgetsArray.add(feedbackWidget);
                       }
-                      result.success(retrievedWidgetsMap);
+                      result.success(retrievedWidgetsArray);
                   }
               });
           } else if ("presentFeedbackWidget".equals(call.method)) {

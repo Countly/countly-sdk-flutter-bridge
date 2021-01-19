@@ -707,11 +707,15 @@ NSMutableDictionary *networkRequest = nil;
     }else if ([@"getAvailableFeedbackWidgets" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
             [Countly.sharedInstance getFeedbackWidgets:^(NSArray<CountlyFeedbackWidget *> * _Nonnull feedbackWidgets, NSError * _Nonnull error) {
-                NSMutableDictionary* feedbackWidgetsDict = [NSMutableDictionary dictionaryWithCapacity:feedbackWidgets.count];
-                for (CountlyFeedbackWidget* feedbackWidget in feedbackWidgets) {
-                    feedbackWidgetsDict[feedbackWidget.ID] = feedbackWidget.type;
-                }
-                result(feedbackWidgetsDict);
+                NSMutableArray* feedbackWidgetsArray = [NSMutableArray arrayWithCapacity:feedbackWidgets.count];
+                  for (CountlyFeedbackWidget* retrievedWidget in feedbackWidgets) {
+                      NSMutableDictionary* feedbackWidget = [NSMutableDictionary dictionaryWithCapacity:3];
+                      feedbackWidget[@"id"] = retrievedWidget.ID;
+                      feedbackWidget[@"type"] = retrievedWidget.type;
+                      feedbackWidget[@"name"] = retrievedWidget.name;
+                      [feedbackWidgetsArray addObject:feedbackWidget];
+                  }
+                result(feedbackWidgetsArray);
             }];
         });
     } else if ([@"presentFeedbackWidget" isEqualToString:call.method]) {

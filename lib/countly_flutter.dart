@@ -916,10 +916,10 @@ static Future<String> onNotification(Function callback) async {
     List<CountlyPresentableFeedback> presentableFeedback;
     String error;
     try {
-      final Map<dynamic, dynamic> retrievedWidgets = await _channel.invokeMethod(
+      final List<dynamic> retrievedWidgets = await _channel.invokeMethod(
           'getAvailableFeedbackWidgets');
       log("getAvailableFeedbackWidgets retrievedWidgets : $retrievedWidgets");
-    presentableFeedback = retrievedWidgets.entries.map( (entry) => CountlyPresentableFeedback(entry.key, entry.value)).toList();
+      presentableFeedback = retrievedWidgets.map(CountlyPresentableFeedback.fromJson).toList();
 
       for(CountlyPresentableFeedback widget in presentableFeedback) {
         String type = widget.type;
@@ -1290,9 +1290,14 @@ static Future<String> onNotification(Function callback) async {
   }
 }
 class CountlyPresentableFeedback {
-  CountlyPresentableFeedback(this.widgetId, this.type);
+  CountlyPresentableFeedback(this.widgetId, this.type, this.name);
   final String widgetId;
   final String type;
+  final String name;
+
+  static CountlyPresentableFeedback fromJson(dynamic json) {
+    return CountlyPresentableFeedback(json['id'], json['type'], json['name']);
+  }
 }
 
 class FeedbackWidgetsResponse {
