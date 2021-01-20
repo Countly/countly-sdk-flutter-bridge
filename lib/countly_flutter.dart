@@ -222,6 +222,21 @@ class Countly {
     return result;
   }
 
+  /// Disable push notifications feature, by default it is enabled.
+  /// Currently implemented for iOS only
+  /// Should be called before Countly init
+  static Future<String> disablePushNotifications() async {
+    if(!Platform.isIOS) {
+      return "disablePushNotifications : To be implemented";
+    }
+    List <String> args = [];
+    final String result = await _channel.invokeMethod('disablePushNotifications', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
+
   /// Set messaging mode for push notifications
   /// Should be call before Countly init
   static Future<String> pushTokenType(String tokenType) async {
