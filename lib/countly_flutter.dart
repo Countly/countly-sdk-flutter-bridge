@@ -222,6 +222,21 @@ class Countly {
     return result;
   }
 
+  /// Disable push notifications feature, by default it is enabled.
+  /// Currently implemented for iOS only
+  /// Should be called before Countly init
+  static Future<String> disablePushNotifications() async {
+    if(!Platform.isIOS) {
+      return "disablePushNotifications : To be implemented";
+    }
+    List <String> args = [];
+    final String result = await _channel.invokeMethod('disablePushNotifications', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+  }
+
   /// Set messaging mode for push notifications
   /// Should be call before Countly init
   static Future<String> pushTokenType(String tokenType) async {
@@ -918,25 +933,14 @@ static Future<String> onNotification(Function callback) async {
     try {
       final List<dynamic> retrievedWidgets = await _channel.invokeMethod(
           'getAvailableFeedbackWidgets');
-      log("getAvailableFeedbackWidgets retrievedWidgets : $retrievedWidgets");
       presentableFeedback = retrievedWidgets.map(CountlyPresentableFeedback.fromJson).toList();
-
-      for(CountlyPresentableFeedback widget in presentableFeedback) {
-        String type = widget.type;
-        String Id = widget.widgetId;
-
-        log("getAvailableFeedbackWidgets presentableFeedback Widget Type : $type");
-        log("getAvailableFeedbackWidgets presentableFeedback Widget ID : $Id");
-      }
     }
     on PlatformException catch (e) {
       error = e.message;
+      log("getAvailableFeedbackWidgets Error : $error");
     }
-
-    log("getAvailableFeedbackWidgets feedbackWidgetsResponse with Erro : $presentableFeedback Errors: $error");
     FeedbackWidgetsResponse feedbackWidgetsResponse = FeedbackWidgetsResponse(presentableFeedback, error);
 
-    log("getAvailableFeedbackWidgets feedbackWidgetsResponse : $feedbackWidgetsResponse");
     return feedbackWidgetsResponse;
   }
 

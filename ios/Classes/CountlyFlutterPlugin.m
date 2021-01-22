@@ -22,6 +22,7 @@ FlutterResult notificationListener = nil;
 NSDictionary *lastStoredNotification = nil;
 NSMutableArray *notificationIDs = nil;        // alloc here
 NSMutableArray<CLYFeature>* countlyFeatures = nil;
+BOOL enablePushNotifications = true;
 
 @implementation CountlyFlutterPlugin
 
@@ -63,8 +64,9 @@ NSMutableDictionary *networkRequest = nil;
 
         //should only be used for silent pushes if explicitly enabled
         //config.sendPushTokenAlways = YES;
-
-        [self addCountlyFeature:CLYPushNotifications];
+        if(enablePushNotifications) {
+            [self addCountlyFeature:CLYPushNotifications];
+        }
 
         if(command.count == 3){
             deviceID = [command objectAtIndex:2];
@@ -379,6 +381,11 @@ NSMutableDictionary *networkRequest = nil;
         config.crashSegmentation = dict;
         });
         result(@"setCustomCrashSegment!");
+    }else if ([@"disablePushNotifications" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            enablePushNotifications = false;
+        });
+        result(@"disablePushNotifications!");
     }else if ([@"askForNotificationPermission" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
             [Countly.sharedInstance askForNotificationPermission];
