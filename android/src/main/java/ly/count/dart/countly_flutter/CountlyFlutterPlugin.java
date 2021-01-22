@@ -67,6 +67,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private Lifecycle lifecycle;
     private Boolean isSessionStarted_ = false;
 
+    private boolean isOnResumeBeforeInit = false;
+
     public static void registerWith(Registrar registrar) {
         final CountlyFlutterPlugin instance = new CountlyFlutterPlugin();
         instance.activity  = registrar.activity();
@@ -93,6 +95,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         this.context = context;
         methodChannel = new MethodChannel(messenger, "countly_flutter");
         methodChannel.setMethodCallHandler(this);
+
+        this.config.enableManualAppLoadedTrigger();
+        this.config.enableManualForegroundBackgroundTriggerAPM();
+
         log("onAttachedToEngineInternal", LogLevel.INFO);
     }
 
@@ -138,8 +144,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     @Override
     public void onStart(@NonNull LifecycleOwner owner) {
         log("onStart", LogLevel.INFO);
-        if(isSessionStarted_) {
-            Countly.sharedInstance().onStart(activity);
+        if(Countly.sharedInstance().isInitialized()) {
+            if(isSessionStarted_) {
+                Countly.sharedInstance().onStart(activity);
+            }
+            Countly.sharedInstance().apm().triggerForeground();
+        }
+        else {
+            isOnResumeBeforeInit = true;
         }
     }
 
@@ -151,6 +163,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     @Override
     public void onPause(@NonNull LifecycleOwner owner) {
         log("onPause", LogLevel.INFO);
+        if(Countly.sharedInstance().isInitialized()) {
+            Countly.sharedInstance().apm().triggerBackground();
+        }
     }
 
     @Override
@@ -167,7 +182,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     }
 
   public CountlyFlutterPlugin() {
-
+      log("CountlyFlutterPlugin", LogLevel.INFO);
   }
   @Override
   public void onMethodCall(MethodCall call, final Result result) {
@@ -217,6 +232,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                   this.config.setApplication(activity.getApplication());
               }
               Countly.sharedInstance().init(this.config);
+              if(isOnResumeBeforeInit) {
+                  isOnResumeBeforeInit = false;
+                  Countly.sharedInstance().apm().triggerForeground();
+              }
               result.success("initialized!");
         } else if ("isInitialized".equals(call.method)) {
             Boolean isInitialized = Countly.sharedInstance().isInitialized();
@@ -803,6 +822,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         } else if ("enableAttribution".equals(call.method)) {
             this.config.setEnableAttribution(true);
             result.success("enableAttribution: success");
+        } else if ("appLoadingFinished".equals(call.method)) {
+              Countly.sharedInstance().apm().setAppIsLoaded();
+              result.success("appLoadingFinished: success");
         } else {
             result.notImplemented();
         }
