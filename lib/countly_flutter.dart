@@ -90,7 +90,7 @@ class Countly {
   static Future<String> appLoadingFinished() async {
     isInitialized().then((bool isInitialized) async {
       if(!isInitialized) {
-        log('appLoadingFinished, init must be called before getCurrentDeviceId',logLevel: LogLevel.WARNING);
+        log('appLoadingFinished, init must be called before appLoadingFinished',logLevel: LogLevel.WARNING);
         return "init must be called before appLoadingFinished";
       }
       List <String> args = [];
