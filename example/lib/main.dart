@@ -54,6 +54,7 @@ class _MyAppState extends State<MyApp> {
         Countly.setStarRatingDialogTexts("Title", "Message", "Dismiss");
 
         Countly.init(SERVER_URL, APP_KEY ).then((value){
+          Countly.appLoadingFinished();
           Countly.start();
           /// Push notifications settings
           /// Should be call after init

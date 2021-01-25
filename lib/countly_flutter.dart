@@ -85,6 +85,23 @@ class Countly {
     return result;
   }
 
+  /// Call this function when app is loaded, so that the app launch duration can be recorded.
+  /// Should be called after init.
+  static Future<String> appLoadingFinished() async {
+    isInitialized().then((bool isInitialized) async {
+      if(!isInitialized) {
+        log('appLoadingFinished, init must be called before appLoadingFinished',logLevel: LogLevel.WARNING);
+        return "init must be called before appLoadingFinished";
+      }
+      List <String> args = [];
+      final String result = await _channel.invokeMethod('appLoadingFinished', <String, dynamic>{
+        'data': json.encode(args)
+      });
+      log(result);
+      return result;
+    });
+  }
+
   static bool isNullOrEmpty(String s) => s == null || s.isEmpty;
 
   static Future<String> recordEvent( Map<String, Object> options) async {
