@@ -821,6 +821,11 @@ NSMutableDictionary *networkRequest = nil;
               config.attributionID = attributionID;
             }
         });
+    }else if ([@"appLoadingFinished" isEqualToString:call.method]) {
+            dispatch_async(dispatch_get_main_queue(), ^ {
+                [Countly.sharedInstance appLoadingFinished];
+            });
+            result(@"appLoadingFinished: success");
     } else {
         result(FlutterMethodNotImplemented);
     }
