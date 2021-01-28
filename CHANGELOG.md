@@ -13,7 +13,7 @@
 * Added "setLocationInit" method to record Location before init, to prevent potential issues occurred when a location is passed after init
 * Added "giveConsentInit" method to give Consents before init, some features needed consent before init to work properly
 * Fixed issues related to location tracking
-* Session stop and start safe checks added
+* Session stop and start safety checks added
 * Fixed issues related to sessions
 * Updated underlying android SDK to 20.11.3
 * Updated underlying ios SDK to 20.11.1
