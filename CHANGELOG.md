@@ -1,16 +1,16 @@
 ## 20.11.0
-* !! Due to cocoapods issue with Xcode 12, we have added the iOS SDK as source code instead of Pod. Due to that change if you have already add the reference of files "CountlyNotificationService.h/m" then you need to update these files references by adding the files from "Pods/Development Pods/countly_flutter" and remove the old reference files
+* !! Due to cocoapods issue with Xcode 12, we have added the iOS SDK as source code instead of Pod. Due to that change if you have already added the reference of files "CountlyNotificationService.h/m" then you need to update these files references by adding the files from "Pods/Development Pods/countly_flutter" and remove the old reference files
 * !! Consent change !! To use remote config, you now need to give "remote-config" consent
 * !! Push breaking changes !! Google play vulnerability issue fixed due to broadcast receiver for android push notification
 * Added Surveys and NPS feedback widgets
-* Added "replaceAllAppKeysInQueueWithCurrentAppKey" method to replace all app keys in queue with the current app key
+* Added "replaceAllAppKeysInQueueWithCurrentAppKey" method to replace all app keys in a queue with the current app key
 * Added "removeDifferentAppKeysFromQueue" method to remove all different app keys from the queue
 * Added "disablePushNotifications" method to disable push notifications for iOS
 * Added "setStarRatingDialogTexts" method to set text's for different fields of star rating dialog
 * Added "recordAttributionID" method to set the attribution ID for iOS
 * Example app updated
 * Device id NSNull check added for iOS to fix the length on null crash
-* Added "setLocationInit" method to record Location before init, to prevent potential issues occurred when location is passed after init
+* Added "setLocationInit" method to record Location before init, to prevent potential issues occurred when a location is passed after init
 * Added "giveConsentInit" method to give Consents before init, some features needed consent before init to work properly
 * Fixed issues related to location tracking
 * Session stop and start safe checks added
