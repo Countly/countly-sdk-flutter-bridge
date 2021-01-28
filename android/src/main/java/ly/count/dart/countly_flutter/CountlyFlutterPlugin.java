@@ -813,7 +813,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             }
             result.success("recordNetworkTrace: success");
         } else if ("enableApm".equals(call.method)) {
-            this.config.setRecordAppStartTime(false);
+            this.config.setRecordAppStartTime(true);
             result.success("enableApm: success");
         } else if ("throwNativeException".equals(call.method)) {
             throw new IllegalStateException("Native Exception Crashhh!");
