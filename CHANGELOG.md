@@ -1,19 +1,22 @@
 ## 20.11.0
+* !! Due to cocoapods issue with Xcode 12, we have added the iOS SDK as source code instead of Pod. Due to that change if you have already add the reference of files "CountlyNotificationService.h/m" then you need to update these files references by adding the files from "Pods/Development Pods/countly_flutter" and remove the old reference files
 * !! Consent change !! To use remote config, you now need to give "remote-config" consent
 * !! Push breaking changes !! Google play vulnerability issue fixed due to broadcast receiver for android push notification
 * Added Surveys and NPS feedback widgets
-* Added replaceAllAppKeysInQueueWithCurrentAppKey method to replace all app keys in queue with the current app key
-* Added removeDifferentAppKeysFromQueue method to remove all different app keys from the queue
-* Added setStarRatingDialogTexts method to set text's for different fields of star rating dialog
-* Added recordAttributionID method to set the attribution ID for iOS.
-* Example app updated with single plugin for both IDFA and App tracking permission for iOS.
-* Device id NSNull check added for iOS to fix the length on null crash.
-* Added setLocationInit method to record Location before init, to prevent potential issues occurred when location is passed after init.
-* Added giveConsentInit method to give Consents before init, some features needed consent before init to work properly.
+* Added "replaceAllAppKeysInQueueWithCurrentAppKey" method to replace all app keys in queue with the current app key
+* Added "removeDifferentAppKeysFromQueue" method to remove all different app keys from the queue
+* Added "disablePushNotifications" method to disable push notifications for iOS
+* Added "setStarRatingDialogTexts" method to set text's for different fields of star rating dialog
+* Added "recordAttributionID" method to set the attribution ID for iOS
+* Example app updated
+* Device id NSNull check added for iOS to fix the length on null crash
+* Added "setLocationInit" method to record Location before init, to prevent potential issues occurred when location is passed after init
+* Added "giveConsentInit" method to give Consents before init, some features needed consent before init to work properly
 * Fixed issues related to location tracking
-* Session stop and start safe checks added.
-* Updated underlying android SDK to 20.11.0
-* Updated underlying ios SDK to 20.11.0
+* Session stop and start safe checks added
+* Fixed issues related to sessions
+* Updated underlying android SDK to 20.11.3
+* Updated underlying ios SDK to 20.11.1
 
 ## 20.04.1
 * Adding APM calls
