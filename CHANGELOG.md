@@ -1,3 +1,7 @@
+## 20.11.1
+* Added a way to retrieve feedback widget data and manually report them
+* Updated underlying android SDK to 20.11.4
+
 ## 20.11.0
 * !! Due to cocoapods issue with Xcode 12, we have added the iOS SDK as source code instead of Pod. Due to that change if you have already added the reference of files "CountlyNotificationService.h/m" then you need to update these files references by adding the files from "Pods/Development Pods/countly_flutter" and remove the old reference files
 * !! Consent change !! To use remote config, you now need to give "remote-config" consent
