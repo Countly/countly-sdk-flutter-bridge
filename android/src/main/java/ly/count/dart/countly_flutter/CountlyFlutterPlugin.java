@@ -18,6 +18,7 @@ import ly.count.android.sdk.FeedbackRatingCallback;
 import ly.count.android.sdk.ModuleFeedback.*;
 import ly.count.android.sdk.RemoteConfig;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import android.app.Activity;
 import android.content.Context;
@@ -53,7 +54,7 @@ import com.google.firebase.FirebaseApp;
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
 
     private static final String TAG = "CountlyFlutterPlugin";
-    private String COUNTLY_FLUTTER_SDK_VERSION_STRING = "20.11.0";
+    private String COUNTLY_FLUTTER_SDK_VERSION_STRING = "20.11.1";
     private String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     /** Plugin registration. */
     private Countly.CountlyMessagingMode pushTokenType = Countly.CountlyMessagingMode.PRODUCTION;
@@ -770,7 +771,50 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                       }
                   }
               });
-          } else if ("replaceAllAppKeysInQueueWithCurrentAppKey".equals(call.method)) {
+          } else if ("getFeedbackWidgetData".equals(call.method)) {
+              String widgetId = args.getString(0);
+              String type = args.getString(1);
+              String name = args.getString(2);
+
+              CountlyFeedbackWidget presentableFeedback = new CountlyFeedbackWidget();
+              presentableFeedback.widgetId = widgetId;
+              presentableFeedback.type = FeedbackWidgetType.valueOf(type);
+              presentableFeedback.name = name;
+              Countly.sharedInstance().feedback().getFeedbackWidgetData(presentableFeedback, new RetrieveFeedbackWidgetData() {
+                  @Override
+                  public void onFinished(JSONObject retrievedWidgetData, String error) {
+                      if(error != null) {
+                          result.error("getFeedbackWidgetData", error, null);
+                      }
+                      else {
+                          try {
+                              result.success(toMap(retrievedWidgetData));
+                          } catch (JSONException e) {
+                              result.error("getFeedbackWidgetData", e.getMessage(), null);
+                          }
+                      }
+                  }
+              });
+          } else if ("reportFeedbackWidgetManually".equals(call.method)) {
+              JSONArray widgetInfo = args.getJSONArray(0);
+              JSONObject widgetData = args.getJSONObject(1);
+              JSONObject widgetResult = args.getJSONObject(2);
+              Map<String, Object> widgetResultMap = null;
+              if(widgetResult != null && widgetResult.length() > 0) {
+                  widgetResultMap = toMap(widgetResult);
+              }
+
+              String widgetId = widgetInfo.getString(0);
+              String type = widgetInfo.getString(1);
+              String name = widgetInfo.getString(2);
+
+              CountlyFeedbackWidget feedbackWidget = new CountlyFeedbackWidget();
+              feedbackWidget.widgetId = widgetId;
+              feedbackWidget.type = FeedbackWidgetType.valueOf(type);
+              feedbackWidget.name = name;
+              Countly.sharedInstance().feedback().reportFeedbackWidgetManually(feedbackWidget, widgetData, widgetResultMap);
+              result.success("reportFeedbackWidgetManually success");
+          }  else if ("replaceAllAppKeysInQueueWithCurrentAppKey".equals(call.method)) {
               Countly.sharedInstance().requestQueueOverwriteAppKeys();
               result.success("replaceAllAppKeysInQueueWithCurrentAppKey Success");
           } else if ("removeDifferentAppKeysFromQueue".equals(call.method)) {
@@ -884,6 +928,36 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 break;
         }
     }
+
+    public static Map<String, Object> toMap(JSONObject jsonobj)  throws JSONException {
+        Map<String, Object> map = new HashMap<String, Object>();
+        Iterator<String> keys = jsonobj.keys();
+        while(keys.hasNext()) {
+            String key = keys.next();
+            Object value = jsonobj.get(key);
+            if (value instanceof JSONArray) {
+                value = toList((JSONArray) value);
+            } else if (value instanceof JSONObject) {
+                value = toMap((JSONObject) value);
+            }
+            map.put(key, value);
+        }   return map;
+    }
+
+    public static List<Object> toList(JSONArray array) throws JSONException {
+        List<Object> list = new ArrayList<Object>();
+        for(int i = 0; i < array.length(); i++) {
+            Object value = array.get(i);
+            if (value instanceof JSONArray) {
+                value = toList((JSONArray) value);
+            }
+            else if (value instanceof JSONObject) {
+                value = toMap((JSONObject) value);
+            }
+            list.add(value);
+        }   return list;
+    }
+
 
 
 }
