@@ -990,6 +990,79 @@ static Future<String> onNotification(Function callback) async {
     return result;
   }
 
+  /// Downloads widget info and returns [widgetData, error]
+  /// [CountlyPresentableFeedback widgetInfo] - identifies the specific widget for which you want to download widget data
+  static Future<List> getFeedbackWidgetData(CountlyPresentableFeedback widgetInfo) async {
+    Map<String, dynamic> widgetData;
+    if(widgetInfo == null){
+      String error = "getFeedbackWidgetData, Can't get widget data 'widgetInfo' is null";
+      log(error);
+      return [widgetData, error];
+    }
+    String error;
+    List <String> args = [];
+    args.add(widgetInfo.widgetId);
+    args.add(widgetInfo.type);
+    args.add(widgetInfo.name);
+    log(args.toString());
+    try {
+      Map<dynamic, dynamic> retrievedWidgetData = await _channel.invokeMethod(
+          'getFeedbackWidgetData', <String, dynamic>{
+        'data': json.encode(args)
+      });
+      widgetData = new Map<String, dynamic>.from(retrievedWidgetData);
+    }
+    on PlatformException catch (e) {
+      error = e.message;
+      log("getAvailableFeedbackWidgets Error : $error");
+    }
+    return [widgetData , error];
+  }
+
+  /// Report widget info and do data validation
+  /// [CountlyPresentableFeedback widgetInfo] - identifies the specific widget for which the feedback is filled out
+  /// [Map<String, dynamic> widgetData] - widget data for this specific widget
+  /// [Map<String, Object> widgetResult] - segmentation of the filled out feedback. If this segmentation is null, it will be assumed that the survey was closed before completion and mark it appropriately
+  static Future<String> reportFeedbackWidgetManually(CountlyPresentableFeedback widgetInfo, Map<String, dynamic> widgetData, Map<String, Object> widgetResult) async {
+    if(widgetInfo == null){
+      String error = "reportFeedbackWidgetManually,  Can't report feedback widget data manually with 'null' widget info";
+      log(error);
+      return error;
+    }
+    if(widgetData == null) {
+      String error = "reportFeedbackWidgetManually,  widgetData is 'null'";
+      log(error);
+      widgetData = new Map<String, Object>();
+    }
+    if(widgetResult == null) {
+      String error = "reportFeedbackWidgetManually,  widgetResult is 'null'";
+      log(error);
+      widgetResult = new Map<String, Object>();
+    }
+    List <String> widgetInfoList = [];
+    widgetInfoList.add(widgetInfo.widgetId);
+    widgetInfoList.add(widgetInfo.type);
+    widgetInfoList.add(widgetInfo.name);
+
+    List <dynamic> args = [];
+    args.add(widgetInfoList);
+    args.add(widgetData);
+    args.add(widgetResult);
+    log(args.toString());
+    String result;
+    try {
+      result = await _channel.invokeMethod(
+          'reportFeedbackWidgetManually', <String, dynamic>{
+        'data': json.encode(args)
+      });
+    }
+    on PlatformException catch (e) {
+      result = e.message;
+    }
+    log(result);
+    return result;
+  }
+
   static Future<String> startEvent(String key) async {
     if(isNullOrEmpty(key)){
       String error = "startEvent, Can't start event with a null or empty key";

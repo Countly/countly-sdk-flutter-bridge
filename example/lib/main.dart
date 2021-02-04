@@ -482,6 +482,102 @@ class _MyAppState extends State<MyApp> {
     String result = await Countly.presentFeedbackWidget(chosenWidget, "Close");
   }
 
+  reportSurveyManually() async {
+    FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets() ;
+    List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
+    String error = feedbackWidgetsResponse.error;
+
+    if(error != null) {
+      return;
+    }
+    CountlyPresentableFeedback chosenWidget = null;
+    for(CountlyPresentableFeedback widget in widgets) {
+      if(widget.type == "survey") {
+        chosenWidget = widget;
+        break;
+      }
+    }
+    List result = await Countly.getFeedbackWidgetData(chosenWidget);
+    error = result[1];
+    if(error == null) {
+      Map<String, dynamic> retrievedWidgetData = result[0];
+      Map<String, Object> segments = {};
+      if(retrievedWidgetData != null && retrievedWidgetData.length > 0) {
+        List<dynamic> questions = retrievedWidgetData["questions"];
+
+        if (questions != null) {
+          Random rnd = new Random();
+          //iterate over all questions and set random answers
+          for (int a = 0; a < questions.length; a++) {
+            Map<dynamic, dynamic> question = questions[a];
+            String wType = question["type"];
+            String questionId = question["id"];
+            String answerKey = "answ-" + questionId;
+            List<dynamic> choices = question["choices"];
+            switch (wType) {
+            //multiple answer question
+              case "multi":
+                String str = "";
+                for(int b = 0 ; b < choices.length ; b++) {
+                  if (b % 2 == 0) {
+                    if (b != 0) {
+                      str += ",";
+                    }
+                    str += choices[b]["key"];
+                  }
+                }
+                segments[answerKey] =  str;
+                break;
+              case "radio":
+              //dropdown value selector
+              case "dropdown":
+                int pick = rnd.nextInt(choices.length);
+                segments[answerKey] = choices[pick]["key"];//pick the key of random choice
+                break;
+            //text input field
+              case "text":
+                segments[answerKey] = "Some random text";
+                break;
+            //rating picker
+              case "rating":
+                segments[answerKey] = rnd.nextInt(11);
+                break;
+            }
+          }
+        }
+      }
+      await Countly.reportFeedbackWidgetManually(chosenWidget, retrievedWidgetData , segments);
+    }
+  }
+
+  reportNPSManually() async {
+    FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets() ;
+    List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
+    String error = feedbackWidgetsResponse.error;
+
+    if(error != null) {
+      return;
+    }
+
+    CountlyPresentableFeedback chosenWidget = null;
+    for(CountlyPresentableFeedback widget in widgets) {
+      if(widget.type == "nps") {
+        chosenWidget = widget;
+        break;
+      }
+    }
+    List result = await Countly.getFeedbackWidgetData(chosenWidget);
+    error = result[1];
+    if(error == null) {
+      Map<String, dynamic> retrievedWidgetData = result[0];
+      Map<String, Object> segments = {
+        "rating": 3,
+        "comment": "Filled out comment"
+      };
+      await Countly.reportFeedbackWidgetManually(chosenWidget, retrievedWidgetData , segments);
+    }
+  }
+
   setLocation(){
     Countly.setLocation("-33.9142687","18.0955802");
   }
@@ -618,6 +714,8 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Open feedback modal", color: "orange", onPressed: askForFeedback),
               MyButton(text: "Show Survey", color: "orange", onPressed: showSurvey),
               MyButton(text: "Show NPS", color: "orange", onPressed: showNPS),
+              MyButton(text: "Report Survey Manually", color: "orange", onPressed: reportSurveyManually),
+              MyButton(text: "Report NPS Manually", color: "orange", onPressed: reportNPSManually),
 
               MyButton(text: "Start Trace", color: "black", onPressed: startTrace),
               MyButton(text: "End Trace", color: "black", onPressed: endTrace),
