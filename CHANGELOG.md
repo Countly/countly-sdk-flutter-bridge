@@ -1,3 +1,10 @@
+## 20.11.2
+* Added COUNTLY_EXCLUDE_PUSHNOTIFICATIONS flag to disable push notifications altogether in order to avoid App Store Connect warnings.
+* Add "updateSessionInterval" method to sets the interval for the automatic session update calls
+* Deprecated keys issues fixed in pubspec.yaml
+* flutter_plugin_android_lifecycle updated to latest version (2.0.1)
+* Updated underlying android SDK to 20.11.6
+
 ## 20.11.1
 * Added a way to retrieve feedback widget data and manually report them
 * Updated underlying android SDK to 20.11.4

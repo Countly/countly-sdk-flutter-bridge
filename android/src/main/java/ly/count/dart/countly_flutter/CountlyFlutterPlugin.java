@@ -54,7 +54,7 @@ import com.google.firebase.FirebaseApp;
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
 
     private static final String TAG = "CountlyFlutterPlugin";
-    private String COUNTLY_FLUTTER_SDK_VERSION_STRING = "20.11.1";
+    private String COUNTLY_FLUTTER_SDK_VERSION_STRING = "20.11.2";
     private String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     /** Plugin registration. */
     private Countly.CountlyMessagingMode pushTokenType = Countly.CountlyMessagingMode.PRODUCTION;
@@ -419,6 +419,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
           } else if ("updateSessionPeriod".equals(call.method)) {
               result.success("default!");
+
+          } else if ("updateSessionInterval".equals(call.method)) {
+              int sessionInterval = Integer.parseInt(args.getString(0));
+              this.config.setUpdateSessionTimerDelay(sessionInterval);
+              result.success("updateSessionInterval Success!");
 
           } else if ("eventSendThreshold".equals(call.method)) {
               int queueSize = Integer.parseInt(args.getString(0));

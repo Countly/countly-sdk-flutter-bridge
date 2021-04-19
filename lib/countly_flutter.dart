@@ -18,7 +18,11 @@ class Countly {
   /// its value should be updated from [setLoggingEnabled(bool flag)].
   static bool _isDebug = false;
 
-  static final String TAG = "CountlyFlutter";
+  /// Used to determine if init is called.
+  /// its value should be updated from [init(...)].
+  static bool _isInitialized = false;
+
+  static final String tag = "CountlyFlutter";
 
   /// Flag to determine if crash logging functionality should be enabled
   /// If false the intercepted crashes will be ignored
@@ -33,10 +37,11 @@ class Countly {
   static log(String message, {LogLevel logLevel = LogLevel.DEBUG}) async {
     String logLevelStr = describeEnum(logLevel);
     if(_isDebug){
-      print('[$TAG] ${logLevelStr}: ${message}');
+      print('[$tag] $logLevelStr: $message');
     }
   }
   static Future<String> init(String serverUrl, String appKey, [String deviceId]) async {
+    _isInitialized = true;
     if (Platform.isAndroid) {
       messagingMode = {"TEST": "2", "PRODUCTION": "0"};
     }
@@ -71,9 +76,9 @@ class Countly {
   /// In request queue, if there are any request whose app key is different than the current app key,
   /// these requests' app key will be replaced with the current app key.
   static Future<String> replaceAllAppKeysInQueueWithCurrentAppKey() async {
-      final String result = await _channel.invokeMethod('replaceAllAppKeysInQueueWithCurrentAppKey');
-      log(result);
-      return result;
+    final String result = await _channel.invokeMethod('replaceAllAppKeysInQueueWithCurrentAppKey');
+    log(result);
+    return result;
   }
 
   /// Removes all requests with a different app key in request queue.
@@ -274,7 +279,7 @@ class Countly {
 
   /// Set callback to receive push notifications
   /// @param { callback listner } callback
-static Future<String> onNotification(Function callback) async {
+  static Future<String> onNotification(Function callback) async {
     List <String> args = [];
     listenerCallback = callback;
     log("registerForNotification");
@@ -327,6 +332,26 @@ static Future<String> onNotification(Function callback) async {
     });
     log(result);
     return result;
+  }
+
+  /// Sets the interval for the automatic session update calls
+  /// min value 1 (1 second),
+  /// max value 600 (10 minutes)
+  /// [int sessionInterval]- delay in seconds
+  static Future<String> updateSessionInterval(int sessionInterval) async {
+    if(_isInitialized) {
+      log('updateSessionInterval should be called before init',logLevel: LogLevel.WARNING);
+      return "updateSessionInterval should be called before init";
+    }
+    List <String> args = [];
+    args.add(sessionInterval.toString());
+    log(args.toString());
+    final String result = await _channel.invokeMethod('updateSessionInterval', <String, dynamic>{
+      'data': json.encode(args)
+    });
+    log(result);
+    return result;
+
   }
 
   /// Events get grouped together and are sent either every minute or after the unsent event count reaches a threshold. By default it is 10
@@ -390,7 +415,7 @@ static Future<String> onNotification(Function callback) async {
     log(result);
     return result;
   }
-  
+
   /// Get currently used device Id.
   /// Should be call after Countly init
   static Future<String> getCurrentDeviceId() async {
@@ -1266,7 +1291,7 @@ static Future<String> onNotification(Function callback) async {
     List <String> args = [];
     log(args.toString());
     final String result = await _channel.invokeMethod('enableApm', <String, dynamic>{
-            'data': json.encode(args)
+      'data': json.encode(args)
     });
     log(result);
     return result;
