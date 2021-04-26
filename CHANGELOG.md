@@ -2,6 +2,7 @@
 * Added COUNTLY_EXCLUDE_PUSHNOTIFICATIONS flag to disable push notifications altogether in order to avoid App Store Connect warnings.
 * Add "updateSessionInterval" method to sets the interval for the automatic session update calls
 * flutter_plugin_android_lifecycle updated to latest version (2.0.1)
+* Updated the minimum flutter environment version to 1.10.0
 * Updated underlying android SDK to 20.11.8
 * Underlying iOS SDK version is 20.11.1
 
