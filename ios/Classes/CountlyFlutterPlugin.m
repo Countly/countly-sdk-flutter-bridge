@@ -15,7 +15,7 @@
 + (CountlyFeedbackWidget *)createWithDictionary:(NSDictionary *)dictionary;
 @end
 
-NSString* const kCountlyFlutterSDKVersion = @"20.11.1";
+NSString* const kCountlyFlutterSDKVersion = @"20.11.2";
 NSString* const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 
 FlutterResult notificationListener = nil;
@@ -64,9 +64,13 @@ NSMutableDictionary *networkRequest = nil;
 
         //should only be used for silent pushes if explicitly enabled
         //config.sendPushTokenAlways = YES;
+#if (TARGET_OS_IOS)
+#ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
         if(enablePushNotifications) {
             [self addCountlyFeature:CLYPushNotifications];
         }
+#endif
+#endif
 
         if(command.count == 3){
             deviceID = [command objectAtIndex:2];
@@ -200,10 +204,21 @@ NSMutableDictionary *networkRequest = nil;
         result(@"updateSessionPeriod!");
         });
 
+    }else if ([@"updateSessionInterval" isEqualToString:call.method]) {
+             dispatch_async(dispatch_get_main_queue(), ^ {
+             @try{
+                 int sessionInterval = [[command objectAtIndex:0] intValue];
+                 config.updateSessionPeriod = sessionInterval;
+                 result(@"updateSessionInterval Success!");
+             }
+             @catch(NSException *exception){
+                 COUNTLY_FLUTTER_LOG(@"Exception occurred at updateSessionInterval method: %@", exception);
+             };
+             });
     }else if ([@"eventSendThreshold" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         @try{
-            int limit = [[command objectAtIndex:1] intValue];
+            int limit = [[command objectAtIndex:0] intValue];
             config.eventSendThreshold = limit;
             result(@"eventSendThreshold!");
         }
@@ -387,9 +402,13 @@ NSMutableDictionary *networkRequest = nil;
         });
         result(@"disablePushNotifications!");
     }else if ([@"askForNotificationPermission" isEqualToString:call.method]) {
+#if (TARGET_OS_IOS)
+#ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
         dispatch_async(dispatch_get_main_queue(), ^ {
             [Countly.sharedInstance askForNotificationPermission];
         });
+#endif
+#endif
         result(@"askForNotificationPermission!");
     }else if ([@"pushTokenType" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
