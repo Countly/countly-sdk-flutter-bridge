@@ -3,6 +3,7 @@ version '1.0'
 
 buildscript {
     repositories {
+        mavenCentral()
         google()
         jcenter()
     }
@@ -14,6 +15,7 @@ buildscript {
 
 rootProject.allprojects {
     repositories {
+        mavenCentral()
         google()
         jcenter()
     }
@@ -34,6 +36,6 @@ android {
 }
 
 dependencies {
-    implementation 'ly.count.android:sdk:20.11.6'
+    implementation 'ly.count.android:sdk:20.11.8'
     implementation 'com.google.firebase:firebase-messaging:20.2.1'
 }
