@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
+import 'package:pedantic/pedantic.dart';
 
 
 enum LogLevel {INFO, DEBUG, VERBOSE, WARNING, ERROR}
@@ -280,7 +281,7 @@ class Countly {
     List <String> args = [];
     listenerCallback = callback;
     log('registerForNotification');
-    _channel.invokeMethod('registerForNotification', <String, dynamic>{
+    await _channel.invokeMethod('registerForNotification', <String, dynamic>{
       'data': json.encode(args)
     }).then((value){
       listenerCallback(value.toString());
@@ -1319,7 +1320,7 @@ class Countly {
       return;
     }
 
-    _internalRecordError(details.exceptionAsString(), details.stack);
+    unawaited(_internalRecordError(details.exceptionAsString(), details.stack));
   }
 
   /// Callback to catch and report Dart errors, [enableCrashReporting()] must call before [init] to make it work.
@@ -1340,29 +1341,27 @@ class Countly {
       log('recordError, Crash Reporting must be enabled to report crash on Countly',logLevel: LogLevel.WARNING);
       return;
     }
-    _internalRecordError(exception, stack);
+    unawaited(_internalRecordError(exception, stack));
   }
 
   /// A common call for crashes coming from [_recordFlutterError] and [recordDartError]
   ///
   /// They are then further reported to countly
   static Future<void> _internalRecordError(dynamic exception, StackTrace stack) async {
-    isInitialized().then((bool isInitialized){
-      if(!isInitialized) {
-        log('_internalRecordError, countly is not initialized',logLevel: LogLevel.WARNING);
-        return;
-      }
+    if(!_isInitialized) {
+      log('_internalRecordError, countly is not initialized',logLevel: LogLevel.WARNING);
+      return;
+    }
 
-      log('_internalRecordError, Exception : ${exception.toString()}');
-      if (stack != null) log('\n_internalRecordError, Stack : $stack');
+    log('_internalRecordError, Exception : ${exception.toString()}');
+    if (stack != null) log('\n_internalRecordError, Stack : $stack');
 
-      stack ??= StackTrace.fromString('');
-      try {
-        logException('${exception.toString()}\n\n$stack', true);
-      } catch (e) {
-        log('Sending crash report to Countly failed: $e');
-      }
-    });
+    stack ??= StackTrace.fromString('');
+    try {
+      unawaited(logException('${exception.toString()}\n\n$stack', true));
+    } catch (e) {
+      log('Sending crash report to Countly failed: $e');
+    }
   }
 
   /// Enable campaign attribution reporting to Countly.
