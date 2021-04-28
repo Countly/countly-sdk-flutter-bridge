@@ -79,13 +79,13 @@ class _MyAppState extends State<MyApp> {
   // ignore: non_constant_identifier_names
   static String APP_KEY = "YOUR_API_KEY";
 
-  enableTemporaryIdMode(){
+  void enableTemporaryIdMode(){
     Countly.changeDeviceId(Countly.deviceIDType["TemporaryDeviceID"], false);
   }
-  manualSessionHandling(){
+  void manualSessionHandling(){
     Countly.manualSessionHandling();
   }
-  basicEvent(){
+  void basicEvent(){
     // example for basic event
     var event = {
       "key": "Basic Event",
@@ -93,7 +93,7 @@ class _MyAppState extends State<MyApp> {
     };
     Countly.recordEvent(event);
   }
-  eventWithSum(){
+  void eventWithSum(){
     // example for event with sum
     var event = {
       "key": "Event With Sum",
@@ -102,7 +102,7 @@ class _MyAppState extends State<MyApp> {
     };
     Countly.recordEvent(event);
   }
-  eventWithSegment(){
+  void eventWithSegment(){
     // example for event with segment
     var event = {
       "key": "Event With Segment",
@@ -115,7 +115,7 @@ class _MyAppState extends State<MyApp> {
     Countly.recordEvent(event);
   }
 
-  eventWithSumSegment(){
+  void eventWithSumSegment(){
     // example for event with segment and sum
     var event = {
       "key": "Event With Sum And Segment",
@@ -128,26 +128,26 @@ class _MyAppState extends State<MyApp> {
     };
     Countly.recordEvent(event);
   }
-  endEventBasic(){
+  void endEventBasic(){
     Countly.startEvent("Timed Event");
     Timer timer;
-    timer = new Timer(new Duration(seconds: 5), () {
+    timer = Timer(Duration(seconds: 5), () {
       Countly.endEvent({ "key": "Timed Event" });
       timer.cancel();
     });
   }
-  endEventWithSum(){
+  void endEventWithSum(){
     Countly.startEvent("Timed Event With Sum");
     Timer timer;
-    timer = new Timer(new Duration(seconds: 5), () {
+    timer = Timer(Duration(seconds: 5), () {
       Countly.endEvent({ "key": "Timed Event With Sum", "sum": "0.99" });
       timer.cancel();
     });
   }
-  endEventWithSegment(){
+  void endEventWithSegment(){
     Countly.startEvent("Timed Event With Segment");
     Timer timer;
-    timer = new Timer(new Duration(seconds: 5), () {
+    timer = Timer(Duration(seconds: 5), () {
       var event = {
         "key": "Timed Event With Segment",
         "count": 1,
@@ -160,10 +160,10 @@ class _MyAppState extends State<MyApp> {
       timer.cancel();
     });
   }
-  endEventWithSumSegment(){
+  void endEventWithSumSegment(){
     Countly.startEvent("Timed Event With Segment, Sum and Count");
     Timer timer;
-    timer = new Timer(new Duration(seconds: 5), () {
+    timer = Timer(Duration(seconds: 5), () {
       var event = {
         "key": "Timed Event With Segment, Sum and Count",
         "count": 1,
@@ -177,7 +177,7 @@ class _MyAppState extends State<MyApp> {
       timer.cancel();
     });
   }
-  recordViewHome(){
+  void recordViewHome(){
     Map<String, Object> segments = {
       "Cats": 123,
       "Moons": 9.98,
@@ -186,16 +186,16 @@ class _MyAppState extends State<MyApp> {
     Countly.recordView("HomePage", segments);
 
   }
-  recordViewDashboard(){
+  void recordViewDashboard(){
     Countly.recordView("Dashboard");
   }
   String makeid(){
-    int code = new Random().nextInt(999999);
+    int code = Random().nextInt(999999);
     String random = code.toString();
     print(random);
     return random;
   }
-  setUserData(){
+  void setUserData(){
     Map<String, Object> options = {
       "name": "Name of User",
       "username": "Username",
@@ -209,174 +209,174 @@ class _MyAppState extends State<MyApp> {
     };
     Countly.setUserData(options);
   }
-  setProperty(){
+  void setProperty(){
     Countly.setProperty("setProperty", "My Property");
   }
-  increment(){
+  void increment(){
     Countly.increment("increment");
   }
-  incrementBy(){
+  void incrementBy(){
     Countly.incrementBy("incrementBy", 10);
   }
-  multiply(){
+  void multiply(){
     Countly.multiply("multiply", 20);
   }
-   saveMax(){
+  void saveMax(){
     Countly.saveMax("saveMax", 100);
   }
-  saveMin(){
+  void saveMin(){
     Countly.saveMin("saveMin", 50);
   }
-  setOnce(){
+  void setOnce(){
     Countly.setOnce("setOnce", "200");
   }
-  pushUniqueValue(){
+  void pushUniqueValue(){
     Countly.pushUniqueValue("pushUniqueValue", "morning");
   }
-  pushValue(){
+  void pushValue(){
     Countly.pushValue("pushValue", "morning");
   }
-  pullValue(){
+  void pullValue(){
     Countly.pullValue("pushValue", "morning");
   }
   //
-  giveMultipleConsent(){
+  void giveMultipleConsent(){
     Countly.giveConsent(["events", "views", "star-rating", "crashes"]);
   }
-  removeMultipleConsent(){
+  void removeMultipleConsent(){
     Countly.removeConsent(["events", "views", "star-rating", "crashes"]);
   }
-  giveAllConsent() {
+  void giveAllConsent() {
     Countly.giveAllConsent();
   }
-  removeAllConsent(){
+  void removeAllConsent(){
     Countly.removeAllConsent();
   }
 
-  giveConsentSessions(){
+  void giveConsentSessions(){
     Countly.giveConsent(["sessions"]);
   }
-  giveConsentEvents(){
+  void giveConsentEvents(){
     Countly.giveConsent(["events"]);
   }
-  giveConsentViews(){
+  void giveConsentViews(){
     Countly.giveConsent(["views"]);
   }
-  giveConsentLocation(){
+  void giveConsentLocation(){
     Countly.giveConsent(["location"]);
   }
-  giveConsentCrashes(){
+  void giveConsentCrashes(){
     Countly.giveConsent(["crashes"]);
   }
-  giveConsentAttribution(){
+  void giveConsentAttribution(){
     Countly.giveConsent(["attribution"]);
   }
-  giveConsentUsers(){
+  void giveConsentUsers(){
     Countly.giveConsent(["users"]);
   }
-  giveConsentPush(){
+  void giveConsentPush(){
     Countly.giveConsent(["push"]);
   }
-  giveConsentStarRating(){
+  void giveConsentStarRating(){
     Countly.giveConsent(["star-rating"]);
   }
-  giveConsentAPM(){
+  void giveConsentAPM(){
   Countly.giveConsent(["apm"]);
   }
 
-  removeConsentsessions(){
+  void removeConsentsessions(){
     Countly.removeConsent(["sessions"]);
   }
-  removeConsentEvents(){
+  void removeConsentEvents(){
     Countly.removeConsent(["events"]);
   }
-  removeConsentViews(){
+  void removeConsentViews(){
     Countly.removeConsent(["views"]);
   }
-  removeConsentlocation(){
+  void removeConsentlocation(){
     Countly.removeConsent(["location"]);
   }
-  removeConsentcrashes(){
+  void removeConsentcrashes(){
     Countly.removeConsent(["crashes"]);
   }
-  removeConsentattribution(){
+  void removeConsentattribution(){
     Countly.removeConsent(["attribution"]);
   }
-  removeConsentusers(){
+  void removeConsentusers(){
     Countly.removeConsent(["users"]);
   }
-  removeConsentpush(){
+  void removeConsentpush(){
     Countly.removeConsent(["push"]);
   }
-  removeConsentstarRating(){
+  void removeConsentstarRating(){
     Countly.removeConsent(["star-rating"]);
   }
-  removeConsentAPM(){
+  void removeConsentAPM(){
     Countly.removeConsent(["apm"]);
   }
 
-  askForNotificationPermission(){
+  void askForNotificationPermission(){
     Countly.askForNotificationPermission();
   }
-  remoteConfigUpdate(){
+  void remoteConfigUpdate(){
     Countly.remoteConfigUpdate((result){
       print(result);
     });
   }
-  updateRemoteConfigForKeysOnly(){
+  void updateRemoteConfigForKeysOnly(){
     Countly.updateRemoteConfigForKeysOnly(["name"],(result){
       print(result);
     });
   }
-  getRemoteConfigValueForKeyString(){
+  void getRemoteConfigValueForKeyString(){
     Countly.getRemoteConfigValueForKey("stringValue",(result){
       print(result);
     });
   }
-  getRemoteConfigValueForKeyBoolean(){
+  void getRemoteConfigValueForKeyBoolean(){
     Countly.getRemoteConfigValueForKey("booleanValue",(result){
       print(result);
     });
   }
-  getRemoteConfigValueForKeyFloat(){
+  void getRemoteConfigValueForKeyFloat(){
     Countly.getRemoteConfigValueForKey("floatValue",(result){
       print(result);
     });
   }
-  getRemoteConfigValueForKeyInteger(){
+  void getRemoteConfigValueForKeyInteger(){
     Countly.getRemoteConfigValueForKey("integerValue",(result){
       print(result);
     });
   }
 
-  updateRemoteConfigExceptKeys(){
+  void updateRemoteConfigExceptKeys(){
     Countly.updateRemoteConfigExceptKeys(["url"],(result){
       print(result);
     });
   }
 
-  remoteConfigClearValues(){
+  void remoteConfigClearValues(){
     Countly.remoteConfigClearValues((result){
       print(result);
     });
   }
 
-  getRemoteConfigValueForKey(){
+  void getRemoteConfigValueForKey(){
     Countly.getRemoteConfigValueForKey("name", (result){
       print(result);
     });
   }
 
-  changeDeviceIdWithMerge(){
+  void changeDeviceIdWithMerge(){
     Countly.changeDeviceId("123456", true);
   }
-  changeDeviceIdWithoutMerge(){
+  void changeDeviceIdWithoutMerge(){
     Countly.changeDeviceId("123456", false);
   }
-  enableParameterTamperingProtection(){
+  void enableParameterTamperingProtection(){
     Countly.enableParameterTamperingProtection("salt");
   }
-   setOptionalParametersForInitialization(){
+  void setOptionalParametersForInitialization(){
     Map<String, Object> options = {
       "city": "Tampa",
       "country": "US",
@@ -387,42 +387,43 @@ class _MyAppState extends State<MyApp> {
     Countly.setOptionalParametersForInitialization(options);
   }
 
-  addCrashLog(){
+  void addCrashLog(){
     Countly.enableCrashReporting();
     Countly.addCrashLog("User Performed Step A");
     Timer timer;
-    timer = new Timer(new Duration(seconds: 5), () {
+    timer = Timer(Duration(seconds: 5), () {
       Countly.logException("one.js \n two.js \n three.js", true, {"_facebook_version": "0.0.1"});
       timer.cancel();
     });
   }
-  causeException(){
+  void causeException(){
     Map<String, Object> options = json.decode("This is a on purpose error.");
+    print(options.length);
   }
 
-  throwException() {
-    throw new StateError('This is an thrown Dart exception.');
+  void throwException() {
+    throw StateError('This is an thrown Dart exception.');
   }
 
-  throwNativeException() {
+  void throwNativeException() {
     Countly.throwNativeException();
   }
 
-  throwExceptionAsync() async {
-    foo() async {
-      throw new StateError('This is an async Dart exception.');
+  Future<void> throwExceptionAsync() async {
+    Future<void> foo() async {
+      throw StateError('This is an async Dart exception.');
     }
-    bar() async {
+    Future<void> bar() async {
       await foo();
     }
     await bar();
   }
 
-  recordExceptionManually() {
+  void recordExceptionManually() {
     Countly.logException("This is a manually created exception", true, null);
   }
 
-  dividedByZero() {
+  void dividedByZero() {
     try {
       int firstInput = 20;
       int secondInput = 0;
@@ -435,17 +436,17 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  setLoggingEnabled(){
+  void setLoggingEnabled(){
     Countly.setLoggingEnabled(false);
   }
-  askForStarRating(){
+  void askForStarRating(){
     Countly.askForStarRating();
   }
-  askForFeedback(){
+  void askForFeedback(){
     Countly.askForFeedback("5e391ef47975d006a22532c0", "Close");
   }
 
-  showSurvey() async {
+  void showSurvey() async {
     FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets() ;
     List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
     String error = feedbackWidgetsResponse.error;
@@ -454,17 +455,17 @@ class _MyAppState extends State<MyApp> {
       return;
     }
 
-    CountlyPresentableFeedback chosenWidget = null;
+    CountlyPresentableFeedback chosenWidget;
     for(CountlyPresentableFeedback widget in widgets) {
       if(widget.type == "survey") {
         chosenWidget = widget;
         break;
       }
     }
-    String result = await Countly.presentFeedbackWidget(chosenWidget, "Cancel");
+    await Countly.presentFeedbackWidget(chosenWidget, "Cancel");
   }
 
-  showNPS() async {
+  void showNPS() async {
     FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets() ;
     List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
     String error = feedbackWidgetsResponse.error;
@@ -473,17 +474,17 @@ class _MyAppState extends State<MyApp> {
       return;
     }
 
-    CountlyPresentableFeedback chosenWidget = null;
+    CountlyPresentableFeedback chosenWidget;
     for(CountlyPresentableFeedback widget in widgets) {
       if(widget.type == "nps") {
         chosenWidget = widget;
         break;
       }
     }
-    String result = await Countly.presentFeedbackWidget(chosenWidget, "Close");
+    await Countly.presentFeedbackWidget(chosenWidget, "Close");
   }
 
-  reportSurveyManually() async {
+  void reportSurveyManually() async {
     FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets() ;
     List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
     String error = feedbackWidgetsResponse.error;
@@ -491,7 +492,7 @@ class _MyAppState extends State<MyApp> {
     if(error != null) {
       return;
     }
-    CountlyPresentableFeedback chosenWidget = null;
+    CountlyPresentableFeedback chosenWidget;
     for(CountlyPresentableFeedback widget in widgets) {
       if(widget.type == "survey") {
         chosenWidget = widget;
@@ -507,7 +508,7 @@ class _MyAppState extends State<MyApp> {
         List<dynamic> questions = retrievedWidgetData["questions"];
 
         if (questions != null) {
-          Random rnd = new Random();
+          Random rnd = Random();
           //iterate over all questions and set random answers
           for (int a = 0; a < questions.length; a++) {
             Map<dynamic, dynamic> question = questions[a];
@@ -551,7 +552,7 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  reportNPSManually() async {
+  void reportNPSManually() async {
     FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets() ;
     List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
     String error = feedbackWidgetsResponse.error;
@@ -560,7 +561,7 @@ class _MyAppState extends State<MyApp> {
       return;
     }
 
-    CountlyPresentableFeedback chosenWidget = null;
+    CountlyPresentableFeedback chosenWidget;
     for(CountlyPresentableFeedback widget in widgets) {
       if(widget.type == "nps") {
         chosenWidget = widget;
@@ -579,16 +580,16 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  setLocation(){
+  void setLocation(){
     Countly.setLocation("-33.9142687","18.0955802");
   }
 
   // APM Examples
-  startTrace(){
+  void startTrace(){
     String traceKey = "Trace Key";
     Countly.startTrace(traceKey);
   }
-  endTrace(){
+  void endTrace(){
     String traceKey = "Trace Key";
     Map<String, int> customMetric = {
       "ABC": 1233,
@@ -598,23 +599,23 @@ class _MyAppState extends State<MyApp> {
   }
   List<int> successCodes = [100, 101, 200, 201, 202, 205, 300, 301, 303, 305];
   List<int> failureCodes = [400, 402, 405, 408, 500, 501, 502, 505];
-  recordNetworkTraceSuccess(){
+  void recordNetworkTraceSuccess(){
     String networkTraceKey = "api/endpoint.1";
-    var rnd = new Random();
+    var rnd = Random();
     int responseCode = successCodes[rnd.nextInt(successCodes.length)];
     int requestPayloadSize = rnd.nextInt(700) + 200;
     int responsePayloadSize = rnd.nextInt(700) + 200;
-    int startTime = new DateTime.now().millisecondsSinceEpoch;
+    int startTime = DateTime.now().millisecondsSinceEpoch;
     int endTime = startTime + 500;
     Countly.recordNetworkTrace(networkTraceKey, responseCode, requestPayloadSize, responsePayloadSize, startTime, endTime);
   }
-  recordNetworkTraceFailure(){
+  void recordNetworkTraceFailure(){
     String networkTraceKey = "api/endpoint.1";
-    var rnd = new Random();
+    var rnd = Random();
     int responseCode = failureCodes[rnd.nextInt(failureCodes.length)];
     int requestPayloadSize = rnd.nextInt(700) + 250;
     int responsePayloadSize = rnd.nextInt(700) + 250;
-    int startTime = new DateTime.now().millisecondsSinceEpoch;
+    int startTime = DateTime.now().millisecondsSinceEpoch;
     int endTime = startTime + 500;
     Countly.recordNetworkTrace(networkTraceKey, responseCode, requestPayloadSize, responsePayloadSize, startTime, endTime);
   }
@@ -839,13 +840,11 @@ class MyButton extends StatelessWidget{
 
   @override
   Widget build(BuildContext context){
-    return new RaisedButton(
-      onPressed: _onPressed,
-      color: _button,
-      child: SizedBox(
-        width: double.maxFinite,
-        child: Text(_text, style: new TextStyle(color: _textC),textAlign: TextAlign.center)
-        )
-    );
+    return ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          primary: _button,
+        ),
+        onPressed: _onPressed,
+        child: Text(_text, style: TextStyle(color: _textC),textAlign: TextAlign.center));
   }
 }

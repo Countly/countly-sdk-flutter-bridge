@@ -8,8 +8,7 @@ import 'package:flutter/foundation.dart';
 
 enum LogLevel {INFO, DEBUG, VERBOSE, WARNING, ERROR}
 class Countly {
-  static const MethodChannel _channel =
-  const MethodChannel('countly_flutter');
+  static const MethodChannel _channel = MethodChannel('countly_flutter');
 
   // static variable
   static Function listenerCallback;
@@ -34,7 +33,7 @@ class Countly {
     "TemporaryDeviceID": "TemporaryDeviceID"
   };
 
-  static log(String message, {LogLevel logLevel = LogLevel.DEBUG}) async {
+  static void  log(String message, {LogLevel logLevel = LogLevel.DEBUG}) async {
     String logLevelStr = describeEnum(logLevel);
     if(_isDebug){
       print('[$tag] $logLevelStr: $message');
@@ -93,18 +92,16 @@ class Countly {
   /// Call this function when app is loaded, so that the app launch duration can be recorded.
   /// Should be called after init.
   static Future<String> appLoadingFinished() async {
-    isInitialized().then((bool isInitialized) async {
-      if(!isInitialized) {
-        log('appLoadingFinished, init must be called before appLoadingFinished',logLevel: LogLevel.WARNING);
-        return "init must be called before appLoadingFinished";
-      }
-      List <String> args = [];
-      final String result = await _channel.invokeMethod('appLoadingFinished', <String, dynamic>{
-        'data': json.encode(args)
-      });
-      log(result);
-      return result;
+    if(!_isInitialized) {
+      log('appLoadingFinished, init must be called before appLoadingFinished',logLevel: LogLevel.WARNING);
+      return "init must be called before appLoadingFinished";
+    }
+    List <String> args = [];
+    final String result = await _channel.invokeMethod('appLoadingFinished', <String, dynamic>{
+      'data': json.encode(args)
     });
+    log(result);
+    return result;
   }
 
   static bool isNullOrEmpty(String s) => s == null || s.isEmpty;
@@ -419,18 +416,16 @@ class Countly {
   /// Get currently used device Id.
   /// Should be call after Countly init
   static Future<String> getCurrentDeviceId() async {
-    isInitialized().then((bool isInitialized) async {
-      if(!isInitialized) {
-        log('getCurrentDeviceId, init must be called before getCurrentDeviceId',logLevel: LogLevel.WARNING);
-        return "init must be called before getCurrentDeviceId";
-      }
-      List <String> args = [];
-      final String result = await _channel.invokeMethod('getCurrentDeviceId', <String, dynamic>{
-        'data': json.encode(args)
-      });
-      log(result);
-      return result;
+    if(!_isInitialized) {
+      log('getCurrentDeviceId, init must be called before getCurrentDeviceId',logLevel: LogLevel.WARNING);
+      return "init must be called before getCurrentDeviceId";
+    }
+    List <String> args = [];
+    final String result = await _channel.invokeMethod('getCurrentDeviceId', <String, dynamic>{
+      'data': json.encode(args)
     });
+    log(result);
+    return result;
   }
 
   static Future<String> changeDeviceId(String newDeviceID, bool onServer) async {
@@ -1040,7 +1035,7 @@ class Countly {
           'getFeedbackWidgetData', <String, dynamic>{
         'data': json.encode(args)
       });
-      widgetData = new Map<String, dynamic>.from(retrievedWidgetData);
+      widgetData = Map<String, dynamic>.from(retrievedWidgetData);
     }
     on PlatformException catch (e) {
       error = e.message;
@@ -1066,12 +1061,12 @@ class Countly {
     if(widgetData == null) {
       String error = "reportFeedbackWidgetManually,  widgetData is 'null'";
       log(error);
-      widgetData = new Map<String, Object>();
+      widgetData = Map<String, Object>();
     }
     if(widgetResult == null) {
       String error = "reportFeedbackWidgetManually,  widgetResult is 'null'";
       log(error);
-      widgetResult = new Map<String, Object>();
+      widgetResult = Map<String, Object>();
     }
     List <String> widgetInfoList = [];
     widgetInfoList.add(widgetInfo.widgetId);
@@ -1307,9 +1302,8 @@ class Countly {
   /// [Map<String, Object> segmentation] - allows to add optional segmentation
   static Future<String> logExceptionEx(Exception exception, bool nonfatal, {StackTrace stacktrace, Map<String, Object> segmentation}) async {
     stacktrace ??= StackTrace.current ?? StackTrace.fromString('');
-    logException("${exception.toString()}\n\n$stacktrace", nonfatal, segmentation).then((String result) {
-      return result;
-    });
+    final result = logException("${exception.toString()}\n\n$stacktrace", nonfatal, segmentation);
+    return result;
   }
 
   /// Report a handled or unhandled exception/error to Countly.
@@ -1323,9 +1317,8 @@ class Countly {
   /// [Map<String, Object> segmentation] - allows to add optional segmentation
   static Future<String> logExceptionManual(String message, bool nonfatal, {StackTrace stacktrace, Map<String, Object> segmentation}) async {
     stacktrace ??= StackTrace.current ?? StackTrace.fromString('');
-    logException("$message\n\n$stacktrace", nonfatal, segmentation).then((String result) {
-      return result;
-    });
+    final result = logException("$message\n\n$stacktrace", nonfatal, segmentation);
+    return result;
   }
 
   /// Internal callback to record "FlutterError.onError" errors
