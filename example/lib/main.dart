@@ -504,7 +504,7 @@ class _MyAppState extends State<MyApp> {
     if(error == null) {
       Map<String, dynamic> retrievedWidgetData = result[0];
       Map<String, Object> segments = {};
-      if(retrievedWidgetData != null && retrievedWidgetData.length > 0) {
+      if(retrievedWidgetData != null && retrievedWidgetData.isNotEmpty) {
         List<dynamic> questions = retrievedWidgetData["questions"];
 
         if (questions != null) {

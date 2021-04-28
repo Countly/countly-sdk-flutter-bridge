@@ -747,7 +747,7 @@ class Countly {
       log(error);
       return "Error : $error";
     }
-    if(consents.length == 0){
+    if(consents.isEmpty){
       String error = "giveConsentInit, consents List is empty";
       log(error, logLevel: LogLevel.WARNING);
     }
@@ -765,7 +765,7 @@ class Countly {
       log(error);
       return "Error : $error";
     }
-    if(consents.length == 0){
+    if(consents.isEmpty){
       String error = "giveConsent, consents List is empty";
       log(error, logLevel: LogLevel.WARNING);
     }
@@ -783,7 +783,7 @@ class Countly {
       log(error);
       return "Error : $error";
     }
-    if(consents.length == 0){
+    if(consents.isEmpty){
       String error = "removeConsent, consents List is empty";
       log(error, logLevel: LogLevel.WARNING);
     }
@@ -848,7 +848,7 @@ class Countly {
       log(error);
       return "Error : $error";
     }
-    if(keys.length == 0){
+    if(keys.isEmpty){
       String error = "updateRemoteConfigForKeysOnly, keys List is empty";
       log(error, logLevel: LogLevel.WARNING);
     }
@@ -866,7 +866,7 @@ class Countly {
       log(error);
       return "Error : $error";
     }
-    if(keys.length == 0){
+    if(keys.isEmpty){
       String error = "updateRemoteConfigExceptKeys, keys List is empty";
       log(error, logLevel: LogLevel.WARNING);
     }

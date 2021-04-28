@@ -6,10 +6,10 @@ analyzer:
     prefer_collection_literals: ignore
     unawaited_futures: ignore
     prefer_single_quotes: ignore
-    prefer_is_empty: ignore
     must_be_immutable: ignore
 
 
+#    prefer_is_empty: ignore
 #    prefer_conditional_assignment: ignore
 #    always_declare_return_types: ignore
 #    unnecessary_new: ignore
