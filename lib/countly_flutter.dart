@@ -21,16 +21,16 @@ class Countly {
   /// its value should be updated from [init(...)].
   static bool _isInitialized = false;
 
-  static final String tag = "CountlyFlutter";
+  static final String tag = 'CountlyFlutter';
 
   /// Flag to determine if crash logging functionality should be enabled
   /// If false the intercepted crashes will be ignored
   /// Set true when user enabled crash logging
   static bool _enableCrashReportingFlag = false;
 
-  static Map<String, Object> messagingMode = {"TEST": "1", "PRODUCTION": "0", "ADHOC": "2"};
+  static Map<String, Object> messagingMode = {'TEST': '1', 'PRODUCTION': '0', 'ADHOC': '2'};
   static Map<String, Object> deviceIDType = {
-    "TemporaryDeviceID": "TemporaryDeviceID"
+    'TemporaryDeviceID': 'TemporaryDeviceID'
   };
 
   static void  log(String message, {LogLevel logLevel = LogLevel.DEBUG}) async {
@@ -42,7 +42,7 @@ class Countly {
   static Future<String> init(String serverUrl, String appKey, [String deviceId]) async {
     _isInitialized = true;
     if (Platform.isAndroid) {
-      messagingMode = {"TEST": "2", "PRODUCTION": "0"};
+      messagingMode = {'TEST': '2', 'PRODUCTION': '0'};
     }
     List <String> args = [];
     args.add(serverUrl);
@@ -64,7 +64,7 @@ class Countly {
       'data': json.encode(args)
     });
     log(result);
-    if(result == "true"){
+    if(result == 'true'){
       return true;
     }else{
       return false;
@@ -94,7 +94,7 @@ class Countly {
   static Future<String> appLoadingFinished() async {
     if(!_isInitialized) {
       log('appLoadingFinished, init must be called before appLoadingFinished',logLevel: LogLevel.WARNING);
-      return "init must be called before appLoadingFinished";
+      return 'init must be called before appLoadingFinished';
     }
     List <String> args = [];
     final String result = await _channel.invokeMethod('appLoadingFinished', <String, dynamic>{
@@ -110,30 +110,30 @@ class Countly {
     List <String> args = [];
     var segmentation = {};
 
-    if(isNullOrEmpty(options["key"])){
-      String error = "recordEvent, Valid Countly event key is required";
+    if(isNullOrEmpty(options['key'])){
+      String error = 'recordEvent, Valid Countly event key is required';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
-    args.add(options["key"].toString());
+    args.add(options['key'].toString());
 
-    if(options["count"] == null){
-      options["count"] = 1;
+    if(options['count'] == null){
+      options['count'] = 1;
     }
-    args.add(options["count"].toString());
+    args.add(options['count'].toString());
 
-    if(options["sum"] == null){
-      options["sum"] = "0";
+    if(options['sum'] == null){
+      options['sum'] = '0';
     }
-    args.add(options["sum"].toString());
+    args.add(options['sum'].toString());
 
-    if(options["duration"] == null){
-      options["duration"] = "0";
+    if(options['duration'] == null){
+      options['duration'] = '0';
     }
-    args.add(options["duration"].toString());
+    args.add(options['duration'].toString());
 
-    if(options["segmentation"] != null){
-      segmentation = options["segmentation"];
+    if(options['segmentation'] != null){
+      segmentation = options['segmentation'];
       segmentation.forEach((k, v){
         args.add(k.toString());
         args.add(v.toString());
@@ -155,9 +155,9 @@ class Countly {
   /// Supported data type for segmentation values are String, int, double and bool
   static Future<String> recordView(String view, [Map<String, Object> segmentation]) async {
     if(isNullOrEmpty(view)){
-      String error = "recordView, Trying to record view with null or empty view name, ignoring request";
+      String error = 'recordView, Trying to record view with null or empty view name, ignoring request';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
     args.add(view);
@@ -168,7 +168,7 @@ class Countly {
           args.add(v.toString());
         }
         else {
-          log("recordView, unsupported segmentation data type [${v.runtimeType}], View [$view]", logLevel: LogLevel.WARNING);
+          log('recordView, unsupported segmentation data type [${v.runtimeType}], View [$view]', logLevel: LogLevel.WARNING);
         }
       });
     }
@@ -182,43 +182,43 @@ class Countly {
 
   static Future<String> setUserData(Map<String, Object> options) async {
     List <String> args = [];
-    if(options["name"] == null){
-      options["name"] = "";
+    if(options['name'] == null){
+      options['name'] = '';
     }
-    if(options["username"] == null){
-      options["username"] = "";
+    if(options['username'] == null){
+      options['username'] = '';
     }
-    if(options["email"] == null){
-      options["email"] = "";
+    if(options['email'] == null){
+      options['email'] = '';
     }
-    if(options["organization"] == null){
-      options["organization"] = "";
+    if(options['organization'] == null){
+      options['organization'] = '';
     }
-    if(options["phone"] == null){
-      options["phone"] = "";
+    if(options['phone'] == null){
+      options['phone'] = '';
     }
-    if(options["picture"] == null){
-      options["picture"] = "";
+    if(options['picture'] == null){
+      options['picture'] = '';
     }
-    if(options["picturePath"] == null){
-      options["picturePath"] = "";
+    if(options['picturePath'] == null){
+      options['picturePath'] = '';
     }
-    if(options["gender"] == null){
-      options["gender"] = "";
+    if(options['gender'] == null){
+      options['gender'] = '';
     }
-    if(options["byear"] == null){
-      options["byear"] = "0";
+    if(options['byear'] == null){
+      options['byear'] = '0';
     }
 
-    args.add(options["name"]);
-    args.add(options["username"]);
-    args.add(options["email"]);
-    args.add(options["organization"]);
-    args.add(options["phone"]);
-    args.add(options["picture"]);
-    args.add(options["picturePath"]);
-    args.add(options["gender"]);
-    args.add(options["byear"]);
+    args.add(options['name']);
+    args.add(options['username']);
+    args.add(options['email']);
+    args.add(options['organization']);
+    args.add(options['phone']);
+    args.add(options['picture']);
+    args.add(options['picturePath']);
+    args.add(options['gender']);
+    args.add(options['byear']);
 
 
     log(args.toString());
@@ -246,7 +246,7 @@ class Countly {
   /// Should be called before Countly init
   static Future<String> disablePushNotifications() async {
     if(!Platform.isIOS) {
-      return "disablePushNotifications : To be implemented";
+      return 'disablePushNotifications : To be implemented';
     }
     List <String> args = [];
     final String result = await _channel.invokeMethod('disablePushNotifications', <String, dynamic>{
@@ -260,9 +260,9 @@ class Countly {
   /// Should be call before Countly init
   static Future<String> pushTokenType(String tokenType) async {
     if(isNullOrEmpty(tokenType)){
-      String error = "pushTokenType, tokenType cannot be null or empty";
+      String error = 'pushTokenType, tokenType cannot be null or empty';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
     args.add(tokenType);
@@ -279,7 +279,7 @@ class Countly {
   static Future<String> onNotification(Function callback) async {
     List <String> args = [];
     listenerCallback = callback;
-    log("registerForNotification");
+    log('registerForNotification');
     _channel.invokeMethod('registerForNotification', <String, dynamic>{
       'data': json.encode(args)
     }).then((value){
@@ -288,7 +288,7 @@ class Countly {
     }).catchError((error){
       listenerCallback(error.toString());
     });
-    return "";
+    return '';
   }
 
   static Future<String> start() async {
@@ -338,7 +338,7 @@ class Countly {
   static Future<String> updateSessionInterval(int sessionInterval) async {
     if(_isInitialized) {
       log('updateSessionInterval should be called before init',logLevel: LogLevel.WARNING);
-      return "updateSessionInterval should be called before init";
+      return 'updateSessionInterval should be called before init';
     }
     List <String> args = [];
     args.add(sessionInterval.toString());
@@ -377,17 +377,17 @@ class Countly {
   static Future<String> setOptionalParametersForInitialization(Map<String, Object> options) async {
     List <String> args = [];
 
-    String city = options["city"];
-    String country = options["country"];
-    String latitude = options["latitude"];
-    String longitude = options["longitude"];
-    String ipAddress = options["ipAddress"];
+    String city = options['city'];
+    String country = options['country'];
+    String latitude = options['latitude'];
+    String longitude = options['longitude'];
+    String ipAddress = options['ipAddress'];
 
-    city = city ??= "null";
-    country = country ??= "null";
-    latitude = latitude ??= "null";
-    longitude = longitude ??= "null";
-    ipAddress = ipAddress ??= "null";
+    city = city ??= 'null';
+    country = country ??= 'null';
+    latitude = latitude ??= 'null';
+    longitude = longitude ??= 'null';
+    ipAddress = ipAddress ??= 'null';
 
     args.add(city);
     args.add(country);
@@ -408,7 +408,7 @@ class Countly {
   static Future<String> getCurrentDeviceId() async {
     if(!_isInitialized) {
       log('getCurrentDeviceId, init must be called before getCurrentDeviceId',logLevel: LogLevel.WARNING);
-      return "init must be called before getCurrentDeviceId";
+      return 'init must be called before getCurrentDeviceId';
     }
     List <String> args = [];
     final String result = await _channel.invokeMethod('getCurrentDeviceId', <String, dynamic>{
@@ -420,16 +420,16 @@ class Countly {
 
   static Future<String> changeDeviceId(String newDeviceID, bool onServer) async {
     if(isNullOrEmpty(newDeviceID)){
-      String error = "changeDeviceId, deviceId cannot be null or empty";
+      String error = 'changeDeviceId, deviceId cannot be null or empty';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
     String onServerString;
     if(onServer == false){
-      onServerString = "0";
+      onServerString = '0';
     }else{
-      onServerString = "1";
+      onServerString = '1';
     }
     newDeviceID = newDeviceID.toString();
     args.add(newDeviceID);
@@ -446,7 +446,7 @@ class Countly {
     if(isNullOrEmpty(logs)){
       String error = "addCrashLog, Can't add a null or empty crash logs";
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
     args.add(logs);
@@ -475,9 +475,9 @@ class Countly {
   /// Should be call before Countly init
   static Future<String> enableParameterTamperingProtection(String salt) async {
     if(isNullOrEmpty(salt)){
-      String error = "enableParameterTamperingProtection, salt cannot be null or empty";
+      String error = 'enableParameterTamperingProtection, salt cannot be null or empty';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
     args.add(salt);
@@ -489,7 +489,7 @@ class Countly {
     return result;
   }
 
-  /// Set to "true" if you want HTTP POST to be used for all requests
+  /// Set to 'true' if you want HTTP POST to be used for all requests
   /// Should be call before Countly init
   static Future<String> setHttpPostForced(bool isEnabled) async {
     List <String> args = [];
@@ -518,14 +518,14 @@ class Countly {
   }
   static Future<String> setLocation(String latitude, String longitude) async {
     if(isNullOrEmpty(latitude)){
-      String error = "setLocation, latitude cannot be null or empty";
+      String error = 'setLocation, latitude cannot be null or empty';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     if(isNullOrEmpty(longitude)){
-      String error = "setLocation, longitude cannot be null or empty";
+      String error = 'setLocation, longitude cannot be null or empty';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
 
@@ -540,14 +540,14 @@ class Countly {
   }
   static Future<String> setProperty(String keyName , String keyValue) async {
     if(isNullOrEmpty(keyName)){
-      String error = "setProperty, key cannot be null or empty";
+      String error = 'setProperty, key cannot be null or empty';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     if(keyValue == null){
-      String error = "setProperty, value cannot be null";
+      String error = 'setProperty, value cannot be null';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
     args.add(keyName);
@@ -561,9 +561,9 @@ class Countly {
   }
   static Future<String> increment(String keyName) async {
     if(isNullOrEmpty(keyName)){
-      String error = "increment, key cannot be null or empty";
+      String error = 'increment, key cannot be null or empty';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
     args.add(keyName);
@@ -576,9 +576,9 @@ class Countly {
   }
   static Future<String> incrementBy(String keyName, int keyIncrement) async {
     if(isNullOrEmpty(keyName)){
-      String error = "incrementBy, key cannot be null or empty";
+      String error = 'incrementBy, key cannot be null or empty';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
     args.add(keyName);
@@ -592,9 +592,9 @@ class Countly {
   }
   static Future<String> multiply(String keyName, int multiplyValue) async {
     if(isNullOrEmpty(keyName)){
-      String error = "multiply, key cannot be null or empty";
+      String error = 'multiply, key cannot be null or empty';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
     args.add(keyName);
@@ -609,9 +609,9 @@ class Countly {
 
   static Future<String> saveMax(String keyName, int saveMax) async {
     if(isNullOrEmpty(keyName)){
-      String error = "saveMax, key cannot be null or empty";
+      String error = 'saveMax, key cannot be null or empty';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
     args.add(keyName);
@@ -625,9 +625,9 @@ class Countly {
   }
   static Future<String> saveMin(String keyName, int saveMin) async {
     if(isNullOrEmpty(keyName)){
-      String error = "saveMin, key cannot be null or empty";
+      String error = 'saveMin, key cannot be null or empty';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
     args.add(keyName);
@@ -641,14 +641,14 @@ class Countly {
   }
   static Future<String> setOnce(String keyName, String setOnce) async {
     if(isNullOrEmpty(keyName)){
-      String error = "setOnce, key cannot be null or empty";
+      String error = 'setOnce, key cannot be null or empty';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     if(setOnce == null){
-      String error = "setOnce, value cannot be null";
+      String error = 'setOnce, value cannot be null';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
     args.add(keyName);
@@ -663,14 +663,14 @@ class Countly {
 
   static Future<String> pushUniqueValue(String type, String pushUniqueValue) async {
     if(isNullOrEmpty(type)){
-      String error = "pushUniqueValue, key cannot be null or empty";
+      String error = 'pushUniqueValue, key cannot be null or empty';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     if(pushUniqueValue == null){
-      String error = "pushUniqueValue, value cannot be null";
+      String error = 'pushUniqueValue, value cannot be null';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
     args.add(type);
@@ -685,14 +685,14 @@ class Countly {
 
   static Future<String> pushValue(String type, String pushValue) async {
     if(isNullOrEmpty(type)){
-      String error = "pushValue, key cannot be null or empty";
+      String error = 'pushValue, key cannot be null or empty';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     if(pushValue == null){
-      String error = "pushValue, value cannot be null";
+      String error = 'pushValue, value cannot be null';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
     args.add(type);
@@ -707,14 +707,14 @@ class Countly {
 
   static Future<String> pullValue(String type, String pullValue) async {
     if(isNullOrEmpty(type)){
-      String error = "pullValue, key cannot be null or empty";
+      String error = 'pullValue, key cannot be null or empty';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     if(pullValue == null){
-      String error = "pullValue, value cannot be null";
+      String error = 'pullValue, value cannot be null';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
     args.add(type);
@@ -743,12 +743,12 @@ class Countly {
   /// Should be call before Countly init
   static Future<String> giveConsentInit(List <String> consents) async {
     if(consents == null){
-      String error = "giveConsentInit, consents List cannot be null";
+      String error = 'giveConsentInit, consents List cannot be null';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     if(consents.isEmpty){
-      String error = "giveConsentInit, consents List is empty";
+      String error = 'giveConsentInit, consents List is empty';
       log(error, logLevel: LogLevel.WARNING);
     }
     List <String> args = consents;
@@ -761,12 +761,12 @@ class Countly {
   }
   static Future<String> giveConsent(List <String> consents) async {
     if(consents == null){
-      String error = "giveConsent, consents List cannot be null";
+      String error = 'giveConsent, consents List cannot be null';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     if(consents.isEmpty){
-      String error = "giveConsent, consents List is empty";
+      String error = 'giveConsent, consents List is empty';
       log(error, logLevel: LogLevel.WARNING);
     }
     List <String> args = consents;
@@ -779,12 +779,12 @@ class Countly {
   }
   static Future<String> removeConsent(List <String> consents) async {
     if(consents == null){
-      String error = "removeConsent, consents List cannot be null";
+      String error = 'removeConsent, consents List cannot be null';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     if(consents.isEmpty){
-      String error = "removeConsent, consents List is empty";
+      String error = 'removeConsent, consents List is empty';
       log(error, logLevel: LogLevel.WARNING);
     }
     List <String> args = consents;
@@ -844,12 +844,12 @@ class Countly {
   }
   static Future<String> updateRemoteConfigForKeysOnly(List<String> keys, Function callback) async {
     if(keys == null){
-      String error = "updateRemoteConfigForKeysOnly, keys List cannot be null";
+      String error = 'updateRemoteConfigForKeysOnly, keys List cannot be null';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     if(keys.isEmpty){
-      String error = "updateRemoteConfigForKeysOnly, keys List is empty";
+      String error = 'updateRemoteConfigForKeysOnly, keys List is empty';
       log(error, logLevel: LogLevel.WARNING);
     }
     log(keys.toString());
@@ -862,12 +862,12 @@ class Countly {
   }
   static Future<String> updateRemoteConfigExceptKeys(List<String> keys, Function callback) async {
     if(keys == null){
-      String error = "updateRemoteConfigExceptKeys, keys List cannot be null";
+      String error = 'updateRemoteConfigExceptKeys, keys List cannot be null';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     if(keys.isEmpty){
-      String error = "updateRemoteConfigExceptKeys, keys List is empty";
+      String error = 'updateRemoteConfigExceptKeys, keys List is empty';
       log(error, logLevel: LogLevel.WARNING);
     }
     log(keys.toString());
@@ -890,9 +890,9 @@ class Countly {
   }
   static Future<String> getRemoteConfigValueForKey(String key, Function callback) async {
     if(isNullOrEmpty(key)){
-      String error = "getRemoteConfigValueForKey, key cannot be null or empty";
+      String error = 'getRemoteConfigValueForKey, key cannot be null or empty';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
     args.add(key);
@@ -935,11 +935,11 @@ class Countly {
 
   static Future<String> askForFeedback(String widgetId, String closeButtonText) async {
     if(isNullOrEmpty(widgetId)){
-      String error = "askForFeedback, widgetId cannot be null or empty";
+      String error = 'askForFeedback, widgetId cannot be null or empty';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
-    closeButtonText = closeButtonText ??= "";
+    closeButtonText = closeButtonText ??= '';
     List <String> args = [];
     args.add(widgetId);
     args.add(closeButtonText);
@@ -962,7 +962,7 @@ class Countly {
     }
     on PlatformException catch (e) {
       error = e.message;
-      log("getAvailableFeedbackWidgets Error : $error");
+      log('getAvailableFeedbackWidgets Error : $error');
     }
     FeedbackWidgetsResponse feedbackWidgetsResponse = FeedbackWidgetsResponse(presentableFeedback, error);
 
@@ -970,13 +970,13 @@ class Countly {
   }
 
   /// Present a chosen feedback widget
-  /// [CountlyPresentableFeedback widgetInfo] - Get available list of feedback widgets by calling "getAvailableFeedbackWidgets()" and pass the widget object as a parameter.
+  /// [CountlyPresentableFeedback widgetInfo] - Get available list of feedback widgets by calling 'getAvailableFeedbackWidgets()' and pass the widget object as a parameter.
   /// [String closeButtonText] - Text for cancel/close button.
   static Future<String> presentFeedbackWidget(CountlyPresentableFeedback widgetInfo, String closeButtonText) async {
     if(widgetInfo == null){
       String error = "presentFeedbackWidget, Can't show survey widgetInfo is null";
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
 
     List <String> args = [];
@@ -1004,7 +1004,7 @@ class Countly {
   static Future<List> getFeedbackWidgetData(CountlyPresentableFeedback widgetInfo) async {
     Map<String, dynamic> widgetData;
     if(!Platform.isAndroid) {
-      String error =  "getFeedbackWidgetData : To be implemented";
+      String error =  'getFeedbackWidgetData : To be implemented';
       return [widgetData, error];
     }
     if(widgetInfo == null){
@@ -1027,7 +1027,7 @@ class Countly {
     }
     on PlatformException catch (e) {
       error = e.message;
-      log("getAvailableFeedbackWidgets Error : $error");
+      log('getAvailableFeedbackWidgets Error : $error');
     }
     return [widgetData , error];
   }
@@ -1039,7 +1039,7 @@ class Countly {
   /// [Map<String, Object> widgetResult] - segmentation of the filled out feedback. If this segmentation is null, it will be assumed that the survey was closed before completion and mark it appropriately
   static Future<String> reportFeedbackWidgetManually(CountlyPresentableFeedback widgetInfo, Map<String, dynamic> widgetData, Map<String, Object> widgetResult) async {
     if(!Platform.isAndroid) {
-      return "reportFeedbackWidgetManually : To be implemented";
+      return 'reportFeedbackWidgetManually : To be implemented';
     }
     if(widgetInfo == null){
       String error = "reportFeedbackWidgetManually,  Can't report feedback widget data manually with 'null' widget info";
@@ -1047,12 +1047,12 @@ class Countly {
       return error;
     }
     if(widgetData == null) {
-      String error = "reportFeedbackWidgetManually,  widgetData is 'null'";
+      String error = "reportFeedbackWidgetManually,  widgetData is 'null";
       log(error);
       widgetData = Map<String, Object>();
     }
     if(widgetResult == null) {
-      String error = "reportFeedbackWidgetManually,  widgetResult is 'null'";
+      String error = "reportFeedbackWidgetManually,  widgetResult is 'null";
       log(error);
       widgetResult = Map<String, Object>();
     }
@@ -1084,7 +1084,7 @@ class Countly {
     if(isNullOrEmpty(key)){
       String error = "startEvent, Can't start event with a null or empty key";
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
     args.add(key);
@@ -1100,25 +1100,25 @@ class Countly {
     List <String> args = [];
     var segmentation = {};
 
-    if(isNullOrEmpty(options["key"])){
+    if(isNullOrEmpty(options['key'])){
       String error = "endEvent, Can't end event with a null or empty key";
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
-    args.add(options["key"].toString());
+    args.add(options['key'].toString());
 
-    if(options["count"] == null){
-      options["count"] = 1;
+    if(options['count'] == null){
+      options['count'] = 1;
     }
-    args.add(options["count"].toString());
+    args.add(options['count'].toString());
 
-    if(options["sum"] == null){
-      options["sum"] = "0";
+    if(options['sum'] == null){
+      options['sum'] = '0';
     }
-    args.add(options["sum"].toString());
+    args.add(options['sum'].toString());
 
-    if(options["segmentation"] != null){
-      segmentation = options["segmentation"];
+    if(options['segmentation'] != null){
+      segmentation = options['segmentation'];
       segmentation.forEach((k, v){
         args.add(k.toString());
         args.add(v.toString());
@@ -1171,9 +1171,9 @@ class Countly {
   static Future<String> logException(String exception, bool nonfatal, [Map<String, Object> segmentation]) async {
     List <String> args = [];
     if(exception == null) {
-      String error = "logException, provided exception was null, returning";
+      String error = 'logException, provided exception was null, returning';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     args.add(exception);
     args.add(nonfatal.toString());
@@ -1290,7 +1290,7 @@ class Countly {
   /// [Map<String, Object> segmentation] - allows to add optional segmentation
   static Future<String> logExceptionEx(Exception exception, bool nonfatal, {StackTrace stacktrace, Map<String, Object> segmentation}) async {
     stacktrace ??= StackTrace.current ?? StackTrace.fromString('');
-    final result = logException("${exception.toString()}\n\n$stacktrace", nonfatal, segmentation);
+    final result = logException('${exception.toString()}\n\n$stacktrace', nonfatal, segmentation);
     return result;
   }
 
@@ -1305,11 +1305,11 @@ class Countly {
   /// [Map<String, Object> segmentation] - allows to add optional segmentation
   static Future<String> logExceptionManual(String message, bool nonfatal, {StackTrace stacktrace, Map<String, Object> segmentation}) async {
     stacktrace ??= StackTrace.current ?? StackTrace.fromString('');
-    final result = logException("$message\n\n$stacktrace", nonfatal, segmentation);
+    final result = logException('$message\n\n$stacktrace', nonfatal, segmentation);
     return result;
   }
 
-  /// Internal callback to record "FlutterError.onError" errors
+  /// Internal callback to record 'FlutterError.onError' errors
   ///
   /// Must call [enableCrashReporting()] to enable it
   static Future<void> _recordFlutterError(FlutterErrorDetails details) async {
@@ -1366,7 +1366,7 @@ class Countly {
   }
 
   /// Enable campaign attribution reporting to Countly.
-  /// For iOS use "recordAttributionID" instead of "enableAttribution"
+  /// For iOS use 'recordAttributionID' instead of 'enableAttribution'
   /// Should be call before Countly init
   static Future<String> enableAttribution() async {
     List <String> args = [];
@@ -1382,12 +1382,12 @@ class Countly {
   /// For Android just call the enableAttribution to enable campaign attribution.
   static Future<String> recordAttributionID(String attributionID) async {
     if(!Platform.isIOS) {
-      return "recordAttributionID : To be implemented";
+      return 'recordAttributionID : To be implemented';
     }
     if(isNullOrEmpty(attributionID)){
-      String error = "recordAttributionID, attributionID cannot be null or empty";
+      String error = 'recordAttributionID, attributionID cannot be null or empty';
       log(error);
-      return "Error : $error";
+      return 'Error : $error';
     }
     List <String> args = [];
     args.add(attributionID);

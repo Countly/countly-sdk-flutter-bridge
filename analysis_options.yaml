@@ -5,10 +5,10 @@ analyzer:
     omit_local_variable_types: ignore
     prefer_collection_literals: ignore
     unawaited_futures: ignore
-    prefer_single_quotes: ignore
     must_be_immutable: ignore
 
 
+#    prefer_single_quotes: ignore
 #    prefer_is_empty: ignore
 #    prefer_conditional_assignment: ignore
 #    always_declare_return_types: ignore
