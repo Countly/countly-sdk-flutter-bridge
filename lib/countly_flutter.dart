@@ -383,21 +383,11 @@ class Countly {
     String longitude = options["longitude"];
     String ipAddress = options["ipAddress"];
 
-    if(city == null){
-      city = "null";
-    }
-    if(country == null){
-      country = "null";
-    }
-    if(latitude == null){
-      latitude = "null";
-    }
-    if(longitude == null){
-      longitude = "null";
-    }
-    if(ipAddress == null){
-      ipAddress = "null";
-    }
+    city = city ??= "null";
+    country = country ??= "null";
+    latitude = latitude ??= "null";
+    longitude = longitude ??= "null";
+    ipAddress = ipAddress ??= "null";
 
     args.add(city);
     args.add(country);
@@ -949,9 +939,7 @@ class Countly {
       log(error);
       return "Error : $error";
     }
-    if(closeButtonText == null){
-      closeButtonText = "";
-    }
+    closeButtonText = closeButtonText ??= "";
     List <String> args = [];
     args.add(widgetId);
     args.add(closeButtonText);

@@ -829,9 +829,7 @@ class MyButton extends StatelessWidget{
 
     Map<String, Object> tColor;
     tColor = getColor(color);
-    if(tColor == null){
-      tColor = theColor["default"];
-    }
+    tColor = tColor ??= theColor["default"];
     _button = tColor["button"];
     _textC = tColor["text"];
 
