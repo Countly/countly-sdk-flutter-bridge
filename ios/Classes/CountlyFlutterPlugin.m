@@ -15,7 +15,7 @@
 + (CountlyFeedbackWidget *)createWithDictionary:(NSDictionary *)dictionary;
 @end
 
-NSString* const kCountlyFlutterSDKVersion = @"20.11.2";
+NSString* const kCountlyFlutterSDKVersion = @"20.11.3";
 NSString* const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 
 FlutterResult notificationListener = nil;

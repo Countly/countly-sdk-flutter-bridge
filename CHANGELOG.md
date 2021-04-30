@@ -1,3 +1,9 @@
+## 20.11.3
+* Lint suggestion are added in flutter for better code quality.
+* Android SDK prints logs related network traffic usages.
+* Updated underlying android SDK to 20.11.9
+* Underlying iOS SDK version is 20.11.1
+
 ## 20.11.2
 * Added COUNTLY_EXCLUDE_PUSHNOTIFICATIONS flag to disable push notifications altogether in order to avoid App Store Connect warnings.
 * Add "updateSessionInterval" method to sets the interval for the automatic session update calls
