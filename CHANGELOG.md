@@ -1,7 +1,6 @@
 ## 20.11.3
 * Lint suggestion are added in flutter for better code quality.
-* Android SDK prints logs related network traffic usages.
-* Updated underlying android SDK to 20.11.9
+* Updated underlying android SDK to 20.11.8
 * Underlying iOS SDK version is 20.11.1
 
 ## 20.11.2
