@@ -1,0 +1,16 @@
+include: package:pedantic/analysis_options.1.11.0.yaml
+
+analyzer:
+  errors:
+    omit_local_variable_types: ignore
+    prefer_collection_literals: ignore
+    must_be_immutable: ignore
+
+#    unawaited_futures: ignore
+#    prefer_single_quotes: ignore
+#    prefer_is_empty: ignore
+#    prefer_conditional_assignment: ignore
+#    always_declare_return_types: ignore
+#    unnecessary_new: ignore
+#    avoid_init_to_null: ignore
+#    unnecessary_const: ignore
