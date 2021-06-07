@@ -1,4 +1,3 @@
-// @dart=2.9
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -50,7 +49,7 @@ class _MyAppState extends State<MyApp> {
         }); // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
         var segment = {'Key': 'Value'};
         Countly.setCustomCrashSegment(segment); // Set optional key/value segment added for crash reports.
-        Countly.pushTokenType(Countly.messagingMode['TEST']); // Set messaging mode for push notifications
+        Countly.pushTokenType(Countly.messagingMode['TEST']!); // Set messaging mode for push notifications
 
         Countly.setStarRatingDialogTexts('Title', 'Message', 'Dismiss');
 
@@ -80,7 +79,7 @@ class _MyAppState extends State<MyApp> {
   static String APP_KEY = 'YOUR_API_KEY';
 
   void enableTemporaryIdMode(){
-    Countly.changeDeviceId(Countly.deviceIDType['TemporaryDeviceID'], false);
+    Countly.changeDeviceId(Countly.deviceIDType['TemporaryDeviceID']!, false);
   }
   void manualSessionHandling(){
     Countly.manualSessionHandling();
@@ -130,24 +129,19 @@ class _MyAppState extends State<MyApp> {
   }
   void endEventBasic(){
     Countly.startEvent('Timed Event');
-    Timer timer;
-    timer = Timer(Duration(seconds: 5), () {
+    Timer timer = Timer(Duration(seconds: 5), () {
       Countly.endEvent({ 'key': 'Timed Event' });
-      timer.cancel();
     });
   }
   void endEventWithSum(){
     Countly.startEvent('Timed Event With Sum');
-    Timer timer;
-    timer = Timer(Duration(seconds: 5), () {
+    Timer timer = Timer(Duration(seconds: 5), () {
       Countly.endEvent({ 'key': 'Timed Event With Sum', 'sum': '0.99' });
-      timer.cancel();
     });
   }
   void endEventWithSegment(){
     Countly.startEvent('Timed Event With Segment');
-    Timer timer;
-    timer = Timer(Duration(seconds: 5), () {
+    Timer timer = Timer(Duration(seconds: 5), () {
       var event = {
         'key': 'Timed Event With Segment',
         'count': 1,
@@ -157,13 +151,11 @@ class _MyAppState extends State<MyApp> {
         'Age': '28'
       };
       Countly.endEvent(event);
-      timer.cancel();
     });
   }
   void endEventWithSumSegment(){
     Countly.startEvent('Timed Event With Segment, Sum and Count');
-    Timer timer;
-    timer = Timer(Duration(seconds: 5), () {
+    Timer timer = Timer(Duration(seconds: 5), () {
       var event = {
         'key': 'Timed Event With Segment, Sum and Count',
         'count': 1,
@@ -174,7 +166,6 @@ class _MyAppState extends State<MyApp> {
         'Age': '28'
       };
       Countly.endEvent(event);
-      timer.cancel();
     });
   }
   void recordViewHome(){
@@ -390,10 +381,8 @@ class _MyAppState extends State<MyApp> {
   void addCrashLog(){
     Countly.enableCrashReporting();
     Countly.addCrashLog('User Performed Step A');
-    Timer timer;
-    timer = Timer(Duration(seconds: 5), () {
+    Timer timer = Timer(Duration(seconds: 5), () {
       Countly.logException('one.js \n two.js \n three.js', true, {'_facebook_version': '0.0.1'});
-      timer.cancel();
     });
   }
   void causeException(){
@@ -432,7 +421,7 @@ class _MyAppState extends State<MyApp> {
     } catch (e, s) {
       print('Exception occurs: $e');
       print('STACK TRACE\n: $s');
-      Countly.logExceptionEx(e, true, stacktrace: s);
+      Countly.logExceptionEx(e as Exception, true, stacktrace: s);
     }
   }
 
@@ -449,57 +438,53 @@ class _MyAppState extends State<MyApp> {
   void showSurvey() async {
     FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets() ;
     List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
-    String error = feedbackWidgetsResponse.error;
+    String? error = feedbackWidgetsResponse.error;
 
     if(error != null) {
       return;
     }
 
-    CountlyPresentableFeedback chosenWidget;
     for(CountlyPresentableFeedback widget in widgets) {
       if(widget.type == 'survey') {
-        chosenWidget = widget;
+        await Countly.presentFeedbackWidget(widget, 'Cancel');
         break;
       }
     }
-    await Countly.presentFeedbackWidget(chosenWidget, 'Cancel');
   }
 
   void showNPS() async {
     FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets() ;
     List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
-    String error = feedbackWidgetsResponse.error;
+    String? error = feedbackWidgetsResponse.error;
 
     if(error != null) {
       return;
     }
 
-    CountlyPresentableFeedback chosenWidget;
     for(CountlyPresentableFeedback widget in widgets) {
       if(widget.type == 'nps') {
-        chosenWidget = widget;
+        await Countly.presentFeedbackWidget(widget, 'Close');
         break;
       }
     }
-    await Countly.presentFeedbackWidget(chosenWidget, 'Close');
   }
 
   void reportSurveyManually() async {
     FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets() ;
     List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
-    String error = feedbackWidgetsResponse.error;
+    String? error = feedbackWidgetsResponse.error;
 
     if(error != null) {
       return;
     }
-    CountlyPresentableFeedback chosenWidget;
+    CountlyPresentableFeedback? chosenWidget;
     for(CountlyPresentableFeedback widget in widgets) {
       if(widget.type == 'survey') {
         chosenWidget = widget;
         break;
       }
     }
-    List result = await Countly.getFeedbackWidgetData(chosenWidget);
+    List result = await Countly.getFeedbackWidgetData(chosenWidget!);
     error = result[1];
     if(error == null) {
       Map<String, dynamic> retrievedWidgetData = result[0];
@@ -555,20 +540,20 @@ class _MyAppState extends State<MyApp> {
   void reportNPSManually() async {
     FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets() ;
     List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
-    String error = feedbackWidgetsResponse.error;
+    String? error = feedbackWidgetsResponse.error;
 
     if(error != null) {
       return;
     }
 
-    CountlyPresentableFeedback chosenWidget;
+    CountlyPresentableFeedback? chosenWidget;
     for(CountlyPresentableFeedback widget in widgets) {
       if(widget.type == 'nps') {
         chosenWidget = widget;
         break;
       }
     }
-    List result = await Countly.getFeedbackWidgetData(chosenWidget);
+    List result = await Countly.getFeedbackWidgetData(chosenWidget!);
     error = result[1];
     if(error == null) {
       Map<String, dynamic> retrievedWidgetData = result[0];
@@ -731,7 +716,7 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-Map<String, Object> theColor = {
+Map<String, Map<String, Color>> theColor = {
   'default': {
     'button': Color(0xffe0e0e0),
     'text': Color(0xff000000)
@@ -790,7 +775,7 @@ Map<String, Object> theColor = {
   }
 
 };
-Map<String, Object> getColor(color){
+Map<String, Color>? getColor(color){
   if(color == 'green'){
     return theColor['green'];
   }else if(color == 'teal'){
@@ -820,18 +805,18 @@ Map<String, Object> getColor(color){
   }
 }
 class MyButton extends StatelessWidget{
-  String _text;
-  Color _button;
-  Color _textC;
-  Function _onPressed;
-  MyButton({String color, String text, Function onPressed}){
-    _text = text;
+  String? _text;
+  Color? _button;
+  Color? _textC;
+  void Function()? _onPressed;
+  MyButton({String? color, String? text,void Function()? onPressed}){
+    _text = text!;
 
-    Map<String, Object> tColor;
+    Map<String, Color>? tColor;
     tColor = getColor(color);
     tColor = tColor ??= theColor['default'];
-    _button = tColor['button'];
-    _textC = tColor['text'];
+    _button = tColor?['button'];
+    _textC = tColor?['text'];
 
     _onPressed = onPressed;
   }
@@ -845,6 +830,6 @@ class MyButton extends StatelessWidget{
         minimumSize: Size(double.infinity, 36)
       ),
       onPressed: _onPressed,
-      child: Text(_text, style: TextStyle(color: _textC),textAlign: TextAlign.center));
+      child: Text(_text!, style: TextStyle(color: _textC),textAlign: TextAlign.center));
   }
 }

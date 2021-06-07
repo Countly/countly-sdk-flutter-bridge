@@ -690,8 +690,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
               Countly.sharedInstance().remoteConfig().clearStoredValues();
               result.success("remoteConfigClearValues: success");
           } else if ("getRemoteConfigValueForKey".equals(call.method)) {
-              String getRemoteConfigValueForKeyResult = Countly.sharedInstance().remoteConfig().getValueForKey(args.getString(0)).toString();
-              result.success(getRemoteConfigValueForKeyResult);
+              String key = args.getString(0);
+              String remoteConfigValueForKey = "No value Found against Key :" + key;
+              Object getRemoteConfigValueForKeyResult = Countly.sharedInstance().remoteConfig().getValueForKey(key);
+              if(getRemoteConfigValueForKeyResult != null)
+                remoteConfigValueForKey = getRemoteConfigValueForKeyResult.toString();
+              result.success(remoteConfigValueForKey);
           } else if ("askForFeedback".equals(call.method)) {
               if (activity == null) {
                   log("askForFeedback failed : Activity is null", LogLevel.ERROR);
