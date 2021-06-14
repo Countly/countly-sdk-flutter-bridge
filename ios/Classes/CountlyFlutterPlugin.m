@@ -694,16 +694,17 @@ NSMutableDictionary *networkRequest = nil;
 
     }else if ([@"getRemoteConfigValueForKey" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
-        id value = [Countly.sharedInstance remoteConfigValueForKey:[command objectAtIndex:0]];
-        if(!value){
-            value = @"Default Value";
-        }
-        NSString *theType = NSStringFromClass([value class]);
-        if([theType isEqualToString:@"NSTaggedPointerString"]){
-            result(value);
-        }else{
-            result([value stringValue]);
-        }
+            NSString* key = [command objectAtIndex:0];
+            id value = [Countly.sharedInstance remoteConfigValueForKey:key];
+            if(!value){
+                value = @"Default Value";
+            }
+            NSString *theType = NSStringFromClass([value class]);
+            if([theType isEqualToString:@"NSTaggedPointerString"] || [theType isEqualToString:@"__NSCFConstantString"]){
+                result(value);
+            }else{
+                result([value stringValue]);
+            }
         });
     }else if ([@"askForFeedback" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
