@@ -220,10 +220,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 Countly.sharedInstance().COUNTLY_SDK_NAME = COUNTLY_FLUTTER_SDK_NAME;
                 Countly.sharedInstance().COUNTLY_SDK_VERSION_STRING = COUNTLY_FLUTTER_SDK_VERSION_STRING;
 
-                if (args.length() == 2) {
-                    this.config.setIdMode(DeviceId.Type.OPEN_UDID);
-
-                } else if (args.length() == 3) {
+                if (args.length() == 3) {
                     String yourDeviceID = args.getString(2);
                     if (yourDeviceID.equals("TemporaryDeviceID")) {
                         this.config.enableTemporaryDeviceIdMode();
@@ -232,7 +229,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         this.config.setDeviceId(yourDeviceID);
                     }
                 } else {
-                    this.config.setIdMode(DeviceId.Type.ADVERTISING_ID);
+                    this.config.setIdMode(DeviceId.Type.OPEN_UDID);
                 }
                 if (activity == null) {
                     log("Activity is 'null' during init, cannot set Application", LogLevel.WARNING);
