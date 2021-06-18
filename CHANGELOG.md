@@ -1,4 +1,7 @@
 ## 20.11.3
+* Migrated to null safety.
+* Updated Flutter SDK constraint to >= 2.0.0.
+* Updated lower bound of dart dependency to 2.12.0.
 * Lint suggestion are added in flutter for better code quality.
 * Updated underlying android SDK to 20.11.8
 * Underlying iOS SDK version is 20.11.1

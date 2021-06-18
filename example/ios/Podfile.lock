@@ -14,7 +14,7 @@ EXTERNAL SOURCES:
     :path: Flutter
 
 SPEC CHECKSUMS:
-  countly_flutter: 266e853e7df5f1ebcac2c6719d2088380c9420af
+  countly_flutter: 88db272af15f5cb35c3b2211f7cea6fc70b1c221
   Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
 
 PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
