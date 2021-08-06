@@ -1183,7 +1183,7 @@ class Countly {
   /// [Map<String, Object> segmentation] - allows to add optional segmentation
   static Future<String?> logExceptionEx(Exception exception, bool nonfatal,
       {StackTrace? stacktrace, Map<String, Object>? segmentation}) async {
-    stacktrace ??= StackTrace.current ?? StackTrace.fromString('');
+    stacktrace ??= StackTrace.current;
     final result = logException(
         '${exception.toString()}\n\n$stacktrace', nonfatal, segmentation);
     return result;
@@ -1200,7 +1200,7 @@ class Countly {
   /// [Map<String, Object> segmentation] - allows to add optional segmentation
   static Future<String?> logExceptionManual(String message, bool nonfatal,
       {StackTrace? stacktrace, Map<String, Object>? segmentation}) async {
-    stacktrace ??= StackTrace.current ?? StackTrace.fromString('');
+    stacktrace ??= StackTrace.current;
     final result =
         logException('$message\n\n$stacktrace', nonfatal, segmentation);
     return result;
@@ -1218,7 +1218,7 @@ class Countly {
     }
 
     unawaited(
-        _internalRecordError(details.exceptionAsString(), details.stack!));
+        _internalRecordError(details.exceptionAsString(), details.stack));
   }
 
   /// Callback to catch and report Dart errors, [enableCrashReporting()] must call before [init] to make it work.
