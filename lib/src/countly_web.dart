@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:countly_flutter/src/countly_base.dart';
+import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
+import 'package:pedantic/pedantic.dart';
 
 import 'countly_presentable_feedback.dart';
 import 'feedback_widget_response.dart';
@@ -11,7 +13,6 @@ import 'log_level.dart';
 class CountlyWeb implements CountlyBase {
   /// Used to determine if log messages should be printed to the console
   /// its value should be updated from [setLoggingEnabled(bool flag)].
-  // ignore: prefer_final_fields
   static bool _isDebug = false;
 
   /// Used to determine if init is called.
@@ -19,6 +20,20 @@ class CountlyWeb implements CountlyBase {
   static bool _isInitialized = false;
 
   static final String tag = 'CountlyFlutter';
+
+  /// Flag to determine if crash logging functionality should be enabled
+  /// If false the intercepted crashes will be ignored
+  /// Set true when user enabled crash logging
+  static bool _enableCrashReportingFlag = false;
+
+  static Map<String, String> messagingMode = {
+    'TEST': '1',
+    'PRODUCTION': '0',
+    'ADHOC': '2'
+  };
+  static Map<String, String> deviceIDType = {
+    'TemporaryDeviceID': 'TemporaryDeviceID'
+  };
 
   @override
   void log(String? message, {LogLevel logLevel = LogLevel.DEBUG}) async {
@@ -68,12 +83,13 @@ class CountlyWeb implements CountlyBase {
   /// Should be called after init.
   @override
   Future<String?> appLoadingFinished() async {
+    if (!_isInitialized) {
+      log('appLoadingFinished, init must be called before appLoadingFinished',
+          logLevel: LogLevel.WARNING);
+      return 'init must be called before appLoadingFinished';
+    }
     throw UnimplementedError();
   }
-
-  //TODO: remove?
-  @override
-  bool isNullOrEmpty(String? s) => s == null || s.isEmpty;
 
   @override
   Future<String?> recordEvent(Map<String, Object> options) async {
@@ -90,7 +106,7 @@ class CountlyWeb implements CountlyBase {
     options['sum'] ??= '0';
     options['duration'] ??= '0';
 
-   Segmentation? seg;
+    Segmentation? seg;
 
     if (options['segmentation'] != null) {
       var segmentation = options['segmentation'] as Map;
@@ -167,7 +183,7 @@ class CountlyWeb implements CountlyBase {
 
   @override
   Future<String?> start() async {
-    return null;
+    throw UnimplementedError();
   }
 
   @override
@@ -191,6 +207,11 @@ class CountlyWeb implements CountlyBase {
   /// [int sessionInterval]- delay in seconds
   @override
   Future<String?> updateSessionInterval(int sessionInterval) async {
+    if (_isInitialized) {
+      log('updateSessionInterval should be called before init',
+          logLevel: LogLevel.WARNING);
+      return 'updateSessionInterval should be called before init';
+    }
     throw UnimplementedError();
   }
 
@@ -216,16 +237,31 @@ class CountlyWeb implements CountlyBase {
   /// Should be call after Countly init
   @override
   Future<String?> getCurrentDeviceId() async {
+    if (!_isInitialized) {
+      log('getCurrentDeviceId, init must be called before getCurrentDeviceId',
+          logLevel: LogLevel.WARNING);
+      return 'init must be called before getCurrentDeviceId';
+    }
     throw UnimplementedError();
   }
 
   @override
   Future<String?> changeDeviceId(String newDeviceID, bool onServer) async {
+    if (newDeviceID.isEmpty) {
+      String error = 'changeDeviceId, deviceId cannot be null or empty';
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 
   @override
   Future<String?> addCrashLog(String logs) async {
+    if (logs.isEmpty) {
+      String error = "addCrashLog, Can't add a null or empty crash logs";
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 
@@ -233,13 +269,21 @@ class CountlyWeb implements CountlyBase {
   /// Should be call before Countly init
   @override
   Future<String?> setLoggingEnabled(bool flag) async {
-    throw UnimplementedError();
+    List<String> args = [];
+    _isDebug = flag;
+    args.add(flag.toString());
+    return null;
   }
 
   /// Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request, using the &checksum field
   /// Should be call before Countly init
   @override
   Future<String?> enableParameterTamperingProtection(String salt) async {
+    if (salt.isEmpty) {
+      String error = 'enableParameterTamperingProtection, salt cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 
@@ -260,56 +304,141 @@ class CountlyWeb implements CountlyBase {
 
   @override
   Future<String?> setLocation(String latitude, String longitude) async {
+    if (latitude.isEmpty) {
+      String error = 'setLocation, latitude cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
+    if (longitude.isEmpty) {
+      String error = 'setLocation, longitude cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 
   @override
   Future<String?> setProperty(String keyName, String keyValue) async {
+    if (keyName.isEmpty) {
+      String error = 'setProperty, key cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
+    if (keyValue.isEmpty) {
+      String error = 'setProperty, value cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 
   @override
   Future<String?> increment(String keyName) async {
+    if (keyName.isEmpty) {
+      String error = 'increment, key cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 
   @override
   Future<String?> incrementBy(String keyName, int keyIncrement) async {
+    if (keyName.isEmpty) {
+      String error = 'incrementBy, key cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 
   @override
   Future<String?> multiply(String keyName, int multiplyValue) async {
+    if (keyName.isEmpty) {
+      String error = 'multiply, key cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 
   @override
   Future<String?> saveMax(String keyName, int saveMax) async {
+    if (keyName.isEmpty) {
+      String error = 'saveMax, key cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 
   @override
   Future<String?> saveMin(String keyName, int saveMin) async {
+    if (keyName.isEmpty) {
+      String error = 'saveMin, key cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 
   @override
   Future<String?> setOnce(String keyName, String setOnce) async {
+    if (keyName.isEmpty) {
+      String error = 'setOnce, key cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
+    if (setOnce.isEmpty) {
+      String error = 'setOnce, value cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 
   @override
   Future<String?> pushUniqueValue(String type, String pushUniqueValue) async {
+    if (type.isEmpty) {
+      String error = 'pushUniqueValue, key cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
+    if (pushUniqueValue.isEmpty) {
+      String error = 'pushUniqueValue, value cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 
   @override
   Future<String?> pushValue(String type, String pushValue) async {
+    if (type.isEmpty) {
+      String error = 'pushValue, key cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
+    if (pushValue.isEmpty) {
+      String error = 'pushValue, value cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 
   @override
   Future<String?> pullValue(String type, String pullValue) async {
+    if (type.isEmpty) {
+      String error = 'pullValue, key cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
+    if (pullValue.isEmpty) {
+      String error = 'pullValue, value cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 
@@ -324,16 +453,28 @@ class CountlyWeb implements CountlyBase {
   /// Should be call before Countly init
   @override
   Future<String?> giveConsentInit(List<String> consents) async {
+    if (consents.isEmpty) {
+      String error = 'giveConsentInit, consents List is empty';
+      log(error, logLevel: LogLevel.WARNING);
+    }
     throw UnimplementedError();
   }
 
   @override
   Future<String?> giveConsent(List<String> consents) async {
+    if (consents.isEmpty) {
+      String error = 'giveConsent, consents List is empty';
+      log(error, logLevel: LogLevel.WARNING);
+    }
     throw UnimplementedError();
   }
 
   @override
   Future<String?> removeConsent(List<String> consents) async {
+    if (consents.isEmpty) {
+      String error = 'removeConsent, consents List is empty';
+      log(error, logLevel: LogLevel.WARNING);
+    }
     throw UnimplementedError();
   }
 
@@ -364,12 +505,20 @@ class CountlyWeb implements CountlyBase {
   @override
   Future<String?> updateRemoteConfigForKeysOnly(
       List<String> keys, Function callback) async {
+    if (keys.isEmpty) {
+      String error = 'updateRemoteConfigForKeysOnly, keys List is empty';
+      log(error, logLevel: LogLevel.WARNING);
+    }
     throw UnimplementedError();
   }
 
   @override
   Future<String?> updateRemoteConfigExceptKeys(
       List<String> keys, Function callback) async {
+    if (keys.isEmpty) {
+      String error = 'updateRemoteConfigExceptKeys, keys List is empty';
+      log(error, logLevel: LogLevel.WARNING);
+    }
     throw UnimplementedError();
   }
 
@@ -381,6 +530,11 @@ class CountlyWeb implements CountlyBase {
   @override
   Future<String?> getRemoteConfigValueForKey(
       String key, Function callback) async {
+    if (key.isEmpty) {
+      String error = 'getRemoteConfigValueForKey, key cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 
@@ -402,6 +556,11 @@ class CountlyWeb implements CountlyBase {
   @override
   Future<String?> askForFeedback(
       String widgetId, String? closeButtonText) async {
+    if (widgetId.isEmpty) {
+      String error = 'askForFeedback, widgetId cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 
@@ -444,11 +603,23 @@ class CountlyWeb implements CountlyBase {
 
   @override
   Future<String?> startEvent(String key) async {
+    if (key.isEmpty) {
+      String error = "startEvent, Can't start event with empty key";
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 
   @override
   Future<String?> endEvent(Map<String, Object> options) async {
+    String eventKey = options['key'] != null ? options['key'].toString() : '';
+
+    if (eventKey.isEmpty) {
+      String error = "endEvent, Can't end event with a null or empty key";
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 
@@ -462,7 +633,10 @@ class CountlyWeb implements CountlyBase {
   /// Enable crash reporting to report uncaught errors to Countly.
   /// Should be call before Countly init
   @override
-  Future<String?> enableCrashReporting() async {}
+  Future<String?> enableCrashReporting() async {
+    FlutterError.onError = _recordFlutterError;
+    _enableCrashReportingFlag = true;
+  }
 
   /// Report a handled or unhandled exception/error to Countly.
   ///
@@ -538,7 +712,10 @@ class CountlyWeb implements CountlyBase {
   @override
   Future<String?> logExceptionEx(Exception exception, bool nonfatal,
       {StackTrace? stacktrace, Map<String, Object>? segmentation}) async {
-    throw UnimplementedError();
+    stacktrace ??= StackTrace.current;
+    final result = logException(
+        '${exception.toString()}\n\n$stacktrace', nonfatal, segmentation);
+    return result;
   }
 
   /// Report a handled or unhandled exception/error to Countly.
@@ -553,7 +730,24 @@ class CountlyWeb implements CountlyBase {
   @override
   Future<String?> logExceptionManual(String message, bool nonfatal,
       {StackTrace? stacktrace, Map<String, Object>? segmentation}) async {
-    throw UnimplementedError();
+    stacktrace ??= StackTrace.current;
+    final result =
+        logException('$message\n\n$stacktrace', nonfatal, segmentation);
+    return result;
+  }
+
+  /// Internal callback to record 'FlutterError.onError' errors
+  ///
+  /// Must call [enableCrashReporting()] to enable it
+  Future<void> _recordFlutterError(FlutterErrorDetails details) async {
+    log('_recordFlutterError, Flutter error caught by Countly:');
+    if (!_enableCrashReportingFlag) {
+      log('_recordFlutterError, Crash Reporting must be enabled to report crash on Countly',
+          logLevel: LogLevel.WARNING);
+      return;
+    }
+
+    unawaited(_internalRecordError(details.exceptionAsString(), details.stack));
   }
 
   /// Callback to catch and report Dart errors, [enableCrashReporting()] must call before [init] to make it work.
@@ -571,7 +765,33 @@ class CountlyWeb implements CountlyBase {
   @override
   Future<void> recordDartError(dynamic exception, StackTrace stack,
       {dynamic context}) async {
-    throw UnimplementedError();
+    log('recordError, Error caught by Countly :');
+    if (!_enableCrashReportingFlag) {
+      log('recordError, Crash Reporting must be enabled to report crash on Countly',
+          logLevel: LogLevel.WARNING);
+      return;
+    }
+    unawaited(_internalRecordError(exception, stack));
+  }
+
+  /// A common call for crashes coming from [_recordFlutterError] and [recordDartError]
+  ///
+  /// They are then further reported to countly
+  Future<void> _internalRecordError(
+      dynamic exception, StackTrace? stack) async {
+    if (!_isInitialized) {
+      log('_internalRecordError, countly is not initialized',
+          logLevel: LogLevel.WARNING);
+      return;
+    }
+    log('_internalRecordError, Exception : ${exception.toString()}');
+    if (stack != null) log('\n_internalRecordError, Stack : $stack');
+    stack ??= StackTrace.fromString('');
+    try {
+      unawaited(logException('${exception.toString()}\n\n$stack', true));
+    } catch (e) {
+      log('Sending crash report to Countly failed: $e');
+    }
   }
 
   /// Enable campaign attribution reporting to Countly.
@@ -587,6 +807,14 @@ class CountlyWeb implements CountlyBase {
   /// For Android just call the enableAttribution to enable campaign attribution.
   @override
   Future<String?> recordAttributionID(String attributionID) async {
+    if (!Platform.isIOS) {
+      return 'recordAttributionID : To be implemented';
+    }
+    if (attributionID.isEmpty) {
+      String error = 'recordAttributionID, attributionID cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
     throw UnimplementedError();
   }
 }

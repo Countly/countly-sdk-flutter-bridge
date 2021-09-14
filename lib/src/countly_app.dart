@@ -117,9 +117,6 @@ class CountlyApp implements CountlyBase {
   }
 
   @override
-  bool isNullOrEmpty(String? s) => s == null || s.isEmpty;
-
-  @override
   Future<String?> recordEvent(Map<String, Object> options) async {
     List<String> args = [];
     options['key'] ??= '';

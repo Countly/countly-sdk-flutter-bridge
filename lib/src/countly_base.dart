@@ -25,8 +25,6 @@ abstract class CountlyBase {
   /// Should be called after init.
   Future<String?> appLoadingFinished();
 
-  bool isNullOrEmpty(String? s) => s == null || s.isEmpty;
-
   Future<String?> recordEvent(Map<String, Object> options);
 
   /// Record custom view to Countly.

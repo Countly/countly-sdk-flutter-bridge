@@ -51,7 +51,7 @@ class Countly {
   /// Should be called after init.
   static Future<String?> appLoadingFinished() => _countly.appLoadingFinished();
 
-  static bool isNullOrEmpty(String? s) => _countly.isNullOrEmpty(s);
+  static bool isNullOrEmpty(String? s) => s == null || s.isEmpty;
 
   static Future<String?> recordEvent(Map<String, Object> options) =>
       _countly.recordEvent(options);
