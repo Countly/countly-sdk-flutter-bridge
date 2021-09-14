@@ -651,7 +651,17 @@ class CountlyWeb implements CountlyBase {
   @override
   Future<String?> logException(String exception, bool nonfatal,
       [Map<String, Object>? segmentation]) async {
-    throw UnimplementedError();
+    List<String> args = [];
+    args.add(exception);
+    args.add(nonfatal.toString());
+    if (segmentation != null) {
+      segmentation.forEach((k, v) {
+        args.add(k.toString());
+        args.add(v.toString());
+      });
+    }
+    //TODO: trigger countly interop
+    return null;
   }
 
   /// Set optional key/value segment added for crash reports.
