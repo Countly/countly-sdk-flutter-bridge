@@ -1,5 +1,7 @@
 export 'package:countly_flutter/src/countly_presentable_feedback.dart';
 export 'package:countly_flutter/src/feedback_widget_response.dart';
+export 'package:countly_flutter/src/feedback_widget_response.dart';
+export 'package:countly_flutter/src/log_level.dart';
 
 import 'package:countly_flutter/src/countly_app.dart';
 import 'package:countly_flutter/src/countly_base.dart';
