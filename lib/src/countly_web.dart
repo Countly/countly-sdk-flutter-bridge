@@ -5,12 +5,12 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:pedantic/pedantic.dart';
 
-import 'countly_presentable_feedback.dart';
-import 'feedback_widget_response.dart';
+import 'models/countly_presentable_feedback.dart';
+import 'models/feedback_widget_response.dart';
 import 'interop/countly_js.dart';
-import 'log_level.dart';
+import 'models/log_level.dart';
 
-class CountlyWeb implements CountlyBase {
+class CountlyApp implements CountlyBase {
   /// Used to determine if log messages should be printed to the console
   /// its value should be updated from [setLoggingEnabled(bool flag)].
   static bool _isDebug = false;

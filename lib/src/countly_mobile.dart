@@ -7,9 +7,9 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:pedantic/pedantic.dart';
 
-import 'countly_presentable_feedback.dart';
-import 'feedback_widget_response.dart';
-import 'log_level.dart';
+import 'models/countly_presentable_feedback.dart';
+import 'models/feedback_widget_response.dart';
+import 'models/log_level.dart';
 
 class CountlyApp implements CountlyBase {
   static const MethodChannel _channel = MethodChannel('countly_flutter');
@@ -95,7 +95,7 @@ class CountlyApp implements CountlyBase {
   @override
   Future<String?> removeDifferentAppKeysFromQueue() async {
     final String? result =
-    await _channel.invokeMethod('removeDifferentAppKeysFromQueue');
+        await _channel.invokeMethod('removeDifferentAppKeysFromQueue');
     log(result);
     return result;
   }
@@ -404,8 +404,7 @@ class CountlyApp implements CountlyBase {
   }
 
   @override
-  Future<String?> changeDeviceId(
-      String newDeviceID, bool onServer) async {
+  Future<String?> changeDeviceId(String newDeviceID, bool onServer) async {
     if (newDeviceID.isEmpty) {
       String error = 'changeDeviceId, deviceId cannot be null or empty';
       log(error);
@@ -658,8 +657,7 @@ class CountlyApp implements CountlyBase {
   }
 
   @override
-  Future<String?> pushUniqueValue(
-      String type, String pushUniqueValue) async {
+  Future<String?> pushUniqueValue(String type, String pushUniqueValue) async {
     if (type.isEmpty) {
       String error = 'pushUniqueValue, key cannot be empty';
       log(error);
@@ -802,8 +800,7 @@ class CountlyApp implements CountlyBase {
   /// Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
   /// Should be call before Countly init
   @override
-  Future<String?> setRemoteConfigAutomaticDownload(
-      Function callback) async {
+  Future<String?> setRemoteConfigAutomaticDownload(Function callback) async {
     List<String> args = [];
     log(args.toString());
     final String? result = await _channel.invokeMethod(
@@ -944,7 +941,7 @@ class CountlyApp implements CountlyBase {
     String? error;
     try {
       final List<dynamic> retrievedWidgets =
-      await _channel.invokeMethod('getAvailableFeedbackWidgets');
+          await _channel.invokeMethod('getAvailableFeedbackWidgets');
       presentableFeedback =
           retrievedWidgets.map(CountlyPresentableFeedback.fromJson).toList();
     } on PlatformException catch (e) {
@@ -952,7 +949,7 @@ class CountlyApp implements CountlyBase {
       log('getAvailableFeedbackWidgets Error : $error');
     }
     FeedbackWidgetsResponse feedbackWidgetsResponse =
-    FeedbackWidgetsResponse(presentableFeedback, error);
+        FeedbackWidgetsResponse(presentableFeedback, error);
 
     return feedbackWidgetsResponse;
   }
@@ -1147,8 +1144,7 @@ class CountlyApp implements CountlyBase {
   /// Set optional key/value segment added for crash reports.
   /// Should be call before Countly init
   @override
-  Future<String?> setCustomCrashSegment(
-      Map<String, Object> segments) async {
+  Future<String?> setCustomCrashSegment(Map<String, Object> segments) async {
     List<String> args = [];
     segments.forEach((k, v) {
       args.add(k.toString());
@@ -1275,7 +1271,7 @@ class CountlyApp implements CountlyBase {
       {StackTrace? stacktrace, Map<String, Object>? segmentation}) async {
     stacktrace ??= StackTrace.current;
     final result =
-    logException('$message\n\n$stacktrace', nonfatal, segmentation);
+        logException('$message\n\n$stacktrace', nonfatal, segmentation);
     return result;
   }
 
@@ -1290,8 +1286,7 @@ class CountlyApp implements CountlyBase {
       return;
     }
 
-    unawaited(
-        _internalRecordError(details.exceptionAsString(), details.stack));
+    unawaited(_internalRecordError(details.exceptionAsString(), details.stack));
   }
 
   /// Callback to catch and report Dart errors, [enableCrashReporting()] must call before [init] to make it work.

@@ -1,8 +1,8 @@
-import 'countly_presentable_feedback.dart';
-import 'feedback_widget_response.dart';
+import 'models/countly_presentable_feedback.dart';
+import 'models/feedback_widget_response.dart';
 import 'dart:async';
 
-import 'log_level.dart';
+import 'models/log_level.dart';
 
 abstract class CountlyBase {
   void log(String? message, {LogLevel logLevel = LogLevel.DEBUG});

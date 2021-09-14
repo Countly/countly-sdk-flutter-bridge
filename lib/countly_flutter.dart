@@ -1,19 +1,17 @@
-export 'package:countly_flutter/src/countly_presentable_feedback.dart';
-export 'package:countly_flutter/src/feedback_widget_response.dart';
-export 'package:countly_flutter/src/feedback_widget_response.dart';
-export 'package:countly_flutter/src/log_level.dart';
+export 'package:countly_flutter/src/models/countly_presentable_feedback.dart';
+export 'package:countly_flutter/src/models/feedback_widget_response.dart';
+export 'package:countly_flutter/src/models/log_level.dart';
 
-import 'package:countly_flutter/src/countly_app.dart';
-import 'package:countly_flutter/src/countly_base.dart';
-import 'package:countly_flutter/src/countly_presentable_feedback.dart';
-import 'package:countly_flutter/src/countly_web.dart';
-import 'package:countly_flutter/src/feedback_widget_response.dart';
-import 'package:flutter/foundation.dart';
-
-import 'src/log_level.dart';
+import 'src/countly_base.dart';
+import 'src/models/countly_presentable_feedback.dart';
+import 'src/models/feedback_widget_response.dart';
+import 'src/models/log_level.dart';
+import 'src/stub.dart'
+  if (dart.library.js) 'src/countly_web.dart'
+  if (dart.library.io) 'src/countly_mobile.dart';
 
 class Countly {
-  static final CountlyBase _countly = kIsWeb ? CountlyWeb() : CountlyApp();
+  static final CountlyBase _countly = CountlyApp();
 
   static final String tag = 'CountlyFlutter';
 
