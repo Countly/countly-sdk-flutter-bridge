@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:js';
 
 import 'package:countly_flutter/src/countly_base.dart';
 import 'dart:io' show Platform;
@@ -144,9 +143,26 @@ class CountlyApp implements CountlyBase {
       log(error);
       return 'Error : $error';
     }
+    List<String> args = [];
+    args.add(view);
+    if (segmentation != null) {
+      segmentation.forEach((k, v) {
+        if (v is String || v is int || v is double || v is bool) {
+          args.add(k);
+          args.add(v.toString());
+        } else {
+          log('recordView, unsupported segmentation data type [${v.runtimeType}], View [$view]',
+              logLevel: LogLevel.WARNING);
+        }
+      });
+    }
 
-    //CountlyJs.track_pageview(view);
-    CountlyJs.q.addAll(['track_pageview', view]);
+    CountlyJs.q.addAll([
+      'track_pageview',
+      view,
+      null,
+      <String, dynamic>{'data': json.encode(args)}
+    ]);
     return null;
   }
 
@@ -663,10 +679,7 @@ class CountlyApp implements CountlyBase {
         args.add(v.toString());
       });
     }
-    // CountlyJs.log_error(
-    //   Error(data: SegData(key: 'data', val: json.encode(args))),
-    //   null,
-    // );
+
     CountlyJs.q.addAll([
       'track_errors',
       Error(data: SegData(key: 'data', val: json.encode(args))),
