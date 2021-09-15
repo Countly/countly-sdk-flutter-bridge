@@ -23,16 +23,31 @@ class CountlyEvent {
 
 @JS()
 @anonymous
+class Error {
+  external factory Error({
+    SegData data,
+  });
+  external String get data;
+}
+
+@JS()
+@anonymous
 class Segmentation {
   external factory Segmentation({
     SegData data,
   });
+  external SegData get data;
 }
 
 @JS()
 @anonymous
 class SegData {
-  external factory SegData({String key, String val});
+  external factory SegData({
+    String key,
+    String val,
+  });
+  external SegData get key;
+  external SegData get val;
 }
 
 @JS('Countly')
@@ -45,4 +60,5 @@ class CountlyJs {
   external static void add_event(CountlyEvent event);
   external static void track_pageview(String pageName);
   external static List get q;
+  external static void log_error(Error err, String? segments);
 }

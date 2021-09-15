@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:js';
 
 import 'package:countly_flutter/src/countly_base.dart';
 import 'dart:io' show Platform;
@@ -142,8 +144,9 @@ class CountlyApp implements CountlyBase {
       log(error);
       return 'Error : $error';
     }
-    //TODO: track_pageview needs to be edited in Interop to take segmentation
-    CountlyJs.track_pageview(view);
+
+    //CountlyJs.track_pageview(view);
+    CountlyJs.q.addAll(['track_pageview', view]);
     return null;
   }
 
@@ -660,7 +663,14 @@ class CountlyApp implements CountlyBase {
         args.add(v.toString());
       });
     }
-    //TODO: trigger countly interop
+    // CountlyJs.log_error(
+    //   Error(data: SegData(key: 'data', val: json.encode(args))),
+    //   null,
+    // );
+    CountlyJs.q.addAll([
+      'track_errors',
+      Error(data: SegData(key: 'data', val: json.encode(args))),
+    ]);
     return null;
   }
 
