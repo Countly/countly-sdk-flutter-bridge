@@ -114,7 +114,7 @@ const CGFloat kCountlyStarRatingButtonSize = 40.0;
     }
     @catch (NSException* exception)
     {
-        COUNTLY_LOG(@"UIAlertController's contentViewController can not be set: \n%@", exception);
+        CLY_LOG_W(@"UIAlertController's contentViewController can not be set: \n%@", exception);
     }
 
     [CountlyCommon.sharedInstance tryPresentingViewController:self.alertController];
@@ -139,7 +139,7 @@ const CGFloat kCountlyStarRatingButtonSize = 40.0;
 
     if (self.sessionCount == sessionCountSoFar)
     {
-        COUNTLY_LOG(@"Asking for star-rating as session count reached specified limit %d ...", (int)self.sessionCount);
+        CLY_LOG_D(@"Asking for star-rating as session count reached specified limit %d ...", (int)self.sessionCount);
 
         [self showDialog:self.ratingCompletionForAutoAsk];
 
@@ -330,12 +330,12 @@ const CGFloat kCountlyStarRatingButtonSize = 40.0;
                                                     kCountlyEndpointFeedback,
                                                     kCountlyEndpointWidget];
 
-    if (CountlyConnectionManager.sharedInstance.alwaysUsePOST)
+    if (queryString.length > kCountlyGETRequestMaxLength || CountlyConnectionManager.sharedInstance.alwaysUsePOST)
     {
         NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:serverOutputFeedbackWidgetEndpoint]];
         request.HTTPMethod = @"POST";
         request.HTTPBody = [queryString cly_dataUTF8];
-        return  request.copy;
+        return request.copy;
     }
     else
     {
@@ -447,12 +447,12 @@ const CGFloat kCountlyStarRatingButtonSize = 40.0;
     [URL appendString:kCountlyEndpointO];
     [URL appendString:kCountlyEndpointSDK];
 
-    if (CountlyConnectionManager.sharedInstance.alwaysUsePOST)
+    if (queryString.length > kCountlyGETRequestMaxLength || CountlyConnectionManager.sharedInstance.alwaysUsePOST)
     {
         NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:URL]];
         request.HTTPMethod = @"POST";
         request.HTTPBody = [queryString cly_dataUTF8];
-        return  request.copy;
+        return request.copy;
     }
     else
     {
