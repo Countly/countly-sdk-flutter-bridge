@@ -60,7 +60,7 @@ import com.google.firebase.FirebaseApp;
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
 
     private static final String TAG = "CountlyFlutterPlugin";
-    private String COUNTLY_FLUTTER_SDK_VERSION_STRING = "20.11.4";
+    private String COUNTLY_FLUTTER_SDK_VERSION_STRING = "20.11.5";
     private String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     /**
      * Plugin registration.
@@ -77,6 +77,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private Boolean isSessionStarted_ = false;
 
     private boolean isOnResumeBeforeInit = false;
+
+    List<CountlyFeedbackWidget> retrievedWidgetList = null;
 
     public static void registerWith(Registrar registrar) {
         final CountlyFlutterPlugin instance = new CountlyFlutterPlugin();
@@ -749,6 +751,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                             result.error("getAvailableFeedbackWidgets", error, null);
                             return;
                         }
+                        retrievedWidgetList = new ArrayList(retrievedWidgets);
                         List<Map<String, String>> retrievedWidgetsArray = new ArrayList<>();
                         for (CountlyFeedbackWidget presentableFeedback : retrievedWidgets) {
                             Map<String, String> feedbackWidget = new HashMap<String, String>();
@@ -767,13 +770,13 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     return;
                 }
                 String widgetId = args.getString(0);
-                String type = args.getString(1);
-                String closeBtnText = args.getString(2);
+                String widgetType = args.getString(1);
+                String widgetName = args.getString(2);
+                String closeBtnText = args.getString(3);
 
-                CountlyFeedbackWidget presentableFeedback = new CountlyFeedbackWidget();
-                presentableFeedback.widgetId = widgetId;
-                presentableFeedback.type = FeedbackWidgetType.valueOf(type);
-                Countly.sharedInstance().feedback().presentFeedbackWidget(presentableFeedback, activity, closeBtnText, new FeedbackCallback() {
+                CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId, widgetType, widgetName);
+
+                Countly.sharedInstance().feedback().presentFeedbackWidget(feedbackWidget, activity, closeBtnText, new FeedbackCallback() {
                     @Override
                     public void onFinished(String error) {
                         if (error != null) {
@@ -785,14 +788,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 });
             } else if ("getFeedbackWidgetData".equals(call.method)) {
                 String widgetId = args.getString(0);
-                String type = args.getString(1);
-                String name = args.getString(2);
+                String widgetType = args.getString(1);
+                String widgetName = args.getString(2);
 
-                CountlyFeedbackWidget presentableFeedback = new CountlyFeedbackWidget();
-                presentableFeedback.widgetId = widgetId;
-                presentableFeedback.type = FeedbackWidgetType.valueOf(type);
-                presentableFeedback.name = name;
-                Countly.sharedInstance().feedback().getFeedbackWidgetData(presentableFeedback, new RetrieveFeedbackWidgetData() {
+                CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId, widgetType, widgetName);
+
+                Countly.sharedInstance().feedback().getFeedbackWidgetData(feedbackWidget, new RetrieveFeedbackWidgetData() {
                     @Override
                     public void onFinished(JSONObject retrievedWidgetData, String error) {
                         if (error != null) {
@@ -816,13 +817,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 }
 
                 String widgetId = widgetInfo.getString(0);
-                String type = widgetInfo.getString(1);
-                String name = widgetInfo.getString(2);
+                String widgetType = widgetInfo.getString(1);
+                String widgetName = widgetInfo.getString(2);
 
-                CountlyFeedbackWidget feedbackWidget = new CountlyFeedbackWidget();
-                feedbackWidget.widgetId = widgetId;
-                feedbackWidget.type = FeedbackWidgetType.valueOf(type);
-                feedbackWidget.name = name;
+                CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId, widgetType, widgetName);
+
                 Countly.sharedInstance().feedback().reportFeedbackWidgetManually(feedbackWidget, widgetData, widgetResultMap);
                 result.success("reportFeedbackWidgetManually success");
             } else if ("replaceAllAppKeysInQueueWithCurrentAppKey".equals(call.method)) {
@@ -888,6 +887,36 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             result.success(jsonException.toString());
         }
     }
+
+    CountlyFeedbackWidget getFeedbackWidget(String widgetId) {
+        if(retrievedWidgetList == null) {
+            return null;
+        }
+        for (CountlyFeedbackWidget feedbackWidget : retrievedWidgetList) {
+            if(feedbackWidget.widgetId.equals(widgetId)) {
+                return feedbackWidget;
+            }
+        }
+        return null;
+    }
+
+    CountlyFeedbackWidget createFeedbackWidget(String widgetId, String widgetType, String widgetName) {
+        CountlyFeedbackWidget feedbackWidget = new CountlyFeedbackWidget();
+        feedbackWidget.widgetId = widgetId;
+        feedbackWidget.type = FeedbackWidgetType.valueOf(widgetType);
+        feedbackWidget.name = widgetName;
+        return feedbackWidget;
+    }
+
+    CountlyFeedbackWidget getFeedbackWidget(String widgetId, String widgetType, String widgetName) {
+        CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
+        if(feedbackWidget == null) {
+            log("No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.", LogLevel.WARNING);
+            feedbackWidget = createFeedbackWidget(widgetId, widgetType, widgetName);
+        }
+        return  feedbackWidget;
+    }
+
 
     public String registerForNotification(JSONArray args, final Callback theCallback) {
         notificationListener = theCallback;

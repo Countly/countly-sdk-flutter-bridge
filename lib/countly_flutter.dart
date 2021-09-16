@@ -909,6 +909,7 @@ class Countly {
     List<String> args = [];
     args.add(widgetInfo.widgetId);
     args.add(widgetInfo.type);
+    args.add(widgetInfo.name);
     args.add(closeButtonText);
     log(args.toString());
     String? result;
