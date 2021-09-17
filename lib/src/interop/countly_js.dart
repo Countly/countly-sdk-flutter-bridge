@@ -2,6 +2,7 @@
 library countly;
 
 import 'package:js/js.dart';
+import 'js_object.dart';
 
 @JS()
 @anonymous
@@ -23,42 +24,28 @@ class CountlyEvent {
 
 @JS()
 @anonymous
-class Error {
-  external factory Error({
-    SegData data,
+class Segmentation {
+  external factory Segmentation({
+    String data,
   });
   external String get data;
 }
 
-@JS()
-@anonymous
-class Segmentation {
-  external factory Segmentation({
-    SegData data,
-  });
-  external SegData get data;
-}
-
-@JS()
-@anonymous
-class SegData {
-  external factory SegData({
-    String key,
-    String val,
-  });
-  external SegData get key;
-  external SegData get val;
-}
-
 @JS('Countly')
 class CountlyJs {
-  external static void init();
+  external static CountlyInstanceJs init();
   external static String get app_key;
   external static set app_key(String value);
   external static String get url;
   external static set url(String value);
-  external static void add_event(CountlyEvent event);
-  external static void track_pageview(String pageName);
   external static List get q;
-  external static void log_error(Error err, String? segments);
+}
+
+@JS()
+@anonymous
+class CountlyInstanceJs {
+  external void log_error(JsObject err, String? segments);
+  external void add_event(CountlyEvent event);
+  external void track_pageview(
+      String page, List? ignoreList, JsObject viewSegments);
 }
