@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:countly_flutter/src/countly_base.dart';
+import 'package:countly_flutter/src/interop/js_object.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
+import 'package:js/js_util.dart';
 import 'package:pedantic/pedantic.dart';
 
 import 'models/countly_presentable_feedback.dart';
@@ -12,6 +14,23 @@ import 'interop/countly_js.dart';
 import 'models/log_level.dart';
 
 class CountlyApp implements CountlyBase {
+  static CountlyInstanceJs? __countly;
+
+  CountlyInstanceJs get _countly {
+    if (__countly == null && _isInitialized) {
+      final error =
+          '_countly, init must be called before accessing Countly instance';
+      log(error, logLevel: LogLevel.ERROR);
+      throw Exception(error);
+    }
+    if (__countly == null) {
+      final error =
+          '_countly, Countly instance is null even though it init has been called.';
+      throw Exception(error);
+    }
+    return __countly!;
+  }
+
   /// Used to determine if log messages should be printed to the console
   /// its value should be updated from [setLoggingEnabled(bool flag)].
   static bool _isDebug = false;
@@ -50,12 +69,7 @@ class CountlyApp implements CountlyBase {
     _isInitialized = true;
     CountlyJs.app_key = appKey;
     CountlyJs.url = serverUrl;
-    CountlyJs.q.add([
-      ['track_sessions'],
-      ['track_pageview'],
-      ['track_clicks'],
-      ['track_scrolls']
-    ]);
+    __countly = CountlyJs.init();
     return null;
   }
 
@@ -104,28 +118,22 @@ class CountlyApp implements CountlyBase {
     }
 
     options['count'] ??= 1;
-    options['sum'] ??= '0';
-    options['duration'] ??= '0';
+    options['sum'] ??= 0;
+    options['duration'] ??= 0;
 
-    Segmentation? seg;
-
-    if (options['segmentation'] != null) {
-      var segmentation = options['segmentation'] as Map;
-      //TODO: Segmentation needs to be edited in Interop to take dynamic size Map
-      segmentation.forEach((k, v) {
-        seg = Segmentation(data: SegData(key: k, val: v));
-      });
-    }
-
-    final args = CountlyEvent(
-      key: eventKey,
-      count: options['count'] as num,
-      sum: options['sum'] as num,
-      dur: options['duration'] as num,
-      segmentation: seg,
+    _countly.add_event(
+      CountlyEvent(
+        key: eventKey,
+        count: options['count'] as num,
+        sum: options['sum'] as num,
+        dur: options['duration'] as num,
+        segmentation:
+            options['segmentation'] != null && options['segmentation'] is Map
+                ? jsify(options['segmentation']!)
+                : null,
+      ),
     );
 
-    CountlyJs.add_event(args);
     return null;
   }
 
@@ -157,12 +165,12 @@ class CountlyApp implements CountlyBase {
       });
     }
 
-    CountlyJs.q.addAll([
-      'track_pageview',
+    _countly.track_pageview(
       view,
       null,
-      <String, dynamic>{'data': json.encode(args)}
-    ]);
+      JsObject(Segmentation(data: json.encode(args))),
+    );
+
     return null;
   }
 
@@ -202,7 +210,14 @@ class CountlyApp implements CountlyBase {
 
   @override
   Future<String?> start() async {
-    throw UnimplementedError();
+    CountlyJs.q.add([
+      ['track_sessions'],
+      ['track_pageview'],
+      ['track_clicks'],
+      ['track_scrolls']
+    ]);
+
+    return null;
   }
 
   @override
@@ -655,6 +670,7 @@ class CountlyApp implements CountlyBase {
   Future<String?> enableCrashReporting() async {
     FlutterError.onError = _recordFlutterError;
     _enableCrashReportingFlag = true;
+    CountlyJs.q.addAll(['track_errors']);
   }
 
   /// Report a handled or unhandled exception/error to Countly.
@@ -670,20 +686,11 @@ class CountlyApp implements CountlyBase {
   @override
   Future<String?> logException(String exception, bool nonfatal,
       [Map<String, Object>? segmentation]) async {
-    List<String> args = [];
-    args.add(exception);
-    args.add(nonfatal.toString());
-    if (segmentation != null) {
-      segmentation.forEach((k, v) {
-        args.add(k.toString());
-        args.add(v.toString());
-      });
-    }
-
-    CountlyJs.q.addAll([
-      'track_errors',
-      Error(data: SegData(key: 'data', val: json.encode(args))),
-    ]);
+    _countly.log_error(
+        JsObject(exception),
+        segmentation != null && segmentation is Map
+            ? json.encode(segmentation)
+            : null);
     return null;
   }
 
