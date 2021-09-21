@@ -751,17 +751,44 @@ NSMutableDictionary *networkRequest = nil;
     } else if ([@"presentFeedbackWidget" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         NSString* widgetId = [command objectAtIndex:0];
-        CountlyFeedbackWidget* feedbackWidget = [self getFeedbackWidget:widgetId];
+        NSString* widgetType = [command objectAtIndex:1];
+        NSString* widgetName = [command objectAtIndex:2];
+        CountlyFeedbackWidget* feedbackWidget = [self getFeedbackWidget:widgetId widgetType:widgetType widgetName:widgetName];
 
-        if(feedbackWidget == nil) {
-          COUNTLY_FLUTTER_LOG(@"No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId);
-          NSString* widgetType = [command objectAtIndex:1];
-          NSString* widgetName = [command objectAtIndex:2];
-          feedbackWidget = [self createFeedbackWidget:widgetId widgetType:widgetType widgetName:widgetName];
-        }
         [feedbackWidget present];
         });
-    } else if ([@"replaceAllAppKeysInQueueWithCurrentAppKey" isEqualToString:call.method]) {
+    } else if ([@"getFeedbackWidgetData" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+        NSString* widgetId = [command objectAtIndex:0];
+        NSString* widgetType = [command objectAtIndex:1];
+        NSString* widgetName = [command objectAtIndex:2];
+        CountlyFeedbackWidget* feedbackWidget = [self getFeedbackWidget:widgetId widgetType:widgetType widgetName:widgetName];
+
+            [feedbackWidget getWidgetData:^(NSDictionary * _Nullable widgetData, NSError * _Nullable error) {
+                if (error){
+                    NSString *theError = [@"getFeedbackWidgetData failed: " stringByAppendingString: error.localizedDescription];
+                    result(theError);
+                }
+                else{
+                    result(widgetData);
+                }
+            }];
+        });
+    } else if ([@"reportFeedbackWidgetManually" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+        NSArray* widgetInfo = [command objectAtIndex:0];
+//        NSDictionary* widgetData = [command objectAtIndex:1];
+        NSDictionary* widgetResult = [command objectAtIndex:2];
+            
+        NSString* widgetId = [widgetInfo objectAtIndex:0];
+        NSString* widgetType = [widgetInfo objectAtIndex:1];
+        NSString* widgetName = [widgetInfo objectAtIndex:2];
+            
+        CountlyFeedbackWidget* feedbackWidget = [self getFeedbackWidget:widgetId widgetType:widgetType widgetName:widgetName];
+
+        [feedbackWidget recordResult:widgetResult];
+        });
+    }else if ([@"replaceAllAppKeysInQueueWithCurrentAppKey" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
             [Countly.sharedInstance replaceAllAppKeysInQueueWithCurrentAppKey];
         });
@@ -853,6 +880,17 @@ NSMutableDictionary *networkRequest = nil;
     } else {
         result(FlutterMethodNotImplemented);
     }
+}
+
+- (CountlyFeedbackWidget*)getFeedbackWidget:(NSString*)widgetId widgetType:(NSString *)widgetType widgetName:(NSString *)widgetName
+{
+    CountlyFeedbackWidget* feedbackWidget = [self getFeedbackWidget:widgetId];
+
+    if(feedbackWidget == nil) {
+      COUNTLY_FLUTTER_LOG(@"No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId);
+      feedbackWidget = [self createFeedbackWidget:widgetId widgetType:widgetType widgetName:widgetName];
+    }
+    return feedbackWidget;
 }
 
 - (CountlyFeedbackWidget*)getFeedbackWidget:(NSString*)widgetId

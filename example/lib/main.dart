@@ -556,8 +556,14 @@ class _MyAppState extends State<MyApp> {
         break;
       }
     }
-    List result = await Countly.getFeedbackWidgetData(chosenWidget!);
-    error = result[1];
+    if(chosenWidget != null) {
+      reportSurvey(chosenWidget);
+    }
+  }
+
+  void reportSurvey(CountlyPresentableFeedback chosenWidget) async {
+    List result = await Countly.getFeedbackWidgetData(chosenWidget);
+    String? error = result[1];
     if (error == null) {
       Map<String, dynamic> retrievedWidgetData = result[0];
       Map<String, Object> segments = {};
@@ -572,10 +578,10 @@ class _MyAppState extends State<MyApp> {
             String wType = question['type'];
             String questionId = question['id'];
             String answerKey = 'answ-' + questionId;
-            List<dynamic> choices = question['choices'];
             switch (wType) {
-              //multiple answer question
+            //multiple answer question
               case 'multi':
+                List<dynamic> choices = question['choices'];
                 String str = '';
                 for (int b = 0; b < choices.length; b++) {
                   if (b % 2 == 0) {
@@ -590,15 +596,16 @@ class _MyAppState extends State<MyApp> {
               case 'radio':
               //dropdown value selector
               case 'dropdown':
+                List<dynamic> choices = question['choices'];
                 int pick = rnd.nextInt(choices.length);
                 segments[answerKey] =
-                    choices[pick]['key']; //pick the key of random choice
+                choices[pick]['key']; //pick the key of random choice
                 break;
-              //text input field
+            //text input field
               case 'text':
                 segments[answerKey] = 'Some random text';
                 break;
-              //rating picker
+            //rating picker
               case 'rating':
                 segments[answerKey] = rnd.nextInt(11);
                 break;
@@ -609,6 +616,7 @@ class _MyAppState extends State<MyApp> {
       await Countly.reportFeedbackWidgetManually(
           chosenWidget, retrievedWidgetData, segments);
     }
+
   }
 
   void reportNPSManually() async {
@@ -629,8 +637,14 @@ class _MyAppState extends State<MyApp> {
         break;
       }
     }
-    List result = await Countly.getFeedbackWidgetData(chosenWidget!);
-    error = result[1];
+    if(chosenWidget != null) {
+      reportNPS(chosenWidget);
+    }
+  }
+
+  void reportNPS(CountlyPresentableFeedback chosenWidget) async {
+    List result = await Countly.getFeedbackWidgetData(chosenWidget);
+    String? error = result[1];
     if (error == null) {
       Map<String, dynamic> retrievedWidgetData = result[0];
       Map<String, Object> segments = {

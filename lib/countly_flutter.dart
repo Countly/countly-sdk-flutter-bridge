@@ -924,15 +924,10 @@ class Countly {
   }
 
   /// Downloads widget info and returns [widgetData, error]
-  /// Currently implemented for Android only
   /// [CountlyPresentableFeedback widgetInfo] - identifies the specific widget for which you want to download widget data
   static Future<List> getFeedbackWidgetData(
       CountlyPresentableFeedback widgetInfo) async {
     Map<String, dynamic> widgetData = Map<String, dynamic>();
-    if (!Platform.isAndroid) {
-      String error = 'getFeedbackWidgetData : To be implemented';
-      return [widgetData, error];
-    }
     String? error;
     List<String> args = [];
     args.add(widgetInfo.widgetId);
@@ -952,7 +947,6 @@ class Countly {
   }
 
   /// Report widget info and do data validation
-  /// Currently implemented for Android only
   /// [CountlyPresentableFeedback widgetInfo] - identifies the specific widget for which the feedback is filled out
   /// [Map<String, dynamic> widgetData] - widget data for this specific widget
   /// [Map<String, Object> widgetResult] - segmentation of the filled out feedback. If this segmentation is null, it will be assumed that the survey was closed before completion and mark it appropriately
@@ -960,9 +954,6 @@ class Countly {
       CountlyPresentableFeedback widgetInfo,
       Map<String, dynamic> widgetData,
       Map<String, Object> widgetResult) async {
-    if (!Platform.isAndroid) {
-      return 'reportFeedbackWidgetManually : To be implemented';
-    }
     List<String> widgetInfoList = [];
     widgetInfoList.add(widgetInfo.widgetId);
     widgetInfoList.add(widgetInfo.type);
