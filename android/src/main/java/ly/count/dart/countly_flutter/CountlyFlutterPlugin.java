@@ -782,6 +782,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         if (error != null) {
                             result.error("presentFeedbackWidget", error, null);
                         } else {
+                            methodChannel.invokeMethod("appearCallback", null);
                             result.success("presentFeedbackWidget success");
                         }
                     }

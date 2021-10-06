@@ -31,12 +31,13 @@ NSArray<CountlyFeedbackWidget*>* feedbackWidgetList = nil;
 CountlyConfig* config = nil;
 Boolean isInitialized = false;
 NSMutableDictionary *networkRequest = nil;
+FlutterMethodChannel* _channel;
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-  FlutterMethodChannel* channel = [FlutterMethodChannel
+  _channel = [FlutterMethodChannel
       methodChannelWithName:@"countly_flutter"
             binaryMessenger:[registrar messenger]];
   CountlyFlutterPlugin* instance = [[CountlyFlutterPlugin alloc] init];
-  [registrar addMethodCallDelegate:instance channel:channel];
+  [registrar addMethodCallDelegate:instance channel:_channel];
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
@@ -754,8 +755,13 @@ NSMutableDictionary *networkRequest = nil;
         NSString* widgetType = [command objectAtIndex:1];
         NSString* widgetName = [command objectAtIndex:2];
         CountlyFeedbackWidget* feedbackWidget = [self getFeedbackWidget:widgetId widgetType:widgetType widgetName:widgetName];
-
-        [feedbackWidget present];
+            [feedbackWidget presentWithAppearBlock:^{
+                [_channel invokeMethod:@"appearCallback" arguments:nil];
+                result(@"appeared");
+            } andDismissBlock:^{
+                [_channel invokeMethod:@"dismissCallback" arguments:nil];
+                result(@"dismissed");
+            }];
         });
     } else if ([@"getFeedbackWidgetData" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {

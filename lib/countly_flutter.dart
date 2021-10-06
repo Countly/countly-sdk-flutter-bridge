@@ -42,9 +42,35 @@ class Countly {
     }
   }
 
+  /// [VoidCallback? _appearCallback] Callback to be executed when feedback widget is displayed
+  /// [VoidCallback? _dismissCallback] Callback to be executed when feedback widget is dismissed
+  /// Note: currently dismissCallback is only implemented for iOS
+  static VoidCallback? _appearCallback;
+  static VoidCallback? _dismissCallback;
+
+  /// Callback handler to handle function calls from native iOS/Android to Dart.
+  static Future<void> _methodCallHandler(MethodCall call) async {
+    switch (call.method) {
+      case 'appearCallback':
+        if(_appearCallback != null) {
+          _appearCallback!();
+        }
+        break;
+      case 'dismissCallback':
+        if(_dismissCallback != null) {
+          _dismissCallback!();
+          _appearCallback = null;
+          _dismissCallback = null;
+        }
+    }
+  }
+
   static Future<String?> init(String serverUrl, String appKey,
       [String? deviceId]) async {
+
     _isInitialized = true;
+    _channel.setMethodCallHandler(_methodCallHandler);
+
     if (Platform.isAndroid) {
       messagingMode = {'TEST': '2', 'PRODUCTION': '0'};
     }
@@ -904,8 +930,16 @@ class Countly {
   /// Present a chosen feedback widget
   /// [CountlyPresentableFeedback widgetInfo] - Get available list of feedback widgets by calling 'getAvailableFeedbackWidgets()' and pass the widget object as a parameter.
   /// [String closeButtonText] - Text for cancel/close button.
+  /// [VoidCallback? appearBlock] Callback to be executed when feedback widget is displayed
+  /// [VoidCallback? dismissCallback] Callback to be executed when feedback widget is dismissed
+  /// Note: dismissCallback is only implemented for iOS
   static Future<String?> presentFeedbackWidget(
-      CountlyPresentableFeedback widgetInfo, String closeButtonText) async {
+      CountlyPresentableFeedback widgetInfo, String closeButtonText,
+      {VoidCallback? appearCallback, VoidCallback? dismissCallback}) async {
+
+    _appearCallback = appearCallback;
+    _dismissCallback = dismissCallback;
+
     List<String> args = [];
     args.add(widgetInfo.widgetId);
     args.add(widgetInfo.type);
@@ -919,6 +953,7 @@ class Countly {
     } on PlatformException catch (e) {
       result = e.message;
     }
+
     log(result);
     return result;
   }
