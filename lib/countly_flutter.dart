@@ -1294,9 +1294,14 @@ class Countly {
   }
 
   /// Enable campaign attribution reporting to Countly.
-  /// For iOS use 'recordAttributionID' instead of 'enableAttribution'
+  /// Deprecated for iOS, for iOS use 'recordAttributionID' instead.
   /// Should be call before Countly init
   static Future<String?> enableAttribution() async {
+    if (Platform.isIOS) {
+      String error = 'enableAttribution is deprecated, for iOS use recordAttributionID instead';
+      log(error);
+      return 'Error : $error';
+    }
     List<String> args = [];
     final String? result = await _channel.invokeMethod(
         'enableAttribution', <String, dynamic>{'data': json.encode(args)});
