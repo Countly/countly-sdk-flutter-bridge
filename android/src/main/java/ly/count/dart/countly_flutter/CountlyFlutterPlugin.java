@@ -786,6 +786,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                             result.success("presentFeedbackWidget success");
                         }
                     }
+
+                    @Override
+                    public void onClosed() {
+                        methodChannel.invokeMethod("dismissCallback", null);
+                    }
                 });
             } else if ("getFeedbackWidgetData".equals(call.method)) {
                 String widgetId = args.getString(0);
@@ -877,7 +882,22 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("enableAttribution".equals(call.method)) {
                 this.config.setEnableAttribution(true);
                 result.success("enableAttribution: success");
-            } else if ("appLoadingFinished".equals(call.method)) {
+            }
+            else if ("recordIndirectAttribution".equals(call.method)) {
+                String attributionId = args.getString(0);
+                Countly.sharedInstance().attribution().recordIndirectAttribution(attributionId);
+                result.success("recordIndirectAttribution: success");
+            }
+            else if ("recordDirectAttribution".equals(call.method)) {
+                String campaignId = args.getString(0);
+                String campaignUserId = args.getString(1);
+                if (campaignUserId.equals("null")) {
+                    campaignUserId = null;
+                }
+                Countly.sharedInstance().attribution().recordDirectAttribution(campaignId, campaignUserId);
+                result.success("recordIndirectAttribution: success");
+            }
+            else if ("appLoadingFinished".equals(call.method)) {
                 Countly.sharedInstance().apm().setAppIsLoaded();
                 result.success("appLoadingFinished: success");
             } else {
