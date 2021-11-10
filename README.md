@@ -26,7 +26,6 @@ Glad you asked. We need ideas, feedbacks and constructive comments. All your sug
 
 ## Acknowledgements ##
 
-This SDK was initially written by Panteon Technologies (ufuk@panteon.com.tr).<br>
 From 2014 to 2020 it was maintained by Trinisoft Technologies developers (trinisofttechnologies@gmail.com).
 
 ## Badges ##
