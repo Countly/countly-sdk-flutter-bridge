@@ -1267,23 +1267,16 @@ class Countly {
   }
 
   /// Enable campaign attribution reporting to Countly.
-  /// For iOS use 'recordAttributionID' instead of 'enableAttribution'
-  /// Should be call before Countly init
+  @Deprecated('Use recordIndirectAttribution instead')
   static Future<String?> enableAttribution() async {
-    List<String> args = [];
-    final String? result = await _channel.invokeMethod(
-        'enableAttribution', <String, dynamic>{'data': json.encode(args)});
-    log(result);
-    return result;
+    String error = 'enableAttribution is deprecated, use recordIndirectAttribution instead';
+    log(error);
+    return 'Error : $error';
   }
 
   /// set attribution Id for campaign attribution reporting.
-  /// Currently implemented for iOS only
-  /// For Android just call the enableAttribution to enable campaign attribution.
+  @Deprecated('Use recordIndirectAttribution instead')
   static Future<String?> recordAttributionID(String attributionID) async {
-    if (!Platform.isIOS) {
-      return 'recordAttributionID : To be implemented';
-    }
     if (attributionID.isEmpty) {
       String error = 'recordAttributionID, attributionID cannot be empty';
       log(error);
@@ -1292,7 +1285,43 @@ class Countly {
     List<String> args = [];
     args.add(attributionID);
     final String? result = await _channel.invokeMethod(
-        'recordAttributionID', <String, dynamic>{'data': json.encode(args)});
+        'recordIndirectAttribution', <String, dynamic>{'data': json.encode(args)});
+    log(result);
+    return result;
+  }
+
+  /// set indirect attribution Id for campaign attribution reporting.
+  static Future<String?> recordIndirectAttribution(String attributionID) async {
+    if (attributionID.isEmpty) {
+      String error = 'recordIndirectAttribution, attributionID cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
+    List<String> args = [];
+    args.add(attributionID);
+    final String? result = await _channel.invokeMethod(
+        'recordIndirectAttribution', <String, dynamic>{'data': json.encode(args)});
+    log(result);
+    return result;
+  }
+
+  /// set direct attribution Id for campaign attribution reporting.
+  /// Currently implemented for Android only.
+  static Future<String?> recordDirectAttribution(String campaignId, String campaignUserId) async {
+    if (!Platform.isAndroid) {
+      return 'recordDirectAttribution : To be implemented';
+    }
+    if (campaignId.isEmpty) {
+      String error = 'recordDirectAttribution, campaignId cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
+    campaignUserId ??= 'null';
+    List<String> args = [];
+    args.add(campaignId);
+    args.add(campaignUserId);
+    final String? result = await _channel.invokeMethod(
+        'recordDirectAttribution', <String, dynamic>{'data': json.encode(args)});
     log(result);
     return result;
   }

@@ -1,3 +1,9 @@
+## 21.11.0
+* Added "recordIndirectAttribution" method
+* Added "recordDirectAttribution" method for Android
+* Deprecated recordAttributionID method
+* Deprecated enableAttribution method
+
 ## 20.11.4
 * Moving a push related broadcast receiver declaration to the manifest to comply with 'PendingIntent' checks
 * Updated underlying android SDK to 20.11.9
