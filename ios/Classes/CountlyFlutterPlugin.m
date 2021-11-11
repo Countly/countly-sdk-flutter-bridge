@@ -752,33 +752,43 @@ FlutterMethodChannel* _channel;
     } else if ([@"presentFeedbackWidget" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         NSString* widgetId = [command objectAtIndex:0];
-        NSString* widgetType = [command objectAtIndex:1];
-        NSString* widgetName = [command objectAtIndex:2];
-        CountlyFeedbackWidget* feedbackWidget = [self getFeedbackWidget:widgetId widgetType:widgetType widgetName:widgetName];
+        CountlyFeedbackWidget* feedbackWidget = [self getFeedbackWidget:widgetId];
+        if(feedbackWidget == nil) {
+            NSString* errorMessage = [NSString stringWithFormat:@"No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId];
+              COUNTLY_FLUTTER_LOG(errorMessage);
+              result(errorMessage);
+        }
+        else {
             [feedbackWidget presentWithAppearBlock:^{
-                [_channel invokeMethod:@"appearCallback" arguments:nil];
-                result(@"appeared");
-            } andDismissBlock:^{
-                [_channel invokeMethod:@"dismissCallback" arguments:nil];
-                result(@"dismissed");
-            }];
+                            [_channel invokeMethod:@"widgetShown" arguments:nil];
+                            result(@"appeared");
+                        } andDismissBlock:^{
+                            [_channel invokeMethod:@"widgetClosed" arguments:nil];
+                            result(@"dismissed");
+                        }];
+        }
+            
         });
     } else if ([@"getFeedbackWidgetData" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         NSString* widgetId = [command objectAtIndex:0];
-        NSString* widgetType = [command objectAtIndex:1];
-        NSString* widgetName = [command objectAtIndex:2];
-        CountlyFeedbackWidget* feedbackWidget = [self getFeedbackWidget:widgetId widgetType:widgetType widgetName:widgetName];
-
-            [feedbackWidget getWidgetData:^(NSDictionary * _Nullable widgetData, NSError * _Nullable error) {
-                if (error){
-                    NSString *theError = [@"getFeedbackWidgetData failed: " stringByAppendingString: error.localizedDescription];
-                    result(theError);
-                }
-                else{
-                    result(widgetData);
-                }
-            }];
+        CountlyFeedbackWidget* feedbackWidget = [self getFeedbackWidget:widgetId];
+            if(feedbackWidget == nil) {
+                NSString* errorMessage = [NSString stringWithFormat:@"No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId];
+                  COUNTLY_FLUTTER_LOG(errorMessage);
+                  result(errorMessage);
+            }
+            else {
+                [feedbackWidget getWidgetData:^(NSDictionary * _Nullable widgetData, NSError * _Nullable error) {
+                    if (error){
+                        NSString *theError = [@"getFeedbackWidgetData failed: " stringByAppendingString: error.localizedDescription];
+                        result(theError);
+                    }
+                    else{
+                        result(widgetData);
+                    }
+                }];
+            }
         });
     } else if ([@"reportFeedbackWidgetManually" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
@@ -787,12 +797,16 @@ FlutterMethodChannel* _channel;
         NSDictionary* widgetResult = [command objectAtIndex:2];
             
         NSString* widgetId = [widgetInfo objectAtIndex:0];
-        NSString* widgetType = [widgetInfo objectAtIndex:1];
-        NSString* widgetName = [widgetInfo objectAtIndex:2];
             
-        CountlyFeedbackWidget* feedbackWidget = [self getFeedbackWidget:widgetId widgetType:widgetType widgetName:widgetName];
-
-        [feedbackWidget recordResult:widgetResult];
+        CountlyFeedbackWidget* feedbackWidget = [self getFeedbackWidget:widgetId];
+            if(feedbackWidget == nil) {
+                NSString* errorMessage = [NSString stringWithFormat:@"No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId];
+                  COUNTLY_FLUTTER_LOG(errorMessage);
+                  result(errorMessage);
+            }
+            else {
+                [feedbackWidget recordResult:widgetResult];
+            }
         });
     }else if ([@"replaceAllAppKeysInQueueWithCurrentAppKey" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
@@ -883,17 +897,6 @@ FlutterMethodChannel* _channel;
     }
 }
 
-- (CountlyFeedbackWidget*)getFeedbackWidget:(NSString*)widgetId widgetType:(NSString *)widgetType widgetName:(NSString *)widgetName
-{
-    CountlyFeedbackWidget* feedbackWidget = [self getFeedbackWidget:widgetId];
-
-    if(feedbackWidget == nil) {
-      COUNTLY_FLUTTER_LOG(@"No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId);
-      feedbackWidget = [self createFeedbackWidget:widgetId widgetType:widgetType widgetName:widgetName];
-    }
-    return feedbackWidget;
-}
-
 - (CountlyFeedbackWidget*)getFeedbackWidget:(NSString*)widgetId
 {
   if(feedbackWidgetList == nil) {
@@ -905,16 +908,6 @@ FlutterMethodChannel* _channel;
     }
   }
   return nil;
-}
-
-- (CountlyFeedbackWidget*)createFeedbackWidget:(NSString*)widgetId widgetType:(NSString *)widgetType widgetName:(NSString *)widgetName
-{
-  NSMutableDictionary* feedbackWidgetsDict = [NSMutableDictionary dictionaryWithCapacity:3];
-  feedbackWidgetsDict[@"_id"] = widgetId;
-  feedbackWidgetsDict[@"type"] = widgetType;
-  feedbackWidgetsDict[@"name"] = widgetName;
-  CountlyFeedbackWidget *feedbackWidget = [CountlyFeedbackWidget createWithDictionary:feedbackWidgetsDict];
-  return feedbackWidget;
 }
 
 + (void)onNotification: (NSDictionary *) notificationMessage{

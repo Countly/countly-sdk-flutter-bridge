@@ -42,25 +42,24 @@ class Countly {
     }
   }
 
-  /// [VoidCallback? _appearCallback] Callback to be executed when feedback widget is displayed
-  /// [VoidCallback? _dismissCallback] Callback to be executed when feedback widget is dismissed
-  /// Note: currently dismissCallback is only implemented for iOS
-  static VoidCallback? _appearCallback;
-  static VoidCallback? _dismissCallback;
+  /// [VoidCallback? _widgetShown] Callback to be executed when feedback widget is displayed
+  /// [VoidCallback? _widgetClosed] Callback to be executed when feedback widget is closed
+  static VoidCallback? _widgetShown;
+  static VoidCallback? _widgetClosed;
 
   /// Callback handler to handle function calls from native iOS/Android to Dart.
   static Future<void> _methodCallHandler(MethodCall call) async {
     switch (call.method) {
-      case 'appearCallback':
-        if(_appearCallback != null) {
-          _appearCallback!();
+      case 'widgetShown':
+        if(_widgetShown != null) {
+          _widgetShown!();
         }
         break;
-      case 'dismissCallback':
-        if(_dismissCallback != null) {
-          _dismissCallback!();
-          _appearCallback = null;
-          _dismissCallback = null;
+      case 'widgetClosed':
+        if(_widgetClosed != null) {
+          _widgetClosed!();
+          _widgetShown = null;
+          _widgetClosed = null;
         }
     }
   }
@@ -930,15 +929,15 @@ class Countly {
   /// Present a chosen feedback widget
   /// [CountlyPresentableFeedback widgetInfo] - Get available list of feedback widgets by calling 'getAvailableFeedbackWidgets()' and pass the widget object as a parameter.
   /// [String closeButtonText] - Text for cancel/close button.
-  /// [VoidCallback? appearBlock] Callback to be executed when feedback widget is displayed
-  /// [VoidCallback? dismissCallback] Callback to be executed when feedback widget is dismissed
-  /// Note: dismissCallback is only implemented for iOS
+  /// [VoidCallback? widgetShown] Callback to be executed when feedback widget is displayed
+  /// [VoidCallback? widgetClosed] Callback to be executed when feedback widget is closed
+  /// Note: widgetClosed is only implemented for iOS
   static Future<String?> presentFeedbackWidget(
       CountlyPresentableFeedback widgetInfo, String closeButtonText,
-      {VoidCallback? appearCallback, VoidCallback? dismissCallback}) async {
+      {VoidCallback? widgetShown, VoidCallback? widgetClosed}) async {
 
-    _appearCallback = appearCallback;
-    _dismissCallback = dismissCallback;
+    _widgetShown = widgetShown;
+    _widgetClosed = widgetClosed;
 
     List<String> args = [];
     args.add(widgetInfo.widgetId);
@@ -1294,14 +1293,9 @@ class Countly {
   }
 
   /// Enable campaign attribution reporting to Countly.
-  /// Deprecated for iOS, for iOS use 'recordAttributionID' instead.
+  /// For iOS use 'recordAttributionID' instead of 'enableAttribution'
   /// Should be call before Countly init
   static Future<String?> enableAttribution() async {
-    if (Platform.isIOS) {
-      String error = 'enableAttribution is deprecated, for iOS use recordAttributionID instead';
-      log(error);
-      return 'Error : $error';
-    }
     List<String> args = [];
     final String? result = await _channel.invokeMethod(
         'enableAttribution', <String, dynamic>{'data': json.encode(args)});

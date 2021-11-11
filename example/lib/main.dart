@@ -533,10 +533,10 @@ class _MyAppState extends State<MyApp> {
 
     for (CountlyPresentableFeedback widget in widgets) {
       if (widget.type == 'nps') {
-        await Countly.presentFeedbackWidget(widget, 'Close', appearCallback: () {
-          print('NPS appearCallback');
-        }, dismissCallback: () {
-          print('NPS dismissCallback');
+        await Countly.presentFeedbackWidget(widget, 'Close', widgetShown: () {
+          print('NPS widgetShown');
+        }, widgetClosed: () {
+          print('NPS widgetClosed');
         });
         break;
       }
