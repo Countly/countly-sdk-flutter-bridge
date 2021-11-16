@@ -877,7 +877,12 @@ FlutterMethodChannel* _channel;
             NSException *e = [NSException exceptionWithName:@"Native Exception Crash!" reason:@"Throw Native Exception..." userInfo:nil];
             @throw e;
         });
-    }else if([@"recordIndirectAttribution" isEqualToString:call.method]) {
+    }else if ([@"enableAttribution" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            config.enableAttribution = YES;
+        });
+        result(@"enableAttribution: success");
+    } else if([@"recordAttributionID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
             NSString* attributionID = [command objectAtIndex:0];
             if(CountlyCommon.sharedInstance.hasStarted) {
