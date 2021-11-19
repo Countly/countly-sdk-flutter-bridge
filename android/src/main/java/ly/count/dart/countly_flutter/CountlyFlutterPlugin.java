@@ -782,11 +782,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                             result.success("presentFeedbackWidget success");
                         }
                     }
-
-                    @Override
-                    public void onClosed() {
-                        methodChannel.invokeMethod("dismissCallback", null);
-                    }
                 });
             } else if ("getFeedbackWidgetData".equals(call.method)) {
                 String widgetId = args.getString(0);
