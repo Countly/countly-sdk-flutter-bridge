@@ -15,7 +15,7 @@
 + (CountlyFeedbackWidget *)createWithDictionary:(NSDictionary *)dictionary;
 @end
 
-NSString* const kCountlyFlutterSDKVersion = @"20.11.4";
+NSString* const kCountlyFlutterSDKVersion = @"21.11.0";
 NSString* const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 
 FlutterResult notificationListener = nil;
@@ -24,17 +24,20 @@ NSMutableArray *notificationIDs = nil;        // alloc here
 NSMutableArray<CLYFeature>* countlyFeatures = nil;
 BOOL enablePushNotifications = true;
 
+NSArray<CountlyFeedbackWidget*>* feedbackWidgetList = nil;
+
 @implementation CountlyFlutterPlugin
 
 CountlyConfig* config = nil;
 Boolean isInitialized = false;
 NSMutableDictionary *networkRequest = nil;
+FlutterMethodChannel* _channel;
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-  FlutterMethodChannel* channel = [FlutterMethodChannel
+  _channel = [FlutterMethodChannel
       methodChannelWithName:@"countly_flutter"
             binaryMessenger:[registrar messenger]];
   CountlyFlutterPlugin* instance = [[CountlyFlutterPlugin alloc] init];
-  [registrar addMethodCallDelegate:instance channel:channel];
+  [registrar addMethodCallDelegate:instance channel:_channel];
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
@@ -734,6 +737,7 @@ NSMutableDictionary *networkRequest = nil;
     }else if ([@"getAvailableFeedbackWidgets" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
             [Countly.sharedInstance getFeedbackWidgets:^(NSArray<CountlyFeedbackWidget *> * _Nonnull feedbackWidgets, NSError * _Nonnull error) {
+                feedbackWidgetList = [NSArray arrayWithArray:feedbackWidgets];
                 NSMutableArray* feedbackWidgetsArray = [NSMutableArray arrayWithCapacity:feedbackWidgets.count];
                   for (CountlyFeedbackWidget* retrievedWidget in feedbackWidgets) {
                       NSMutableDictionary* feedbackWidget = [NSMutableDictionary dictionaryWithCapacity:3];
@@ -748,16 +752,63 @@ NSMutableDictionary *networkRequest = nil;
     } else if ([@"presentFeedbackWidget" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         NSString* widgetId = [command objectAtIndex:0];
-        NSString* widgetType = [command objectAtIndex:1];
-            NSMutableDictionary* feedbackWidgetsDict = [NSMutableDictionary dictionaryWithCapacity:3];
+        CountlyFeedbackWidget* feedbackWidget = [self getFeedbackWidget:widgetId];
+        if(feedbackWidget == nil) {
+            NSString* errorMessage = [NSString stringWithFormat:@"No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId];
+              COUNTLY_FLUTTER_LOG(errorMessage);
+              result(errorMessage);
+        }
+        else {
+            [feedbackWidget presentWithAppearBlock:^{
+                            [_channel invokeMethod:@"widgetShown" arguments:nil];
+                            result(@"appeared");
+                        } andDismissBlock:^{
+                            [_channel invokeMethod:@"widgetClosed" arguments:nil];
+                            result(@"dismissed");
+                        }];
+        }
             
-            feedbackWidgetsDict[@"_id"] = widgetId;
-            feedbackWidgetsDict[@"type"] = widgetType;
-            feedbackWidgetsDict[@"name"] = widgetType;
-            CountlyFeedbackWidget *feedback = [CountlyFeedbackWidget createWithDictionary:feedbackWidgetsDict];
-            [feedback present];
         });
-    } else if ([@"replaceAllAppKeysInQueueWithCurrentAppKey" isEqualToString:call.method]) {
+    } else if ([@"getFeedbackWidgetData" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+        NSString* widgetId = [command objectAtIndex:0];
+        CountlyFeedbackWidget* feedbackWidget = [self getFeedbackWidget:widgetId];
+            if(feedbackWidget == nil) {
+                NSString* errorMessage = [NSString stringWithFormat:@"No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId];
+                  COUNTLY_FLUTTER_LOG(errorMessage);
+                  result(errorMessage);
+            }
+            else {
+                [feedbackWidget getWidgetData:^(NSDictionary * _Nullable widgetData, NSError * _Nullable error) {
+                    if (error){
+                        NSString *theError = [@"getFeedbackWidgetData failed: " stringByAppendingString: error.localizedDescription];
+                        result(theError);
+                    }
+                    else{
+                        result(widgetData);
+                    }
+                }];
+            }
+        });
+    } else if ([@"reportFeedbackWidgetManually" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+        NSArray* widgetInfo = [command objectAtIndex:0];
+//        NSDictionary* widgetData = [command objectAtIndex:1];
+        NSDictionary* widgetResult = [command objectAtIndex:2];
+            
+        NSString* widgetId = [widgetInfo objectAtIndex:0];
+            
+        CountlyFeedbackWidget* feedbackWidget = [self getFeedbackWidget:widgetId];
+            if(feedbackWidget == nil) {
+                NSString* errorMessage = [NSString stringWithFormat:@"No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId];
+                  COUNTLY_FLUTTER_LOG(errorMessage);
+                  result(errorMessage);
+            }
+            else {
+                [feedbackWidget recordResult:widgetResult];
+            }
+        });
+    }else if ([@"replaceAllAppKeysInQueueWithCurrentAppKey" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
             [Countly.sharedInstance replaceAllAppKeysInQueueWithCurrentAppKey];
         });
@@ -827,10 +878,10 @@ NSMutableDictionary *networkRequest = nil;
             @throw e;
         });
     }else if ([@"enableAttribution" isEqualToString:call.method]) {
-           dispatch_async(dispatch_get_main_queue(), ^ {
-               config.enableAttribution = YES;
-           });
-           result(@"enableAttribution: success");
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            config.enableAttribution = YES;
+        });
+        result(@"enableAttribution: success");
     } else if([@"recordAttributionID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
             NSString* attributionID = [command objectAtIndex:0];
@@ -850,6 +901,20 @@ NSMutableDictionary *networkRequest = nil;
         result(FlutterMethodNotImplemented);
     }
 }
+
+- (CountlyFeedbackWidget*)getFeedbackWidget:(NSString*)widgetId
+{
+  if(feedbackWidgetList == nil) {
+    return nil;
+  }
+  for (CountlyFeedbackWidget* feedbackWidget in feedbackWidgetList) {
+    if([feedbackWidget.ID isEqual:widgetId]) {
+      return feedbackWidget;
+    }
+  }
+  return nil;
+}
+
 + (void)onNotification: (NSDictionary *) notificationMessage{
     COUNTLY_FLUTTER_LOG(@"Notification received");
     COUNTLY_FLUTTER_LOG(@"The notification %@", notificationMessage);

@@ -1,3 +1,10 @@
+## 21.11.0
+* Added a way to retrieve feedback widget data and manually report them for iOS also
+* Added Appear and dismiss callback for nps/survey widgets
+* Updated minimum supported iOS versions to 10.0
+* Updated underlying android SDK to 21.11.0-RC2
+* Updated underlying iOS SDK to 21.11.1
+
 ## 20.11.4
 * Moving a push related broadcast receiver declaration to the manifest to comply with 'PendingIntent' checks
 * Updated underlying android SDK to 20.11.9

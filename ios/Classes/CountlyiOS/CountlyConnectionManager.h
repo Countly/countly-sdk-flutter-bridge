@@ -18,6 +18,9 @@ extern NSString* const kCountlyEndpointO;
 extern NSString* const kCountlyEndpointSDK;
 extern NSString* const kCountlyEndpointFeedback;
 extern NSString* const kCountlyEndpointWidget;
+extern NSString* const kCountlyEndpointSurveys;
+
+extern const NSInteger kCountlyGETRequestMaxLength;
 
 @interface CountlyConnectionManager : NSObject <NSURLSessionDelegate>
 
@@ -25,8 +28,6 @@ extern NSString* const kCountlyEndpointWidget;
 @property (nonatomic) NSString* host;
 @property (nonatomic) NSURLSessionTask* connection;
 @property (nonatomic) NSArray* pinnedCertificates;
-@property (nonatomic) NSString* customHeaderFieldName;
-@property (nonatomic) NSString* customHeaderFieldValue;
 @property (nonatomic) NSString* secretSalt;
 @property (nonatomic) BOOL alwaysUsePOST;
 @property (nonatomic) NSURLSessionConfiguration* URLSessionConfiguration;
@@ -45,7 +46,6 @@ extern NSString* const kCountlyEndpointWidget;
 - (void)sendUserDetails:(NSString *)userDetails;
 - (void)sendCrashReport:(NSString *)report immediately:(BOOL)immediately;
 - (void)sendOldDeviceID:(NSString *)oldDeviceID;
-- (void)sendParentDeviceID:(NSString *)parentDeviceID;
 - (void)sendAttribution;
 - (void)sendConsentChanges:(NSString *)consentChanges;
 - (void)sendPerformanceMonitoringTrace:(NSString *)trace;

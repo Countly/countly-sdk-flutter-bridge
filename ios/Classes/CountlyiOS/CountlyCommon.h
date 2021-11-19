@@ -23,11 +23,14 @@
 #import "CountlyRemoteConfig.h"
 #import "CountlyPerformanceMonitoring.h"
 
-#define COUNTLY_LOG(fmt, ...) CountlyInternalLog(fmt, ##__VA_ARGS__)
+#define CLY_LOG_E(fmt, ...) CountlyInternalLog(CLYInternalLogLevelError, fmt, ##__VA_ARGS__)
+#define CLY_LOG_W(fmt, ...) CountlyInternalLog(CLYInternalLogLevelWarning, fmt, ##__VA_ARGS__)
+#define CLY_LOG_I(fmt, ...) CountlyInternalLog(CLYInternalLogLevelInfo, fmt, ##__VA_ARGS__)
+#define CLY_LOG_D(fmt, ...) CountlyInternalLog(CLYInternalLogLevelDebug, fmt, ##__VA_ARGS__)
+#define CLY_LOG_V(fmt, ...) CountlyInternalLog(CLYInternalLogLevelVerbose, fmt, ##__VA_ARGS__)
 
 #if (TARGET_OS_IOS)
 #import <UIKit/UIKit.h>
-#import "WatchConnectivity/WatchConnectivity.h"
 #endif
 
 #if (TARGET_OS_WATCH)
@@ -41,7 +44,11 @@
 
 #import <objc/runtime.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 extern NSString* const kCountlyErrorDomain;
+
+extern NSString* const kCountlyReservedEventOrientation;
 
 NS_ERROR_ENUM(kCountlyErrorDomain)
 {
@@ -58,12 +65,19 @@ NS_ERROR_ENUM(kCountlyErrorDomain)
 
 @property (nonatomic) BOOL hasStarted;
 @property (nonatomic) BOOL enableDebug;
+@property (nonatomic) BOOL shouldIgnoreTrustCheck;
 @property (nonatomic, weak) id <CountlyLoggerDelegate> loggerDelegate;
-@property (nonatomic) BOOL enableAppleWatch;
+@property (nonatomic) CLYInternalLogLevel internalLogLevel;
 @property (nonatomic, copy) NSString* attributionID;
 @property (nonatomic) BOOL manualSessionHandling;
+@property (nonatomic) BOOL enableOrientationTracking;
 
-void CountlyInternalLog(NSString *format, ...) NS_FORMAT_FUNCTION(1,2);
+
+@property (nonatomic) NSUInteger maxKeyLength;
+@property (nonatomic) NSUInteger maxValueLength;
+@property (nonatomic) NSUInteger maxSegmentationValues;
+
+void CountlyInternalLog(CLYInternalLogLevel level, NSString *format, ...) NS_FORMAT_FUNCTION(2, 3);
 void CountlyPrint(NSString *stringToPrint);
 
 + (instancetype)sharedInstance;
@@ -79,9 +93,8 @@ void CountlyPrint(NSString *stringToPrint);
 #if (TARGET_OS_IOS || TARGET_OS_TV)
 - (UIViewController *)topViewController;
 - (void)tryPresentingViewController:(UIViewController *)viewController;
+- (void)tryPresentingViewController:(UIViewController *)viewController withCompletion:(void (^ __nullable) (void))completion;
 #endif
-
-- (void)startAppleWatchMatching;
 
 - (void)observeDeviceOrientationChanges;
 
@@ -110,6 +123,8 @@ void CountlyPrint(NSString *stringToPrint);
 - (NSString *)cly_SHA256;
 - (NSData *)cly_dataUTF8;
 - (NSString *)cly_valueForQueryStringKey:(NSString *)key;
+- (NSString *)cly_truncatedKey:(NSString *)explanation;
+- (NSString *)cly_truncatedValue:(NSString *)explanation;
 @end
 
 @interface NSArray (Countly)
@@ -118,6 +133,8 @@ void CountlyPrint(NSString *stringToPrint);
 
 @interface NSDictionary (Countly)
 - (NSString *)cly_JSONify;
+- (NSDictionary *)cly_truncated:(NSString *)explanation;
+- (NSDictionary *)cly_limited:(NSString *)explanation;
 @end
 
 @interface NSData (Countly)
@@ -132,3 +149,5 @@ void CountlyPrint(NSString *stringToPrint);
 @interface CountlyUserDetails (ClearUserDetails)
 - (void)clearUserDetails;
 @end
+
+NS_ASSUME_NONNULL_END
