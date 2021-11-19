@@ -59,7 +59,15 @@ class _MyAppState extends State<MyApp> {
             false); // Set to 'true' if you want HTTP POST to be used for all requests
         Countly
             .enableApm(); // Enable APM features, which includes the recording of app start time.
-        Countly.recordIndirectAttribution('ADVERTISING_ID');
+
+        Map<String, String> attributionValues = {};
+        if(Platform.isIOS){
+          attributionValues[AttributionKey.IDFA] = 'IDFA';
+        }
+        else {
+          attributionValues[AttributionKey.AdvertisingID] = 'AdvertisingID';
+        }
+        Countly.recordIndirectAttribution(attributionValues);
         Countly.setRemoteConfigAutomaticDownload((result) {
           print(result);
         }); // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.

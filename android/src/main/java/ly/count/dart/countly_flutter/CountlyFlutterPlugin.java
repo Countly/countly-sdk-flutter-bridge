@@ -884,9 +884,16 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success("enableAttribution: success");
             }
             else if ("recordIndirectAttribution".equals(call.method)) {
-                String attributionId = args.getString(0);
-                Countly.sharedInstance().attribution().recordIndirectAttribution(attributionId);
-                result.success("recordIndirectAttribution: success");
+                JSONObject attributionValues = args.getJSONObject(0);
+                String AdvertisingIDKey = "adid";
+                if (attributionValues != null && attributionValues.length() > 0 && attributionValues.has(AdvertisingIDKey)) {
+                    String attributionId = attributionValues.getString(AdvertisingIDKey);
+                    Countly.sharedInstance().attribution().recordIndirectAttribution(attributionId);
+                    result.success("recordIndirectAttribution: success");
+                }
+                else {
+                    result.error("","recordIndirectAttribution: failure", null);
+                }
             }
             else if ("recordDirectAttribution".equals(call.method)) {
                 String campaignId = args.getString(0);

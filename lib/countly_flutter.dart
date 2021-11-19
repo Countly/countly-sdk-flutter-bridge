@@ -6,6 +6,11 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:pedantic/pedantic.dart';
 
+abstract class AttributionKey {
+  static String IDFA = 'idfa';
+  static String AdvertisingID = 'adid';
+}
+
 enum LogLevel { INFO, DEBUG, VERBOSE, WARNING, ERROR }
 
 class Countly {
@@ -31,6 +36,7 @@ class Countly {
     'PRODUCTION': '0',
     'ADHOC': '2'
   };
+
   static Map<String, String> deviceIDType = {
     'TemporaryDeviceID': 'TemporaryDeviceID'
   };
@@ -1291,14 +1297,16 @@ class Countly {
   }
 
   /// set indirect attribution Id for campaign attribution reporting.
-  static Future<String?> recordIndirectAttribution(String attributionID) async {
-    if (attributionID.isEmpty) {
-      String error = 'recordIndirectAttribution, attributionID cannot be empty';
-      log(error);
-      return 'Error : $error';
-    }
-    List<String> args = [];
-    args.add(attributionID);
+  static Future<String?> recordIndirectAttribution(Map<String, String> attributionValues) async {
+    attributionValues.forEach((k, v) {
+      if(k.isEmpty || v.isEmpty) {
+        String error = 'recordIndirectAttribution, Key-Value should not be empty, ignoring that key-value pair';
+        log(error);
+        attributionValues.removeWhere((key, value) => key == k && value == v);
+      }
+    });
+    List<dynamic> args = [];
+    args.add(attributionValues);
     final String? result = await _channel.invokeMethod(
         'recordIndirectAttribution', <String, dynamic>{'data': json.encode(args)});
     log(result);

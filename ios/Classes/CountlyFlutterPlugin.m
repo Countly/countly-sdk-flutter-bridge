@@ -828,12 +828,16 @@ NSMutableDictionary *networkRequest = nil;
         });
     }else if([@"recordIndirectAttribution" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
-            NSString* attributionID = [command objectAtIndex:0];
-            if(CountlyCommon.sharedInstance.hasStarted) {
-              [Countly.sharedInstance recordAttributionID: attributionID];
-            }
-            else {
-              config.attributionID = attributionID;
+            NSDictionary* attributionValues = [command objectAtIndex:0];
+            NSString* IDFAKey = @"idfa";
+            NSString* attributionID = [attributionValues objectForKey:IDFAKey];
+            if (attributionID) {
+                if(CountlyCommon.sharedInstance.hasStarted) {
+                  [Countly.sharedInstance recordAttributionID: attributionID];
+                }
+                else {
+                  config.attributionID = attributionID;
+                }
             }
         });
     }else if ([@"appLoadingFinished" isEqualToString:call.method]) {
