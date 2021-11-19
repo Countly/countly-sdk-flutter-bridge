@@ -13,8 +13,10 @@
 #include <sys/sysctl.h>
 
 #if (TARGET_OS_IOS)
+#if (!TARGET_OS_MACCATALYST)
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
 #import <CoreTelephony/CTCarrier.h>
+#endif
 #elif (TARGET_OS_OSX)
 #import <IOKit/ps/IOPowerSources.h>
 #endif
@@ -31,11 +33,14 @@ CLYMetricKey const CLYMetricKeyLocale             = @"_locale";
 CLYMetricKey const CLYMetricKeyHasWatch           = @"_has_watch";
 CLYMetricKey const CLYMetricKeyInstalledWatchApp  = @"_installed_watch_app";
 
-#if (TARGET_OS_IOS)
 @interface CountlyDeviceInfo ()
+@property (nonatomic) BOOL isInBackground;
+#if (TARGET_OS_IOS)
+#if (!TARGET_OS_MACCATALYST)
 @property (nonatomic) CTTelephonyNetworkInfo* networkInfo;
-@end
 #endif
+#endif
+@end
 
 @implementation CountlyDeviceInfo
 
@@ -53,11 +58,39 @@ CLYMetricKey const CLYMetricKeyInstalledWatchApp  = @"_installed_watch_app";
     {
         self.deviceID = [CountlyPersistency.sharedInstance retrieveDeviceID];
 #if (TARGET_OS_IOS)
+#if (!TARGET_OS_MACCATALYST)
         self.networkInfo = CTTelephonyNetworkInfo.new;
+#endif
+#endif
+
+#if (TARGET_OS_IOS || TARGET_OS_TV)
+        self.isInBackground = (UIApplication.sharedApplication.applicationState == UIApplicationStateBackground);
+
+        [NSNotificationCenter.defaultCenter addObserver:self
+                                               selector:@selector(applicationDidEnterBackground:)
+                                                   name:UIApplicationDidEnterBackgroundNotification
+                                                 object:nil];
+
+        [NSNotificationCenter.defaultCenter addObserver:self
+                                               selector:@selector(applicationWillEnterForeground:)
+                                                   name:UIApplicationWillEnterForegroundNotification
+                                                 object:nil];
 #endif
     }
 
     return self;
+}
+
+//NOTE: Using this flag instead of a direct call to UIApplication's applicationState method
+//      in order to avoid making a UI call on a non-main thread at the moment of a crash.
+- (void)applicationDidEnterBackground:(NSNotification *)notification
+{
+    self.isInBackground = YES;
+}
+
+- (void)applicationWillEnterForeground:(NSNotification *)notification
+{
+    self.isInBackground = NO;
 }
 
 - (void)initializeDeviceID:(NSString *)deviceID
@@ -112,10 +145,14 @@ CLYMetricKey const CLYMetricKeyInstalledWatchApp  = @"_installed_watch_app";
 + (NSString *)deviceType
 {
 #if (TARGET_OS_IOS)
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+#if (TARGET_OS_MACCATALYST)
+    return @"desktop";
+#else
+    if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
         return @"tablet";
 
     return @"mobile";
+#endif
 #elif (TARGET_OS_WATCH)
     return @"wearable";
 #elif (TARGET_OS_TV)
@@ -179,7 +216,12 @@ CLYMetricKey const CLYMetricKeyInstalledWatchApp  = @"_installed_watch_app";
 + (NSString *)carrier
 {
 #if (TARGET_OS_IOS)
+#if (!TARGET_OS_MACCATALYST)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     return CountlyDeviceInfo.sharedInstance.networkInfo.subscriberCellularProvider.carrierName;
+#pragma GCC diagnostic pop
+#endif
 #endif
     //NOTE: it is not possible to get carrier info on Apple Watches as CoreTelephony is not available.
     return nil;
@@ -233,24 +275,6 @@ CLYMetricKey const CLYMetricKeyInstalledWatchApp  = @"_installed_watch_app";
     return [NSBundle.mainBundle objectForInfoDictionaryKey:(NSString*)kCFBundleVersionKey];
 }
 
-#if (TARGET_OS_IOS)
-+ (NSInteger)hasWatch
-{
-    if (@available(iOS 9.0, *))
-        return (NSInteger)WCSession.defaultSession.paired;
-
-    return 0;
-}
-
-+ (NSInteger)installedWatchApp
-{
-    if (@available(iOS 9.0, *))
-        return (NSInteger)WCSession.defaultSession.watchAppInstalled;
-
-    return 0;
-}
-#endif
-
 + (NSString *)metrics
 {
     NSMutableDictionary* metricsDictionary = NSMutableDictionary.new;
@@ -268,25 +292,7 @@ CLYMetricKey const CLYMetricKeyInstalledWatchApp  = @"_installed_watch_app";
     metricsDictionary[CLYMetricKeyDensity] = CountlyDeviceInfo.density;
     metricsDictionary[CLYMetricKeyLocale] = CountlyDeviceInfo.locale;
 
-#if (TARGET_OS_IOS)
-    if (CountlyCommon.sharedInstance.enableAppleWatch)
-    {
-        if (CountlyConsentManager.sharedInstance.consentForAppleWatch)
-        {
-            metricsDictionary[CLYMetricKeyHasWatch] = @(CountlyDeviceInfo.hasWatch);
-            metricsDictionary[CLYMetricKeyInstalledWatchApp] = @(CountlyDeviceInfo.installedWatchApp);
-        }
-    }
-#endif
-
-    if (CountlyDeviceInfo.sharedInstance.customMetrics)
-    {
-        [CountlyDeviceInfo.sharedInstance.customMetrics enumerateKeysAndObjectsUsingBlock:^(NSString* key, NSString* value, BOOL* stop)
-        {
-            if ([value isKindOfClass:NSString.class])
-                metricsDictionary[key] = value;
-        }];
-    }
+    [metricsDictionary addEntriesFromDictionary:CountlyDeviceInfo.sharedInstance.customMetrics];
 
     return [metricsDictionary cly_JSONify];
 }
@@ -300,9 +306,6 @@ CLYMetricKey const CLYMetricKeyInstalledWatchApp  = @"_installed_watch_app";
         CLYConnectionNone,
         CLYConnectionWiFi,
         CLYConnectionCellNetwork,
-        CLYConnectionCellNetwork2G,
-        CLYConnectionCellNetwork3G,
-        CLYConnectionCellNetworkLTE
     } CLYConnectionType;
 
     CLYConnectionType connType = CLYConnectionNone;
@@ -322,27 +325,6 @@ CLYMetricKey const CLYMetricKeyInstalledWatchApp  = @"_installed_watch_app";
                     if ([[NSString stringWithUTF8String:i->ifa_name] isEqualToString:@"pdp_ip0"])
                     {
                         connType = CLYConnectionCellNetwork;
-
-#if (TARGET_OS_IOS)
-                        NSDictionary* connectionTypes =
-                        @{
-                            CTRadioAccessTechnologyGPRS: @(CLYConnectionCellNetwork2G),
-                            CTRadioAccessTechnologyEdge: @(CLYConnectionCellNetwork2G),
-                            CTRadioAccessTechnologyCDMA1x: @(CLYConnectionCellNetwork2G),
-                            CTRadioAccessTechnologyWCDMA: @(CLYConnectionCellNetwork3G),
-                            CTRadioAccessTechnologyHSDPA: @(CLYConnectionCellNetwork3G),
-                            CTRadioAccessTechnologyHSUPA: @(CLYConnectionCellNetwork3G),
-                            CTRadioAccessTechnologyCDMAEVDORev0: @(CLYConnectionCellNetwork3G),
-                            CTRadioAccessTechnologyCDMAEVDORevA: @(CLYConnectionCellNetwork3G),
-                            CTRadioAccessTechnologyCDMAEVDORevB: @(CLYConnectionCellNetwork3G),
-                            CTRadioAccessTechnologyeHRPD: @(CLYConnectionCellNetwork3G),
-                            CTRadioAccessTechnologyLTE: @(CLYConnectionCellNetworkLTE)
-                        };
-
-                        NSString* radioAccessTech = CountlyDeviceInfo.sharedInstance.networkInfo.currentRadioAccessTechnology;
-                        if (connectionTypes[radioAccessTech])
-                            connType = [connectionTypes[radioAccessTech] integerValue];
-#endif
                     }
                     else if ([[NSString stringWithUTF8String:i->ifa_name] isEqualToString:@"en0"])
                     {
@@ -359,7 +341,7 @@ CLYMetricKey const CLYMetricKeyInstalledWatchApp  = @"_installed_watch_app";
     }
     @catch (NSException *exception)
     {
-        COUNTLY_LOG(@"Connection type can not be retrieved: \n%@", exception);
+        CLY_LOG_W(@"Connection type can not be retrieved: \n%@", exception);
     }
 
     return connType;
@@ -399,14 +381,7 @@ CLYMetricKey const CLYMetricKeyInstalledWatchApp  = @"_installed_watch_app";
     UIDevice.currentDevice.batteryMonitoringEnabled = YES;
     return abs((int)(UIDevice.currentDevice.batteryLevel * 100));
 #elif (TARGET_OS_WATCH)
-    if (@available(watchOS 4.0, *))
-    {
-        return abs((int)(WKInterfaceDevice.currentDevice.batteryLevel * 100));
-    }
-    else
-    {
-        return 100;
-    }
+    return abs((int)(WKInterfaceDevice.currentDevice.batteryLevel * 100));
 #elif (TARGET_OS_OSX)
     CFTypeRef sourcesInfo = IOPSCopyPowerSourcesInfo();
     NSArray *sources = (__bridge NSArray*)IOPSCopyPowerSourcesList(sourcesInfo);
@@ -430,13 +405,10 @@ CLYMetricKey const CLYMetricKeyInstalledWatchApp  = @"_installed_watch_app";
     if (orientation >= 0 && orientation < orientations.count)
         return orientations[orientation];
 #elif (TARGET_OS_WATCH)
-    if (@available(watchOS 3.0, *))
-    {
-        NSArray *orientations = @[@"CrownLeft", @"CrownRight"];
-        WKInterfaceDeviceCrownOrientation orientation = WKInterfaceDevice.currentDevice.crownOrientation;
-        if (orientation >= 0 && orientation < orientations.count)
-            return orientations[orientation];
-    }
+    NSArray *orientations = @[@"CrownLeft", @"CrownRight"];
+    WKInterfaceDeviceCrownOrientation orientation = WKInterfaceDevice.currentDevice.crownOrientation;
+    if (orientation >= 0 && orientation < orientations.count)
+        return orientations[orientation];
 #endif
 
     return nil;
@@ -452,11 +424,7 @@ CLYMetricKey const CLYMetricKeyInstalledWatchApp  = @"_installed_watch_app";
 
 + (BOOL)isInBackground
 {
-#if (TARGET_OS_IOS || TARGET_OS_TV)
-    return UIApplication.sharedApplication.applicationState == UIApplicationStateBackground;
-#else
-    return NO;
-#endif
+    return CountlyDeviceInfo.sharedInstance.isInBackground;
 }
 
 @end

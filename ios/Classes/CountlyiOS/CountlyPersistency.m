@@ -45,7 +45,10 @@ NSString* const kCountlyCustomCrashLogFileName = @"CountlyCustomCrash.log";
 
         if (readData)
         {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
             NSDictionary* readDict = [NSKeyedUnarchiver unarchiveObjectWithData:readData];
+#pragma GCC diagnostic pop
 
             self.queuedRequests = [readDict[kCountlyQueuedRequestsPersistencyKey] mutableCopy];
         }
@@ -114,7 +117,7 @@ NSString* const kCountlyCustomCrashLogFileName = @"CountlyCustomCrash.log";
         {
             if ([queryString containsString:temporaryDeviceIDQueryString])
             {
-                COUNTLY_LOG(@"Detected a request with temporary device ID in queue and replaced it with real device ID.");
+                CLY_LOG_D(@"Detected a request with temporary device ID in queue and replaced it with real device ID.");
                 NSString * replacedQueryString = [queryString stringByReplacingOccurrencesOfString:temporaryDeviceIDQueryString withString:realDeviceIDQueryString];
                 self.queuedRequests[idx] = replacedQueryString;
             }
@@ -134,7 +137,7 @@ NSString* const kCountlyCustomCrashLogFileName = @"CountlyCustomCrash.log";
 
             if (![appKeyInQueryString isEqualToString:CountlyConnectionManager.sharedInstance.appKey.cly_URLEscaped])
             {
-                COUNTLY_LOG(@"Detected a request with a different app key (%@) in queue and replaced it with current app key.", appKeyInQueryString);
+                CLY_LOG_D(@"Detected a request with a different app key (%@) in queue and replaced it with current app key.", appKeyInQueryString);
 
                 NSString* currentAppKeyQueryString = [NSString stringWithFormat:@"%@=%@", kCountlyQSKeyAppKey, CountlyConnectionManager.sharedInstance.appKey.cly_URLEscaped];
                 NSString* differentAppKeyQueryString = [NSString stringWithFormat:@"%@=%@", kCountlyQSKeyAppKey, appKeyInQueryString];
@@ -160,7 +163,7 @@ NSString* const kCountlyCustomCrashLogFileName = @"CountlyCustomCrash.log";
             BOOL isSameAppKey = [appKeyInQueryString isEqualToString:CountlyConnectionManager.sharedInstance.appKey.cly_URLEscaped];
             if (!isSameAppKey)
             {
-                COUNTLY_LOG(@"Detected a request with a different app key (%@) in queue and removed it.", appKeyInQueryString);
+                CLY_LOG_D(@"Detected a request with a different app key (%@) in queue and removed it.", appKeyInQueryString);
             }
 
             return isSameAppKey;
@@ -178,6 +181,11 @@ NSString* const kCountlyCustomCrashLogFileName = @"CountlyCustomCrash.log";
 {
     @synchronized (self.recordedEvents)
     {
+        event.key = [event.key cly_truncatedKey:@"Event key"];
+        NSDictionary* truncated = [event.segmentation cly_truncated:@"Event segmentation"];
+        NSDictionary* limited = [truncated cly_limited:@"Event segmentation"];
+        event.segmentation = limited;
+
         [self.recordedEvents addObject:event];
 
         if (self.recordedEvents.count >= self.eventSendThreshold)
@@ -220,7 +228,7 @@ NSString* const kCountlyCustomCrashLogFileName = @"CountlyCustomCrash.log";
     {
         if (self.startedEvents[event.key])
         {
-            COUNTLY_LOG(@"Event with key '%@' already started!", event.key);
+            CLY_LOG_W(@"Event with key '%@' already started!", event.key);
             return;
         }
 
@@ -275,7 +283,7 @@ NSString* const kCountlyCustomCrashLogFileName = @"CountlyCustomCrash.log";
             [line writeToFile:crashLogFileURL.path atomically:YES encoding:NSUTF8StringEncoding error:&error];
             if (error)
             {
-                COUNTLY_LOG(@"Crash Log File can not be created: \n%@", error);
+                CLY_LOG_W(@"Crash Log File can not be created: \n%@", error);
             }
         }
     });
@@ -301,11 +309,11 @@ NSString* const kCountlyCustomCrashLogFileName = @"CountlyCustomCrash.log";
     NSError* error = nil;
     if ([NSFileManager.defaultManager fileExistsAtPath:crashLogFileURL.path])
     {
-        COUNTLY_LOG(@"Detected Crash Log File and deleting it.");
+        CLY_LOG_D(@"Detected Crash Log File and deleting it.");
         [NSFileManager.defaultManager removeItemAtURL:crashLogFileURL error:&error];
         if (error)
         {
-            COUNTLY_LOG(@"Crash Log File can not be deleted: \n%@", error);
+            CLY_LOG_W(@"Crash Log File can not be deleted: \n%@", error);
         }
     }
 }
@@ -336,7 +344,7 @@ NSString* const kCountlyCustomCrashLogFileName = @"CountlyCustomCrash.log";
             [NSFileManager.defaultManager createDirectoryAtURL:URL withIntermediateDirectories:YES attributes:nil error:&error];
             if (error)
             {
-                COUNTLY_LOG(@"Application Support directory can not be created: \n%@", error);
+                CLY_LOG_W(@"Application Support directory can not be created: \n%@", error);
             }
         }
     });
@@ -373,16 +381,14 @@ NSString* const kCountlyCustomCrashLogFileName = @"CountlyCustomCrash.log";
 
     @synchronized (self)
     {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         saveData = [NSKeyedArchiver archivedDataWithRootObject:@{kCountlyQueuedRequestsPersistencyKey: self.queuedRequests}];
+#pragma GCC diagnostic pop
     }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-variable"
-
     BOOL writeResult = [saveData writeToFile:[self storageFileURL].path atomically:YES];
-    COUNTLY_LOG(@"Result of writing data to file: %d", writeResult);
-
-#pragma clang diagnostic pop
+    CLY_LOG_D(@"Result of writing data to file: %d", writeResult);
 
     [CountlyCommon.sharedInstance finishBackgroundTask];
 }
@@ -395,11 +401,11 @@ NSString* const kCountlyCustomCrashLogFileName = @"CountlyCustomCrash.log";
 
     if (retrievedDeviceID)
     {
-        COUNTLY_LOG(@"Device ID successfully retrieved from UserDefaults: %@", retrievedDeviceID);
+        CLY_LOG_D(@"Device ID successfully retrieved from UserDefaults: %@", retrievedDeviceID);
         return retrievedDeviceID;
     }
 
-    COUNTLY_LOG(@"There is no stored Device ID in UserDefaults!");
+    CLY_LOG_D(@"There is no stored Device ID in UserDefaults!");
 
     return nil;
 }
@@ -409,7 +415,7 @@ NSString* const kCountlyCustomCrashLogFileName = @"CountlyCustomCrash.log";
     [NSUserDefaults.standardUserDefaults setObject:deviceID forKey:kCountlyStoredDeviceIDKey];
     [NSUserDefaults.standardUserDefaults synchronize];
 
-    COUNTLY_LOG(@"Device ID successfully stored in UserDefaults: %@", deviceID);
+    CLY_LOG_D(@"Device ID successfully stored in UserDefaults: %@", deviceID);
 }
 
 - (NSString *)retrieveNSUUID

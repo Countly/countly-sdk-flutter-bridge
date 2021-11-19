@@ -55,11 +55,6 @@ extern CLYDeviceIDType const CLYDeviceIDTypeTemporary;
 extern CLYDeviceIDType const CLYDeviceIDTypeIDFV;
 extern CLYDeviceIDType const CLYDeviceIDTypeNSUUID;
 
-//NOTE: Legacy device ID options
-extern NSString* const CLYIDFV DEPRECATED_MSG_ATTRIBUTE("Please use CLYDefaultDeviceID instead!");
-extern NSString* const CLYIDFA DEPRECATED_MSG_ATTRIBUTE("Please use CLYDefaultDeviceID instead!");
-extern NSString* const CLYOpenUDID DEPRECATED_MSG_ATTRIBUTE("Please use CLYDefaultDeviceID instead!");
-
 //NOTE: Available consents
 typedef NSString* CLYConsent NS_EXTENSIBLE_STRING_ENUM;
 extern CLYConsent const CLYConsentSessions;
@@ -71,7 +66,7 @@ extern CLYConsent const CLYConsentLocation;
 extern CLYConsent const CLYConsentViewTracking;
 extern CLYConsent const CLYConsentAttribution;
 extern CLYConsent const CLYConsentStarRating DEPRECATED_MSG_ATTRIBUTE("Please use CLYConsentFeedback instead!");
-extern CLYConsent const CLYConsentAppleWatch;
+extern CLYConsent const CLYConsentAppleWatch DEPRECATED_MSG_ATTRIBUTE("As automatic metrics for Apple Watch is not supported anymore, 'CLYConsentAppleWatch' is now inoperative!");
 extern CLYConsent const CLYConsentPerformanceMonitoring;
 extern CLYConsent const CLYConsentFeedback;
 extern CLYConsent const CLYConsentRemoteConfig;
@@ -96,9 +91,22 @@ extern CLYMetricKey const CLYMetricKeyHasWatch;
 extern CLYMetricKey const CLYMetricKeyInstalledWatchApp;
 
 
+//NOTE: Internal log levels
+typedef enum : NSUInteger
+{
+    CLYInternalLogLevelNone,
+    CLYInternalLogLevelError,
+    CLYInternalLogLevelWarning,
+    CLYInternalLogLevelInfo,
+    CLYInternalLogLevelDebug,
+    CLYInternalLogLevelVerbose
+} CLYInternalLogLevel;
+
+
 @protocol CountlyLoggerDelegate<NSObject>
-@required
-- (void)internalLog:(NSString *)log;
+- (void)internalLog:(NSString *)log withLevel:(CLYInternalLogLevel)level;
+@optional
+- (void)internalLog:(NSString *)log DEPRECATED_MSG_ATTRIBUTE("Use 'internalLog:withLevel:' method instead!");
 @end
 
 
@@ -127,11 +135,24 @@ extern CLYMetricKey const CLYMetricKeyInstalledWatchApp;
 @property (nonatomic) BOOL enableDebug;
 
 /**
+ * For ignoring all SSL trust checks by setting server trust as exception.
+ * @discussion Can be used for self-signed certificates.
+ * @discussion Works only for Development environment where @c DEBUG flag is set in Build Settings.
+ */
+@property (nonatomic) BOOL shouldIgnoreTrustCheck;
+
+/**
  * For receiving SDK's internal logs even in production builds.
  * @discussion If set, SDK will forward its internal logs to this delegate object regardless of @c enableDebug initial config value.
- * @discussion @c internalLog: method declared as @c required in @c CountlyLoggerDelegate protocol will be called with log @c NSString.
+ * @discussion @c internalLog:withLevel: method declared as @c required in @c CountlyLoggerDelegate protocol will be called with log @c NSString.
  */
 @property (nonatomic, weak) id <CountlyLoggerDelegate> loggerDelegate;
+
+/**
+ * For deciding which level SDK's internal logs should be printed at.
+ * @discussion Default value is @c CLYInternalLogLevelDebug.
+ */
+@property (nonatomic) CLYInternalLogLevel internalLogLevel;
 
 #pragma mark -
 
@@ -179,12 +200,6 @@ extern CLYMetricKey const CLYMetricKeyInstalledWatchApp;
 #pragma mark -
 
 /**
- * @c isTestDevice property is deprecated. Please use @c pushTestMode property instead.
- * @discussion Using this property will have no effect.
- */
-@property (nonatomic) BOOL isTestDevice DEPRECATED_MSG_ATTRIBUTE("Use 'pushTestMode' property instead!");
-
-/**
  * For specifying which test mode Countly Server should use for sending push notifications.
  * @discussion There are 2 test modes:
  * @discussion - @c CLYPushTestModeDevelopment: For development/debug builds signed with a development provisioning profile. Countly Server will send push notifications to Sandbox APNs.
@@ -202,7 +217,8 @@ extern CLYMetricKey const CLYMetricKeyInstalledWatchApp;
 
 /**
  * For disabling automatically showing of message alerts by @c CLYPushNotifications feature.
- * @discussion If set, push notifications that contain a message or a URL visit request will not show alerts automatically. Push Open event will be recorded automatically, but Push Action event needs to be recorded manually, as well as displaying the message manually.
+ * @discussion If set, push notifications that contain a message or a URL will not show alerts automatically.
+ * @discussion Push Action event needs to be recorded manually, as well as displaying the message.
  */
 @property (nonatomic) BOOL doNotShowAlertForNotifications;
 
@@ -260,19 +276,6 @@ extern CLYMetricKey const CLYMetricKeyInstalledWatchApp;
  */
 @property (nonatomic) BOOL resetStoredDeviceID;
 
-/**
- * @c forceDeviceIDInitialization property is deprecated. Please use @c resetStoredDeviceID property instead.
- * @discussion Using this property will have no effect.
- */
-@property (nonatomic) BOOL forceDeviceIDInitialization DEPRECATED_MSG_ATTRIBUTE("Use 'resetStoredDeviceID' property instead!");
-
-/**
- * @c applyZeroIDFAFixFor property is deprecated.
- * @discussion As IDFA is not supported anymore, @c applyZeroIDFAFix is now inoperative.
- * @discussion Using this property will have no effect.
- */
-@property (nonatomic) BOOL applyZeroIDFAFix DEPRECATED_MSG_ATTRIBUTE("As IDFA is not supported anymore, 'applyZeroIDFAFix' is now inoperative!");
-
 #pragma mark -
 
 /**
@@ -283,7 +286,7 @@ extern CLYMetricKey const CLYMetricKeyInstalledWatchApp;
 
 /**
  * Event send threshold is used for sending queued events to Countly Server when number of recorded events reaches to it, without waiting for next update session defined by @c updateSessionPeriod.
- * @discussion If not set, it will be 10 for @c iOS, @c tvOS & @c macOS, and 3 for @c watchOS by default.
+ * @discussion If not set, it will be 100 by default.
  */
 @property (nonatomic) NSUInteger eventSendThreshold;
 
@@ -294,6 +297,43 @@ extern CLYMetricKey const CLYMetricKeyInstalledWatchApp;
  * @discussion If not set, it will be 1000 by default.
  */
 @property (nonatomic) NSUInteger storedRequestsLimit;
+
+/**
+ * Limit for the length of all string keys.
+ * @discussion It affects:
+ * @discussion - event names
+ * @discussion - view names
+ * @discussion - APM network trace names
+ * @discussion - APM custom trace names
+ * @discussion - APM custom trace metric keys
+ * @discussion - segmentation keys
+ * @discussion - custom metric keys
+ * @discussion - custom user property keys
+ * @discussion Keys longer than this limit will be truncated.
+ * @discussion If not set, it will be 128 chars by default.
+ */
+@property (nonatomic) NSUInteger maxKeyLength;
+
+/**
+ * Limit for the length of values in all key-value pairs.
+ * @discussion It affects:
+ * @discussion - segmentation values
+ * @discussion - APM custom trace metric values
+ * @discussion - custom crash logs
+ * @discussion - custom metric values
+ * @discussion - custom user property values
+ * @discussion Values longer than this limit will be truncated.
+ * @discussion If not set, it will be 256 chars by default.
+ */
+@property (nonatomic) NSUInteger maxValueLength;
+
+/**
+ * Limit for the number of key-value pairs in segmentations.
+ * @discussion If there are more key-value pairs than this limit, some of them will be removed.
+ * @discussion As obviously there is no order among the keys of an NSDictionary, it is not defined which ones will be removed.
+ * @discussion If not set, it will be 30 by default.
+ */
+@property (nonatomic) NSUInteger maxSegmentationValues;
 
 /**
  * For sending all requests using HTTP POST method.
@@ -310,11 +350,11 @@ extern CLYMetricKey const CLYMetricKeyInstalledWatchApp;
 @property (nonatomic) BOOL manualSessionHandling;
 
 /**
- * For enabling automatic handling of Apple Watch related features for iOS apps with a watchOS counterpart app.
- * @discussion If set on both iOS and watchOS app, Apple Watch related features such as parent device matching, pairing status, and watch app installing status will be handled automatically.
- * @discussion This flag should not be set on independent watchOS apps.
+ * @c enableAppleWatch property is deprecated.
+ * @discussion As automatic metrics for Apple Watch is not supported anymore, @c enableAppleWatch is now inoperative.
+ * @discussion Using this property will have no effect.
  */
-@property (nonatomic) BOOL enableAppleWatch;
+@property (nonatomic) BOOL enableAppleWatch DEPRECATED_MSG_ATTRIBUTE("As automatic metrics for Apple Watch is not supported anymore, 'enableAppleWatch' is now inoperative!");
 
 #pragma mark -
 
@@ -344,6 +384,7 @@ extern CLYMetricKey const CLYMetricKeyInstalledWatchApp;
  * Crash log limit is used for limiting the number of crash logs to be stored on the device.
  * @discussion If number of stored crash logs reaches @c crashLogLimit, SDK will start to drop oldest crash log while appending the newest one.
  * @discussion If not set, it will be 100 by default.
+ * @discussion If @c shouldUsePLCrashReporter flag is set on initial config, this limit will not be applied.
  */
 @property (nonatomic) NSUInteger crashLogLimit;
 
@@ -397,18 +438,16 @@ extern CLYMetricKey const CLYMetricKeyInstalledWatchApp;
 @property (nonatomic, copy) NSArray* pinnedCertificates;
 
 /**
- * Name of the custom HTTP header field to be sent with every request.
- * @discussion e.g. X-My-Secret-Server-Token
- * @discussion If set, every request sent to Countly Server will have this custom HTTP header and its value will be @c customHeaderFieldValue property.
- * @discussion If @c customHeaderFieldValue is not set when Countly is started, requests will not start until it is set using @c setCustomHeaderFieldValue: method later.
+ * @c customHeaderFieldName property is deprecated. Please use @c URLSessionConfiguration property instead.
+ * @discussion Using this property will have no effect.
  */
-@property (nonatomic, copy) NSString* customHeaderFieldName;
+@property (nonatomic, copy) NSString* customHeaderFieldName DEPRECATED_MSG_ATTRIBUTE("Use 'URLSessionConfiguration' property instead!");
 
 /**
- * Value of the custom HTTP header field to be sent with every request if @c customHeaderFieldName is set.
- * @discussion If not set while @c customHeaderFieldName is set, requests will not start until it is set using @c setCustomHeaderFieldValue: method later.
+ * @c customHeaderFieldValue property is deprecated. Please use @c URLSessionConfiguration property instead.
+ * @discussion Using this property will have no effect.
  */
-@property (nonatomic, copy) NSString* customHeaderFieldValue;
+@property (nonatomic, copy) NSString* customHeaderFieldValue DEPRECATED_MSG_ATTRIBUTE("Use 'URLSessionConfiguration' property instead!");
 
 /**
  * Salt value to be used for parameter tampering protection.
@@ -473,6 +512,19 @@ extern CLYMetricKey const CLYMetricKeyInstalledWatchApp;
  * @discussion If set, Performance Monitoring feature will be started automatically on SDK start.
  */
 @property (nonatomic) BOOL enablePerformanceMonitoring;
+
+#pragma mark -
+
+/**
+ * For enabling automatic user interface orientation tracking.
+ * @discussion If set, user interface orientation tracking feature will be enabled.
+ * @discussion An event will be sent whenever user interface orientation changes.
+ * @discussion Orientation event will not be sent if consent for @c CLYConsentUserDetails is not given,
+ * while @c requiresConsent flag is set on initial configuration.
+ * @discussion Automatic user interface orientation tracking is enabled by default.
+ * @discussion For disabling it, please set this flag to @c NO.
+ */
+@property (nonatomic) BOOL enableOrientationTracking;
 NS_ASSUME_NONNULL_END
 
 @end

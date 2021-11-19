@@ -48,9 +48,34 @@ class Countly {
     }
   }
 
+  /// [VoidCallback? _widgetShown] Callback to be executed when feedback widget is displayed
+  /// [VoidCallback? _widgetClosed] Callback to be executed when feedback widget is closed
+  static VoidCallback? _widgetShown;
+  static VoidCallback? _widgetClosed;
+
+  /// Callback handler to handle function calls from native iOS/Android to Dart.
+  static Future<void> _methodCallHandler(MethodCall call) async {
+    switch (call.method) {
+      case 'widgetShown':
+        if(_widgetShown != null) {
+          _widgetShown!();
+        }
+        break;
+      case 'widgetClosed':
+        if(_widgetClosed != null) {
+          _widgetClosed!();
+          _widgetShown = null;
+          _widgetClosed = null;
+        }
+    }
+  }
+
   static Future<String?> init(String serverUrl, String appKey,
       [String? deviceId]) async {
+
     _isInitialized = true;
+    _channel.setMethodCallHandler(_methodCallHandler);
+
     if (Platform.isAndroid) {
       messagingMode = {'TEST': '2', 'PRODUCTION': '0'};
     }
@@ -910,11 +935,20 @@ class Countly {
   /// Present a chosen feedback widget
   /// [CountlyPresentableFeedback widgetInfo] - Get available list of feedback widgets by calling 'getAvailableFeedbackWidgets()' and pass the widget object as a parameter.
   /// [String closeButtonText] - Text for cancel/close button.
+  /// [VoidCallback? widgetShown] Callback to be executed when feedback widget is displayed
+  /// [VoidCallback? widgetClosed] Callback to be executed when feedback widget is closed
+  /// Note: widgetClosed is only implemented for iOS
   static Future<String?> presentFeedbackWidget(
-      CountlyPresentableFeedback widgetInfo, String closeButtonText) async {
+      CountlyPresentableFeedback widgetInfo, String closeButtonText,
+      {VoidCallback? widgetShown, VoidCallback? widgetClosed}) async {
+
+    _widgetShown = widgetShown;
+    _widgetClosed = widgetClosed;
+
     List<String> args = [];
     args.add(widgetInfo.widgetId);
     args.add(widgetInfo.type);
+    args.add(widgetInfo.name);
     args.add(closeButtonText);
     log(args.toString());
     String? result;
@@ -924,20 +958,16 @@ class Countly {
     } on PlatformException catch (e) {
       result = e.message;
     }
+
     log(result);
     return result;
   }
 
   /// Downloads widget info and returns [widgetData, error]
-  /// Currently implemented for Android only
   /// [CountlyPresentableFeedback widgetInfo] - identifies the specific widget for which you want to download widget data
   static Future<List> getFeedbackWidgetData(
       CountlyPresentableFeedback widgetInfo) async {
     Map<String, dynamic> widgetData = Map<String, dynamic>();
-    if (!Platform.isAndroid) {
-      String error = 'getFeedbackWidgetData : To be implemented';
-      return [widgetData, error];
-    }
     String? error;
     List<String> args = [];
     args.add(widgetInfo.widgetId);
@@ -957,7 +987,6 @@ class Countly {
   }
 
   /// Report widget info and do data validation
-  /// Currently implemented for Android only
   /// [CountlyPresentableFeedback widgetInfo] - identifies the specific widget for which the feedback is filled out
   /// [Map<String, dynamic> widgetData] - widget data for this specific widget
   /// [Map<String, Object> widgetResult] - segmentation of the filled out feedback. If this segmentation is null, it will be assumed that the survey was closed before completion and mark it appropriately
@@ -965,9 +994,6 @@ class Countly {
       CountlyPresentableFeedback widgetInfo,
       Map<String, dynamic> widgetData,
       Map<String, Object> widgetResult) async {
-    if (!Platform.isAndroid) {
-      return 'reportFeedbackWidgetManually : To be implemented';
-    }
     List<String> widgetInfoList = [];
     widgetInfoList.add(widgetInfo.widgetId);
     widgetInfoList.add(widgetInfo.type);
