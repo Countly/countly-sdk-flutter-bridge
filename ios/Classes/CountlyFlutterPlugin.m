@@ -54,14 +54,8 @@ FlutterMethodChannel* _channel;
     }
 
     if([@"init" isEqualToString:call.method]){
-
-        NSString* serverurl = [command  objectAtIndex:0];
-        NSString* appkey = [command objectAtIndex:1];
-        NSString* deviceID = @"";
-
-        config.appKey = appkey;
-        config.host = serverurl;
-        
+        NSDictionary* configDic = [command objectAtIndex:0];
+        [self populateConfig:configDic];
         CountlyCommon.sharedInstance.SDKName = kCountlyFlutterSDKName;
         CountlyCommon.sharedInstance.SDKVersion = kCountlyFlutterSDKVersion;
 
@@ -74,16 +68,7 @@ FlutterMethodChannel* _channel;
         }
 #endif
 #endif
-
-        if(command.count == 3){
-            deviceID = [command objectAtIndex:2];
-            if ([@"TemporaryDeviceID" isEqualToString:deviceID]) {
-                config.deviceID = CLYTemporaryDeviceID;
-            } else {
-                config.deviceID = deviceID;
-            }
-        }
-
+        NSString* serverurl = configDic[@"serverURL"];
         if (serverurl != nil && [serverurl length] > 0) {
             dispatch_async(dispatch_get_main_queue(), ^ {
               isInitialized = true;
@@ -913,6 +898,21 @@ FlutterMethodChannel* _channel;
     }
   }
   return nil;
+}
+
+- (void)populateConfig:(NSDictionary*)configDic
+{
+    config.appKey = configDic[@"appKey"];
+    config.host = configDic[@"serverURL"];
+    config.crashSegmentation = configDic[@"customCrashSegment"];
+    NSString* deviceID = configDic[@"deviceID"];
+    if(deviceID && ![deviceID isKindOfClass:[NSNull class]]){
+        if ([@"TemporaryDeviceID" isEqualToString:deviceID]) {
+            config.deviceID = CLYTemporaryDeviceID;
+        } else {
+            config.deviceID = deviceID;
+        }
+    }
 }
 
 + (void)onNotification: (NSDictionary *) notificationMessage{

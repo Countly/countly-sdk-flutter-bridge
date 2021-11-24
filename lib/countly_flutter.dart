@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:countly_flutter/countly_config.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'dart:io' show Platform;
@@ -66,23 +67,22 @@ class Countly {
 
   static Future<String?> init(String serverUrl, String appKey,
       [String? deviceId]) async {
+    CountlyConfig config = CountlyConfig(serverUrl, appKey, deviceId);
+    return await initWithConfig(config);
+  }
 
+  static Future<String?> initWithConfig(CountlyConfig config) async {
     _isInitialized = true;
     _channel.setMethodCallHandler(_methodCallHandler);
 
     if (Platform.isAndroid) {
       messagingMode = {'TEST': '2', 'PRODUCTION': '0'};
     }
-    List<String> args = [];
-    args.add(serverUrl);
-    args.add(appKey);
-    if (deviceId != null) {
-      args.add(deviceId);
-    }
+    List<dynamic> args = [];
+    args.add(config.toJson());
     log(args.toString());
     final String? result = await _channel
         .invokeMethod('init', <String, dynamic>{'data': json.encode(args)});
-    log(result);
     return result;
   }
 

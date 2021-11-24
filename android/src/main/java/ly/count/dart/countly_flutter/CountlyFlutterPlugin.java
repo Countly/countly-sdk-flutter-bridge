@@ -214,25 +214,13 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     result.error("init Failed", "valid context is required in Countly init, but was provided 'null'", null);
                     return;
                 }
-                String serverUrl = args.getString(0);
-                String appKey = args.getString(1);
+
+                JSONObject configJson = args.getJSONObject(0);
                 this.config.setContext(context);
-                this.config.setServerURL(serverUrl);
-                this.config.setAppKey(appKey);
+                populateConfig(configJson);
                 Countly.sharedInstance().COUNTLY_SDK_NAME = COUNTLY_FLUTTER_SDK_NAME;
                 Countly.sharedInstance().COUNTLY_SDK_VERSION_STRING = COUNTLY_FLUTTER_SDK_VERSION_STRING;
 
-                if (args.length() == 3) {
-                    String yourDeviceID = args.getString(2);
-                    if (yourDeviceID.equals("TemporaryDeviceID")) {
-                        this.config.enableTemporaryDeviceIdMode();
-
-                    } else {
-                        this.config.setDeviceId(yourDeviceID);
-                    }
-                } else {
-                    this.config.setIdMode(DeviceId.Type.OPEN_UDID);
-                }
                 if (activity == null) {
                     log("Activity is 'null' during init, cannot set Application", LogLevel.WARNING);
                 } else {
@@ -1002,6 +990,24 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             list.add(value);
         }
         return list;
+    }
+
+    private void populateConfig(JSONObject configJson) throws JSONException {
+        String deviceID = configJson.getString("deviceID");
+        Map<String, Object> customCrashSegment =  toMap(configJson.getJSONObject("customCrashSegment"));
+        log("deviceID is: ", LogLevel.WARNING);
+        if(!deviceID.equals("null")) {
+            if (deviceID.equals("TemporaryDeviceID")) {
+                this.config.enableTemporaryDeviceIdMode();
+
+            } else {
+                log("deviceID is not null ", LogLevel.ERROR);
+                this.config.setDeviceId(deviceID);
+            }
+        }
+        this.config.setServerURL(configJson.getString("serverURL"))
+                .setAppKey(configJson.getString("appKey"))
+                .setCustomCrashSegment(customCrashSegment);
     }
 
 

@@ -6,6 +6,7 @@ import 'dart:math';
 import 'dart:convert';
 
 import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter/countly_config.dart';
 
 /// This or a similar call needs to added to catch and report Dart Errors to Countly,
 /// You need to run app inside a Zone
@@ -76,7 +77,10 @@ class _MyAppState extends State<MyApp> {
 
         Countly.setStarRatingDialogTexts('Title', 'Message', 'Dismiss');
 
-        Countly.init(SERVER_URL, APP_KEY).then((value) {
+        var crashSegment = {'Key': 'Value'};
+        CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
+            ..setCustomCrashSegment(crashSegment);
+        Countly.initWithConfig(config).then((value) {
           Countly.appLoadingFinished();
           Countly.start();
 
