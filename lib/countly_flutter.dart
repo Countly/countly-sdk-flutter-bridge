@@ -204,25 +204,33 @@ class Countly {
 
   static Future<String?> setUserData(Map<String, Object> options) async {
     List<String> args = [];
-    options['name'] ??= '';
-    options['username'] ??= '';
-    options['email'] ??= '';
-    options['organization'] ??= '';
-    options['phone'] ??= '';
-    options['picture'] ??= '';
-    options['picturePath'] ??= '';
-    options['gender'] ??= '';
-    options['byear'] ??= '0';
-
-    args.add(options['name'].toString());
-    args.add(options['username'].toString());
-    args.add(options['email'].toString());
-    args.add(options['organization'].toString());
-    args.add(options['phone'].toString());
-    args.add(options['picture'].toString());
-    args.add(options['picturePath'].toString());
-    args.add(options['gender'].toString());
-    args.add(options['byear'].toString());
+    if(options.containsKey('name') && options['name'].toString().isNotEmpty) {
+      args.add(options['name'].toString());
+    }
+    if(options.containsKey('username') && options['username'].toString().isNotEmpty) {
+      args.add(options['username'].toString());
+    }
+    if(options.containsKey('email') && options['email'].toString().isNotEmpty) {
+      args.add(options['email'].toString());
+    }
+    if(options.containsKey('organization') && options['organization'].toString().isNotEmpty) {
+      args.add(options['organization'].toString());
+    }
+    if(options.containsKey('phone') && options['phone'].toString().isNotEmpty) {
+      args.add(options['phone'].toString());
+    }
+    if(options.containsKey('picture') && options['picture'].toString().isNotEmpty) {
+      args.add(options['picture'].toString());
+    }
+    if(options.containsKey('picturePath') && options['picturePath'].toString().isNotEmpty) {
+      args.add(options['picturePath'].toString());
+    }
+    if(options.containsKey('gender') && options['gender'].toString().isNotEmpty) {
+      args.add(options['gender'].toString());
+    }
+    if(options.containsKey('byear') && options['byear'].toString().isNotEmpty) {
+      args.add(options['byear'].toString());
+    }
 
     log(args.toString());
     final String? result = await _channel.invokeMethod(
