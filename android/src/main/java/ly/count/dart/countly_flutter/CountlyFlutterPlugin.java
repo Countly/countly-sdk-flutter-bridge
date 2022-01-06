@@ -995,13 +995,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private void populateConfig(JSONObject configJson) throws JSONException {
         String deviceID = configJson.getString("deviceID");
         Map<String, Object> customCrashSegment =  toMap(configJson.getJSONObject("customCrashSegment"));
-        log("deviceID is: ", LogLevel.WARNING);
         if(!deviceID.equals("null")) {
             if (deviceID.equals("TemporaryDeviceID")) {
                 this.config.enableTemporaryDeviceIdMode();
 
             } else {
-                log("deviceID is not null ", LogLevel.ERROR);
                 this.config.setDeviceId(deviceID);
             }
         }
