@@ -27,7 +27,10 @@ class Countly {
   /// Set true when user enabled crash logging
   static bool _enableCrashReportingFlag = false;
 
-  static Map<String, String> messagingMode = {
+  static Map<String, String> messagingMode = Platform.isAndroid ? {
+    'TEST': '2',
+    'PRODUCTION': '0'
+  } : {
     'TEST': '1',
     'PRODUCTION': '0',
     'ADHOC': '2'
@@ -65,6 +68,7 @@ class Countly {
     }
   }
 
+  @Deprecated('Use initWithConfig instead')
   static Future<String?> init(String serverUrl, String appKey,
       [String? deviceId]) async {
     CountlyConfig config = CountlyConfig(serverUrl, appKey, deviceId);
@@ -75,9 +79,6 @@ class Countly {
     _isInitialized = true;
     _channel.setMethodCallHandler(_methodCallHandler);
 
-    if (Platform.isAndroid) {
-      messagingMode = {'TEST': '2', 'PRODUCTION': '0'};
-    }
     List<dynamic> args = [];
     args.add(config.toJson());
     log(args.toString());
