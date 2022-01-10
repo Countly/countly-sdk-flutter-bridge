@@ -1014,6 +1014,13 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if(_config.has("tamperingProtectionSalt")) {
             this.config.setParameterTamperingProtectionSalt(_config.getString("tamperingProtectionSalt"));
         }
+        if(_config.has("eventQueueSizeThreshold")) {
+            this.config.setEventQueueSizeToSend(_config.getInt("eventQueueSizeThreshold"));
+        }
+        if(_config.has("sessionUpdateTimerDelay")) {
+            this.config.setUpdateSessionTimerDelay(_config.getInt("sessionUpdateTimerDelay"));
+        }
+
         if(_config.has("customCrashSegment")) {
             Map<String, Object> customCrashSegment =  toMap(_config.getJSONObject("customCrashSegment"));
             this.config.setCustomCrashSegment(customCrashSegment);

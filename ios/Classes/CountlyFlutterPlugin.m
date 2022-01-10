@@ -919,7 +919,15 @@ FlutterMethodChannel* _channel;
     }
     NSNumber* loggingEnabled = _config[@"loggingEnabled"];
     if(loggingEnabled) {
-        config.enableDebug = loggingEnabled.boolValue;
+        config.enableDebug = [loggingEnabled boolValue];
+    }
+    NSNumber* eventQueueSizeThreshold = _config[@"eventQueueSizeThreshold"];
+    if(eventQueueSizeThreshold) {
+        config.eventSendThreshold = [eventQueueSizeThreshold intValue];
+    }
+    NSNumber* sessionUpdateTimerDelay = _config[@"sessionUpdateTimerDelay"];
+    if(sessionUpdateTimerDelay) {
+        config.updateSessionPeriod = [sessionUpdateTimerDelay intValue];
     }
     NSString* salt = _config[@"tamperingProtectionSalt"];
     if(salt) {

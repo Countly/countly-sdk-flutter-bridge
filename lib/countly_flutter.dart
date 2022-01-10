@@ -331,7 +331,9 @@ class Countly {
   /// min value 1 (1 second),
   /// max value 600 (10 minutes)
   /// [int sessionInterval]- delay in seconds
+  @Deprecated('Use setUpdateSessionTimerDelay of CountlyConfig instead')
   static Future<String?> updateSessionInterval(int sessionInterval) async {
+    log('updateSessionInterval is deprecated, use setUpdateSessionTimerDelay instead', logLevel: LogLevel.WARNING);
     if (_isInitialized) {
       log('updateSessionInterval should be called before init',
           logLevel: LogLevel.WARNING);
@@ -348,7 +350,9 @@ class Countly {
 
   /// Events get grouped together and are sent either every minute or after the unsent event count reaches a threshold. By default it is 10
   /// Should be call before Countly init
+  @Deprecated('Use setEventQueueSizeToSend of CountlyConfig instead')
   static Future<String?> eventSendThreshold(int limit) async {
+    log('eventSendThreshold is deprecated, use setEventQueueSizeToSend of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     args.add(limit.toString());
     log(args.toString());

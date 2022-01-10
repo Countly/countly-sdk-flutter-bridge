@@ -6,6 +6,8 @@ class CountlyConfig {
   String? _deviceID;
   bool _loggingEnabled = false;
   String? _tamperingProtectionSalt;
+  int? _eventQueueSizeThreshold;
+  int? _sessionUpdateTimerDelay;
   Map<String, dynamic> _customCrashSegment = {};
 
   CountlyConfig(this._serverURL, this._appKey) {
@@ -34,6 +36,13 @@ class CountlyConfig {
     if(_tamperingProtectionSalt != null) {
       countlyConfig['tamperingProtectionSalt'] = _tamperingProtectionSalt;
     }
+    if(_eventQueueSizeThreshold != null) {
+      countlyConfig['eventQueueSizeThreshold'] = _eventQueueSizeThreshold;
+    }
+    if(_sessionUpdateTimerDelay != null) {
+      countlyConfig['sessionUpdateTimerDelay'] = _sessionUpdateTimerDelay;
+    }
+
     countlyConfig['loggingEnabled'] = _loggingEnabled;
     return countlyConfig;
   }
@@ -77,6 +86,25 @@ class CountlyConfig {
     _tamperingProtectionSalt = salt;
     return this;
   }
+
+  /// Set the threshold for event grouping. Event count that is bellow the
+  /// threshold will be sent on update ticks.
+  CountlyConfig setEventQueueSizeToSend(int threshold) {
+    _eventQueueSizeThreshold = threshold;
+    return this;
+  }
+
+  /// Sets the interval for the automatic session update calls
+  /// min value 1 (1 second),
+  /// max value 600 (10 minutes)
+  // [int delay] - delay in seconds
+  CountlyConfig setUpdateSessionTimerDelay(int delay) {
+    _sessionUpdateTimerDelay = delay;
+    return this;
+  }
+
+
+
 
   /// Set custom crash segmentation which will be added to all recorded crashes
   /// [Map<String, dynamic> customCrashSegment] - crashSegment segmentation information. Accepted values are "Integer", "String", "Double", "Boolean"
