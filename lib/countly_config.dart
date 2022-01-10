@@ -4,6 +4,7 @@ class CountlyConfig {
   String _appKey;
   String _serverURL;
   String? _deviceID;
+  bool _loggingEnabled = false;
   Map<String, dynamic> _customCrashSegment = {};
 
   CountlyConfig(this._serverURL, this._appKey) {
@@ -28,6 +29,8 @@ class CountlyConfig {
     if(_deviceID != null) {
       countlyConfig['deviceID'] = _deviceID;
     }
+
+    countlyConfig['loggingEnabled'] = _loggingEnabled;
     return countlyConfig;
   }
 
@@ -54,6 +57,14 @@ class CountlyConfig {
   /// unique ID for the device the app is running on.
   CountlyConfig setDeviceId(String deviceID) {
     _deviceID = deviceID;
+    return this;
+  }
+
+  /// Set to true of you want to enable countly internal debugging logs
+  /// those logs will be printed to the console
+  CountlyConfig setLoggingEnabled(bool enabled) {
+    Countly.isDebug = enabled;
+    _loggingEnabled = enabled;
     return this;
   }
 

@@ -909,6 +909,10 @@ FlutterMethodChannel* _channel;
     if(host) {
         config.host = host;
     }
+    NSNumber* loggingEnabled = _config[@"loggingEnabled"];
+    if(loggingEnabled) {
+        config.enableDebug = loggingEnabled.boolValue;
+    }
     NSString* crashSegmentation = _config[@"customCrashSegment"];
     if(crashSegmentation) {
         config.crashSegmentation = crashSegmentation;

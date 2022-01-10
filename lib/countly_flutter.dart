@@ -14,7 +14,7 @@ class Countly {
 
   /// Used to determine if log messages should be printed to the console
   /// its value should be updated from [setLoggingEnabled(bool flag)].
-  static bool _isDebug = false;
+  static bool isDebug = false;
 
   /// Used to determine if init is called.
   /// its value should be updated from [init(...)].
@@ -41,7 +41,7 @@ class Countly {
 
   static void log(String? message, {LogLevel logLevel = LogLevel.DEBUG}) async {
     String logLevelStr = describeEnum(logLevel);
-    if (_isDebug) {
+    if (isDebug) {
       print('[$tag] $logLevelStr: $message');
     }
   }
@@ -71,6 +71,8 @@ class Countly {
   @Deprecated('Use initWithConfig instead')
   static Future<String?> init(String serverUrl, String appKey,
       [String? deviceId]) async {
+    log('init is deprecated, use initWithConfig instead',
+        logLevel: LogLevel.WARNING);
     CountlyConfig config = CountlyConfig(serverUrl, appKey);
     if(deviceId != null) {
       config.setDeviceId(deviceId);
@@ -449,9 +451,11 @@ class Countly {
 
   /// Set to true if you want to enable countly internal debugging logs
   /// Should be call before Countly init
+  @Deprecated('Use CountlyConfig to enable/disable logging instead')
   static Future<String?> setLoggingEnabled(bool flag) async {
+    log('setLoggingEnabled is deprecated, use CountlyConfig to enable/disable logging', logLevel: LogLevel.WARNING);
     List<String> args = [];
-    _isDebug = flag;
+    isDebug = flag;
     args.add(flag.toString());
     log(args.toString());
     final String? result = await _channel.invokeMethod(
