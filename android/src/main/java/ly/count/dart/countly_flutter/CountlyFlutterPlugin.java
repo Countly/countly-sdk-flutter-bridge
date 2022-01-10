@@ -215,9 +215,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     return;
                 }
 
-                JSONObject configJson = args.getJSONObject(0);
+                JSONObject config = args.getJSONObject(0);
                 this.config.setContext(context);
-                populateConfig(configJson);
+                populateConfig(config);
                 Countly.sharedInstance().COUNTLY_SDK_NAME = COUNTLY_FLUTTER_SDK_NAME;
                 Countly.sharedInstance().COUNTLY_SDK_VERSION_STRING = COUNTLY_FLUTTER_SDK_VERSION_STRING;
 
@@ -992,10 +992,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         return list;
     }
 
-    private void populateConfig(JSONObject configJson) throws JSONException {
-        String deviceID = configJson.getString("deviceID");
-        Map<String, Object> customCrashSegment =  toMap(configJson.getJSONObject("customCrashSegment"));
-        if(!deviceID.equals("null")) {
+    private void populateConfig(JSONObject _config) throws JSONException {
+        if(_config.has("serverURL")) {
+            this.config.setServerURL(_config.getString("serverURL"));
+        }
+        if(_config.has("appKey")) {
+            this.config.setAppKey(_config.getString("appKey"));
+        }
+        if(_config.has("deviceID")) {
+            String deviceID = _config.getString("deviceID");
             if (deviceID.equals("TemporaryDeviceID")) {
                 this.config.enableTemporaryDeviceIdMode();
 
@@ -1003,10 +1008,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 this.config.setDeviceId(deviceID);
             }
         }
-        this.config.setServerURL(configJson.getString("serverURL"))
-                .setAppKey(configJson.getString("appKey"))
-                .setCustomCrashSegment(customCrashSegment);
+        if(_config.has("customCrashSegment")) {
+            Map<String, Object> customCrashSegment =  toMap(_config.getJSONObject("customCrashSegment"));
+            this.config.setCustomCrashSegment(customCrashSegment);
+        }
     }
-
-
 }

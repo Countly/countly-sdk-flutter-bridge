@@ -71,7 +71,10 @@ class Countly {
   @Deprecated('Use initWithConfig instead')
   static Future<String?> init(String serverUrl, String appKey,
       [String? deviceId]) async {
-    CountlyConfig config = CountlyConfig(serverUrl, appKey, deviceId);
+    CountlyConfig config = CountlyConfig(serverUrl, appKey);
+    if(deviceId != null) {
+      config.setDeviceId(deviceId);
+    }
     return await initWithConfig(config);
   }
 
