@@ -451,9 +451,9 @@ class Countly {
 
   /// Set to true if you want to enable countly internal debugging logs
   /// Should be call before Countly init
-  @Deprecated('Use CountlyConfig to enable/disable logging instead')
+  @Deprecated('Use setLoggingEnabled of CountlyConfig to enable/disable logging instead')
   static Future<String?> setLoggingEnabled(bool flag) async {
-    log('setLoggingEnabled is deprecated, use CountlyConfig to enable/disable logging', logLevel: LogLevel.WARNING);
+    log('setLoggingEnabled is deprecated, use setLoggingEnabled of CountlyConfig to enable/disable logging', logLevel: LogLevel.WARNING);
     List<String> args = [];
     isDebug = flag;
     args.add(flag.toString());
@@ -466,7 +466,9 @@ class Countly {
 
   /// Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request, using the &checksum field
   /// Should be call before Countly init
+  @Deprecated('Use setParameterTamperingProtectionSalt of CountlyConfig instead')
   static Future<String?> enableParameterTamperingProtection(String salt) async {
+    log('enableParameterTamperingProtection is deprecated, use setParameterTamperingProtectionSalt of CountlyConfig instead', logLevel: LogLevel.WARNING);
     if (salt.isEmpty) {
       String error = 'enableParameterTamperingProtection, salt cannot be empty';
       log(error);

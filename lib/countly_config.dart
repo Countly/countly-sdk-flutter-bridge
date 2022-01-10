@@ -5,6 +5,7 @@ class CountlyConfig {
   String _serverURL;
   String? _deviceID;
   bool _loggingEnabled = false;
+  String? _tamperingProtectionSalt;
   Map<String, dynamic> _customCrashSegment = {};
 
   CountlyConfig(this._serverURL, this._appKey) {
@@ -30,6 +31,9 @@ class CountlyConfig {
       countlyConfig['deviceID'] = _deviceID;
     }
 
+    if(_tamperingProtectionSalt != null) {
+      countlyConfig['tamperingProtectionSalt'] = _tamperingProtectionSalt;
+    }
     countlyConfig['loggingEnabled'] = _loggingEnabled;
     return countlyConfig;
   }
@@ -68,12 +72,19 @@ class CountlyConfig {
     return this;
   }
 
+  /// Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request, using the &checksum field
+  CountlyConfig setParameterTamperingProtectionSalt(String salt) {
+    _tamperingProtectionSalt = salt;
+    return this;
+  }
+
   /// Set custom crash segmentation which will be added to all recorded crashes
   /// [Map<String, dynamic> customCrashSegment] - crashSegment segmentation information. Accepted values are "Integer", "String", "Double", "Boolean"
   CountlyConfig setCustomCrashSegment(Map<String, dynamic> customCrashSegment){
     _customCrashSegment = customCrashSegment;
     return this;
   }
+
 
 
 }

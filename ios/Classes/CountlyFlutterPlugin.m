@@ -909,14 +909,6 @@ FlutterMethodChannel* _channel;
     if(host) {
         config.host = host;
     }
-    NSNumber* loggingEnabled = _config[@"loggingEnabled"];
-    if(loggingEnabled) {
-        config.enableDebug = loggingEnabled.boolValue;
-    }
-    NSString* crashSegmentation = _config[@"customCrashSegment"];
-    if(crashSegmentation) {
-        config.crashSegmentation = crashSegmentation;
-    }
     NSString* deviceID = _config[@"deviceID"];
     if(deviceID){
         if ([@"TemporaryDeviceID" isEqualToString:deviceID]) {
@@ -924,6 +916,19 @@ FlutterMethodChannel* _channel;
         } else {
             config.deviceID = deviceID;
         }
+    }
+    NSNumber* loggingEnabled = _config[@"loggingEnabled"];
+    if(loggingEnabled) {
+        config.enableDebug = loggingEnabled.boolValue;
+    }
+    NSString* salt = _config[@"tamperingProtectionSalt"];
+    if(salt) {
+        config.secretSalt = salt;
+    }
+
+    NSString* crashSegmentation = _config[@"customCrashSegment"];
+    if(crashSegmentation) {
+        config.crashSegmentation = crashSegmentation;
     }
 }
 

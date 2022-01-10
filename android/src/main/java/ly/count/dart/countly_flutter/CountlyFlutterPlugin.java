@@ -1011,6 +1011,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if(_config.has("loggingEnabled")) {
             this.config.setLoggingEnabled(_config.getBoolean("loggingEnabled"));
         }
+        if(_config.has("tamperingProtectionSalt")) {
+            this.config.setParameterTamperingProtectionSalt(_config.getString("tamperingProtectionSalt"));
+        }
         if(_config.has("customCrashSegment")) {
             Map<String, Object> customCrashSegment =  toMap(_config.getJSONObject("customCrashSegment"));
             this.config.setCustomCrashSegment(customCrashSegment);
