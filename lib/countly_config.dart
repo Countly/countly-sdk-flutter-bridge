@@ -5,6 +5,7 @@ class CountlyConfig {
   String _serverURL;
   String? _deviceID;
   bool _loggingEnabled = false;
+  bool _httpPostForced = false;
   String? _tamperingProtectionSalt;
   int? _eventQueueSizeThreshold;
   int? _sessionUpdateTimerDelay;
@@ -45,6 +46,7 @@ class CountlyConfig {
     }
 
     countlyConfig['loggingEnabled'] = _loggingEnabled;
+    countlyConfig['httpPostForced'] = _httpPostForced;
     countlyConfig['consents'] = _consents;
     return countlyConfig;
   }
@@ -115,6 +117,12 @@ class CountlyConfig {
   /// Sets which features are enabled in case consent is required
   CountlyConfig setConsentEnabled(List<String> consents) {
     _consents = consents;
+    return this;
+  }
+
+  /// Set to 'true' if you want HTTP POST to be used for all requests
+  CountlyConfig setHttpPostForced(bool isForced) {
+    _httpPostForced = isForced;
     return this;
   }
 

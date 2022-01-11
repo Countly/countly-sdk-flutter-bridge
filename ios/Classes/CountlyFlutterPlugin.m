@@ -921,6 +921,11 @@ FlutterMethodChannel* _channel;
     if(loggingEnabled) {
         config.enableDebug = [loggingEnabled boolValue];
     }
+    NSNumber* httpPostForced = _config[@"httpPostForced"];
+    if(httpPostForced) {
+        config.alwaysUsePOST = [httpPostForced boolValue];
+    }
+    
     NSNumber* eventQueueSizeThreshold = _config[@"eventQueueSizeThreshold"];
     if(eventQueueSizeThreshold) {
         config.eventSendThreshold = [eventQueueSizeThreshold intValue];

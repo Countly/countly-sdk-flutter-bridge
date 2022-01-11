@@ -37,8 +37,6 @@ class _MyAppState extends State<MyApp> {
             '10.2.33.12'); // Set user initial location.
 
         /// Optional settings for Countly initialisation
-        Countly.setHttpPostForced(
-            false); // Set to 'true' if you want HTTP POST to be used for all requests
         Countly
             .enableApm(); // Enable APM features, which includes the recording of app start time.
         if (Platform.isIOS) {
@@ -79,8 +77,8 @@ class _MyAppState extends State<MyApp> {
             'remote-config'
           ])
           ..setLoggingEnabled(true) // Enable countly internal debugging logs
-          ..setParameterTamperingProtectionSalt('salt'); // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
-
+          ..setParameterTamperingProtectionSalt('salt') // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
+          ..setHttpPostForced(false); // Set to 'true' if you want HTTP POST to be used for all requests
         Countly.initWithConfig(config).then((value) {
           Countly.appLoadingFinished();
           Countly.start();

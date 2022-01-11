@@ -490,7 +490,9 @@ class Countly {
 
   /// Set to 'true' if you want HTTP POST to be used for all requests
   /// Should be call before Countly init
+  @Deprecated('Use setHttpPostForced of CountlyConfig instead')
   static Future<String?> setHttpPostForced(bool isEnabled) async {
+    log('setHttpPostForced is deprecated, use setHttpPostForced of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     args.add(isEnabled.toString());
     log(args.toString());
