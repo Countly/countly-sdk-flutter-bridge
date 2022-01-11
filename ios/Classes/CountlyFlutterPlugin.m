@@ -54,8 +54,8 @@ FlutterMethodChannel* _channel;
     }
 
     if([@"init" isEqualToString:call.method]){
-        NSDictionary* config = [command objectAtIndex:0];
-        [self populateConfig:config];
+        NSDictionary* _config = [command objectAtIndex:0];
+        [self populateConfig:_config];
         CountlyCommon.sharedInstance.SDKName = kCountlyFlutterSDKName;
         CountlyCommon.sharedInstance.SDKVersion = kCountlyFlutterSDKVersion;
 
@@ -934,7 +934,7 @@ FlutterMethodChannel* _channel;
         config.secretSalt = salt;
     }
 
-    NSString* crashSegmentation = _config[@"customCrashSegment"];
+    NSDictionary* crashSegmentation = _config[@"customCrashSegment"];
     if(crashSegmentation) {
         config.crashSegmentation = crashSegmentation;
     }

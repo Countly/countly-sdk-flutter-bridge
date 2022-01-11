@@ -29,8 +29,6 @@ class _MyAppState extends State<MyApp> {
     Countly.isInitialized().then((bool isInitialized) {
       if (!isInitialized) {
         /// Recommended settings for Countly initialisation
-        Countly.setLoggingEnabled(
-            true); // Enable countly internal debugging logs
         Countly
             .enableCrashReporting(); // Enable crash reporting to report unhandled crashes to Countly
         Countly.setRequiresConsent(
@@ -54,8 +52,6 @@ class _MyAppState extends State<MyApp> {
             '10.2.33.12'); // Set user initial location.
 
         /// Optional settings for Countly initialisation
-        Countly.enableParameterTamperingProtection(
-            'salt'); // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
         Countly.setHttpPostForced(
             false); // Set to 'true' if you want HTTP POST to be used for all requests
         Countly
@@ -78,8 +74,13 @@ class _MyAppState extends State<MyApp> {
         Countly.setStarRatingDialogTexts('Title', 'Message', 'Dismiss');
 
         var crashSegment = {'Key': 'Value'};
+        
         CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
-            ..setCustomCrashSegment(crashSegment);
+          ..setCustomCrashSegment(crashSegment)
+          ..setDeviceId('122346abcdef')
+          ..setLoggingEnabled(true) // Enable countly internal debugging logs
+          ..setParameterTamperingProtectionSalt('salt'); // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
+
         Countly.initWithConfig(config).then((value) {
           Countly.appLoadingFinished();
           Countly.start();

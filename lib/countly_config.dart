@@ -25,7 +25,7 @@ class CountlyConfig {
     countlyConfig['serverURL'] = _serverURL;
     if (_customCrashSegment != null) {
       countlyConfig['customCrashSegment'] = {};
-      _customCrashSegment!.forEach((key, value) {
+      _customCrashSegment.forEach((key, value) {
         countlyConfig['customCrashSegment'][key] = value.toString();
       });
     }
@@ -102,9 +102,6 @@ class CountlyConfig {
     _sessionUpdateTimerDelay = delay;
     return this;
   }
-
-
-
 
   /// Set custom crash segmentation which will be added to all recorded crashes
   /// [Map<String, dynamic> customCrashSegment] - crashSegment segmentation information. Accepted values are "Integer", "String", "Double", "Boolean"
