@@ -992,6 +992,18 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         return list;
     }
 
+    public static String[] toStringArray(JSONArray array) {
+        if(array==null)
+            return null;
+
+        int size = array.length();
+        String[] stringArray = new String[size];
+        for(int i=0; i<size; i++) {
+            stringArray[i]=array.optString(i);
+        }
+        return stringArray;
+    }
+
     private void populateConfig(JSONObject _config) throws JSONException {
         if(_config.has("serverURL")) {
             this.config.setServerURL(_config.getString("serverURL"));
@@ -1024,6 +1036,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if(_config.has("customCrashSegment")) {
             Map<String, Object> customCrashSegment =  toMap(_config.getJSONObject("customCrashSegment"));
             this.config.setCustomCrashSegment(customCrashSegment);
+        }
+        if(_config.has("consents")) {
+            String[] consents = toStringArray(_config.getJSONArray("consents"));
+            this.config.setConsentEnabled(consents);
+
         }
     }
 }

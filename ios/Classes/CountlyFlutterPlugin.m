@@ -938,6 +938,10 @@ FlutterMethodChannel* _channel;
     if(crashSegmentation) {
         config.crashSegmentation = crashSegmentation;
     }
+    NSArray* consents = _config[@"consents"];
+    if(consents) {
+        config.consents = consents;
+    }
 }
 
 + (void)onNotification: (NSDictionary *) notificationMessage{

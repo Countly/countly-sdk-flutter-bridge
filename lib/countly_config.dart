@@ -8,6 +8,7 @@ class CountlyConfig {
   String? _tamperingProtectionSalt;
   int? _eventQueueSizeThreshold;
   int? _sessionUpdateTimerDelay;
+  List<String> _consents = [];
   Map<String, dynamic> _customCrashSegment = {};
 
   CountlyConfig(this._serverURL, this._appKey) {
@@ -44,6 +45,7 @@ class CountlyConfig {
     }
 
     countlyConfig['loggingEnabled'] = _loggingEnabled;
+    countlyConfig['consents'] = _consents;
     return countlyConfig;
   }
 
@@ -107,6 +109,12 @@ class CountlyConfig {
   /// [Map<String, dynamic> customCrashSegment] - crashSegment segmentation information. Accepted values are "Integer", "String", "Double", "Boolean"
   CountlyConfig setCustomCrashSegment(Map<String, dynamic> customCrashSegment){
     _customCrashSegment = customCrashSegment;
+    return this;
+  }
+
+  /// Sets which features are enabled in case consent is required
+  CountlyConfig setConsentEnabled(List<String> consents) {
+    _consents = consents;
     return this;
   }
 

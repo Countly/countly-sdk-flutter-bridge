@@ -33,21 +33,6 @@ class _MyAppState extends State<MyApp> {
             .enableCrashReporting(); // Enable crash reporting to report unhandled crashes to Countly
         Countly.setRequiresConsent(
             true); // Set that consent should be required for features to work.
-        Countly.giveConsentInit([
-          'location',
-          'sessions',
-          'attribution',
-          'push',
-          'events',
-          'views',
-          'crashes',
-          'users',
-          'push',
-          'star-rating',
-          'apm',
-          'feedback',
-          'remote-config'
-        ]);
         Countly.setLocationInit('TR', 'Istanbul', '41.0082,28.9784',
             '10.2.33.12'); // Set user initial location.
 
@@ -74,10 +59,25 @@ class _MyAppState extends State<MyApp> {
         Countly.setStarRatingDialogTexts('Title', 'Message', 'Dismiss');
 
         var crashSegment = {'Key': 'Value'};
-        
+
         CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
           ..setCustomCrashSegment(crashSegment)
           ..setDeviceId('122346abcdef')
+          ..setConsentEnabled([
+            'location',
+            'sessions',
+            'attribution',
+            'push',
+            'events',
+            'views',
+            'crashes',
+            'users',
+            'push',
+            'star-rating',
+            'apm',
+            'feedback',
+            'remote-config'
+          ])
           ..setLoggingEnabled(true) // Enable countly internal debugging logs
           ..setParameterTamperingProtectionSalt('salt'); // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
 

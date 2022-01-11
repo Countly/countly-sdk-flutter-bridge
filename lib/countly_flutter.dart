@@ -333,7 +333,7 @@ class Countly {
   /// [int sessionInterval]- delay in seconds
   @Deprecated('Use setUpdateSessionTimerDelay of CountlyConfig instead')
   static Future<String?> updateSessionInterval(int sessionInterval) async {
-    log('updateSessionInterval is deprecated, use setUpdateSessionTimerDelay instead', logLevel: LogLevel.WARNING);
+    log('updateSessionInterval is deprecated, use setUpdateSessionTimerDelay of CountlyConfig instead', logLevel: LogLevel.WARNING);
     if (_isInitialized) {
       log('updateSessionInterval should be called before init',
           logLevel: LogLevel.WARNING);
@@ -738,8 +738,11 @@ class Countly {
 
   /// Give consent for specific features.
   /// Should be call before Countly init
+  @Deprecated('Use setConsentEnabled of CountlyConfig instead')
   static Future<String?> giveConsentInit(List<String> consents) async {
-    if (consents.isEmpty) {
+      log('giveConsentInit is deprecated, use setConsentEnabled of CountlyConfig instead', logLevel: LogLevel.WARNING);
+
+      if (consents.isEmpty) {
       String error = 'giveConsentInit, consents List is empty';
       log(error, logLevel: LogLevel.WARNING);
     }
