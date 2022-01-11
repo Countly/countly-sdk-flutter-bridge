@@ -925,6 +925,10 @@ FlutterMethodChannel* _channel;
     if(httpPostForced) {
         config.alwaysUsePOST = [httpPostForced boolValue];
     }
+    NSNumber* shouldRequireConsent = _config[@"shouldRequireConsent"];
+    if(shouldRequireConsent) {
+        config.requiresConsent = [shouldRequireConsent boolValue];
+    }
     
     NSNumber* eventQueueSizeThreshold = _config[@"eventQueueSizeThreshold"];
     if(eventQueueSizeThreshold) {

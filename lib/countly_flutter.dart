@@ -728,7 +728,9 @@ class Countly {
 
   /// Set that consent should be required for features to work.
   /// Should be call before Countly init
+  @Deprecated('Use setRequiresConsent of CountlyConfig instead')
   static Future<String?> setRequiresConsent(bool flag) async {
+    log('setRequiresConsent is deprecated, use setRequiresConsent of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     args.add(flag.toString());
     log(args.toString());

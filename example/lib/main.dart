@@ -31,8 +31,6 @@ class _MyAppState extends State<MyApp> {
         /// Recommended settings for Countly initialisation
         Countly
             .enableCrashReporting(); // Enable crash reporting to report unhandled crashes to Countly
-        Countly.setRequiresConsent(
-            true); // Set that consent should be required for features to work.
         Countly.setLocationInit('TR', 'Istanbul', '41.0082,28.9784',
             '10.2.33.12'); // Set user initial location.
 
@@ -61,6 +59,7 @@ class _MyAppState extends State<MyApp> {
         CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
           ..setCustomCrashSegment(crashSegment)
           ..setDeviceId('122346abcdef')
+          ..setRequiresConsent(true) // Set that consent should be required for features to work.
           ..setConsentEnabled([
             'location',
             'sessions',

@@ -1026,6 +1026,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if(_config.has("httpPostForced")) {
             this.config.setHttpPostForced(_config.getBoolean("httpPostForced"));
         }
+        if(_config.has("shouldRequireConsent")) {
+            this.config.setRequiresConsent(_config.getBoolean("shouldRequireConsent"));
+        }
         if(_config.has("tamperingProtectionSalt")) {
             this.config.setParameterTamperingProtectionSalt(_config.getString("tamperingProtectionSalt"));
         }

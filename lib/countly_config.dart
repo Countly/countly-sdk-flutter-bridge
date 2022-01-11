@@ -4,13 +4,15 @@ class CountlyConfig {
   String _appKey;
   String _serverURL;
   String? _deviceID;
+  List<String> _consents = [];
   bool _loggingEnabled = false;
   bool _httpPostForced = false;
-  String? _tamperingProtectionSalt;
   int? _eventQueueSizeThreshold;
   int? _sessionUpdateTimerDelay;
-  List<String> _consents = [];
+  String? _tamperingProtectionSalt;
+  bool _shouldRequireConsent = false;
   Map<String, dynamic> _customCrashSegment = {};
+
 
   CountlyConfig(this._serverURL, this._appKey) {
     if(_serverURL.isEmpty) {
@@ -47,6 +49,7 @@ class CountlyConfig {
 
     countlyConfig['loggingEnabled'] = _loggingEnabled;
     countlyConfig['httpPostForced'] = _httpPostForced;
+    countlyConfig['shouldRequireConsent'] = _shouldRequireConsent;
     countlyConfig['consents'] = _consents;
     return countlyConfig;
   }
@@ -112,6 +115,12 @@ class CountlyConfig {
   CountlyConfig setCustomCrashSegment(Map<String, dynamic> customCrashSegment){
     _customCrashSegment = customCrashSegment;
     return this;
+  }
+
+  /// Set if consent should be required
+  CountlyConfig setRequiresConsent(bool shouldRequireConsent) {
+  _shouldRequireConsent = shouldRequireConsent;
+  return this;
   }
 
   /// Sets which features are enabled in case consent is required
