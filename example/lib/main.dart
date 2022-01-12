@@ -61,19 +61,18 @@ class _MyAppState extends State<MyApp> {
           ..setDeviceId('122346abcdef')
           ..setRequiresConsent(true) // Set that consent should be required for features to work.
           ..setConsentEnabled([
-            'location',
-            'sessions',
-            'attribution',
-            'push',
-            'events',
-            'views',
-            'crashes',
-            'users',
-            'push',
-            'star-rating',
-            'apm',
-            'feedback',
-            'remote-config'
+            CountlyConsent.sessions,
+            CountlyConsent.events,
+            CountlyConsent.views,
+            CountlyConsent.location,
+            CountlyConsent.crashes,
+            CountlyConsent.attribution,
+            CountlyConsent.users,
+            CountlyConsent.push,
+            CountlyConsent.starRating,
+            CountlyConsent.apm,
+            CountlyConsent.feedback,
+            CountlyConsent.remoteConfig
           ])
           ..setLoggingEnabled(true) // Enable countly internal debugging logs
           ..setParameterTamperingProtectionSalt('salt') // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request

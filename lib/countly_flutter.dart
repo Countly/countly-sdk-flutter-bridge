@@ -9,6 +9,21 @@ import 'package:pedantic/pedantic.dart';
 
 enum LogLevel { INFO, DEBUG, VERBOSE, WARNING, ERROR }
 
+abstract class CountlyConsent {
+  static const String sessions = 'sessions';
+  static const String events = 'events';
+  static const String views = 'views';
+  static const String location = 'location';
+  static const String crashes = 'crashes';
+  static const String attribution = 'attribution';
+  static const String users = 'users';
+  static const String push = 'push';
+  static const String starRating = 'star-rating';
+  static const String apm = 'apm';
+  static const String feedback = 'feedback';
+  static const String remoteConfig = 'remote-config';
+}
+
 class Countly {
   static const MethodChannel _channel = MethodChannel('countly_flutter');
 
@@ -887,8 +902,10 @@ class Countly {
   /// [String starRatingTextTitle] - dialog's title text (Only for Android)
   /// [String starRatingTextMessage] - dialog's message text
   /// [String starRatingTextDismiss] - dialog's dismiss buttons text (Only for Android)
+  @Deprecated('Use CountlyConfig class to set star rating text')
   static Future<String?> setStarRatingDialogTexts(String starRatingTextTitle,
       String starRatingTextMessage, String starRatingTextDismiss) async {
+    log('setStarRatingDialogTexts is deprecated, use CountlyConfig class to set star rating text', logLevel: LogLevel.WARNING);
     List<String> args = [];
     args.add(starRatingTextTitle);
     args.add(starRatingTextMessage);
