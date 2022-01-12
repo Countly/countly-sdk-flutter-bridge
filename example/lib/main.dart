@@ -72,7 +72,7 @@ class _MyAppState extends State<MyApp> {
             CountlyConsent.feedback,
             CountlyConsent.remoteConfig
           ])
-          ..setStarRatingDialogTexts(title: 'title', message: 'message', dismiss: 'dismiss')
+          ..setStarRatingTextMessage('Message for start rating dialog')
           ..setLoggingEnabled(true) // Enable countly internal debugging logs
           ..setParameterTamperingProtectionSalt('salt') // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
           ..setHttpPostForced(false); // Set to 'true' if you want HTTP POST to be used for all requests

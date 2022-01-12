@@ -98,6 +98,19 @@ class Countly {
   static Future<String?> initWithConfig(CountlyConfig config) async {
     _isInitialized = true;
     _channel.setMethodCallHandler(_methodCallHandler);
+    if(config.serverURL.isEmpty) {
+      String msg = 'initWithConfig, serverURL cannot be empty';
+      Countly.log(msg, logLevel: LogLevel.ERROR);
+      return msg;
+    }
+    if(config.appKey.isEmpty) {
+      String msg = 'initWithConfig, appKey cannot be empty';
+      Countly.log(msg, logLevel: LogLevel.ERROR);
+      return msg;
+    }
+    if(config.loggingEnabled != null) {
+      isDebug = config.loggingEnabled!;
+    }
 
     List<dynamic> args = [];
     args.add(config.toJson());
@@ -902,10 +915,10 @@ class Countly {
   /// [String starRatingTextTitle] - dialog's title text (Only for Android)
   /// [String starRatingTextMessage] - dialog's message text
   /// [String starRatingTextDismiss] - dialog's dismiss buttons text (Only for Android)
-  @Deprecated('Use CountlyConfig class to set star rating text')
+  @Deprecated('Use setStarRatingDialogTexts of CountlyConfig instead')
   static Future<String?> setStarRatingDialogTexts(String starRatingTextTitle,
       String starRatingTextMessage, String starRatingTextDismiss) async {
-    log('setStarRatingDialogTexts is deprecated, use CountlyConfig class to set star rating text', logLevel: LogLevel.WARNING);
+    log('setStarRatingDialogTexts is deprecated, use setStarRatingDialogTexts of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     args.add(starRatingTextTitle);
     args.add(starRatingTextMessage);

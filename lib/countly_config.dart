@@ -6,25 +6,22 @@ class CountlyConfig {
   String? _deviceID;
 
   List<String>? _consents;
-  bool _loggingEnabled = false;
-  bool _httpPostForced = false;
+  bool? _loggingEnabled = false;
+  bool? _httpPostForced = false;
   String? _starRatingTextTitle;
   int? _eventQueueSizeThreshold;
   int? _sessionUpdateTimerDelay;
   String? _starRatingTextMessage;
   String? _starRatingTextDismiss;
   String? _tamperingProtectionSalt;
-  bool _shouldRequireConsent = false;
+  bool? _shouldRequireConsent = false;
   Map<String, dynamic>? _customCrashSegment;
 
-  CountlyConfig(this._serverURL, this._appKey) {
-    if(_serverURL.isEmpty) {
-      Countly.log('CountlyConfig, serverURL cannot be empty', logLevel: LogLevel.WARNING);
-    }
-    if(_appKey.isEmpty) {
-      Countly.log('CountlyConfig, appKey cannot be empty', logLevel: LogLevel.WARNING);
-    }
-  }
+  CountlyConfig(this._serverURL, this._appKey);
+
+  String get serverURL => _serverURL;
+  String get appKey => _appKey;
+  bool? get loggingEnabled => _loggingEnabled;
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> countlyConfig = {};
@@ -44,7 +41,6 @@ class CountlyConfig {
     if(_consents != null) {
       countlyConfig['consents'] = _consents;
     }
-
     if(_tamperingProtectionSalt != null) {
       countlyConfig['tamperingProtectionSalt'] = _tamperingProtectionSalt;
     }
@@ -63,10 +59,15 @@ class CountlyConfig {
     if(_starRatingTextDismiss != null) {
       countlyConfig['starRatingTextDismiss'] = _starRatingTextDismiss;
     }
-
-    countlyConfig['loggingEnabled'] = _loggingEnabled;
-    countlyConfig['httpPostForced'] = _httpPostForced;
-    countlyConfig['shouldRequireConsent'] = _shouldRequireConsent;
+    if(_loggingEnabled != null) {
+      countlyConfig['loggingEnabled'] = _loggingEnabled;
+    }
+    if(_httpPostForced != null) {
+      countlyConfig['httpPostForced'] = _httpPostForced;
+    }
+    if(_shouldRequireConsent != null) {
+      countlyConfig['shouldRequireConsent'] = _shouldRequireConsent;
+    }
 
     return countlyConfig;
   }
@@ -74,9 +75,6 @@ class CountlyConfig {
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
   CountlyConfig setServerURL(String serverURL) {
-    if(serverURL.isEmpty) {
-      Countly.log('CountlyConfig, serverURL cannot be empty', logLevel: LogLevel.WARNING);
-    }
     _serverURL = serverURL;
     return this;
   }
@@ -84,9 +82,6 @@ class CountlyConfig {
   /// app key for the application being tracked; find in the Countly Dashboard under Management &gt; Applications.
   // Mandatory field.
   CountlyConfig setAppKey(String appKey) {
-    if(appKey.isEmpty) {
-      Countly.log('CountlyConfig, appKey cannot be empty', logLevel: LogLevel.WARNING);
-    }
     _appKey = appKey;
     return this;
   }
@@ -100,7 +95,6 @@ class CountlyConfig {
   /// Set to true of you want to enable countly internal debugging logs
   /// those logs will be printed to the console
   CountlyConfig setLoggingEnabled(bool enabled) {
-    Countly.isDebug = enabled;
     _loggingEnabled = enabled;
     return this;
   }
@@ -152,20 +146,23 @@ class CountlyConfig {
     return this;
   }
 
-  // Set's the text's for the different fields in the star rating dialog.
-  /// [String title] - dialog's title text (Only for Android)
-  /// [String message] - dialog's message text
-  /// [String dismissBtn] - dialog's dismiss buttons text (Only for Android)
-  CountlyConfig setStarRatingDialogTexts({String? title, String? message, String? dismiss}) {
-    if(title != null && title.isNotEmpty) {
-      _starRatingTextTitle = title;
-    }
-    if(message != null && message.isNotEmpty) {
-      _starRatingTextMessage = message;
-    }
-    if(dismiss != null && dismiss.isNotEmpty) {
-      _starRatingTextDismiss = dismiss;
-    }
+  /// the shown title text for the star rating dialogs.
+  /// Currently implemented for Android only
+  CountlyConfig setStarRatingTextTitle(String starRatingTextTitle) {
+    _starRatingTextTitle = starRatingTextTitle;
+    return this;
+  }
+
+  /// the shown message text for the star rating dialogs.
+  CountlyConfig setStarRatingTextMessage(String starRatingTextMessage) {
+    _starRatingTextMessage = starRatingTextMessage;
+    return this;
+  }
+
+  /// the shown dismiss button text for the shown star rating dialogs.
+  /// Currently implemented for Android only
+  CountlyConfig setStarRatingTextDismiss(String starRatingTextDismiss) {
+    _starRatingTextDismiss = starRatingTextDismiss;
     return this;
   }
 }
