@@ -951,6 +951,10 @@ FlutterMethodChannel* _channel;
     if(consents) {
         config.consents = consents;
     }
+    NSString* starRatingTextMessage = _config[@"starRatingTextMessage"];
+    if(starRatingTextMessage) {
+        config.starRatingMessage = starRatingTextMessage;
+    }
 }
 
 + (void)onNotification: (NSDictionary *) notificationMessage{

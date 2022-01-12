@@ -52,8 +52,6 @@ class _MyAppState extends State<MyApp> {
         Countly.pushTokenType(Countly.messagingMode[
             'TEST']!); // Set messaging mode for push notifications
 
-        Countly.setStarRatingDialogTexts('Title', 'Message', 'Dismiss');
-
         var crashSegment = {'Key': 'Value'};
 
         CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
@@ -74,6 +72,7 @@ class _MyAppState extends State<MyApp> {
             CountlyConsent.feedback,
             CountlyConsent.remoteConfig
           ])
+          ..setStarRatingDialogTexts(title: 'title', message: 'message', dismiss: 'dismiss')
           ..setLoggingEnabled(true) // Enable countly internal debugging logs
           ..setParameterTamperingProtectionSalt('salt') // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
           ..setHttpPostForced(false); // Set to 'true' if you want HTTP POST to be used for all requests

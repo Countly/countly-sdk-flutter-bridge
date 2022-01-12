@@ -1046,7 +1046,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if(_config.has("consents")) {
             String[] consents = toStringArray(_config.getJSONArray("consents"));
             this.config.setConsentEnabled(consents);
-
+        }
+        if(_config.has("starRatingTextTitle")) {
+            this.config.setStarRatingTextTitle(_config.getString("starRatingTextTitle"));
+        }
+        if(_config.has("starRatingTextMessage")) {
+            this.config.setStarRatingTextMessage(_config.getString("starRatingTextMessage"));
+        }
+        if(_config.has("starRatingTextDismiss")) {
+            this.config.setStarRatingTextDismiss(_config.getString("starRatingTextDismiss"));
         }
     }
 }

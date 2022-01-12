@@ -4,15 +4,18 @@ class CountlyConfig {
   String _appKey;
   String _serverURL;
   String? _deviceID;
-  List<String> _consents = [];
+
+  List<String>? _consents;
   bool _loggingEnabled = false;
   bool _httpPostForced = false;
+  String? _starRatingTextTitle;
   int? _eventQueueSizeThreshold;
   int? _sessionUpdateTimerDelay;
+  String? _starRatingTextMessage;
+  String? _starRatingTextDismiss;
   String? _tamperingProtectionSalt;
   bool _shouldRequireConsent = false;
-  Map<String, dynamic> _customCrashSegment = {};
-
+  Map<String, dynamic>? _customCrashSegment;
 
   CountlyConfig(this._serverURL, this._appKey) {
     if(_serverURL.isEmpty) {
@@ -27,14 +30,19 @@ class CountlyConfig {
     final Map<String, dynamic> countlyConfig = {};
     countlyConfig['appKey'] = _appKey;
     countlyConfig['serverURL'] = _serverURL;
+
+    if(_deviceID != null) {
+      countlyConfig['deviceID'] = _deviceID;
+    }
+
     if (_customCrashSegment != null) {
       countlyConfig['customCrashSegment'] = {};
-      _customCrashSegment.forEach((key, value) {
+      _customCrashSegment!.forEach((key, value) {
         countlyConfig['customCrashSegment'][key] = value.toString();
       });
     }
-    if(_deviceID != null) {
-      countlyConfig['deviceID'] = _deviceID;
+    if(_consents != null) {
+      countlyConfig['consents'] = _consents;
     }
 
     if(_tamperingProtectionSalt != null) {
@@ -46,11 +54,20 @@ class CountlyConfig {
     if(_sessionUpdateTimerDelay != null) {
       countlyConfig['sessionUpdateTimerDelay'] = _sessionUpdateTimerDelay;
     }
+    if(_starRatingTextTitle != null) {
+      countlyConfig['starRatingTextTitle'] = _starRatingTextTitle;
+    }
+    if(_starRatingTextMessage != null) {
+      countlyConfig['starRatingTextMessage'] = _starRatingTextMessage;
+    }
+    if(_starRatingTextDismiss != null) {
+      countlyConfig['starRatingTextDismiss'] = _starRatingTextDismiss;
+    }
 
     countlyConfig['loggingEnabled'] = _loggingEnabled;
     countlyConfig['httpPostForced'] = _httpPostForced;
     countlyConfig['shouldRequireConsent'] = _shouldRequireConsent;
-    countlyConfig['consents'] = _consents;
+
     return countlyConfig;
   }
 
@@ -135,6 +152,20 @@ class CountlyConfig {
     return this;
   }
 
-
-
+  // Set's the text's for the different fields in the star rating dialog.
+  /// [String title] - dialog's title text (Only for Android)
+  /// [String message] - dialog's message text
+  /// [String dismissBtn] - dialog's dismiss buttons text (Only for Android)
+  CountlyConfig setStarRatingDialogTexts({String? title, String? message, String? dismiss}) {
+    if(title != null && title.isNotEmpty) {
+      _starRatingTextTitle = title;
+    }
+    if(message != null && message.isNotEmpty) {
+      _starRatingTextMessage = message;
+    }
+    if(dismiss != null && dismiss.isNotEmpty) {
+      _starRatingTextDismiss = dismiss;
+    }
+    return this;
+  }
 }
