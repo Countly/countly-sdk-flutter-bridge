@@ -6,15 +6,16 @@ class CountlyConfig {
   String? _deviceID;
 
   List<String>? _consents;
-  bool? _loggingEnabled = false;
-  bool? _httpPostForced = false;
+  bool? _recordAppStartTime;
+  bool? _loggingEnabled;
+  bool? _httpPostForced;
   String? _starRatingTextTitle;
   int? _eventQueueSizeThreshold;
   int? _sessionUpdateTimerDelay;
   String? _starRatingTextMessage;
   String? _starRatingTextDismiss;
   String? _tamperingProtectionSalt;
-  bool? _shouldRequireConsent = false;
+  bool? _shouldRequireConsent;
   Map<String, dynamic>? _customCrashSegment;
 
   CountlyConfig(this._serverURL, this._appKey);
@@ -26,6 +27,7 @@ class CountlyConfig {
   List<String>? get consents => _consents;
   bool? get loggingEnabled => _loggingEnabled;
   bool? get httpPostForced => _httpPostForced;
+  bool? get recordAppStartTime => _recordAppStartTime;
   String? get starRatingTextTitle => _starRatingTextTitle;
   int? get eventQueueSizeThreshold => _eventQueueSizeThreshold;
   int? get sessionUpdateTimerDelay => _sessionUpdateTimerDelay;
@@ -126,6 +128,12 @@ class CountlyConfig {
   /// Currently implemented for Android only
   CountlyConfig setStarRatingTextDismiss(String starRatingTextDismiss) {
     _starRatingTextDismiss = starRatingTextDismiss;
+    return this;
+  }
+
+  /// Enable the recording of the app start time
+  CountlyConfig setRecordAppStartTime(bool recordAppStartTime) {
+    _recordAppStartTime = recordAppStartTime;
     return this;
   }
 }

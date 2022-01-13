@@ -1056,5 +1056,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if(_config.has("starRatingTextDismiss")) {
             this.config.setStarRatingTextDismiss(_config.getString("starRatingTextDismiss"));
         }
+        if(_config.has("recordAppStartTime")) {
+            this.config.setRecordAppStartTime(_config.getBoolean("recordAppStartTime"));
+        }
+
     }
 }

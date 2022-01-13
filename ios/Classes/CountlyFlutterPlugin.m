@@ -955,6 +955,10 @@ FlutterMethodChannel* _channel;
     if(starRatingTextMessage) {
         config.starRatingMessage = starRatingTextMessage;
     }
+    NSNumber* recordAppStartTime = _config[@"recordAppStartTime"];
+    if(recordAppStartTime) {
+        config.enablePerformanceMonitoring = [recordAppStartTime boolValue];
+    }
 }
 
 + (void)onNotification: (NSDictionary *) notificationMessage{

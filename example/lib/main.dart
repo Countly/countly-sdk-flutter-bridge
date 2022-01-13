@@ -35,8 +35,6 @@ class _MyAppState extends State<MyApp> {
             '10.2.33.12'); // Set user initial location.
 
         /// Optional settings for Countly initialisation
-        Countly
-            .enableApm(); // Enable APM features, which includes the recording of app start time.
         if (Platform.isIOS) {
           Countly.recordAttributionID('ADVERTISING_ID');
         } else {
@@ -72,6 +70,7 @@ class _MyAppState extends State<MyApp> {
             CountlyConsent.feedback,
             CountlyConsent.remoteConfig
           ])
+          ..setRecordAppStartTime(true) // Enable APM features, which includes the recording of app start time.
           ..setStarRatingTextMessage('Message for start rating dialog')
           ..setLoggingEnabled(true) // Enable countly internal debugging logs
           ..setParameterTamperingProtectionSalt('salt') // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request

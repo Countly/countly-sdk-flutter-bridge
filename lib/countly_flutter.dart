@@ -1241,7 +1241,9 @@ class Countly {
 
   /// Enable APM features, which includes the recording of app start time.
   /// Should be call before Countly init
+  @Deprecated('Use setRecordAppStartTime of CountlyConfig instead')
   static Future<String?> enableApm() async {
+    log('enableApm is deprecated, use setRecordAppStartTime of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     final String? result = await _channel.invokeMethod(
         'enableApm', <String, dynamic>{'data': json.encode(args)});
@@ -1420,6 +1422,10 @@ class Countly {
       if(config.shouldRequireConsent != null) {
         countlyConfig['shouldRequireConsent'] = config.shouldRequireConsent;
       }
+      if(config.recordAppStartTime != null) {
+        countlyConfig['recordAppStartTime'] = config.recordAppStartTime;
+      }
+
     } catch (e) {
       log('_configToJson, Exception occur during converting config to json: $e');
     }
