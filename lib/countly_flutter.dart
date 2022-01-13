@@ -113,7 +113,7 @@ class Countly {
     }
 
     List<dynamic> args = [];
-    args.add(config.toJson());
+    args.add(_configToJson(config));
     log(args.toString());
     final String? result = await _channel
         .invokeMethod('init', <String, dynamic>{'data': json.encode(args)});
@@ -1372,6 +1372,58 @@ class Countly {
         'recordAttributionID', <String, dynamic>{'data': json.encode(args)});
     log(result);
     return result;
+  }
+
+  static Map<String, dynamic> _configToJson(CountlyConfig config) {
+    final Map<String, dynamic> countlyConfig = {};
+    try {
+      countlyConfig['appKey'] = config.appKey;
+      countlyConfig['serverURL'] = config.serverURL;
+
+      if(config.deviceID != null) {
+        countlyConfig['deviceID'] = config.deviceID;
+      }
+
+      if (config.customCrashSegment != null) {
+        countlyConfig['customCrashSegment'] = {};
+        config.customCrashSegment!.forEach((key, value) {
+          countlyConfig['customCrashSegment'][key] = value.toString();
+        });
+      }
+      if(config.consents != null) {
+        countlyConfig['consents'] = config.consents;
+      }
+      if(config.tamperingProtectionSalt != null) {
+        countlyConfig['tamperingProtectionSalt'] = config.tamperingProtectionSalt;
+      }
+      if(config.eventQueueSizeThreshold != null) {
+        countlyConfig['eventQueueSizeThreshold'] = config.eventQueueSizeThreshold;
+      }
+      if(config.sessionUpdateTimerDelay != null) {
+        countlyConfig['sessionUpdateTimerDelay'] = config.sessionUpdateTimerDelay;
+      }
+      if(config.starRatingTextTitle != null) {
+        countlyConfig['starRatingTextTitle'] = config.starRatingTextTitle;
+      }
+      if(config.starRatingTextMessage != null) {
+        countlyConfig['starRatingTextMessage'] = config.starRatingTextMessage;
+      }
+      if(config.starRatingTextDismiss != null) {
+        countlyConfig['starRatingTextDismiss'] = config.starRatingTextDismiss;
+      }
+      if(config.loggingEnabled != null) {
+        countlyConfig['loggingEnabled'] = config.loggingEnabled;
+      }
+      if(config.httpPostForced != null) {
+        countlyConfig['httpPostForced'] = config.httpPostForced;
+      }
+      if(config.shouldRequireConsent != null) {
+        countlyConfig['shouldRequireConsent'] = config.shouldRequireConsent;
+      }
+    } catch (e) {
+      log('_configToJson, Exception occur during converting config to json: $e');
+    }
+    return countlyConfig;
   }
 }
 

@@ -19,58 +19,21 @@ class CountlyConfig {
 
   CountlyConfig(this._serverURL, this._appKey);
 
+  /// Getters of private members
   String get serverURL => _serverURL;
   String get appKey => _appKey;
+  String? get deviceID => _deviceID;
+  List<String>? get consents => _consents;
   bool? get loggingEnabled => _loggingEnabled;
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> countlyConfig = {};
-    countlyConfig['appKey'] = _appKey;
-    countlyConfig['serverURL'] = _serverURL;
-
-    if(_deviceID != null) {
-      countlyConfig['deviceID'] = _deviceID;
-    }
-
-    if (_customCrashSegment != null) {
-      countlyConfig['customCrashSegment'] = {};
-      _customCrashSegment!.forEach((key, value) {
-        countlyConfig['customCrashSegment'][key] = value.toString();
-      });
-    }
-    if(_consents != null) {
-      countlyConfig['consents'] = _consents;
-    }
-    if(_tamperingProtectionSalt != null) {
-      countlyConfig['tamperingProtectionSalt'] = _tamperingProtectionSalt;
-    }
-    if(_eventQueueSizeThreshold != null) {
-      countlyConfig['eventQueueSizeThreshold'] = _eventQueueSizeThreshold;
-    }
-    if(_sessionUpdateTimerDelay != null) {
-      countlyConfig['sessionUpdateTimerDelay'] = _sessionUpdateTimerDelay;
-    }
-    if(_starRatingTextTitle != null) {
-      countlyConfig['starRatingTextTitle'] = _starRatingTextTitle;
-    }
-    if(_starRatingTextMessage != null) {
-      countlyConfig['starRatingTextMessage'] = _starRatingTextMessage;
-    }
-    if(_starRatingTextDismiss != null) {
-      countlyConfig['starRatingTextDismiss'] = _starRatingTextDismiss;
-    }
-    if(_loggingEnabled != null) {
-      countlyConfig['loggingEnabled'] = _loggingEnabled;
-    }
-    if(_httpPostForced != null) {
-      countlyConfig['httpPostForced'] = _httpPostForced;
-    }
-    if(_shouldRequireConsent != null) {
-      countlyConfig['shouldRequireConsent'] = _shouldRequireConsent;
-    }
-
-    return countlyConfig;
-  }
+  bool? get httpPostForced => _httpPostForced;
+  String? get starRatingTextTitle => _starRatingTextTitle;
+  int? get eventQueueSizeThreshold => _eventQueueSizeThreshold;
+  int? get sessionUpdateTimerDelay => _sessionUpdateTimerDelay;
+  String? get starRatingTextMessage => _starRatingTextMessage;
+  String? get starRatingTextDismiss => _starRatingTextDismiss;
+  String? get tamperingProtectionSalt => _tamperingProtectionSalt;
+  bool? get shouldRequireConsent => _shouldRequireConsent;
+  Map<String, dynamic>? get customCrashSegment => _customCrashSegment;
 
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
