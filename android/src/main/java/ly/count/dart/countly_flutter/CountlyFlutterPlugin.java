@@ -1059,6 +1059,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if(_config.has("recordAppStartTime")) {
             this.config.setRecordAppStartTime(_config.getBoolean("recordAppStartTime"));
         }
+        if(_config.has("enableUnhandledCrashReporting") && _config.getBoolean("enableUnhandledCrashReporting")) {
+            this.config.enableCrashReporting();
+        }
 
     }
 }

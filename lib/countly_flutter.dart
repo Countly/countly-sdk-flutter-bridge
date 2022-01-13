@@ -1120,7 +1120,9 @@ class Countly {
 
   /// Enable crash reporting to report uncaught errors to Countly.
   /// Should be call before Countly init
+  @Deprecated('Use enableCrashReporting of CountlyConfig instead')
   static Future<String?> enableCrashReporting() async {
+    log('enableCrashReporting is deprecated, use enableCrashReporting of CountlyConfig instead', logLevel: LogLevel.WARNING);
     FlutterError.onError = _recordFlutterError;
     List<String> args = [];
     _enableCrashReportingFlag = true;
@@ -1424,6 +1426,9 @@ class Countly {
       }
       if(config.recordAppStartTime != null) {
         countlyConfig['recordAppStartTime'] = config.recordAppStartTime;
+      }
+      if(config.enableUnhandledCrashReporting != null) {
+        countlyConfig['enableUnhandledCrashReporting'] = config.enableUnhandledCrashReporting;
       }
 
     } catch (e) {

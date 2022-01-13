@@ -5,37 +5,39 @@ class CountlyConfig {
   String _serverURL;
   String? _deviceID;
 
-  List<String>? _consents;
-  bool? _recordAppStartTime;
   bool? _loggingEnabled;
   bool? _httpPostForced;
+  List<String>? _consents;
+  bool? _recordAppStartTime;
+  bool? _shouldRequireConsent;
   String? _starRatingTextTitle;
   int? _eventQueueSizeThreshold;
   int? _sessionUpdateTimerDelay;
   String? _starRatingTextMessage;
   String? _starRatingTextDismiss;
   String? _tamperingProtectionSalt;
-  bool? _shouldRequireConsent;
+  bool? _enableUnhandledCrashReporting;
   Map<String, dynamic>? _customCrashSegment;
 
   CountlyConfig(this._serverURL, this._appKey);
 
   /// Getters of private members
-  String get serverURL => _serverURL;
   String get appKey => _appKey;
   String? get deviceID => _deviceID;
+  String get serverURL => _serverURL;
   List<String>? get consents => _consents;
   bool? get loggingEnabled => _loggingEnabled;
   bool? get httpPostForced => _httpPostForced;
   bool? get recordAppStartTime => _recordAppStartTime;
+  bool? get shouldRequireConsent => _shouldRequireConsent;
   String? get starRatingTextTitle => _starRatingTextTitle;
-  int? get eventQueueSizeThreshold => _eventQueueSizeThreshold;
-  int? get sessionUpdateTimerDelay => _sessionUpdateTimerDelay;
   String? get starRatingTextMessage => _starRatingTextMessage;
   String? get starRatingTextDismiss => _starRatingTextDismiss;
+  int? get eventQueueSizeThreshold => _eventQueueSizeThreshold;
+  int? get sessionUpdateTimerDelay => _sessionUpdateTimerDelay;
   String? get tamperingProtectionSalt => _tamperingProtectionSalt;
-  bool? get shouldRequireConsent => _shouldRequireConsent;
   Map<String, dynamic>? get customCrashSegment => _customCrashSegment;
+  bool? get enableUnhandledCrashReporting => _enableUnhandledCrashReporting;
 
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
@@ -134,6 +136,12 @@ class CountlyConfig {
   /// Enable the recording of the app start time
   CountlyConfig setRecordAppStartTime(bool recordAppStartTime) {
     _recordAppStartTime = recordAppStartTime;
+    return this;
+  }
+
+  /// Call to enable uncaught crash reporting
+  CountlyConfig enableCrashReporting() {
+    _enableUnhandledCrashReporting = true;
     return this;
   }
 }

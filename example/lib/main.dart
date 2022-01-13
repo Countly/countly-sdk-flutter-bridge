@@ -29,8 +29,6 @@ class _MyAppState extends State<MyApp> {
     Countly.isInitialized().then((bool isInitialized) {
       if (!isInitialized) {
         /// Recommended settings for Countly initialisation
-        Countly
-            .enableCrashReporting(); // Enable crash reporting to report unhandled crashes to Countly
         Countly.setLocationInit('TR', 'Istanbul', '41.0082,28.9784',
             '10.2.33.12'); // Set user initial location.
 
@@ -53,8 +51,7 @@ class _MyAppState extends State<MyApp> {
         var crashSegment = {'Key': 'Value'};
 
         CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
-          ..setCustomCrashSegment(crashSegment)
-          ..setDeviceId('122346abcdef')
+          ..enableCrashReporting() // Enable crash reporting to report unhandled crashes to Countly
           ..setRequiresConsent(true) // Set that consent should be required for features to work.
           ..setConsentEnabled([
             CountlyConsent.sessions,
@@ -70,6 +67,7 @@ class _MyAppState extends State<MyApp> {
             CountlyConsent.feedback,
             CountlyConsent.remoteConfig
           ])
+          ..setCustomCrashSegment(crashSegment)
           ..setRecordAppStartTime(true) // Enable APM features, which includes the recording of app start time.
           ..setStarRatingTextMessage('Message for start rating dialog')
           ..setLoggingEnabled(true) // Enable countly internal debugging logs

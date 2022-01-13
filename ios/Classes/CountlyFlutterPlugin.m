@@ -959,6 +959,11 @@ FlutterMethodChannel* _channel;
     if(recordAppStartTime) {
         config.enablePerformanceMonitoring = [recordAppStartTime boolValue];
     }
+    NSNumber* enableUnhandledCrashReporting = _config[@"enableUnhandledCrashReporting"];
+    if(enableUnhandledCrashReporting && [enableUnhandledCrashReporting boolValue]) {
+        [self addCountlyFeature:CLYCrashReporting];
+    }
+    
 }
 
 + (void)onNotification: (NSDictionary *) notificationMessage{
