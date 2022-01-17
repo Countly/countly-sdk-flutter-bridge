@@ -29,9 +29,6 @@ class _MyAppState extends State<MyApp> {
     Countly.isInitialized().then((bool isInitialized) {
       if (!isInitialized) {
         /// Recommended settings for Countly initialisation
-        Countly.setLocationInit('TR', 'Istanbul', '41.0082,28.9784',
-            '10.2.33.12'); // Set user initial location.
-
         /// Optional settings for Countly initialisation
         if (Platform.isIOS) {
           Countly.recordAttributionID('ADVERTISING_ID');
@@ -67,6 +64,7 @@ class _MyAppState extends State<MyApp> {
             CountlyConsent.feedback,
             CountlyConsent.remoteConfig
           ])
+          ..setLocation('TR', 'Istanbul', '41.0082,28.9784', '10.2.33.12') // Set user  location.
           ..setCustomCrashSegment(crashSegment)
           ..setRecordAppStartTime(true) // Enable APM features, which includes the recording of app start time.
           ..setStarRatingTextMessage('Message for start rating dialog')

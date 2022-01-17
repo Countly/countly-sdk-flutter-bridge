@@ -15,9 +15,12 @@ class CountlyConfig {
   int? _sessionUpdateTimerDelay;
   String? _starRatingTextMessage;
   String? _starRatingTextDismiss;
+  Map<String, String>? _location;
   String? _tamperingProtectionSalt;
   bool? _enableUnhandledCrashReporting;
   Map<String, dynamic>? _customCrashSegment;
+
+
 
   CountlyConfig(this._serverURL, this._appKey);
 
@@ -28,6 +31,7 @@ class CountlyConfig {
   List<String>? get consents => _consents;
   bool? get loggingEnabled => _loggingEnabled;
   bool? get httpPostForced => _httpPostForced;
+  Map<String, String>? get location => _location;
   bool? get recordAppStartTime => _recordAppStartTime;
   bool? get shouldRequireConsent => _shouldRequireConsent;
   String? get starRatingTextTitle => _starRatingTextTitle;
@@ -142,6 +146,20 @@ class CountlyConfig {
   /// Call to enable uncaught crash reporting
   CountlyConfig enableCrashReporting() {
     _enableUnhandledCrashReporting = true;
+    return this;
+  }
+
+  /// Set user location
+  /// [String country_code] - ISO Country code for the user's country
+  /// [String city] - Name of the user's city
+  /// [String gpsCoordinates] - comma separate lat and lng values. For example, "56.42345,123.45325"
+  /// [String ipAddress] - ip address
+  CountlyConfig setLocation(String country_code, String city, String gpsCoordinates, String ipAddress) {
+    _location = {};
+    _location!['countryCode'] = country_code;
+    _location!['city'] = city;
+    _location!['gpsCoordinates'] = gpsCoordinates;
+    _location!['ipAddress'] = ipAddress;
     return this;
   }
 }

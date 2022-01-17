@@ -964,6 +964,42 @@ FlutterMethodChannel* _channel;
         [self addCountlyFeature:CLYCrashReporting];
     }
     
+    NSDictionary* location = _config[@"location"];
+    if(location) {
+        [self setLocation:location];
+    }
+}
+
+-(void) setLocation:(NSDictionary*)location
+{
+    NSString* gpsCoordinates =  location[@"gpsCoordinates"];
+    if(gpsCoordinates && [gpsCoordinates containsString:@","]){
+       @try{
+           NSArray *locationArray = [gpsCoordinates componentsSeparatedByString:@","];
+           NSString* latitudeString = [locationArray objectAtIndex:0];
+           NSString* longitudeString = [locationArray objectAtIndex:1];
+
+           double latitudeDouble = [latitudeString doubleValue];
+           double longitudeDouble = [longitudeString doubleValue];
+           config.location = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
+       }
+       @catch(NSException *exception){
+           COUNTLY_FLUTTER_LOG(@"Invalid location: %@", gpsCoordinates);
+       }
+    }
+    NSString* city =  location[@"city"];
+    if(city) {
+       config.city = city;
+    }
+    NSString* countryCode =  location[@"countryCode"];
+    if(countryCode) {
+       config.ISOCountryCode = countryCode;
+    }
+    
+    NSString* ipAddress =  location[@"ipAddress"];
+    if(ipAddress) {
+       config.IP = ipAddress;
+    }
 }
 
 + (void)onNotification: (NSDictionary *) notificationMessage{

@@ -347,12 +347,11 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use setUpdateSessionTimerDelay of CountlyConfig instead')
   static Future<String?> updateSessionPeriod() async {
-    List<String> args = [];
-    final String? result = await _channel.invokeMethod(
-        'updateSessionPeriod', <String, dynamic>{'data': json.encode(args)});
-    log(result);
-    return result;
+    String msg = 'updateSessionPeriod is deprecated, use setUpdateSessionTimerDelay of CountlyConfig instead';
+    log(msg, logLevel: LogLevel.WARNING);
+    return msg;
   }
 
   /// Sets the interval for the automatic session update calls
@@ -398,8 +397,10 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use setLocation of CountlyConfig instead')
   static Future<String?> setOptionalParametersForInitialization(
       Map<String, Object> options) async {
+    log('setOptionalParametersForInitialization is deprecated, use setLocation of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
 
     options['city'] ??= 'null';
@@ -532,8 +533,11 @@ class Countly {
 
   /// Set user initial location
   /// Should be call before init
+  @Deprecated('Use setLocation of CountlyConfig instead')
   static Future<String?> setLocationInit(String countryCode, String city,
       String gpsCoordinates, String ipAddress) async {
+    log('setLocationInit is deprecated, use setLocation of CountlyConfig instead', logLevel: LogLevel.WARNING);
+
     List<String> args = [];
     args.add(countryCode);
     args.add(city);
@@ -1161,8 +1165,10 @@ class Countly {
 
   /// Set optional key/value segment added for crash reports.
   /// Should be call before Countly init
+  @Deprecated('Use setCustomCrashSegment of CountlyConfig instead')
   static Future<String?> setCustomCrashSegment(
       Map<String, Object> segments) async {
+    log('setCustomCrashSegment is deprecated, use setCustomCrashSegment of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     segments.forEach((k, v) {
       args.add(k.toString());
@@ -1389,10 +1395,7 @@ class Countly {
       }
 
       if (config.customCrashSegment != null) {
-        countlyConfig['customCrashSegment'] = {};
-        config.customCrashSegment!.forEach((key, value) {
-          countlyConfig['customCrashSegment'][key] = value.toString();
-        });
+        countlyConfig['customCrashSegment'] = config.customCrashSegment;
       }
       if(config.consents != null) {
         countlyConfig['consents'] = config.consents;
@@ -1429,6 +1432,10 @@ class Countly {
       }
       if(config.enableUnhandledCrashReporting != null) {
         countlyConfig['enableUnhandledCrashReporting'] = config.enableUnhandledCrashReporting;
+      }
+
+      if(config.location != null) {
+        countlyConfig['location'] = config.location;
       }
 
     } catch (e) {
