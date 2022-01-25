@@ -23,9 +23,13 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final ratingIdController = TextEditingController();
   @override
   void initState() {
     super.initState();
+    ratingIdController.addListener(() {
+      setState(() {});
+    });
     Countly.isInitialized().then((bool isInitialized) {
       if (!isInitialized) {
         /// Recommended settings for Countly initialisation
@@ -493,7 +497,32 @@ class _MyAppState extends State<MyApp> {
   }
 
   void askForFeedback() {
-    Countly.askForFeedback('5e391ef47975d006a22532c0', 'Close');
+    Countly.askForFeedback('61eaaf37c935575c7b932b97', 'Close');
+  }
+
+  void showRatingWithID() {
+    Countly.askForFeedback(ratingIdController.text, 'Close');
+  }
+
+
+  void showFeedbackWidget() async {
+    FeedbackWidgetsResponse feedbackWidgetsResponse =
+    await Countly.getAvailableFeedbackWidgets();
+    List<CountlyPresentableFeedback> widgets =
+        feedbackWidgetsResponse.presentableFeedback;
+    String? error = feedbackWidgetsResponse.error;
+
+    if (error != null) {
+      return;
+    }
+
+    if(widgets.isNotEmpty) {
+      await Countly.presentFeedbackWidget(widgets.first, 'Close', widgetShown: () {
+        print('showFeedbackWidget widgetShown');
+      }, widgetClosed: () {
+        print('showFeedbackWidget widgetClosed');
+      });
+    }
   }
 
   void showSurvey() async {
@@ -697,6 +726,14 @@ class _MyAppState extends State<MyApp> {
     Countly.recordNetworkTrace(networkTraceKey, responseCode,
         requestPayloadSize, responsePayloadSize, startTime, endTime);
   }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    ratingIdController.dispose();
+    super.dispose();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -979,9 +1016,22 @@ class _MyAppState extends State<MyApp> {
                   text: 'Open feedback modal',
                   color: 'orange',
                   onPressed: askForFeedback),
+              TextField(
+                controller: ratingIdController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'Enter a Rating ID',
+                ),
+              ),
+              MyButton(
+                  text: 'Show Rating With ID',
+                  color: 'orange',
+                  onPressed: ratingIdController.text.isNotEmpty ? showRatingWithID : null),
+
               MyButton(
                   text: 'Show Survey', color: 'orange', onPressed: showSurvey),
               MyButton(text: 'Show NPS', color: 'orange', onPressed: showNPS),
+              MyButton(text: 'Show Feedback Widget', color: 'orange', onPressed: showFeedbackWidget),
               MyButton(
                   text: 'Report Survey Manually',
                   color: 'orange',
