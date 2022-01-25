@@ -9,6 +9,8 @@ class CountlyConfig {
   bool? _httpPostForced;
   List<String>? _consents;
   bool? _recordAppStartTime;
+  int? _maxRequestQueueSize;
+  bool? _manualSessionEnabled;
   bool? _shouldRequireConsent;
   String? _starRatingTextTitle;
   int? _eventQueueSizeThreshold;
@@ -33,6 +35,8 @@ class CountlyConfig {
   bool? get httpPostForced => _httpPostForced;
   Map<String, String>? get location => _location;
   bool? get recordAppStartTime => _recordAppStartTime;
+  int? get maxRequestQueueSize => _maxRequestQueueSize;
+  bool? get manualSessionEnabled => _manualSessionEnabled;
   bool? get shouldRequireConsent => _shouldRequireConsent;
   String? get starRatingTextTitle => _starRatingTextTitle;
   String? get starRatingTextMessage => _starRatingTextMessage;
@@ -162,4 +166,19 @@ class CountlyConfig {
     _location!['ipAddress'] = ipAddress;
     return this;
   }
+
+  /// Set's the new maximum size for the request queue.
+  /// [int maxSize] - Minimum value is "1".
+  CountlyConfig setMaxRequestQueueSize(int maxSize) {
+    _maxRequestQueueSize = maxSize;
+    return this;
+  }
+
+  /// Enable manual session handling
+  CountlyConfig enableManualSessionHandling() {
+    _manualSessionEnabled = true;
+    return this;
+  }
+
 }
+

@@ -331,7 +331,9 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use enableManualSessionHandling of CountlyConfig instead')
   static Future<String?> manualSessionHandling() async {
+    log('manualSessionHandling is deprecated, use enableManualSessionHandling of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     final String? result = await _channel.invokeMethod(
         'manualSessionHandling', <String, dynamic>{'data': json.encode(args)});
@@ -389,7 +391,9 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use setMaxRequestQueueSize of CountlyConfig instead')
   static Future<String?> storedRequestsLimit() async {
+    log('storedRequestsLimit is deprecated, use setMaxRequestQueueSize of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     final String? result = await _channel.invokeMethod(
         'storedRequestsLimit', <String, dynamic>{'data': json.encode(args)});
@@ -1432,6 +1436,14 @@ class Countly {
       }
       if(config.enableUnhandledCrashReporting != null) {
         countlyConfig['enableUnhandledCrashReporting'] = config.enableUnhandledCrashReporting;
+      }
+
+      if(config.manualSessionEnabled != null) {
+        countlyConfig['manualSessionEnabled'] = config.manualSessionEnabled;
+      }
+
+      if(config.maxRequestQueueSize != null) {
+        countlyConfig['maxRequestQueueSize'] = config.maxRequestQueueSize;
       }
 
       if(config.location != null) {

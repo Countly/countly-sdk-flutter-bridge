@@ -1063,5 +1063,35 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.enableCrashReporting();
         }
 
+        if(_config.has("maxRequestQueueSize")) {
+            this.config.setMaxRequestQueueSize(_config.getInt("maxRequestQueueSize"));
+        }
+
+        if(_config.has("manualSessionEnabled") && _config.getBoolean("manualSessionEnabled")) {
+            this.config.enableManualSessionControl();
+        }
+
+        if(_config.has("location")) {
+            JSONObject location = _config.getJSONObject("location");
+            String countryCode = null;
+            String city = null;
+            String gpsCoordinates = null;
+            String ipAddress = null;
+
+            if(location.has("countryCode")) {
+                countryCode = location.getString("countryCode");
+            }
+            if(location.has("city")) {
+                city = location.getString("city");
+            }
+            if(location.has("gpsCoordinates")) {
+                gpsCoordinates = location.getString("gpsCoordinates");
+            }
+            if(location.has("ipAddress")) {
+                ipAddress = location.getString("ipAddress");
+            }
+            this.config.setLocation(countryCode, city, gpsCoordinates, ipAddress);
+        }
+
     }
 }

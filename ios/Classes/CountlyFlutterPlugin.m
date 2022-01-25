@@ -964,6 +964,16 @@ FlutterMethodChannel* _channel;
         [self addCountlyFeature:CLYCrashReporting];
     }
     
+    NSNumber* maxRequestQueueSize = _config[@"maxRequestQueueSize"];
+    if(maxRequestQueueSize) {
+        config.storedRequestsLimit = [maxRequestQueueSize intValue];
+    }
+    
+    NSNumber* manualSessionEnabled = _config[@"manualSessionEnabled"];
+    if(manualSessionEnabled && [manualSessionEnabled boolValue]) {
+        config.manualSessionHandling = YES;
+    }
+    
     NSDictionary* location = _config[@"location"];
     if(location) {
         [self setLocation:location];
@@ -1030,7 +1040,8 @@ FlutterMethodChannel* _channel;
         };
         [Countly.sharedInstance recordEvent:@"[CLY]_push_action" segmentation: segmentation];
     }
-    notificationIDs = nil;
+    
+    [notificationIDs removeAllObjects];
 }
 
 - (void)addCountlyFeature:(CLYFeature)feature
