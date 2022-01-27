@@ -40,12 +40,6 @@ class _MyAppState extends State<MyApp> {
           Countly
               .enableAttribution(); // Enable to measure your marketing campaign performance by attributing installs from specific campaigns.
         }
-        Countly.setRemoteConfigAutomaticDownload((result) {
-          print(result);
-        }); // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
-        var segment = {'Key': 'Value'};
-        Countly.setCustomCrashSegment(
-            segment); // Set optional key/value segment added for crash reports.
         Countly.pushTokenType(Countly.messagingMode[
             'TEST']!); // Set messaging mode for push notifications
 
@@ -70,6 +64,9 @@ class _MyAppState extends State<MyApp> {
           ])
           ..setLocation('TR', 'Istanbul', '41.0082,28.9784', '10.2.33.12') // Set user  location.
           ..setCustomCrashSegment(crashSegment)
+          ..setRemoteConfigAutomaticDownload(true, (error) {
+            print(error);
+          }) // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
           ..setRecordAppStartTime(true) // Enable APM features, which includes the recording of app start time.
           ..setStarRatingTextMessage('Message for start rating dialog')
           ..setLoggingEnabled(true) // Enable countly internal debugging logs

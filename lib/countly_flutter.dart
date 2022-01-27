@@ -65,6 +65,7 @@ class Countly {
   /// [VoidCallback? _widgetClosed] Callback to be executed when feedback widget is closed
   static VoidCallback? _widgetShown;
   static VoidCallback? _widgetClosed;
+  static Function(String error)? _remoteConfigCallback;
 
   /// Callback handler to handle function calls from native iOS/Android to Dart.
   static Future<void> _methodCallHandler(MethodCall call) async {
@@ -80,7 +81,17 @@ class Countly {
           _widgetShown = null;
           _widgetClosed = null;
         }
+        break;
+      case 'remoteConfigCallback':
+        if(_remoteConfigCallback != null) {
+          _remoteConfigCallback!(call.arguments);
+          _remoteConfigCallback = null;
+        }
     }
+  }
+
+  static void setRemoteConfigCallback(Function(String error) callback) {
+    _remoteConfigCallback = callback;
   }
 
   @Deprecated('Use initWithConfig instead')
@@ -837,8 +848,10 @@ class Countly {
 
   /// Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
   /// Should be call before Countly init
+  @Deprecated('Use setRemoteConfigAutomaticDownload of CountlyConfig instead')
   static Future<String?> setRemoteConfigAutomaticDownload(
       Function callback) async {
+    log('setRemoteConfigAutomaticDownload is deprecated, use setRemoteConfigAutomaticDownload of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     log(args.toString());
     final String? result = await _channel.invokeMethod(
@@ -1449,6 +1462,11 @@ class Countly {
       if(config.location != null) {
         countlyConfig['location'] = config.location;
       }
+
+      if(config.enableRemoteConfigAutomaticDownload != null) {
+        countlyConfig['enableRemoteConfigAutomaticDownload'] = config.enableRemoteConfigAutomaticDownload;
+      }
+
 
     } catch (e) {
       log('_configToJson, Exception occur during converting config to json: $e');

@@ -21,8 +21,7 @@ class CountlyConfig {
   String? _tamperingProtectionSalt;
   bool? _enableUnhandledCrashReporting;
   Map<String, dynamic>? _customCrashSegment;
-
-
+  bool? _enableRemoteConfigAutomaticDownload;
 
   CountlyConfig(this._serverURL, this._appKey);
 
@@ -46,6 +45,7 @@ class CountlyConfig {
   String? get tamperingProtectionSalt => _tamperingProtectionSalt;
   Map<String, dynamic>? get customCrashSegment => _customCrashSegment;
   bool? get enableUnhandledCrashReporting => _enableUnhandledCrashReporting;
+  bool? get enableRemoteConfigAutomaticDownload => _enableRemoteConfigAutomaticDownload;
 
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
@@ -177,6 +177,15 @@ class CountlyConfig {
   /// Enable manual session handling
   CountlyConfig enableManualSessionHandling() {
     _manualSessionEnabled = true;
+    return this;
+  }
+
+  /// If enable, will automatically download newest remote config values.
+  /// enabled set true for enabling it
+  /// callback callback called after the update was done
+  CountlyConfig setRemoteConfigAutomaticDownload(bool enabled, Function(String error) callback) {
+    _enableRemoteConfigAutomaticDownload = enabled;
+    Countly.setRemoteConfigCallback(callback);
     return this;
   }
 

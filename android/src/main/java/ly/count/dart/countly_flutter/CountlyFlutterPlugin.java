@@ -1071,6 +1071,16 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.enableManualSessionControl();
         }
 
+        if(_config.has("enableRemoteConfigAutomaticDownload")) {
+            boolean enableRemoteConfigAutomaticDownload = _config.getBoolean("enableRemoteConfigAutomaticDownload");
+            this.config.setRemoteConfigAutomaticDownload(enableRemoteConfigAutomaticDownload, new RemoteConfigCallback() {
+                @Override
+                public void callback(String error) {
+                    methodChannel.invokeMethod("remoteConfigCallback", error);
+                }
+            });
+        }
+
         if(_config.has("location")) {
             JSONObject location = _config.getJSONObject("location");
             String countryCode = null;

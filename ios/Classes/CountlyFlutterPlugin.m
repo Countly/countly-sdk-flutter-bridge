@@ -973,6 +973,19 @@ FlutterMethodChannel* _channel;
     if(manualSessionEnabled && [manualSessionEnabled boolValue]) {
         config.manualSessionHandling = YES;
     }
+    NSNumber* enableRemoteConfigAutomaticDownload = _config[@"enableRemoteConfigAutomaticDownload"];
+    if(enableRemoteConfigAutomaticDownload)
+    {
+        config.enableRemoteConfig = [enableRemoteConfigAutomaticDownload boolValue];
+        config.remoteConfigCompletionHandler = ^(NSError * error)
+        {
+            NSString* errorStr = nil;
+            if(error) {
+                errorStr = error.localizedDescription;
+            }
+            [_channel invokeMethod:@"remoteConfigCallback" arguments:errorStr];
+        };
+    }
     
     NSDictionary* location = _config[@"location"];
     if(location) {
