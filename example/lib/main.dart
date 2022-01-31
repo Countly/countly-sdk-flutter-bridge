@@ -495,7 +495,7 @@ class _MyAppState extends State<MyApp> {
 
   void showSurvey() async {
     FeedbackWidgetsResponse feedbackWidgetsResponse =
-        await Countly.getAvailableFeedbackWidgets();
+    await Countly.getAvailableFeedbackWidgets();
     List<CountlyPresentableFeedback> widgets =
         feedbackWidgetsResponse.presentableFeedback;
     String? error = feedbackWidgetsResponse.error;
@@ -514,7 +514,7 @@ class _MyAppState extends State<MyApp> {
 
   void showNPS() async {
     FeedbackWidgetsResponse feedbackWidgetsResponse =
-        await Countly.getAvailableFeedbackWidgets();
+    await Countly.getAvailableFeedbackWidgets();
     List<CountlyPresentableFeedback> widgets =
         feedbackWidgetsResponse.presentableFeedback;
     String? error = feedbackWidgetsResponse.error;
@@ -537,7 +537,7 @@ class _MyAppState extends State<MyApp> {
 
   void reportSurveyManually() async {
     FeedbackWidgetsResponse feedbackWidgetsResponse =
-        await Countly.getAvailableFeedbackWidgets();
+    await Countly.getAvailableFeedbackWidgets();
     List<CountlyPresentableFeedback> widgets =
         feedbackWidgetsResponse.presentableFeedback;
     String? error = feedbackWidgetsResponse.error;
@@ -617,7 +617,7 @@ class _MyAppState extends State<MyApp> {
 
   void reportNPSManually() async {
     FeedbackWidgetsResponse feedbackWidgetsResponse =
-        await Countly.getAvailableFeedbackWidgets();
+    await Countly.getAvailableFeedbackWidgets();
     List<CountlyPresentableFeedback> widgets =
         feedbackWidgetsResponse.presentableFeedback;
     String? error = feedbackWidgetsResponse.error;
@@ -704,6 +704,118 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Center(
             child: SingleChildScrollView(
+              MyButton(
+                  text: 'Get Float Value',
+                  color: 'purple',
+                  onPressed: getRemoteConfigValueForKeyFloat),
+              MyButton(
+                  text: 'Get Integer Value',
+                  color: 'purple',
+                  onPressed: getRemoteConfigValueForKeyInteger),
+              MyButton(
+                  text: 'Push Notification',
+                  color: 'primary',
+                  onPressed: askForNotificationPermission),
+              MyButton(
+                  text: 'Enable Temporary ID Mode',
+                  color: 'violet',
+                  onPressed: enableTemporaryIdMode),
+              MyButton(
+                  text: 'Change Device ID With Merge',
+                  color: 'violet',
+                  onPressed: changeDeviceIdWithMerge),
+              MyButton(
+                  text: 'Change Device ID Without Merge',
+                  color: 'violet',
+                  onPressed: changeDeviceIdWithoutMerge),
+              MyButton(
+                  text: 'Enable Parameter Tapmering Protection',
+                  color: 'violet',
+                  onPressed: enableParameterTamperingProtection),
+              MyButton(
+                  text: 'City, State, and Location',
+                  color: 'violet',
+                  onPressed: setOptionalParametersForInitialization),
+              MyButton(
+                  text: 'setLocation', color: 'violet', onPressed: setLocation),
+              MyButton(
+                  text: 'Send Crash Report',
+                  color: 'violet',
+                  onPressed: addCrashLog),
+              MyButton(
+                  text: 'Cause Exception',
+                  color: 'violet',
+                  onPressed: causeException),
+              MyButton(
+                  text: 'Throw Exception',
+                  color: 'violet',
+                  onPressed: throwException),
+              MyButton(
+                  text: 'Throw Exception Async',
+                  color: 'violet',
+                  onPressed: throwExceptionAsync),
+              MyButton(
+                  text: 'Throw Native Exception',
+                  color: 'violet',
+                  onPressed: throwNativeException),
+              MyButton(
+                  text: 'Record Exception Manually',
+                  color: 'violet',
+                  onPressed: recordExceptionManually),
+              MyButton(
+                  text: 'Divided By Zero Exception',
+                  color: 'violet',
+                  onPressed: dividedByZero),
+              MyButton(
+                  text: 'Enabling logging',
+                  color: 'violet',
+                  onPressed: setLoggingEnabled),
+              MyButton(
+                  text: 'Open rating modal',
+                  color: 'orange',
+                  onPressed: askForStarRating),
+              MyButton(
+                  text: 'Open feedback modal',
+                  color: 'orange',
+                  onPressed: askForFeedback),
+              TextField(
+                controller: ratingIdController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'Enter a Rating ID',
+                ),
+              ),
+              MyButton(
+                  text: 'Show Rating With ID',
+                  color: 'orange',
+                  onPressed: ratingIdController.text.isNotEmpty ? showRatingWithID : null),
+
+              MyButton(
+                  text: 'Show Survey', color: 'orange', onPressed: showSurvey),
+              MyButton(text: 'Show NPS', color: 'orange', onPressed: showNPS),
+              MyButton(text: 'Show Feedback Widget', color: 'orange', onPressed: showFeedbackWidget),
+              MyButton(
+                  text: 'Report Survey Manually',
+                  color: 'orange',
+                  onPressed: reportSurveyManually),
+              MyButton(
+                  text: 'Report NPS Manually',
+                  color: 'orange',
+                  onPressed: reportNPSManually),
+              MyButton(
+                  text: 'Start Trace', color: 'black', onPressed: startTrace),
+              MyButton(text: 'End Trace', color: 'black', onPressed: endTrace),
+              MyButton(
+                  text: 'Record Network Trace Success',
+                  color: 'black',
+                  onPressed: recordNetworkTraceSuccess),
+              MyButton(
+                  text: 'Record Network Trace Failure',
+                  color: 'black',
+                  onPressed: recordNetworkTraceFailure),
+            ],
+          ),
+        )),
               child: Column(
                 children: <Widget>[
                   MyButton(
@@ -976,9 +1088,22 @@ class _MyAppState extends State<MyApp> {
                       text: 'Open feedback modal',
                       color: 'orange',
                       onPressed: askForFeedback),
+                  TextField(
+                    controller: ratingIdController,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Enter a Rating ID',
+                    ),
+                  ),
+                  MyButton(
+                      text: 'Show Rating With ID',
+                      color: 'orange',
+                      onPressed: ratingIdController.text.isNotEmpty ? showRatingWithID : null),
+
                   MyButton(
                       text: 'Show Survey', color: 'orange', onPressed: showSurvey),
                   MyButton(text: 'Show NPS', color: 'orange', onPressed: showNPS),
+                  MyButton(text: 'Show Feedback Widget', color: 'orange', onPressed: showFeedbackWidget),
                   MyButton(
                       text: 'Report Survey Manually',
                       color: 'orange',
