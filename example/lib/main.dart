@@ -23,13 +23,9 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final ratingIdController = TextEditingController();
   @override
   void initState() {
     super.initState();
-    ratingIdController.addListener(() {
-      setState(() {});
-    });
     Countly.isInitialized().then((bool isInitialized) {
       if (!isInitialized) {
         /// Recommended settings for Countly initialisation
@@ -494,32 +490,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void askForFeedback() {
-    Countly.askForFeedback('61eaaf37c935575c7b932b97', 'Close');
-  }
-
-  void showRatingWithID() {
-    Countly.askForFeedback(ratingIdController.text, 'Close');
-  }
-
-
-  void showFeedbackWidget() async {
-    FeedbackWidgetsResponse feedbackWidgetsResponse =
-    await Countly.getAvailableFeedbackWidgets();
-    List<CountlyPresentableFeedback> widgets =
-        feedbackWidgetsResponse.presentableFeedback;
-    String? error = feedbackWidgetsResponse.error;
-
-    if (error != null) {
-      return;
-    }
-
-    if(widgets.isNotEmpty) {
-      await Countly.presentFeedbackWidget(widgets.first, 'Close', widgetShown: () {
-        print('showFeedbackWidget widgetShown');
-      }, widgetClosed: () {
-        print('showFeedbackWidget widgetClosed');
-      });
-    }
+    Countly.askForFeedback('5e391ef47975d006a22532c0', 'Close');
   }
 
   void showSurvey() async {
@@ -725,14 +696,6 @@ class _MyAppState extends State<MyApp> {
   }
 
   @override
-  void dispose() {
-    // Clean up the controller when the widget is disposed.
-    ratingIdController.dispose();
-    super.dispose();
-  }
-
-
-  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
@@ -741,316 +704,303 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Center(
             child: SingleChildScrollView(
-          child: Column(
-            children: <Widget>[
-              MyButton(
-                  text: 'Basic event', color: 'brown', onPressed: basicEvent),
-              MyButton(
-                  text: 'Event with Sum',
-                  color: 'brown',
-                  onPressed: eventWithSum),
-              MyButton(
-                  text: 'Event with Segment',
-                  color: 'brown',
-                  onPressed: eventWithSegment),
-              MyButton(
-                  text: 'Even with Sum and Segment',
-                  color: 'brown',
-                  onPressed: eventWithSumSegment),
-              MyButton(
-                  text: 'Timed event: Start / Stop',
-                  color: 'grey',
-                  onPressed: endEventBasic),
-              MyButton(
-                  text: 'Timed event Sum: Start / Stop',
-                  color: 'grey',
-                  onPressed: endEventWithSum),
-              MyButton(
-                  text: 'Timed event Segment: Start / Stop',
-                  color: 'grey',
-                  onPressed: endEventWithSegment),
-              MyButton(
-                  text: 'Timed event Sum Segment: Start / Stop',
-                  color: 'grey',
-                  onPressed: endEventWithSumSegment),
-              MyButton(
-                  text: "Record View: 'HomePage'",
-                  color: 'olive',
-                  onPressed: recordViewHome),
-              MyButton(
-                  text: "Record View: 'Dashboard'",
-                  color: 'olive',
-                  onPressed: recordViewDashboard),
-              MyButton(
-                  text: 'Send Users Data',
-                  color: 'teal',
-                  onPressed: setUserData),
-              MyButton(
-                  text: 'UserData.setProperty',
-                  color: 'teal',
-                  onPressed: setProperty),
-              MyButton(
-                  text: 'UserData.increment',
-                  color: 'teal',
-                  onPressed: increment),
-              MyButton(
-                  text: 'UserData.incrementBy',
-                  color: 'teal',
-                  onPressed: incrementBy),
-              MyButton(
-                  text: 'UserData.multiply',
-                  color: 'teal',
-                  onPressed: multiply),
-              MyButton(
-                  text: 'UserData.saveMax', color: 'teal', onPressed: saveMax),
-              MyButton(
-                  text: 'UserData.saveMin', color: 'teal', onPressed: saveMin),
-              MyButton(
-                  text: 'UserData.setOnce', color: 'teal', onPressed: setOnce),
-              MyButton(
-                  text: 'UserData.pushUniqueValue',
-                  color: 'teal',
-                  onPressed: pushUniqueValue),
-              MyButton(
-                  text: 'UserData.pushValue',
-                  color: 'teal',
-                  onPressed: pushValue),
-              MyButton(
-                  text: 'UserData.pullValue',
-                  color: 'teal',
-                  onPressed: pullValue),
-              MyButton(
-                  text: 'Give multiple consent',
-                  color: 'blue',
-                  onPressed: giveMultipleConsent),
-              MyButton(
-                  text: 'Remove multiple consent',
-                  color: 'blue',
-                  onPressed: removeMultipleConsent),
-              MyButton(
-                  text: 'Give all Consent',
-                  color: 'blue',
-                  onPressed: giveAllConsent),
-              MyButton(
-                  text: 'Remove all Consent',
-                  color: 'blue',
-                  onPressed: removeAllConsent),
-              MyButton(
-                  text: 'Give Consent Sessions',
-                  color: 'blue',
-                  onPressed: giveConsentSessions),
-              MyButton(
-                  text: 'Give Consent Events',
-                  color: 'blue',
-                  onPressed: giveConsentEvents),
-              MyButton(
-                  text: 'Give Consent Views',
-                  color: 'blue',
-                  onPressed: giveConsentViews),
-              MyButton(
-                  text: 'Give Consent Location',
-                  color: 'blue',
-                  onPressed: giveConsentLocation),
-              MyButton(
-                  text: 'Give Consent Crashes',
-                  color: 'blue',
-                  onPressed: giveConsentCrashes),
-              MyButton(
-                  text: 'Give Consent Attribution',
-                  color: 'blue',
-                  onPressed: giveConsentAttribution),
-              MyButton(
-                  text: 'Give Consent Users',
-                  color: 'blue',
-                  onPressed: giveConsentUsers),
-              MyButton(
-                  text: 'Give Consent Push',
-                  color: 'blue',
-                  onPressed: giveConsentPush),
-              MyButton(
-                  text: 'Give Consent starRating',
-                  color: 'blue',
-                  onPressed: giveConsentStarRating),
-              MyButton(
-                  text: 'Give Consent Performance',
-                  color: 'blue',
-                  onPressed: giveConsentAPM),
-              MyButton(
-                  text: 'Remove Consent Sessions',
-                  color: 'blue',
-                  onPressed: removeConsentsessions),
-              MyButton(
-                  text: 'Remove Consent Events',
-                  color: 'blue',
-                  onPressed: removeConsentEvents),
-              MyButton(
-                  text: 'Remove Consent Views',
-                  color: 'blue',
-                  onPressed: removeConsentViews),
-              MyButton(
-                  text: 'Remove Consent Location',
-                  color: 'blue',
-                  onPressed: removeConsentlocation),
-              MyButton(
-                  text: 'Remove Consent Crashes',
-                  color: 'blue',
-                  onPressed: removeConsentcrashes),
-              MyButton(
-                  text: 'Remove Consent Attribution',
-                  color: 'blue',
-                  onPressed: removeConsentattribution),
-              MyButton(
-                  text: 'Remove Consent Users',
-                  color: 'blue',
-                  onPressed: removeConsentusers),
-              MyButton(
-                  text: 'Remove Consent Push',
-                  color: 'blue',
-                  onPressed: removeConsentpush),
-              MyButton(
-                  text: 'Remove Consent starRating',
-                  color: 'blue',
-                  onPressed: removeConsentstarRating),
-              MyButton(
-                  text: 'Remove Consent Performance',
-                  color: 'blue',
-                  onPressed: removeConsentAPM),
-              MyButton(
-                  text: 'Countly.remoteConfigUpdate',
-                  color: 'purple',
-                  onPressed: remoteConfigUpdate),
-              MyButton(
-                  text: 'Countly.updateRemoteConfigForKeysOnly',
-                  color: 'purple',
-                  onPressed: updateRemoteConfigForKeysOnly),
-              MyButton(
-                  text: 'Countly.updateRemoteConfigExceptKeys',
-                  color: 'purple',
-                  onPressed: updateRemoteConfigExceptKeys),
-              MyButton(
-                  text: 'Countly.remoteConfigClearValues',
-                  color: 'purple',
-                  onPressed: remoteConfigClearValues),
-              MyButton(
-                  text: 'Get String Value',
-                  color: 'purple',
-                  onPressed: getRemoteConfigValueForKeyString),
-              MyButton(
-                  text: 'Get Boolean Value',
-                  color: 'purple',
-                  onPressed: getRemoteConfigValueForKeyBoolean),
-              MyButton(
-                  text: 'Get Float Value',
-                  color: 'purple',
-                  onPressed: getRemoteConfigValueForKeyFloat),
-              MyButton(
-                  text: 'Get Integer Value',
-                  color: 'purple',
-                  onPressed: getRemoteConfigValueForKeyInteger),
-              MyButton(
-                  text: 'Push Notification',
-                  color: 'primary',
-                  onPressed: askForNotificationPermission),
-              MyButton(
-                  text: 'Enable Temporary ID Mode',
-                  color: 'violet',
-                  onPressed: enableTemporaryIdMode),
-              MyButton(
-                  text: 'Change Device ID With Merge',
-                  color: 'violet',
-                  onPressed: changeDeviceIdWithMerge),
-              MyButton(
-                  text: 'Change Device ID Without Merge',
-                  color: 'violet',
-                  onPressed: changeDeviceIdWithoutMerge),
-              MyButton(
-                  text: 'Enable Parameter Tapmering Protection',
-                  color: 'violet',
-                  onPressed: enableParameterTamperingProtection),
-              MyButton(
-                  text: 'City, State, and Location',
-                  color: 'violet',
-                  onPressed: setOptionalParametersForInitialization),
-              MyButton(
-                  text: 'setLocation', color: 'violet', onPressed: setLocation),
-              MyButton(
-                  text: 'Send Crash Report',
-                  color: 'violet',
-                  onPressed: addCrashLog),
-              MyButton(
-                  text: 'Cause Exception',
-                  color: 'violet',
-                  onPressed: causeException),
-              MyButton(
-                  text: 'Throw Exception',
-                  color: 'violet',
-                  onPressed: throwException),
-              MyButton(
-                  text: 'Throw Exception Async',
-                  color: 'violet',
-                  onPressed: throwExceptionAsync),
-              MyButton(
-                  text: 'Throw Native Exception',
-                  color: 'violet',
-                  onPressed: throwNativeException),
-              MyButton(
-                  text: 'Record Exception Manually',
-                  color: 'violet',
-                  onPressed: recordExceptionManually),
-              MyButton(
-                  text: 'Divided By Zero Exception',
-                  color: 'violet',
-                  onPressed: dividedByZero),
-              MyButton(
-                  text: 'Enabling logging',
-                  color: 'violet',
-                  onPressed: setLoggingEnabled),
-              MyButton(
-                  text: 'Open rating modal',
-                  color: 'orange',
-                  onPressed: askForStarRating),
-              MyButton(
-                  text: 'Open feedback modal',
-                  color: 'orange',
-                  onPressed: askForFeedback),
-              TextField(
-                controller: ratingIdController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Enter a Rating ID',
-                ),
+              child: Column(
+                children: <Widget>[
+                  MyButton(
+                      text: 'Basic event', color: 'brown', onPressed: basicEvent),
+                  MyButton(
+                      text: 'Event with Sum',
+                      color: 'brown',
+                      onPressed: eventWithSum),
+                  MyButton(
+                      text: 'Event with Segment',
+                      color: 'brown',
+                      onPressed: eventWithSegment),
+                  MyButton(
+                      text: 'Even with Sum and Segment',
+                      color: 'brown',
+                      onPressed: eventWithSumSegment),
+                  MyButton(
+                      text: 'Timed event: Start / Stop',
+                      color: 'grey',
+                      onPressed: endEventBasic),
+                  MyButton(
+                      text: 'Timed event Sum: Start / Stop',
+                      color: 'grey',
+                      onPressed: endEventWithSum),
+                  MyButton(
+                      text: 'Timed event Segment: Start / Stop',
+                      color: 'grey',
+                      onPressed: endEventWithSegment),
+                  MyButton(
+                      text: 'Timed event Sum Segment: Start / Stop',
+                      color: 'grey',
+                      onPressed: endEventWithSumSegment),
+                  MyButton(
+                      text: "Record View: 'HomePage'",
+                      color: 'olive',
+                      onPressed: recordViewHome),
+                  MyButton(
+                      text: "Record View: 'Dashboard'",
+                      color: 'olive',
+                      onPressed: recordViewDashboard),
+                  MyButton(
+                      text: 'Send Users Data',
+                      color: 'teal',
+                      onPressed: setUserData),
+                  MyButton(
+                      text: 'UserData.setProperty',
+                      color: 'teal',
+                      onPressed: setProperty),
+                  MyButton(
+                      text: 'UserData.increment',
+                      color: 'teal',
+                      onPressed: increment),
+                  MyButton(
+                      text: 'UserData.incrementBy',
+                      color: 'teal',
+                      onPressed: incrementBy),
+                  MyButton(
+                      text: 'UserData.multiply',
+                      color: 'teal',
+                      onPressed: multiply),
+                  MyButton(
+                      text: 'UserData.saveMax', color: 'teal', onPressed: saveMax),
+                  MyButton(
+                      text: 'UserData.saveMin', color: 'teal', onPressed: saveMin),
+                  MyButton(
+                      text: 'UserData.setOnce', color: 'teal', onPressed: setOnce),
+                  MyButton(
+                      text: 'UserData.pushUniqueValue',
+                      color: 'teal',
+                      onPressed: pushUniqueValue),
+                  MyButton(
+                      text: 'UserData.pushValue',
+                      color: 'teal',
+                      onPressed: pushValue),
+                  MyButton(
+                      text: 'UserData.pullValue',
+                      color: 'teal',
+                      onPressed: pullValue),
+                  MyButton(
+                      text: 'Give multiple consent',
+                      color: 'blue',
+                      onPressed: giveMultipleConsent),
+                  MyButton(
+                      text: 'Remove multiple consent',
+                      color: 'blue',
+                      onPressed: removeMultipleConsent),
+                  MyButton(
+                      text: 'Give all Consent',
+                      color: 'blue',
+                      onPressed: giveAllConsent),
+                  MyButton(
+                      text: 'Remove all Consent',
+                      color: 'blue',
+                      onPressed: removeAllConsent),
+                  MyButton(
+                      text: 'Give Consent Sessions',
+                      color: 'blue',
+                      onPressed: giveConsentSessions),
+                  MyButton(
+                      text: 'Give Consent Events',
+                      color: 'blue',
+                      onPressed: giveConsentEvents),
+                  MyButton(
+                      text: 'Give Consent Views',
+                      color: 'blue',
+                      onPressed: giveConsentViews),
+                  MyButton(
+                      text: 'Give Consent Location',
+                      color: 'blue',
+                      onPressed: giveConsentLocation),
+                  MyButton(
+                      text: 'Give Consent Crashes',
+                      color: 'blue',
+                      onPressed: giveConsentCrashes),
+                  MyButton(
+                      text: 'Give Consent Attribution',
+                      color: 'blue',
+                      onPressed: giveConsentAttribution),
+                  MyButton(
+                      text: 'Give Consent Users',
+                      color: 'blue',
+                      onPressed: giveConsentUsers),
+                  MyButton(
+                      text: 'Give Consent Push',
+                      color: 'blue',
+                      onPressed: giveConsentPush),
+                  MyButton(
+                      text: 'Give Consent starRating',
+                      color: 'blue',
+                      onPressed: giveConsentStarRating),
+                  MyButton(
+                      text: 'Give Consent Performance',
+                      color: 'blue',
+                      onPressed: giveConsentAPM),
+                  MyButton(
+                      text: 'Remove Consent Sessions',
+                      color: 'blue',
+                      onPressed: removeConsentsessions),
+                  MyButton(
+                      text: 'Remove Consent Events',
+                      color: 'blue',
+                      onPressed: removeConsentEvents),
+                  MyButton(
+                      text: 'Remove Consent Views',
+                      color: 'blue',
+                      onPressed: removeConsentViews),
+                  MyButton(
+                      text: 'Remove Consent Location',
+                      color: 'blue',
+                      onPressed: removeConsentlocation),
+                  MyButton(
+                      text: 'Remove Consent Crashes',
+                      color: 'blue',
+                      onPressed: removeConsentcrashes),
+                  MyButton(
+                      text: 'Remove Consent Attribution',
+                      color: 'blue',
+                      onPressed: removeConsentattribution),
+                  MyButton(
+                      text: 'Remove Consent Users',
+                      color: 'blue',
+                      onPressed: removeConsentusers),
+                  MyButton(
+                      text: 'Remove Consent Push',
+                      color: 'blue',
+                      onPressed: removeConsentpush),
+                  MyButton(
+                      text: 'Remove Consent starRating',
+                      color: 'blue',
+                      onPressed: removeConsentstarRating),
+                  MyButton(
+                      text: 'Remove Consent Performance',
+                      color: 'blue',
+                      onPressed: removeConsentAPM),
+                  MyButton(
+                      text: 'Countly.remoteConfigUpdate',
+                      color: 'purple',
+                      onPressed: remoteConfigUpdate),
+                  MyButton(
+                      text: 'Countly.updateRemoteConfigForKeysOnly',
+                      color: 'purple',
+                      onPressed: updateRemoteConfigForKeysOnly),
+                  MyButton(
+                      text: 'Countly.updateRemoteConfigExceptKeys',
+                      color: 'purple',
+                      onPressed: updateRemoteConfigExceptKeys),
+                  MyButton(
+                      text: 'Countly.remoteConfigClearValues',
+                      color: 'purple',
+                      onPressed: remoteConfigClearValues),
+                  MyButton(
+                      text: 'Get String Value',
+                      color: 'purple',
+                      onPressed: getRemoteConfigValueForKeyString),
+                  MyButton(
+                      text: 'Get Boolean Value',
+                      color: 'purple',
+                      onPressed: getRemoteConfigValueForKeyBoolean),
+                  MyButton(
+                      text: 'Get Float Value',
+                      color: 'purple',
+                      onPressed: getRemoteConfigValueForKeyFloat),
+                  MyButton(
+                      text: 'Get Integer Value',
+                      color: 'purple',
+                      onPressed: getRemoteConfigValueForKeyInteger),
+                  MyButton(
+                      text: 'Push Notification',
+                      color: 'primary',
+                      onPressed: askForNotificationPermission),
+                  MyButton(
+                      text: 'Enable Temporary ID Mode',
+                      color: 'violet',
+                      onPressed: enableTemporaryIdMode),
+                  MyButton(
+                      text: 'Change Device ID With Merge',
+                      color: 'violet',
+                      onPressed: changeDeviceIdWithMerge),
+                  MyButton(
+                      text: 'Change Device ID Without Merge',
+                      color: 'violet',
+                      onPressed: changeDeviceIdWithoutMerge),
+                  MyButton(
+                      text: 'Enable Parameter Tapmering Protection',
+                      color: 'violet',
+                      onPressed: enableParameterTamperingProtection),
+                  MyButton(
+                      text: 'City, State, and Location',
+                      color: 'violet',
+                      onPressed: setOptionalParametersForInitialization),
+                  MyButton(
+                      text: 'setLocation', color: 'violet', onPressed: setLocation),
+                  MyButton(
+                      text: 'Send Crash Report',
+                      color: 'violet',
+                      onPressed: addCrashLog),
+                  MyButton(
+                      text: 'Cause Exception',
+                      color: 'violet',
+                      onPressed: causeException),
+                  MyButton(
+                      text: 'Throw Exception',
+                      color: 'violet',
+                      onPressed: throwException),
+                  MyButton(
+                      text: 'Throw Exception Async',
+                      color: 'violet',
+                      onPressed: throwExceptionAsync),
+                  MyButton(
+                      text: 'Throw Native Exception',
+                      color: 'violet',
+                      onPressed: throwNativeException),
+                  MyButton(
+                      text: 'Record Exception Manually',
+                      color: 'violet',
+                      onPressed: recordExceptionManually),
+                  MyButton(
+                      text: 'Divided By Zero Exception',
+                      color: 'violet',
+                      onPressed: dividedByZero),
+                  MyButton(
+                      text: 'Enabling logging',
+                      color: 'violet',
+                      onPressed: setLoggingEnabled),
+                  MyButton(
+                      text: 'Open rating modal',
+                      color: 'orange',
+                      onPressed: askForStarRating),
+                  MyButton(
+                      text: 'Open feedback modal',
+                      color: 'orange',
+                      onPressed: askForFeedback),
+                  MyButton(
+                      text: 'Show Survey', color: 'orange', onPressed: showSurvey),
+                  MyButton(text: 'Show NPS', color: 'orange', onPressed: showNPS),
+                  MyButton(
+                      text: 'Report Survey Manually',
+                      color: 'orange',
+                      onPressed: reportSurveyManually),
+                  MyButton(
+                      text: 'Report NPS Manually',
+                      color: 'orange',
+                      onPressed: reportNPSManually),
+                  MyButton(
+                      text: 'Start Trace', color: 'black', onPressed: startTrace),
+                  MyButton(text: 'End Trace', color: 'black', onPressed: endTrace),
+                  MyButton(
+                      text: 'Record Network Trace Success',
+                      color: 'black',
+                      onPressed: recordNetworkTraceSuccess),
+                  MyButton(
+                      text: 'Record Network Trace Failure',
+                      color: 'black',
+                      onPressed: recordNetworkTraceFailure),
+                ],
               ),
-              MyButton(
-                  text: 'Show Rating With ID',
-                  color: 'orange',
-                  onPressed: ratingIdController.text.isNotEmpty ? showRatingWithID : null),
-
-              MyButton(
-                  text: 'Show Survey', color: 'orange', onPressed: showSurvey),
-              MyButton(text: 'Show NPS', color: 'orange', onPressed: showNPS),
-              MyButton(text: 'Show Feedback Widget', color: 'orange', onPressed: showFeedbackWidget),
-              MyButton(
-                  text: 'Report Survey Manually',
-                  color: 'orange',
-                  onPressed: reportSurveyManually),
-              MyButton(
-                  text: 'Report NPS Manually',
-                  color: 'orange',
-                  onPressed: reportNPSManually),
-              MyButton(
-                  text: 'Start Trace', color: 'black', onPressed: startTrace),
-              MyButton(text: 'End Trace', color: 'black', onPressed: endTrace),
-              MyButton(
-                  text: 'Record Network Trace Success',
-                  color: 'black',
-                  onPressed: recordNetworkTraceSuccess),
-              MyButton(
-                  text: 'Record Network Trace Failure',
-                  color: 'black',
-                  onPressed: recordNetworkTraceFailure),
-            ],
-          ),
-        )),
+            )),
       ),
     );
   }
