@@ -6,6 +6,7 @@ import 'dart:math';
 import 'dart:convert';
 
 import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter/countly_config.dart';
 
 /// This or a similar call needs to added to catch and report Dart Errors to Countly,
 /// You need to run app inside a Zone
@@ -22,65 +23,52 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final ratingIdController = TextEditingController();
   @override
   void initState() {
     super.initState();
-    ratingIdController.addListener(() {
-      setState(() {});
-    });
     Countly.isInitialized().then((bool isInitialized) {
       if (!isInitialized) {
         /// Recommended settings for Countly initialisation
-        Countly.setLoggingEnabled(
-            true); // Enable countly internal debugging logs
-        Countly
-            .enableCrashReporting(); // Enable crash reporting to report unhandled crashes to Countly
-        Countly.setRequiresConsent(
-            true); // Set that consent should be required for features to work.
-        Countly.giveConsentInit([
-          'location',
-          'sessions',
-          'attribution',
-          'push',
-          'events',
-          'views',
-          'crashes',
-          'users',
-          'push',
-          'star-rating',
-          'apm',
-          'feedback',
-          'remote-config'
-        ]);
-        Countly.setLocationInit('TR', 'Istanbul', '41.0082,28.9784',
-            '10.2.33.12'); // Set user initial location.
-
         /// Optional settings for Countly initialisation
-        Countly.enableParameterTamperingProtection(
-            'salt'); // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
-        Countly.setHttpPostForced(
-            false); // Set to 'true' if you want HTTP POST to be used for all requests
-        Countly
-            .enableApm(); // Enable APM features, which includes the recording of app start time.
         if (Platform.isIOS) {
           Countly.recordAttributionID('ADVERTISING_ID');
         } else {
           Countly
               .enableAttribution(); // Enable to measure your marketing campaign performance by attributing installs from specific campaigns.
         }
-        Countly.setRemoteConfigAutomaticDownload((result) {
-          print(result);
-        }); // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
-        var segment = {'Key': 'Value'};
-        Countly.setCustomCrashSegment(
-            segment); // Set optional key/value segment added for crash reports.
         Countly.pushTokenType(Countly.messagingMode[
             'TEST']!); // Set messaging mode for push notifications
 
-        Countly.setStarRatingDialogTexts('Title', 'Message', 'Dismiss');
+        var crashSegment = {'Key': 'Value'};
 
-        Countly.init(SERVER_URL, APP_KEY).then((value) {
+        CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
+          ..enableCrashReporting() // Enable crash reporting to report unhandled crashes to Countly
+          ..setRequiresConsent(true) // Set that consent should be required for features to work.
+          ..setConsentEnabled([
+            CountlyConsent.sessions,
+            CountlyConsent.events,
+            CountlyConsent.views,
+            CountlyConsent.location,
+            CountlyConsent.crashes,
+            CountlyConsent.attribution,
+            CountlyConsent.users,
+            CountlyConsent.push,
+            CountlyConsent.starRating,
+            CountlyConsent.apm,
+            CountlyConsent.feedback,
+            CountlyConsent.remoteConfig
+          ])
+          ..setLocation('TR', 'Istanbul', '41.0082,28.9784', '10.2.33.12') // Set user  location.
+          ..setCustomCrashSegment(crashSegment)
+          ..setRemoteConfigAutomaticDownload(true, (error) {
+            print(error);
+          }) // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
+          ..setRecordAppStartTime(true) // Enable APM features, which includes the recording of app start time.
+          ..setStarRatingTextMessage('Message for start rating dialog')
+          ..setLoggingEnabled(true) // Enable countly internal debugging logs
+          ..setParameterTamperingProtectionSalt('salt') // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
+          ..setHttpPostForced(false); // Set to 'true' if you want HTTP POST to be used for all requests
+        Countly.initWithConfig(config).then((value) {
           Countly.appLoadingFinished();
           Countly.start();
 
@@ -502,32 +490,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void askForFeedback() {
-    Countly.askForFeedback('61eaaf37c935575c7b932b97', 'Close');
-  }
-
-  void showRatingWithID() {
-    Countly.askForFeedback(ratingIdController.text, 'Close');
-  }
-
-
-  void showFeedbackWidget() async {
-    FeedbackWidgetsResponse feedbackWidgetsResponse =
-    await Countly.getAvailableFeedbackWidgets();
-    List<CountlyPresentableFeedback> widgets =
-        feedbackWidgetsResponse.presentableFeedback;
-    String? error = feedbackWidgetsResponse.error;
-
-    if (error != null) {
-      return;
-    }
-
-    if(widgets.isNotEmpty) {
-      await Countly.presentFeedbackWidget(widgets.first, 'Close', widgetShown: () {
-        print('showFeedbackWidget widgetShown');
-      }, widgetClosed: () {
-        print('showFeedbackWidget widgetClosed');
-      });
-    }
+    Countly.askForFeedback('5e391ef47975d006a22532c0', 'Close');
   }
 
   void showSurvey() async {
@@ -733,14 +696,6 @@ class _MyAppState extends State<MyApp> {
   }
 
   @override
-  void dispose() {
-    // Clean up the controller when the widget is disposed.
-    ratingIdController.dispose();
-    super.dispose();
-  }
-
-
-  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
@@ -749,6 +704,118 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Center(
             child: SingleChildScrollView(
+              MyButton(
+                  text: 'Get Float Value',
+                  color: 'purple',
+                  onPressed: getRemoteConfigValueForKeyFloat),
+              MyButton(
+                  text: 'Get Integer Value',
+                  color: 'purple',
+                  onPressed: getRemoteConfigValueForKeyInteger),
+              MyButton(
+                  text: 'Push Notification',
+                  color: 'primary',
+                  onPressed: askForNotificationPermission),
+              MyButton(
+                  text: 'Enable Temporary ID Mode',
+                  color: 'violet',
+                  onPressed: enableTemporaryIdMode),
+              MyButton(
+                  text: 'Change Device ID With Merge',
+                  color: 'violet',
+                  onPressed: changeDeviceIdWithMerge),
+              MyButton(
+                  text: 'Change Device ID Without Merge',
+                  color: 'violet',
+                  onPressed: changeDeviceIdWithoutMerge),
+              MyButton(
+                  text: 'Enable Parameter Tapmering Protection',
+                  color: 'violet',
+                  onPressed: enableParameterTamperingProtection),
+              MyButton(
+                  text: 'City, State, and Location',
+                  color: 'violet',
+                  onPressed: setOptionalParametersForInitialization),
+              MyButton(
+                  text: 'setLocation', color: 'violet', onPressed: setLocation),
+              MyButton(
+                  text: 'Send Crash Report',
+                  color: 'violet',
+                  onPressed: addCrashLog),
+              MyButton(
+                  text: 'Cause Exception',
+                  color: 'violet',
+                  onPressed: causeException),
+              MyButton(
+                  text: 'Throw Exception',
+                  color: 'violet',
+                  onPressed: throwException),
+              MyButton(
+                  text: 'Throw Exception Async',
+                  color: 'violet',
+                  onPressed: throwExceptionAsync),
+              MyButton(
+                  text: 'Throw Native Exception',
+                  color: 'violet',
+                  onPressed: throwNativeException),
+              MyButton(
+                  text: 'Record Exception Manually',
+                  color: 'violet',
+                  onPressed: recordExceptionManually),
+              MyButton(
+                  text: 'Divided By Zero Exception',
+                  color: 'violet',
+                  onPressed: dividedByZero),
+              MyButton(
+                  text: 'Enabling logging',
+                  color: 'violet',
+                  onPressed: setLoggingEnabled),
+              MyButton(
+                  text: 'Open rating modal',
+                  color: 'orange',
+                  onPressed: askForStarRating),
+              MyButton(
+                  text: 'Open feedback modal',
+                  color: 'orange',
+                  onPressed: askForFeedback),
+              TextField(
+                controller: ratingIdController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'Enter a Rating ID',
+                ),
+              ),
+              MyButton(
+                  text: 'Show Rating With ID',
+                  color: 'orange',
+                  onPressed: ratingIdController.text.isNotEmpty ? showRatingWithID : null),
+
+              MyButton(
+                  text: 'Show Survey', color: 'orange', onPressed: showSurvey),
+              MyButton(text: 'Show NPS', color: 'orange', onPressed: showNPS),
+              MyButton(text: 'Show Feedback Widget', color: 'orange', onPressed: showFeedbackWidget),
+              MyButton(
+                  text: 'Report Survey Manually',
+                  color: 'orange',
+                  onPressed: reportSurveyManually),
+              MyButton(
+                  text: 'Report NPS Manually',
+                  color: 'orange',
+                  onPressed: reportNPSManually),
+              MyButton(
+                  text: 'Start Trace', color: 'black', onPressed: startTrace),
+              MyButton(text: 'End Trace', color: 'black', onPressed: endTrace),
+              MyButton(
+                  text: 'Record Network Trace Success',
+                  color: 'black',
+                  onPressed: recordNetworkTraceSuccess),
+              MyButton(
+                  text: 'Record Network Trace Failure',
+                  color: 'black',
+                  onPressed: recordNetworkTraceFailure),
+            ],
+          ),
+        )),
               child: Column(
                 children: <Widget>[
                   MyButton(

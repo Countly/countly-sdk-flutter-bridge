@@ -1,4 +1,6 @@
 ## 21.11.0
+* Added 'CountlyConfig' class for init time configurations.
+* Marked lots of function deprecated due to methods added in CountlyConfig.
 * Added a way to retrieve feedback widget data and manually report them for iOS also
 * Added Appear and dismiss callback for nps/survey widgets
 * Updated minimum supported iOS versions to 10.0
