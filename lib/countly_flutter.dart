@@ -29,7 +29,7 @@ class Countly {
 
   /// Used to determine if log messages should be printed to the console
   /// its value should be updated from [setLoggingEnabled(bool flag)].
-  static bool isDebug = false;
+  static bool _isDebug = false;
 
   /// Used to determine if init is called.
   /// its value should be updated from [init(...)].
@@ -56,7 +56,7 @@ class Countly {
 
   static void log(String? message, {LogLevel logLevel = LogLevel.DEBUG}) async {
     String logLevelStr = describeEnum(logLevel);
-    if (isDebug) {
+    if (_isDebug) {
       print('[$tag] $logLevelStr: $message');
     }
   }
@@ -107,8 +107,11 @@ class Countly {
   }
 
   static Future<String?> initWithConfig(CountlyConfig config) async {
-    _isInitialized = true;
-    _channel.setMethodCallHandler(_methodCallHandler);
+    if(_isInitialized) {
+      String msg = 'initWithConfig, SDK is already initialized';
+      Countly.log(msg, logLevel: LogLevel.ERROR);
+      return msg;
+    }
     if(config.serverURL.isEmpty) {
       String msg = 'initWithConfig, serverURL cannot be empty';
       Countly.log(msg, logLevel: LogLevel.ERROR);
@@ -120,14 +123,17 @@ class Countly {
       return msg;
     }
     if(config.loggingEnabled != null) {
-      isDebug = config.loggingEnabled!;
+      _isDebug = config.loggingEnabled!;
     }
+    _channel.setMethodCallHandler(_methodCallHandler);
 
     List<dynamic> args = [];
     args.add(_configToJson(config));
     log(args.toString());
     final String? result = await _channel
         .invokeMethod('init', <String, dynamic>{'data': json.encode(args)});
+    _isInitialized = true;
+
     return result;
   }
 
@@ -503,7 +509,7 @@ class Countly {
   static Future<String?> setLoggingEnabled(bool flag) async {
     log('setLoggingEnabled is deprecated, use setLoggingEnabled of CountlyConfig to enable/disable logging', logLevel: LogLevel.WARNING);
     List<String> args = [];
-    isDebug = flag;
+    _isDebug = flag;
     args.add(flag.toString());
     log(args.toString());
     final String? result = await _channel.invokeMethod(
