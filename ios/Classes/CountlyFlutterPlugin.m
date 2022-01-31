@@ -901,96 +901,102 @@ FlutterMethodChannel* _channel;
 
 - (void)populateConfig:(NSDictionary*)_config
 {
-    NSString* appKey = _config[@"appKey"];
-    if(appKey) {
-        config.appKey = appKey;
-    }
-    NSString* host = _config[@"serverURL"];
-    if(host) {
-        config.host = host;
-    }
-    NSString* deviceID = _config[@"deviceID"];
-    if(deviceID){
-        if ([@"TemporaryDeviceID" isEqualToString:deviceID]) {
-            config.deviceID = CLYTemporaryDeviceID;
-        } else {
-            config.deviceID = deviceID;
+    @try{
+        NSString* appKey = _config[@"appKey"];
+        if(appKey) {
+            config.appKey = appKey;
+        }
+        NSString* host = _config[@"serverURL"];
+        if(host) {
+            config.host = host;
+        }
+        NSString* deviceID = _config[@"deviceID"];
+        if(deviceID){
+            if ([@"TemporaryDeviceID" isEqualToString:deviceID]) {
+                config.deviceID = CLYTemporaryDeviceID;
+            } else {
+                config.deviceID = deviceID;
+            }
+        }
+        NSNumber* loggingEnabled = _config[@"loggingEnabled"];
+        if(loggingEnabled) {
+            config.enableDebug = [loggingEnabled boolValue];
+        }
+        NSNumber* httpPostForced = _config[@"httpPostForced"];
+        if(httpPostForced) {
+            config.alwaysUsePOST = [httpPostForced boolValue];
+        }
+        NSNumber* shouldRequireConsent = _config[@"shouldRequireConsent"];
+        if(shouldRequireConsent) {
+            config.requiresConsent = [shouldRequireConsent boolValue];
+        }
+
+        NSNumber* eventQueueSizeThreshold = _config[@"eventQueueSizeThreshold"];
+        if(eventQueueSizeThreshold) {
+            config.eventSendThreshold = [eventQueueSizeThreshold intValue];
+        }
+        NSNumber* sessionUpdateTimerDelay = _config[@"sessionUpdateTimerDelay"];
+        if(sessionUpdateTimerDelay) {
+            config.updateSessionPeriod = [sessionUpdateTimerDelay intValue];
+        }
+        NSString* salt = _config[@"tamperingProtectionSalt"];
+        if(salt) {
+            config.secretSalt = salt;
+        }
+
+        NSDictionary* crashSegmentation = _config[@"customCrashSegment"];
+        if(crashSegmentation) {
+            config.crashSegmentation = crashSegmentation;
+        }
+        NSArray* consents = _config[@"consents"];
+        if(consents) {
+            config.consents = consents;
+        }
+        NSString* starRatingTextMessage = _config[@"starRatingTextMessage"];
+        if(starRatingTextMessage) {
+            config.starRatingMessage = starRatingTextMessage;
+        }
+        NSNumber* recordAppStartTime = _config[@"recordAppStartTime"];
+        if(recordAppStartTime) {
+            config.enablePerformanceMonitoring = [recordAppStartTime boolValue];
+        }
+        NSNumber* enableUnhandledCrashReporting = _config[@"enableUnhandledCrashReporting"];
+        if(enableUnhandledCrashReporting && [enableUnhandledCrashReporting boolValue]) {
+            [self addCountlyFeature:CLYCrashReporting];
+        }
+
+        NSNumber* maxRequestQueueSize = _config[@"maxRequestQueueSize"];
+        if(maxRequestQueueSize) {
+            config.storedRequestsLimit = [maxRequestQueueSize intValue];
+        }
+
+        NSNumber* manualSessionEnabled = _config[@"manualSessionEnabled"];
+        if(manualSessionEnabled && [manualSessionEnabled boolValue]) {
+            config.manualSessionHandling = YES;
+        }
+        NSNumber* enableRemoteConfigAutomaticDownload = _config[@"enableRemoteConfigAutomaticDownload"];
+        if(enableRemoteConfigAutomaticDownload)
+        {
+            config.enableRemoteConfig = [enableRemoteConfigAutomaticDownload boolValue];
+            config.remoteConfigCompletionHandler = ^(NSError * error)
+            {
+                NSString* errorStr = nil;
+                if(error) {
+                    errorStr = error.localizedDescription;
+                }
+                [_channel invokeMethod:@"remoteConfigCallback" arguments:errorStr];
+            };
+        }
+
+        NSDictionary* location = _config[@"location"];
+        if(location) {
+            [self setLocation:location];
         }
     }
-    NSNumber* loggingEnabled = _config[@"loggingEnabled"];
-    if(loggingEnabled) {
-        config.enableDebug = [loggingEnabled boolValue];
-    }
-    NSNumber* httpPostForced = _config[@"httpPostForced"];
-    if(httpPostForced) {
-        config.alwaysUsePOST = [httpPostForced boolValue];
-    }
-    NSNumber* shouldRequireConsent = _config[@"shouldRequireConsent"];
-    if(shouldRequireConsent) {
-        config.requiresConsent = [shouldRequireConsent boolValue];
-    }
-    
-    NSNumber* eventQueueSizeThreshold = _config[@"eventQueueSizeThreshold"];
-    if(eventQueueSizeThreshold) {
-        config.eventSendThreshold = [eventQueueSizeThreshold intValue];
-    }
-    NSNumber* sessionUpdateTimerDelay = _config[@"sessionUpdateTimerDelay"];
-    if(sessionUpdateTimerDelay) {
-        config.updateSessionPeriod = [sessionUpdateTimerDelay intValue];
-    }
-    NSString* salt = _config[@"tamperingProtectionSalt"];
-    if(salt) {
-        config.secretSalt = salt;
+    @catch(NSException *exception){
+       COUNTLY_FLUTTER_LOG(@"populateConfig, Unable to parse Config object: %@", exception);
     }
 
-    NSDictionary* crashSegmentation = _config[@"customCrashSegment"];
-    if(crashSegmentation) {
-        config.crashSegmentation = crashSegmentation;
-    }
-    NSArray* consents = _config[@"consents"];
-    if(consents) {
-        config.consents = consents;
-    }
-    NSString* starRatingTextMessage = _config[@"starRatingTextMessage"];
-    if(starRatingTextMessage) {
-        config.starRatingMessage = starRatingTextMessage;
-    }
-    NSNumber* recordAppStartTime = _config[@"recordAppStartTime"];
-    if(recordAppStartTime) {
-        config.enablePerformanceMonitoring = [recordAppStartTime boolValue];
-    }
-    NSNumber* enableUnhandledCrashReporting = _config[@"enableUnhandledCrashReporting"];
-    if(enableUnhandledCrashReporting && [enableUnhandledCrashReporting boolValue]) {
-        [self addCountlyFeature:CLYCrashReporting];
-    }
-    
-    NSNumber* maxRequestQueueSize = _config[@"maxRequestQueueSize"];
-    if(maxRequestQueueSize) {
-        config.storedRequestsLimit = [maxRequestQueueSize intValue];
-    }
-    
-    NSNumber* manualSessionEnabled = _config[@"manualSessionEnabled"];
-    if(manualSessionEnabled && [manualSessionEnabled boolValue]) {
-        config.manualSessionHandling = YES;
-    }
-    NSNumber* enableRemoteConfigAutomaticDownload = _config[@"enableRemoteConfigAutomaticDownload"];
-    if(enableRemoteConfigAutomaticDownload)
-    {
-        config.enableRemoteConfig = [enableRemoteConfigAutomaticDownload boolValue];
-        config.remoteConfigCompletionHandler = ^(NSError * error)
-        {
-            NSString* errorStr = nil;
-            if(error) {
-                errorStr = error.localizedDescription;
-            }
-            [_channel invokeMethod:@"remoteConfigCallback" arguments:errorStr];
-        };
-    }
-    
-    NSDictionary* location = _config[@"location"];
-    if(location) {
-        [self setLocation:location];
-    }
 }
 
 -(void) setLocation:(NSDictionary*)location
