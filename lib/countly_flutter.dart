@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:countly_flutter/countly_config.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'dart:io' show Platform;
@@ -12,6 +13,21 @@ abstract class AttributionKey {
 }
 
 enum LogLevel { INFO, DEBUG, VERBOSE, WARNING, ERROR }
+
+abstract class CountlyConsent {
+  static const String sessions = 'sessions';
+  static const String events = 'events';
+  static const String views = 'views';
+  static const String location = 'location';
+  static const String crashes = 'crashes';
+  static const String attribution = 'attribution';
+  static const String users = 'users';
+  static const String push = 'push';
+  static const String starRating = 'star-rating';
+  static const String apm = 'apm';
+  static const String feedback = 'feedback';
+  static const String remoteConfig = 'remote-config';
+}
 
 class Countly {
   static const MethodChannel _channel = MethodChannel('countly_flutter');
@@ -31,7 +47,10 @@ class Countly {
   /// Set true when user enabled crash logging
   static bool _enableCrashReportingFlag = false;
 
-  static Map<String, String> messagingMode = {
+  static Map<String, String> messagingMode = Platform.isAndroid ? {
+    'TEST': '2',
+    'PRODUCTION': '0'
+  } : {
     'TEST': '1',
     'PRODUCTION': '0',
     'ADHOC': '2'
@@ -52,6 +71,7 @@ class Countly {
   /// [VoidCallback? _widgetClosed] Callback to be executed when feedback widget is closed
   static VoidCallback? _widgetShown;
   static VoidCallback? _widgetClosed;
+  static Function(String error)? _remoteConfigCallback;
 
   /// Callback handler to handle function calls from native iOS/Android to Dart.
   static Future<void> _methodCallHandler(MethodCall call) async {
@@ -67,28 +87,59 @@ class Countly {
           _widgetShown = null;
           _widgetClosed = null;
         }
+        break;
+      case 'remoteConfigCallback':
+        if(_remoteConfigCallback != null) {
+          _remoteConfigCallback!(call.arguments);
+          _remoteConfigCallback = null;
+        }
     }
   }
 
+  static void setRemoteConfigCallback(Function(String error) callback) {
+    _remoteConfigCallback = callback;
+  }
+
+  @Deprecated('Use initWithConfig instead')
   static Future<String?> init(String serverUrl, String appKey,
       [String? deviceId]) async {
+    log('init is deprecated, use initWithConfig instead',
+        logLevel: LogLevel.WARNING);
+    CountlyConfig config = CountlyConfig(serverUrl, appKey);
+    if(deviceId != null) {
+      config.setDeviceId(deviceId);
+    }
+    return await initWithConfig(config);
+  }
 
-    _isInitialized = true;
+  static Future<String?> initWithConfig(CountlyConfig config) async {
+    if(_isInitialized) {
+      String msg = 'initWithConfig, SDK is already initialized';
+      Countly.log(msg, logLevel: LogLevel.ERROR);
+      return msg;
+    }
+    if(config.serverURL.isEmpty) {
+      String msg = 'initWithConfig, serverURL cannot be empty';
+      Countly.log(msg, logLevel: LogLevel.ERROR);
+      return msg;
+    }
+    if(config.appKey.isEmpty) {
+      String msg = 'initWithConfig, appKey cannot be empty';
+      Countly.log(msg, logLevel: LogLevel.ERROR);
+      return msg;
+    }
+    if(config.loggingEnabled != null) {
+      _isDebug = config.loggingEnabled!;
+    }
     _channel.setMethodCallHandler(_methodCallHandler);
 
-    if (Platform.isAndroid) {
-      messagingMode = {'TEST': '2', 'PRODUCTION': '0'};
-    }
-    List<String> args = [];
-    args.add(serverUrl);
-    args.add(appKey);
-    if (deviceId != null) {
-      args.add(deviceId);
-    }
+    List<dynamic> args = [];
+    args.add(_configToJson(config));
     log(args.toString());
     final String? result = await _channel
         .invokeMethod('init', <String, dynamic>{'data': json.encode(args)});
-    log(result);
+    _isInitialized = true;
+
     return result;
   }
 
@@ -303,7 +354,9 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use enableManualSessionHandling of CountlyConfig instead')
   static Future<String?> manualSessionHandling() async {
+    log('manualSessionHandling is deprecated, use enableManualSessionHandling of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     final String? result = await _channel.invokeMethod(
         'manualSessionHandling', <String, dynamic>{'data': json.encode(args)});
@@ -319,19 +372,20 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use setUpdateSessionTimerDelay of CountlyConfig instead')
   static Future<String?> updateSessionPeriod() async {
-    List<String> args = [];
-    final String? result = await _channel.invokeMethod(
-        'updateSessionPeriod', <String, dynamic>{'data': json.encode(args)});
-    log(result);
-    return result;
+    String msg = 'updateSessionPeriod is deprecated, use setUpdateSessionTimerDelay of CountlyConfig instead';
+    log(msg, logLevel: LogLevel.WARNING);
+    return msg;
   }
 
   /// Sets the interval for the automatic session update calls
   /// min value 1 (1 second),
   /// max value 600 (10 minutes)
   /// [int sessionInterval]- delay in seconds
+  @Deprecated('Use setUpdateSessionTimerDelay of CountlyConfig instead')
   static Future<String?> updateSessionInterval(int sessionInterval) async {
+    log('updateSessionInterval is deprecated, use setUpdateSessionTimerDelay of CountlyConfig instead', logLevel: LogLevel.WARNING);
     if (_isInitialized) {
       log('updateSessionInterval should be called before init',
           logLevel: LogLevel.WARNING);
@@ -348,7 +402,9 @@ class Countly {
 
   /// Events get grouped together and are sent either every minute or after the unsent event count reaches a threshold. By default it is 10
   /// Should be call before Countly init
+  @Deprecated('Use setEventQueueSizeToSend of CountlyConfig instead')
   static Future<String?> eventSendThreshold(int limit) async {
+    log('eventSendThreshold is deprecated, use setEventQueueSizeToSend of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     args.add(limit.toString());
     log(args.toString());
@@ -358,7 +414,9 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use setMaxRequestQueueSize of CountlyConfig instead')
   static Future<String?> storedRequestsLimit() async {
+    log('storedRequestsLimit is deprecated, use setMaxRequestQueueSize of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     final String? result = await _channel.invokeMethod(
         'storedRequestsLimit', <String, dynamic>{'data': json.encode(args)});
@@ -366,8 +424,10 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use setLocation of CountlyConfig instead')
   static Future<String?> setOptionalParametersForInitialization(
       Map<String, Object> options) async {
+    log('setOptionalParametersForInitialization is deprecated, use setLocation of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
 
     options['city'] ??= 'null';
@@ -451,7 +511,9 @@ class Countly {
 
   /// Set to true if you want to enable countly internal debugging logs
   /// Should be call before Countly init
+  @Deprecated('Use setLoggingEnabled of CountlyConfig to enable/disable logging instead')
   static Future<String?> setLoggingEnabled(bool flag) async {
+    log('setLoggingEnabled is deprecated, use setLoggingEnabled of CountlyConfig to enable/disable logging', logLevel: LogLevel.WARNING);
     List<String> args = [];
     _isDebug = flag;
     args.add(flag.toString());
@@ -464,7 +526,9 @@ class Countly {
 
   /// Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request, using the &checksum field
   /// Should be call before Countly init
+  @Deprecated('Use setParameterTamperingProtectionSalt of CountlyConfig instead')
   static Future<String?> enableParameterTamperingProtection(String salt) async {
+    log('enableParameterTamperingProtection is deprecated, use setParameterTamperingProtectionSalt of CountlyConfig instead', logLevel: LogLevel.WARNING);
     if (salt.isEmpty) {
       String error = 'enableParameterTamperingProtection, salt cannot be empty';
       log(error);
@@ -482,7 +546,9 @@ class Countly {
 
   /// Set to 'true' if you want HTTP POST to be used for all requests
   /// Should be call before Countly init
+  @Deprecated('Use setHttpPostForced of CountlyConfig instead')
   static Future<String?> setHttpPostForced(bool isEnabled) async {
+    log('setHttpPostForced is deprecated, use setHttpPostForced of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     args.add(isEnabled.toString());
     log(args.toString());
@@ -494,8 +560,11 @@ class Countly {
 
   /// Set user initial location
   /// Should be call before init
+  @Deprecated('Use setLocation of CountlyConfig instead')
   static Future<String?> setLocationInit(String countryCode, String city,
       String gpsCoordinates, String ipAddress) async {
+    log('setLocationInit is deprecated, use setLocation of CountlyConfig instead', logLevel: LogLevel.WARNING);
+
     List<String> args = [];
     args.add(countryCode);
     args.add(city);
@@ -718,7 +787,9 @@ class Countly {
 
   /// Set that consent should be required for features to work.
   /// Should be call before Countly init
+  @Deprecated('Use setRequiresConsent of CountlyConfig instead')
   static Future<String?> setRequiresConsent(bool flag) async {
+    log('setRequiresConsent is deprecated, use setRequiresConsent of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     args.add(flag.toString());
     log(args.toString());
@@ -730,8 +801,11 @@ class Countly {
 
   /// Give consent for specific features.
   /// Should be call before Countly init
+  @Deprecated('Use setConsentEnabled of CountlyConfig instead')
   static Future<String?> giveConsentInit(List<String> consents) async {
-    if (consents.isEmpty) {
+      log('giveConsentInit is deprecated, use setConsentEnabled of CountlyConfig instead', logLevel: LogLevel.WARNING);
+
+      if (consents.isEmpty) {
       String error = 'giveConsentInit, consents List is empty';
       log(error, logLevel: LogLevel.WARNING);
     }
@@ -786,8 +860,10 @@ class Countly {
 
   /// Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
   /// Should be call before Countly init
+  @Deprecated('Use setRemoteConfigAutomaticDownload of CountlyConfig instead')
   static Future<String?> setRemoteConfigAutomaticDownload(
       Function callback) async {
+    log('setRemoteConfigAutomaticDownload is deprecated, use setRemoteConfigAutomaticDownload of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     log(args.toString());
     final String? result = await _channel.invokeMethod(
@@ -872,8 +948,10 @@ class Countly {
   /// [String starRatingTextTitle] - dialog's title text (Only for Android)
   /// [String starRatingTextMessage] - dialog's message text
   /// [String starRatingTextDismiss] - dialog's dismiss buttons text (Only for Android)
+  @Deprecated('Use setStarRatingDialogTexts of CountlyConfig instead')
   static Future<String?> setStarRatingDialogTexts(String starRatingTextTitle,
       String starRatingTextMessage, String starRatingTextDismiss) async {
+    log('setStarRatingDialogTexts is deprecated, use setStarRatingDialogTexts of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     args.add(starRatingTextTitle);
     args.add(starRatingTextMessage);
@@ -1075,7 +1153,9 @@ class Countly {
 
   /// Enable crash reporting to report uncaught errors to Countly.
   /// Should be call before Countly init
+  @Deprecated('Use enableCrashReporting of CountlyConfig instead')
   static Future<String?> enableCrashReporting() async {
+    log('enableCrashReporting is deprecated, use enableCrashReporting of CountlyConfig instead', logLevel: LogLevel.WARNING);
     FlutterError.onError = _recordFlutterError;
     List<String> args = [];
     _enableCrashReportingFlag = true;
@@ -1114,8 +1194,10 @@ class Countly {
 
   /// Set optional key/value segment added for crash reports.
   /// Should be call before Countly init
+  @Deprecated('Use setCustomCrashSegment of CountlyConfig instead')
   static Future<String?> setCustomCrashSegment(
       Map<String, Object> segments) async {
+    log('setCustomCrashSegment is deprecated, use setCustomCrashSegment of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     segments.forEach((k, v) {
       args.add(k.toString());
@@ -1196,7 +1278,9 @@ class Countly {
 
   /// Enable APM features, which includes the recording of app start time.
   /// Should be call before Countly init
+  @Deprecated('Use setRecordAppStartTime of CountlyConfig instead')
   static Future<String?> enableApm() async {
+    log('enableApm is deprecated, use setRecordAppStartTime of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     final String? result = await _channel.invokeMethod(
         'enableApm', <String, dynamic>{'data': json.encode(args)});
@@ -1358,6 +1442,79 @@ class Countly {
         'recordDirectAttribution', <String, dynamic>{'data': json.encode(args)});
     log(result);
     return result;
+  }
+
+  static Map<String, dynamic> _configToJson(CountlyConfig config) {
+    final Map<String, dynamic> countlyConfig = {};
+    try {
+      countlyConfig['appKey'] = config.appKey;
+      countlyConfig['serverURL'] = config.serverURL;
+
+      if(config.deviceID != null) {
+        countlyConfig['deviceID'] = config.deviceID;
+      }
+
+      if (config.customCrashSegment != null) {
+        countlyConfig['customCrashSegment'] = config.customCrashSegment;
+      }
+      if(config.consents != null) {
+        countlyConfig['consents'] = config.consents;
+      }
+      if(config.tamperingProtectionSalt != null) {
+        countlyConfig['tamperingProtectionSalt'] = config.tamperingProtectionSalt;
+      }
+      if(config.eventQueueSizeThreshold != null) {
+        countlyConfig['eventQueueSizeThreshold'] = config.eventQueueSizeThreshold;
+      }
+      if(config.sessionUpdateTimerDelay != null) {
+        countlyConfig['sessionUpdateTimerDelay'] = config.sessionUpdateTimerDelay;
+      }
+      if(config.starRatingTextTitle != null) {
+        countlyConfig['starRatingTextTitle'] = config.starRatingTextTitle;
+      }
+      if(config.starRatingTextMessage != null) {
+        countlyConfig['starRatingTextMessage'] = config.starRatingTextMessage;
+      }
+      if(config.starRatingTextDismiss != null) {
+        countlyConfig['starRatingTextDismiss'] = config.starRatingTextDismiss;
+      }
+      if(config.loggingEnabled != null) {
+        countlyConfig['loggingEnabled'] = config.loggingEnabled;
+      }
+      if(config.httpPostForced != null) {
+        countlyConfig['httpPostForced'] = config.httpPostForced;
+      }
+      if(config.shouldRequireConsent != null) {
+        countlyConfig['shouldRequireConsent'] = config.shouldRequireConsent;
+      }
+      if(config.recordAppStartTime != null) {
+        countlyConfig['recordAppStartTime'] = config.recordAppStartTime;
+      }
+      if(config.enableUnhandledCrashReporting != null) {
+        countlyConfig['enableUnhandledCrashReporting'] = config.enableUnhandledCrashReporting;
+      }
+
+      if(config.manualSessionEnabled != null) {
+        countlyConfig['manualSessionEnabled'] = config.manualSessionEnabled;
+      }
+
+      if(config.maxRequestQueueSize != null) {
+        countlyConfig['maxRequestQueueSize'] = config.maxRequestQueueSize;
+      }
+
+      if(config.location != null) {
+        countlyConfig['location'] = config.location;
+      }
+
+      if(config.enableRemoteConfigAutomaticDownload != null) {
+        countlyConfig['enableRemoteConfigAutomaticDownload'] = config.enableRemoteConfigAutomaticDownload;
+      }
+
+
+    } catch (e) {
+      log('_configToJson, Exception occur during converting config to json: $e');
+    }
+    return countlyConfig;
   }
 }
 

@@ -54,14 +54,8 @@ FlutterMethodChannel* _channel;
     }
 
     if([@"init" isEqualToString:call.method]){
-
-        NSString* serverurl = [command  objectAtIndex:0];
-        NSString* appkey = [command objectAtIndex:1];
-        NSString* deviceID = @"";
-
-        config.appKey = appkey;
-        config.host = serverurl;
-        
+        NSDictionary* _config = [command objectAtIndex:0];
+        [self populateConfig:_config];
         CountlyCommon.sharedInstance.SDKName = kCountlyFlutterSDKName;
         CountlyCommon.sharedInstance.SDKVersion = kCountlyFlutterSDKVersion;
 
@@ -74,17 +68,7 @@ FlutterMethodChannel* _channel;
         }
 #endif
 #endif
-
-        if(command.count == 3){
-            deviceID = [command objectAtIndex:2];
-            if ([@"TemporaryDeviceID" isEqualToString:deviceID]) {
-                config.deviceID = CLYTemporaryDeviceID;
-            } else {
-                config.deviceID = deviceID;
-            }
-        }
-
-        if (serverurl != nil && [serverurl length] > 0) {
+        if (config.host && [config.host length] > 0) {
             dispatch_async(dispatch_get_main_queue(), ^ {
               isInitialized = true;
               [[Countly sharedInstance] startWithConfig:config];
@@ -914,6 +898,138 @@ FlutterMethodChannel* _channel;
   return nil;
 }
 
+- (void)populateConfig:(NSDictionary*)_config
+{
+    @try{
+        NSString* appKey = _config[@"appKey"];
+        if(appKey) {
+            config.appKey = appKey;
+        }
+        NSString* host = _config[@"serverURL"];
+        if(host) {
+            config.host = host;
+        }
+        NSString* deviceID = _config[@"deviceID"];
+        if(deviceID){
+            if ([@"TemporaryDeviceID" isEqualToString:deviceID]) {
+                config.deviceID = CLYTemporaryDeviceID;
+            } else {
+                config.deviceID = deviceID;
+            }
+        }
+        NSNumber* loggingEnabled = _config[@"loggingEnabled"];
+        if(loggingEnabled) {
+            config.enableDebug = [loggingEnabled boolValue];
+        }
+        NSNumber* httpPostForced = _config[@"httpPostForced"];
+        if(httpPostForced) {
+            config.alwaysUsePOST = [httpPostForced boolValue];
+        }
+        NSNumber* shouldRequireConsent = _config[@"shouldRequireConsent"];
+        if(shouldRequireConsent) {
+            config.requiresConsent = [shouldRequireConsent boolValue];
+        }
+
+        NSNumber* eventQueueSizeThreshold = _config[@"eventQueueSizeThreshold"];
+        if(eventQueueSizeThreshold) {
+            config.eventSendThreshold = [eventQueueSizeThreshold intValue];
+        }
+        NSNumber* sessionUpdateTimerDelay = _config[@"sessionUpdateTimerDelay"];
+        if(sessionUpdateTimerDelay) {
+            config.updateSessionPeriod = [sessionUpdateTimerDelay intValue];
+        }
+        NSString* salt = _config[@"tamperingProtectionSalt"];
+        if(salt) {
+            config.secretSalt = salt;
+        }
+
+        NSDictionary* crashSegmentation = _config[@"customCrashSegment"];
+        if(crashSegmentation) {
+            config.crashSegmentation = crashSegmentation;
+        }
+        NSArray* consents = _config[@"consents"];
+        if(consents) {
+            config.consents = consents;
+        }
+        NSString* starRatingTextMessage = _config[@"starRatingTextMessage"];
+        if(starRatingTextMessage) {
+            config.starRatingMessage = starRatingTextMessage;
+        }
+        NSNumber* recordAppStartTime = _config[@"recordAppStartTime"];
+        if(recordAppStartTime) {
+            config.enablePerformanceMonitoring = [recordAppStartTime boolValue];
+        }
+        NSNumber* enableUnhandledCrashReporting = _config[@"enableUnhandledCrashReporting"];
+        if(enableUnhandledCrashReporting && [enableUnhandledCrashReporting boolValue]) {
+            [self addCountlyFeature:CLYCrashReporting];
+        }
+
+        NSNumber* maxRequestQueueSize = _config[@"maxRequestQueueSize"];
+        if(maxRequestQueueSize) {
+            config.storedRequestsLimit = [maxRequestQueueSize intValue];
+        }
+
+        NSNumber* manualSessionEnabled = _config[@"manualSessionEnabled"];
+        if(manualSessionEnabled && [manualSessionEnabled boolValue]) {
+            config.manualSessionHandling = YES;
+        }
+        NSNumber* enableRemoteConfigAutomaticDownload = _config[@"enableRemoteConfigAutomaticDownload"];
+        if(enableRemoteConfigAutomaticDownload)
+        {
+            config.enableRemoteConfig = [enableRemoteConfigAutomaticDownload boolValue];
+            config.remoteConfigCompletionHandler = ^(NSError * error)
+            {
+                NSString* errorStr = nil;
+                if(error) {
+                    errorStr = error.localizedDescription;
+                }
+                [_channel invokeMethod:@"remoteConfigCallback" arguments:errorStr];
+            };
+        }
+
+        NSDictionary* location = _config[@"location"];
+        if(location) {
+            [self setLocation:location];
+        }
+    }
+    @catch(NSException *exception){
+       COUNTLY_FLUTTER_LOG(@"populateConfig, Unable to parse Config object: %@", exception);
+    }
+
+}
+
+-(void) setLocation:(NSDictionary*)location
+{
+    NSString* gpsCoordinates =  location[@"gpsCoordinates"];
+    if(gpsCoordinates && [gpsCoordinates containsString:@","]){
+       @try{
+           NSArray *locationArray = [gpsCoordinates componentsSeparatedByString:@","];
+           NSString* latitudeString = [locationArray objectAtIndex:0];
+           NSString* longitudeString = [locationArray objectAtIndex:1];
+
+           double latitudeDouble = [latitudeString doubleValue];
+           double longitudeDouble = [longitudeString doubleValue];
+           config.location = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
+       }
+       @catch(NSException *exception){
+           COUNTLY_FLUTTER_LOG(@"Invalid location: %@", gpsCoordinates);
+       }
+    }
+    NSString* city =  location[@"city"];
+    if(city) {
+       config.city = city;
+    }
+    NSString* countryCode =  location[@"countryCode"];
+    if(countryCode) {
+       config.ISOCountryCode = countryCode;
+    }
+    
+    NSString* ipAddress =  location[@"ipAddress"];
+    if(ipAddress) {
+       config.IP = ipAddress;
+    }
+}
+
 + (void)onNotification: (NSDictionary *) notificationMessage{
     COUNTLY_FLUTTER_LOG(@"Notification received");
     COUNTLY_FLUTTER_LOG(@"The notification %@", notificationMessage);
@@ -942,7 +1058,8 @@ FlutterMethodChannel* _channel;
         };
         [Countly.sharedInstance recordEvent:@"[CLY]_push_action" segmentation: segmentation];
     }
-    notificationIDs = nil;
+    
+    [notificationIDs removeAllObjects];
 }
 
 - (void)addCountlyFeature:(CLYFeature)feature
