@@ -214,25 +214,13 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     result.error("init Failed", "valid context is required in Countly init, but was provided 'null'", null);
                     return;
                 }
-                String serverUrl = args.getString(0);
-                String appKey = args.getString(1);
+
+                JSONObject config = args.getJSONObject(0);
                 this.config.setContext(context);
-                this.config.setServerURL(serverUrl);
-                this.config.setAppKey(appKey);
+                populateConfig(config);
                 Countly.sharedInstance().COUNTLY_SDK_NAME = COUNTLY_FLUTTER_SDK_NAME;
                 Countly.sharedInstance().COUNTLY_SDK_VERSION_STRING = COUNTLY_FLUTTER_SDK_VERSION_STRING;
 
-                if (args.length() == 3) {
-                    String yourDeviceID = args.getString(2);
-                    if (yourDeviceID.equals("TemporaryDeviceID")) {
-                        this.config.enableTemporaryDeviceIdMode();
-
-                    } else {
-                        this.config.setDeviceId(yourDeviceID);
-                    }
-                } else {
-                    this.config.setIdMode(DeviceId.Type.OPEN_UDID);
-                }
                 if (activity == null) {
                     log("Activity is 'null' during init, cannot set Application", LogLevel.WARNING);
                 } else {
@@ -1004,5 +992,116 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         return list;
     }
 
+    public static String[] toStringArray(JSONArray array) {
+        if(array==null)
+            return null;
 
+        int size = array.length();
+        String[] stringArray = new String[size];
+        for(int i=0; i<size; i++) {
+            stringArray[i]=array.optString(i);
+        }
+        return stringArray;
+    }
+
+    private void populateConfig(JSONObject _config) throws JSONException {
+        if(_config.has("serverURL")) {
+            this.config.setServerURL(_config.getString("serverURL"));
+        }
+        if(_config.has("appKey")) {
+            this.config.setAppKey(_config.getString("appKey"));
+        }
+        if(_config.has("deviceID")) {
+            String deviceID = _config.getString("deviceID");
+            if (deviceID.equals("TemporaryDeviceID")) {
+                this.config.enableTemporaryDeviceIdMode();
+
+            } else {
+                this.config.setDeviceId(deviceID);
+            }
+        }
+        if(_config.has("loggingEnabled")) {
+            this.config.setLoggingEnabled(_config.getBoolean("loggingEnabled"));
+        }
+        if(_config.has("httpPostForced")) {
+            this.config.setHttpPostForced(_config.getBoolean("httpPostForced"));
+        }
+        if(_config.has("shouldRequireConsent")) {
+            this.config.setRequiresConsent(_config.getBoolean("shouldRequireConsent"));
+        }
+        if(_config.has("tamperingProtectionSalt")) {
+            this.config.setParameterTamperingProtectionSalt(_config.getString("tamperingProtectionSalt"));
+        }
+        if(_config.has("eventQueueSizeThreshold")) {
+            this.config.setEventQueueSizeToSend(_config.getInt("eventQueueSizeThreshold"));
+        }
+        if(_config.has("sessionUpdateTimerDelay")) {
+            this.config.setUpdateSessionTimerDelay(_config.getInt("sessionUpdateTimerDelay"));
+        }
+
+        if(_config.has("customCrashSegment")) {
+            Map<String, Object> customCrashSegment =  toMap(_config.getJSONObject("customCrashSegment"));
+            this.config.setCustomCrashSegment(customCrashSegment);
+        }
+        if(_config.has("consents")) {
+            String[] consents = toStringArray(_config.getJSONArray("consents"));
+            this.config.setConsentEnabled(consents);
+        }
+        if(_config.has("starRatingTextTitle")) {
+            this.config.setStarRatingTextTitle(_config.getString("starRatingTextTitle"));
+        }
+        if(_config.has("starRatingTextMessage")) {
+            this.config.setStarRatingTextMessage(_config.getString("starRatingTextMessage"));
+        }
+        if(_config.has("starRatingTextDismiss")) {
+            this.config.setStarRatingTextDismiss(_config.getString("starRatingTextDismiss"));
+        }
+        if(_config.has("recordAppStartTime")) {
+            this.config.setRecordAppStartTime(_config.getBoolean("recordAppStartTime"));
+        }
+        if(_config.has("enableUnhandledCrashReporting") && _config.getBoolean("enableUnhandledCrashReporting")) {
+            this.config.enableCrashReporting();
+        }
+
+        if(_config.has("maxRequestQueueSize")) {
+            this.config.setMaxRequestQueueSize(_config.getInt("maxRequestQueueSize"));
+        }
+
+        if(_config.has("manualSessionEnabled") && _config.getBoolean("manualSessionEnabled")) {
+            this.config.enableManualSessionControl();
+        }
+
+        if(_config.has("enableRemoteConfigAutomaticDownload")) {
+            boolean enableRemoteConfigAutomaticDownload = _config.getBoolean("enableRemoteConfigAutomaticDownload");
+            this.config.setRemoteConfigAutomaticDownload(enableRemoteConfigAutomaticDownload, new RemoteConfigCallback() {
+                @Override
+                public void callback(String error) {
+                    methodChannel.invokeMethod("remoteConfigCallback", error);
+                }
+            });
+        }
+
+        if(_config.has("location")) {
+            JSONObject location = _config.getJSONObject("location");
+            String countryCode = null;
+            String city = null;
+            String gpsCoordinates = null;
+            String ipAddress = null;
+
+            if(location.has("countryCode")) {
+                countryCode = location.getString("countryCode");
+            }
+            if(location.has("city")) {
+                city = location.getString("city");
+            }
+            if(location.has("gpsCoordinates")) {
+                gpsCoordinates = location.getString("gpsCoordinates");
+            }
+            if(location.has("ipAddress")) {
+                ipAddress = location.getString("ipAddress");
+            }
+            this.config.setLocation(countryCode, city, gpsCoordinates, ipAddress);
+        }
+
+    }
 }

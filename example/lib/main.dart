@@ -6,6 +6,7 @@ import 'dart:math';
 import 'dart:convert';
 
 import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter/countly_config.dart';
 
 /// This or a similar call needs to added to catch and report Dart Errors to Countly,
 /// You need to run app inside a Zone
@@ -32,55 +33,46 @@ class _MyAppState extends State<MyApp> {
     Countly.isInitialized().then((bool isInitialized) {
       if (!isInitialized) {
         /// Recommended settings for Countly initialisation
-        Countly.setLoggingEnabled(
-            true); // Enable countly internal debugging logs
-        Countly
-            .enableCrashReporting(); // Enable crash reporting to report unhandled crashes to Countly
-        Countly.setRequiresConsent(
-            true); // Set that consent should be required for features to work.
-        Countly.giveConsentInit([
-          'location',
-          'sessions',
-          'attribution',
-          'push',
-          'events',
-          'views',
-          'crashes',
-          'users',
-          'push',
-          'star-rating',
-          'apm',
-          'feedback',
-          'remote-config'
-        ]);
-        Countly.setLocationInit('TR', 'Istanbul', '41.0082,28.9784',
-            '10.2.33.12'); // Set user initial location.
-
         /// Optional settings for Countly initialisation
-        Countly.enableParameterTamperingProtection(
-            'salt'); // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
-        Countly.setHttpPostForced(
-            false); // Set to 'true' if you want HTTP POST to be used for all requests
-        Countly
-            .enableApm(); // Enable APM features, which includes the recording of app start time.
         if (Platform.isIOS) {
           Countly.recordAttributionID('ADVERTISING_ID');
         } else {
           Countly
               .enableAttribution(); // Enable to measure your marketing campaign performance by attributing installs from specific campaigns.
         }
-        Countly.setRemoteConfigAutomaticDownload((result) {
-          print(result);
-        }); // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
-        var segment = {'Key': 'Value'};
-        Countly.setCustomCrashSegment(
-            segment); // Set optional key/value segment added for crash reports.
         Countly.pushTokenType(Countly.messagingMode[
             'TEST']!); // Set messaging mode for push notifications
 
-        Countly.setStarRatingDialogTexts('Title', 'Message', 'Dismiss');
+        var crashSegment = {'Key': 'Value'};
 
-        Countly.init(SERVER_URL, APP_KEY).then((value) {
+        CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
+          ..enableCrashReporting() // Enable crash reporting to report unhandled crashes to Countly
+          ..setRequiresConsent(true) // Set that consent should be required for features to work.
+          ..setConsentEnabled([
+            CountlyConsent.sessions,
+            CountlyConsent.events,
+            CountlyConsent.views,
+            CountlyConsent.location,
+            CountlyConsent.crashes,
+            CountlyConsent.attribution,
+            CountlyConsent.users,
+            CountlyConsent.push,
+            CountlyConsent.starRating,
+            CountlyConsent.apm,
+            CountlyConsent.feedback,
+            CountlyConsent.remoteConfig
+          ])
+          ..setLocation('TR', 'Istanbul', '41.0082,28.9784', '10.2.33.12') // Set user  location.
+          ..setCustomCrashSegment(crashSegment)
+          ..setRemoteConfigAutomaticDownload(true, (error) {
+            print(error);
+          }) // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
+          ..setRecordAppStartTime(true) // Enable APM features, which includes the recording of app start time.
+          ..setStarRatingTextMessage('Message for start rating dialog')
+          ..setLoggingEnabled(true) // Enable countly internal debugging logs
+          ..setParameterTamperingProtectionSalt('salt') // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
+          ..setHttpPostForced(false); // Set to 'true' if you want HTTP POST to be used for all requests
+        Countly.initWithConfig(config).then((value) {
           Countly.appLoadingFinished();
           Countly.start();
 
