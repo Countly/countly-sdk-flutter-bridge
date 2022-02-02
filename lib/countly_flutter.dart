@@ -65,7 +65,8 @@ class Countly {
   /// [VoidCallback? _widgetClosed] Callback to be executed when feedback widget is closed
   static VoidCallback? _widgetShown;
   static VoidCallback? _widgetClosed;
-  static Function(String error)? _remoteConfigCallback;
+  static Function(String? error)? _remoteConfigCallback;
+  static Function(String? error)? _ratingWidgetCallback;
 
   /// Callback handler to handle function calls from native iOS/Android to Dart.
   static Future<void> _methodCallHandler(MethodCall call) async {
@@ -87,10 +88,17 @@ class Countly {
           _remoteConfigCallback!(call.arguments);
           _remoteConfigCallback = null;
         }
+        break;
+      case 'ratingWidgetCallback':
+        if(_ratingWidgetCallback != null) {
+          _ratingWidgetCallback!(call.arguments);
+          _ratingWidgetCallback = null;
+        }
+        break;
     }
   }
 
-  static void setRemoteConfigCallback(Function(String error) callback) {
+  static void setRemoteConfigCallback(Function(String? error) callback) {
     _remoteConfigCallback = callback;
   }
 
@@ -967,6 +975,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use presentRatingWidgetWithID instead')
   static Future<String?> askForFeedback(
       String widgetId, String? closeButtonText) async {
     if (widgetId.isEmpty) {
@@ -974,14 +983,25 @@ class Countly {
       log(error);
       return 'Error : $error';
     }
+    log('askForFeedback is deprecated, use presentRatingWidgetWithID instead', logLevel: LogLevel.WARNING);
+    final String? result = await presentRatingWidgetWithID(widgetId, closeButtonText: closeButtonText);
+    return result;
+  }
+
+  static Future<String?> presentRatingWidgetWithID(
+      String widgetId, {String? closeButtonText, Function(String? error)? ratingWidgetCallback}) async {
+    if (widgetId.isEmpty) {
+      String error = 'presentRatingWidgetWithID, widgetId cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
+    _ratingWidgetCallback = ratingWidgetCallback;
     closeButtonText = closeButtonText ??= '';
     List<String> args = [];
     args.add(widgetId);
     args.add(closeButtonText);
-    log(args.toString());
     final String? result = await _channel.invokeMethod(
-        'askForFeedback', <String, dynamic>{'data': json.encode(args)});
-    log(result);
+        'presentRatingWidgetWithID', <String, dynamic>{'data': json.encode(args)});
     return result;
   }
 

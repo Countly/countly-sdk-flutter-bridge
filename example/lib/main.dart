@@ -65,7 +65,9 @@ class _MyAppState extends State<MyApp> {
           ..setLocation('TR', 'Istanbul', '41.0082,28.9784', '10.2.33.12') // Set user  location.
           ..setCustomCrashSegment(crashSegment)
           ..setRemoteConfigAutomaticDownload(true, (error) {
-            print(error);
+            if(error != null) {
+              print(error);
+            }
           }) // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
           ..setRecordAppStartTime(true) // Enable APM features, which includes the recording of app start time.
           ..setStarRatingTextMessage('Message for start rating dialog')
@@ -493,12 +495,24 @@ class _MyAppState extends State<MyApp> {
     Countly.askForStarRating();
   }
 
-  void askForFeedback() {
-    Countly.askForFeedback('61eaaf37c935575c7b932b97', 'Close');
+  void presentRatingWidget() {
+    // Trying to show a rating widget with a previously know ID.
+    // You should replace the given ID with your own, it would be retrieved from your Countly Dashboard.
+    Countly.presentRatingWidgetWithID('61eaaf37c935575c7b932b97', closeButtonText: "close", ratingWidgetCallback: (error) {
+      if(error != null) {
+        print(error);
+      }
+    });
   }
 
-  void showRatingWithID() {
-    Countly.askForFeedback(ratingIdController.text, 'Close');
+  void presentRatingWidgetUsingEditBox() {
+    // Trying to show a rating widget with the ID give in the App.
+    // In the EditBox you would write the ID that you retrieved from your Countly Dashboard.
+    Countly.presentRatingWidgetWithID(ratingIdController.text, closeButtonText: "close", ratingWidgetCallback: (error) {
+      if(error != null) {
+        print(error);
+      }
+    } );
   }
 
 
@@ -1012,7 +1026,7 @@ class _MyAppState extends State<MyApp> {
                   MyButton(
                       text: 'Open feedback modal',
                       color: 'orange',
-                      onPressed: askForFeedback),
+                      onPressed: presentRatingWidget),
                   TextField(
                     controller: ratingIdController,
                     decoration: InputDecoration(
@@ -1021,9 +1035,9 @@ class _MyAppState extends State<MyApp> {
                     ),
                   ),
                   MyButton(
-                      text: 'Show Rating With ID',
+                      text: 'Show Rating using EditBox',
                       color: 'orange',
-                      onPressed: ratingIdController.text.isNotEmpty ? showRatingWithID : null),
+                      onPressed: ratingIdController.text.isNotEmpty ? presentRatingWidgetUsingEditBox : null),
 
                   MyButton(
                       text: 'Show Survey', color: 'orange', onPressed: showSurvey),

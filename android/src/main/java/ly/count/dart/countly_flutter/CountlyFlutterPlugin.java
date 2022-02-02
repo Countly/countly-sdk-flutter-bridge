@@ -690,10 +690,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 if (getRemoteConfigValueForKeyResult != null)
                     remoteConfigValueForKey = getRemoteConfigValueForKeyResult.toString();
                 result.success(remoteConfigValueForKey);
-            } else if ("askForFeedback".equals(call.method)) {
+            } else if ("presentRatingWidgetWithID".equals(call.method)) {
                 if (activity == null) {
-                    log("askForFeedback failed : Activity is null", LogLevel.ERROR);
-                    result.error("askForFeedback Failed", "Activity is null", null);
+                    log("presentRatingWidgetWithID failed : Activity is null", LogLevel.ERROR);
+                    result.error("presentRatingWidgetWithID failed", "Activity is null", null);
                     return;
                 }
                 String widgetId = args.getString(0);
@@ -702,10 +702,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     @Override
                     public void callback(String error) {
                         if (error != null) {
-                            result.success("Error: Encountered error while showing feedback dialog: [" + error + "]");
+                            result.error("presentRatingWidgetWithID failed", "Error: Encountered error while showing feedback dialog: [" + error + "]", error);
                         } else {
-                            result.success("Feedback submitted.");
+                            result.success("presentRatingWidgetWithID success.");
                         }
+                        methodChannel.invokeMethod("ratingWidgetCallback", error);
                     }
                 });
             } else if (call.method.equals("setStarRatingDialogTexts")) {
