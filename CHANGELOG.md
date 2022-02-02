@@ -3,9 +3,8 @@
 * Marked lots of function deprecated due to methods added in CountlyConfig.
 * Added a way to retrieve feedback widget data and manually report them for iOS also
 * Added Appear and dismiss callback for nps/survey widgets
-* Added 'presentRatingWidgetWithID' method to show the rating widget popup
-* Deprecated 'askForFeedback' method
-* User profile issue fixed, user data was deleted for key if no value was provided against that key.
+* Deprecated 'askForFeedback' method. Added 'presentRatingWidgetWithID' method that should be used as it's replacement.
+* Fixed bug that occured when recording user profile values. Parameters not provided would be deleted from the server.
 * Updated minimum supported iOS versions to 10.0
 * Updated underlying android SDK to 21.11.0-RC2
 * Updated underlying iOS SDK to 21.11.1
