@@ -262,31 +262,38 @@ class Countly {
   }
 
   static Future<String?> setUserData(Map<String, Object> options) async {
-    List<String> args = [];
-    options['name'] ??= '';
-    options['username'] ??= '';
-    options['email'] ??= '';
-    options['organization'] ??= '';
-    options['phone'] ??= '';
-    options['picture'] ??= '';
-    options['picturePath'] ??= '';
-    options['gender'] ??= '';
-    options['byear'] ??= '0';
-
-    args.add(options['name'].toString());
-    args.add(options['username'].toString());
-    args.add(options['email'].toString());
-    args.add(options['organization'].toString());
-    args.add(options['phone'].toString());
-    args.add(options['picture'].toString());
-    args.add(options['picturePath'].toString());
-    args.add(options['gender'].toString());
-    args.add(options['byear'].toString());
-
-    log(args.toString());
+    List<dynamic> args = [];
+    Map<String, String> userData = {};
+    if(options.containsKey('name')) {
+      userData['name'] = options['name'].toString();
+    }
+    if(options.containsKey('username')) {
+      userData['username'] = options['username'].toString();
+    }
+    if(options.containsKey('email')) {
+      userData['email'] = options['email'].toString();
+    }
+    if(options.containsKey('organization')) {
+      userData['organization'] = options['organization'].toString();
+    }
+    if(options.containsKey('phone')) {
+      userData['phone'] = options['phone'].toString();
+    }
+    if(options.containsKey('picture')) {
+      userData['picture'] = options['picture'].toString();
+    }
+    if(options.containsKey('picturePath')) {
+      userData['picturePath'] = options['picturePath'].toString();
+    }
+    if(options.containsKey('gender')) {
+      userData['gender'] = options['gender'].toString();
+    }
+    if(options.containsKey('byear')) {
+      userData['byear'] = options['byear'].toString();
+    }
+    args.add(userData);
     final String? result = await _channel.invokeMethod(
         'setuserdata', <String, dynamic>{'data': json.encode(args)});
-    log(result);
     return result;
   }
 
