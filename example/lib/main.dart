@@ -218,16 +218,6 @@ class _MyAppState extends State<MyApp> {
     Countly.setUserData(options);
   }
 
-  void updateUserData() {
-    Map<String, Object> options = {
-      'email': 'Updated User Email',
-      'organization': 'Updated User Organization',
-      'phone': 'Updated User Contact number',
-      'gender': 'UpdatedUser Gender',
-    };
-    Countly.setUserData(options);
-  }
-
   void setProperty() {
     Countly.setProperty('setProperty', 'My Property');
   }
