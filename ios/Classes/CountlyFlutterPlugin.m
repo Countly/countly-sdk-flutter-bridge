@@ -138,24 +138,42 @@ FlutterMethodChannel* _channel;
 
     }else if ([@"setuserdata" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
-        NSString* name = [command objectAtIndex:0];
-        NSString* username = [command objectAtIndex:1];
-        NSString* email = [command objectAtIndex:2];
-        NSString* organization = [command objectAtIndex:3];
-        NSString* phone = [command objectAtIndex:4];
-        NSString* picture = [command objectAtIndex:5];
-        //NSString* picturePath = [command objectAtIndex:6];
-        NSString* gender = [command objectAtIndex:7];
-        NSString* byear = [command objectAtIndex:8];
+        NSDictionary* userData = [command objectAtIndex:0];
 
-        Countly.user.name = name;
-        Countly.user.username = username;
-        Countly.user.email = email;
-        Countly.user.organization = organization;
-        Countly.user.phone = phone;
-        Countly.user.pictureURL = picture;
-        Countly.user.gender = gender;
-        Countly.user.birthYear = @([byear integerValue]);
+        NSString* name = userData[@"name"];
+        NSString* username = userData[@"username"];
+        NSString* email = userData[@"email"];
+        NSString* organization = userData[@"organization"];
+        NSString* phone = userData[@"phone"];
+        NSString* picture = userData[@"picture"];
+        NSString* picturePath = userData[@"picturePath"];
+        NSString* gender = userData[@"gender"];
+        NSString* byear = userData[@"byear"];
+
+        if(name) {
+            Countly.user.name = name;
+        }
+        if(username) {
+            Countly.user.username = username;
+        }
+        if(email) {
+            Countly.user.email = email;
+        }
+        if(organization) {
+            Countly.user.organization = organization;
+        }
+        if(phone) {
+            Countly.user.phone = phone;
+        }
+        if(picture) {
+            Countly.user.pictureURL = picture;
+        }
+        if(gender) {
+            Countly.user.gender = gender;
+        }
+        if(byear) {
+            Countly.user.birthYear = @([byear integerValue]);
+        }
 
         [Countly.user save];
         result(@"setuserdata!");
