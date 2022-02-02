@@ -7,6 +7,8 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:pedantic/pedantic.dart';
 
+/// Attribution Keys to record indirect attribution
+/// IDFA is for iOS and AdvertisingID is for Android
 abstract class AttributionKey {
   static String IDFA = 'idfa';
   static String AdvertisingID = 'adid';
@@ -1402,15 +1404,14 @@ class Countly {
     args.add(attributionID);
     final String? result = await _channel.invokeMethod(
         'recordIndirectAttribution', <String, dynamic>{'data': json.encode(args)});
-    log(result);
     return result;
   }
 
   /// set indirect attribution Id for campaign attribution reporting.
   static Future<String?> recordIndirectAttribution(Map<String, String> attributionValues) async {
     attributionValues.forEach((k, v) {
-      if(k.isEmpty || v.isEmpty) {
-        String error = 'recordIndirectAttribution, Key-Value should not be empty, ignoring that key-value pair';
+      if(k.isEmpty) {
+        String error = 'recordIndirectAttribution, Key should not be empty, ignoring that key-value pair';
         log(error);
         attributionValues.removeWhere((key, value) => key == k && value == v);
       }
@@ -1419,7 +1420,6 @@ class Countly {
     args.add(attributionValues);
     final String? result = await _channel.invokeMethod(
         'recordIndirectAttribution', <String, dynamic>{'data': json.encode(args)});
-    log(result);
     return result;
   }
 
@@ -1440,7 +1440,6 @@ class Countly {
     args.add(campaignUserId);
     final String? result = await _channel.invokeMethod(
         'recordDirectAttribution', <String, dynamic>{'data': json.encode(args)});
-    log(result);
     return result;
   }
 

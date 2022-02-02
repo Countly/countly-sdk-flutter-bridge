@@ -885,9 +885,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             else if ("recordIndirectAttribution".equals(call.method)) {
                 JSONObject attributionValues = args.getJSONObject(0);
                 String AdvertisingIDKey = "adid";
-                if (attributionValues != null && attributionValues.length() > 0 && attributionValues.has(AdvertisingIDKey)) {
-                    String attributionId = attributionValues.getString(AdvertisingIDKey);
-                    Countly.sharedInstance().attribution().recordIndirectAttribution(attributionId);
+                if (attributionValues != null && attributionValues.length() > 0) {
+                    Map<String, String>  attributionMap = toMapString(attributionValues);
+                    Countly.sharedInstance().attribution().recordIndirectAttribution(attributionMap);
                     result.success("recordIndirectAttribution: success");
                 }
                 else {
@@ -895,12 +895,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 }
             }
             else if ("recordDirectAttribution".equals(call.method)) {
-                String campaignId = args.getString(0);
-                String campaignUserId = args.getString(1);
-                if (campaignUserId.equals("null")) {
-                    campaignUserId = null;
-                }
-                Countly.sharedInstance().attribution().recordDirectAttribution(campaignId, campaignUserId);
+                String campaignType = args.getString(0);
+                String campaignData = args.getString(1);
+
+                Countly.sharedInstance().attribution().recordDirectAttribution(campaignType, campaignData);
                 result.success("recordIndirectAttribution: success");
             }
             else if ("appLoadingFinished".equals(call.method)) {
@@ -996,6 +994,19 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 value = toMap((JSONObject) value);
             }
             map.put(key, value);
+        }
+        return map;
+    }
+
+    public static Map<String, String> toMapString(JSONObject jsonobj) throws JSONException {
+        Map<String, String> map = new HashMap<String, String>();
+        Iterator<String> keys = jsonobj.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            Object value = jsonobj.get(key);
+            if(value instanceof String){
+                map.put(key, (String) value);
+            }
         }
         return map;
     }
