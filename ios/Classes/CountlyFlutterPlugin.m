@@ -693,17 +693,21 @@ FlutterMethodChannel* _channel;
                 result([value stringValue]);
             }
         });
-    }else if ([@"askForFeedback" isEqualToString:call.method]) {
+    }else if ([@"presentRatingWidgetWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         NSString* widgetId = [command objectAtIndex:0];
          [Countly.sharedInstance presentFeedbackWidgetWithID:widgetId completionHandler:^(NSError* error){
+
+            NSString* errorStr = nil;
             if (error){
-                NSString *theError = [@"Feedback widget presentation failed: " stringByAppendingString: error.localizedDescription];
+                errorStr = error.localizedDescription;
+                NSString *theError = [@"presentRatingWidgetWithID failed: " stringByAppendingString: errorStr;
                 result(theError);
             }
             else{
-                result(@"Feedback widget presented successfully");
+                result(@"presentRatingWidgetWithID success.");
             }
+            [_channel invokeMethod:@"ratingWidgetCallback" arguments: errorStr];
         }];
         });
     }else if ([@"setStarRatingDialogTexts" isEqualToString:call.method]) {

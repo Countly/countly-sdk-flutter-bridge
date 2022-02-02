@@ -65,7 +65,9 @@ class _MyAppState extends State<MyApp> {
           ..setLocation('TR', 'Istanbul', '41.0082,28.9784', '10.2.33.12') // Set user  location.
           ..setCustomCrashSegment(crashSegment)
           ..setRemoteConfigAutomaticDownload(true, (error) {
-            print(error);
+            if(error != null) {
+              print(error);
+            }
           }) // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
           ..setRecordAppStartTime(true) // Enable APM features, which includes the recording of app start time.
           ..setStarRatingTextMessage('Message for start rating dialog')
@@ -494,11 +496,19 @@ class _MyAppState extends State<MyApp> {
   }
 
   void askForFeedback() {
-    Countly.askForFeedback('61eaaf37c935575c7b932b97', 'Close');
+    Countly.presentRatingWidgetWithID('61eaaf37c935575c7b932b97', closeButtonText: "close", ratingWidgetCallback: (error) {
+      if(error != null) {
+        print(error);
+      }
+    } );
   }
 
   void showRatingWithID() {
-    Countly.askForFeedback(ratingIdController.text, 'Close');
+    Countly.presentRatingWidgetWithID(ratingIdController.text, closeButtonText: "close", ratingWidgetCallback: (error) {
+      if(error != null) {
+        print(error);
+      }
+    } );
   }
 
 
