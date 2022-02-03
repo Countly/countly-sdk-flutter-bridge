@@ -105,6 +105,7 @@ class Countly {
   @Deprecated('Use initWithConfig instead')
   static Future<String?> init(String serverUrl, String appKey,
       [String? deviceId]) async {
+    log('Calling init with serverURL: $serverUrl and appKey: $appKey');
     log('init is deprecated, use initWithConfig instead',
         logLevel: LogLevel.WARNING);
     CountlyConfig config = CountlyConfig(serverUrl, appKey);
@@ -115,6 +116,7 @@ class Countly {
   }
 
   static Future<String?> initWithConfig(CountlyConfig config) async {
+    log('Calling initWithConfig');
     if(_isInitialized) {
       String msg = 'initWithConfig, SDK is already initialized';
       Countly.log(msg, logLevel: LogLevel.ERROR);
@@ -146,6 +148,7 @@ class Countly {
   }
 
   static Future<bool> isInitialized() async {
+    log('Calling isInitialized');
     List<String> args = [];
     final String? result = await _channel.invokeMethod(
         'isInitialized', <String, dynamic>{'data': json.encode(args)});
@@ -160,6 +163,7 @@ class Countly {
   /// In request queue, if there are any request whose app key is different than the current app key,
   /// these requests' app key will be replaced with the current app key.
   static Future<String?> replaceAllAppKeysInQueueWithCurrentAppKey() async {
+    log('Calling replaceAllAppKeysInQueueWithCurrentAppKey');
     final String? result = await _channel
         .invokeMethod('replaceAllAppKeysInQueueWithCurrentAppKey');
     
@@ -170,6 +174,7 @@ class Countly {
   /// In request queue, if there are any request whose app key is different than the current app key,
   /// these requests will be removed from request queue.
   static Future<String?> removeDifferentAppKeysFromQueue() async {
+    log('Calling removeDifferentAppKeysFromQueue');
     final String? result =
         await _channel.invokeMethod('removeDifferentAppKeysFromQueue');
     
@@ -179,6 +184,7 @@ class Countly {
   /// Call this function when app is loaded, so that the app launch duration can be recorded.
   /// Should be called after init.
   static Future<String?> appLoadingFinished() async {
+    log('Calling appLoadingFinished');
     if (!_isInitialized) {
       log('appLoadingFinished, init must be called before appLoadingFinished',
           logLevel: LogLevel.WARNING);
@@ -197,6 +203,7 @@ class Countly {
     List<String> args = [];
     options['key'] ??= '';
     String eventKey = options['key'].toString();
+    log('Calling recordEvent: [$eventKey]');
 
     if (eventKey.isEmpty) {
       String error = 'recordEvent, Valid Countly event key is required';
@@ -235,6 +242,8 @@ class Countly {
   /// Supported data type for segmentation values are String, int, double and bool
   static Future<String?> recordView(String view,
       [Map<String, Object>? segmentation]) async {
+    int segCount = segmentation != null ? segmentation.length : 0;
+    log('Calling recordView: [$view] with segmentation Count: [$segCount]');
     if (view.isEmpty) {
       String error =
           'recordView, Trying to record view with empty view name, ignoring request';
@@ -262,6 +271,8 @@ class Countly {
   }
 
   static Future<String?> setUserData(Map<String, Object> options) async {
+    int optionsCount = options.length;
+    log('Calling setUserData with options Count: [$optionsCount]');
     List<dynamic> args = [];
     Map<String, String> userData = {};
     if(options.containsKey('name')) {
@@ -300,6 +311,7 @@ class Countly {
   /// This method will ask for permission, enables push notification and send push token to countly server.
   /// Should be call after Countly init
   static Future<String?> askForNotificationPermission() async {
+    log('Calling askForNotificationPermission');
     List<String> args = [];
     final String? result = await _channel.invokeMethod(
         'askForNotificationPermission',
@@ -312,6 +324,7 @@ class Countly {
   /// Currently implemented for iOS only
   /// Should be called before Countly init
   static Future<String?> disablePushNotifications() async {
+    log('Calling disablePushNotifications');
     if (!Platform.isIOS) {
       return 'disablePushNotifications : To be implemented';
     }
@@ -326,6 +339,7 @@ class Countly {
   /// Set messaging mode for push notifications
   /// Should be call before Countly init
   static Future<String?> pushTokenType(String tokenType) async {
+    log('Calling pushTokenType: [$tokenType]');
     if (tokenType.isEmpty) {
       String error = 'pushTokenType, tokenType cannot be empty';
       log(error);
@@ -343,6 +357,7 @@ class Countly {
   /// Set callback to receive push notifications
   /// @param { callback listner } callback
   static Future<String?> onNotification(Function callback) async {
+    log('Calling onNotification');
     List<String> args = [];
     log('registerForNotification');
     await _channel.invokeMethod('registerForNotification',
@@ -356,6 +371,7 @@ class Countly {
   }
 
   static Future<String?> start() async {
+    log('Calling start');
     List<String> args = [];
     final String? result = await _channel
         .invokeMethod('start', <String, dynamic>{'data': json.encode(args)});
@@ -365,6 +381,7 @@ class Countly {
 
   @Deprecated('Use enableManualSessionHandling of CountlyConfig instead')
   static Future<String?> manualSessionHandling() async {
+    log('Calling manualSessionHandling');
     log('manualSessionHandling is deprecated, use enableManualSessionHandling of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     final String? result = await _channel.invokeMethod(
@@ -374,6 +391,7 @@ class Countly {
   }
 
   static Future<String?> stop() async {
+    log('Calling stop');
     List<String> args = [];
     final String? result = await _channel
         .invokeMethod('stop', <String, dynamic>{'data': json.encode(args)});
@@ -383,6 +401,7 @@ class Countly {
 
   @Deprecated('Use setUpdateSessionTimerDelay of CountlyConfig instead')
   static Future<String?> updateSessionPeriod() async {
+    log('Calling updateSessionPeriod');
     String msg = 'updateSessionPeriod is deprecated, use setUpdateSessionTimerDelay of CountlyConfig instead';
     log(msg, logLevel: LogLevel.WARNING);
     return msg;
@@ -394,6 +413,7 @@ class Countly {
   /// [int sessionInterval]- delay in seconds
   @Deprecated('Use setUpdateSessionTimerDelay of CountlyConfig instead')
   static Future<String?> updateSessionInterval(int sessionInterval) async {
+    log('Calling updateSessionInterval: [$sessionInterval]');
     log('updateSessionInterval is deprecated, use setUpdateSessionTimerDelay of CountlyConfig instead', logLevel: LogLevel.WARNING);
     if (_isInitialized) {
       log('updateSessionInterval should be called before init',
@@ -413,6 +433,7 @@ class Countly {
   /// Should be call before Countly init
   @Deprecated('Use setEventQueueSizeToSend of CountlyConfig instead')
   static Future<String?> eventSendThreshold(int limit) async {
+    log('Calling eventSendThreshold: [$limit]');
     log('eventSendThreshold is deprecated, use setEventQueueSizeToSend of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     args.add(limit.toString());
@@ -425,6 +446,7 @@ class Countly {
 
   @Deprecated('Use setMaxRequestQueueSize of CountlyConfig instead')
   static Future<String?> storedRequestsLimit() async {
+    log('Calling storedRequestsLimit');
     log('storedRequestsLimit is deprecated, use setMaxRequestQueueSize of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     final String? result = await _channel.invokeMethod(
@@ -436,6 +458,8 @@ class Countly {
   @Deprecated('Use setLocation of CountlyConfig instead')
   static Future<String?> setOptionalParametersForInitialization(
       Map<String, Object> options) async {
+    int optionsCount = options.length;
+    log('Calling storedRequestsLimit with options count: [$optionsCount]');
     log('setOptionalParametersForInitialization is deprecated, use setLocation of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
 
@@ -468,6 +492,7 @@ class Countly {
   /// Get currently used device Id.
   /// Should be call after Countly init
   static Future<String?> getCurrentDeviceId() async {
+    log('Calling getCurrentDeviceId');
     if (!_isInitialized) {
       log('getCurrentDeviceId, init must be called before getCurrentDeviceId',
           logLevel: LogLevel.WARNING);
@@ -482,6 +507,7 @@ class Countly {
 
   static Future<String?> changeDeviceId(
       String newDeviceID, bool onServer) async {
+    log('Calling changeDeviceId: [$newDeviceID] with onServer: [$onServer]');
     if (newDeviceID.isEmpty) {
       String error = 'changeDeviceId, deviceId cannot be null or empty';
       log(error);
@@ -504,6 +530,7 @@ class Countly {
   }
 
   static Future<String?> addCrashLog(String logs) async {
+    log('Calling addCrashLog: [$logs]');
     if (logs.isEmpty) {
       String error = "addCrashLog, Can't add a null or empty crash logs";
       log(error);
@@ -522,6 +549,7 @@ class Countly {
   /// Should be call before Countly init
   @Deprecated('Use setLoggingEnabled of CountlyConfig to enable/disable logging instead')
   static Future<String?> setLoggingEnabled(bool flag) async {
+    log('Calling setLoggingEnabled: [$flag]');
     log('setLoggingEnabled is deprecated, use setLoggingEnabled of CountlyConfig to enable/disable logging', logLevel: LogLevel.WARNING);
     List<String> args = [];
     _isDebug = flag;
@@ -537,6 +565,7 @@ class Countly {
   /// Should be call before Countly init
   @Deprecated('Use setParameterTamperingProtectionSalt of CountlyConfig instead')
   static Future<String?> enableParameterTamperingProtection(String salt) async {
+    log('Calling enableParameterTamperingProtection: [$salt]');
     log('enableParameterTamperingProtection is deprecated, use setParameterTamperingProtectionSalt of CountlyConfig instead', logLevel: LogLevel.WARNING);
     if (salt.isEmpty) {
       String error = 'enableParameterTamperingProtection, salt cannot be empty';
@@ -557,6 +586,7 @@ class Countly {
   /// Should be call before Countly init
   @Deprecated('Use setHttpPostForced of CountlyConfig instead')
   static Future<String?> setHttpPostForced(bool isEnabled) async {
+    log('Calling setHttpPostForced: [$isEnabled]');
     log('setHttpPostForced is deprecated, use setHttpPostForced of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     args.add(isEnabled.toString());
@@ -572,6 +602,7 @@ class Countly {
   @Deprecated('Use setLocation of CountlyConfig instead')
   static Future<String?> setLocationInit(String countryCode, String city,
       String gpsCoordinates, String ipAddress) async {
+    log('Calling setLocationInit with countryCode: [$countryCode], city: [$city], gpsCoordinates: [$gpsCoordinates], ipAddress: [$ipAddress]');
     log('setLocationInit is deprecated, use setLocation of CountlyConfig instead', logLevel: LogLevel.WARNING);
 
     List<String> args = [];
@@ -587,6 +618,7 @@ class Countly {
   }
 
   static Future<String?> setLocation(String latitude, String longitude) async {
+    log('Calling setLocationInit with latitude: [$latitude], longitude: [$longitude]');
     if (latitude.isEmpty) {
       String error = 'setLocation, latitude cannot be empty';
       log(error);
@@ -609,6 +641,7 @@ class Countly {
   }
 
   static Future<String?> setProperty(String keyName, String keyValue) async {
+    log('Calling setProperty: [$keyName], value: [$keyValue]');
     if (keyName.isEmpty) {
       String error = 'setProperty, key cannot be empty';
       log(error);
@@ -630,6 +663,7 @@ class Countly {
   }
 
   static Future<String?> increment(String keyName) async {
+    log('Calling increment: [$keyName]');
     if (keyName.isEmpty) {
       String error = 'increment, key cannot be empty';
       log(error);
@@ -645,6 +679,7 @@ class Countly {
   }
 
   static Future<String?> incrementBy(String keyName, int keyIncrement) async {
+    log('Calling incrementBy: [$keyName], Value: [$keyIncrement]');
     if (keyName.isEmpty) {
       String error = 'incrementBy, key cannot be empty';
       log(error);
@@ -661,6 +696,7 @@ class Countly {
   }
 
   static Future<String?> multiply(String keyName, int multiplyValue) async {
+    log('Calling multiply: [$keyName], Value: [$multiplyValue]');
     if (keyName.isEmpty) {
       String error = 'multiply, key cannot be empty';
       log(error);
@@ -677,6 +713,7 @@ class Countly {
   }
 
   static Future<String?> saveMax(String keyName, int saveMax) async {
+    log('Calling saveMax: [$keyName], Value: [$saveMax]');
     if (keyName.isEmpty) {
       String error = 'saveMax, key cannot be empty';
       log(error);
@@ -693,6 +730,7 @@ class Countly {
   }
 
   static Future<String?> saveMin(String keyName, int saveMin) async {
+    log('Calling saveMin: [$keyName], Value: [$saveMin]');
     if (keyName.isEmpty) {
       String error = 'saveMin, key cannot be empty';
       log(error);
@@ -709,6 +747,7 @@ class Countly {
   }
 
   static Future<String?> setOnce(String keyName, String setOnce) async {
+    log('Calling setOnce: [$keyName], Value: [$setOnce]');
     if (keyName.isEmpty) {
       String error = 'setOnce, key cannot be empty';
       log(error);
@@ -731,6 +770,7 @@ class Countly {
 
   static Future<String?> pushUniqueValue(
       String type, String pushUniqueValue) async {
+    log('Calling pushUniqueValue: [$type], Value: [$pushUniqueValue]');
     if (type.isEmpty) {
       String error = 'pushUniqueValue, key cannot be empty';
       log(error);
@@ -753,6 +793,7 @@ class Countly {
   }
 
   static Future<String?> pushValue(String type, String pushValue) async {
+    log('Calling pushValue: [$type], Value: [$pushValue]');
     if (type.isEmpty) {
       String error = 'pushValue, key cannot be empty';
       log(error);
@@ -774,6 +815,7 @@ class Countly {
   }
 
   static Future<String?> pullValue(String type, String pullValue) async {
+    log('Calling pullValue: [$type], Value: [$pullValue]');
     if (type.isEmpty) {
       String error = 'pullValue, key cannot be empty';
       log(error);
@@ -798,6 +840,7 @@ class Countly {
   /// Should be call before Countly init
   @Deprecated('Use setRequiresConsent of CountlyConfig instead')
   static Future<String?> setRequiresConsent(bool flag) async {
+    log('Calling setRequiresConsent: [$flag]');
     log('setRequiresConsent is deprecated, use setRequiresConsent of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     args.add(flag.toString());
@@ -812,6 +855,8 @@ class Countly {
   /// Should be call before Countly init
   @Deprecated('Use setConsentEnabled of CountlyConfig instead')
   static Future<String?> giveConsentInit(List<String> consents) async {
+    String consentsString  = consents.toString();
+    log('Calling setRequiresConsent: [$consentsString]');
       log('giveConsentInit is deprecated, use setConsentEnabled of CountlyConfig instead', logLevel: LogLevel.WARNING);
 
       if (consents.isEmpty) {
@@ -826,6 +871,8 @@ class Countly {
   }
 
   static Future<String?> giveConsent(List<String> consents) async {
+    String consentsString  = consents.toString();
+    log('Calling giveConsent: [$consentsString]');
     if (consents.isEmpty) {
       String error = 'giveConsent, consents List is empty';
       log(error, logLevel: LogLevel.WARNING);
@@ -838,6 +885,8 @@ class Countly {
   }
 
   static Future<String?> removeConsent(List<String> consents) async {
+    String consentsString  = consents.toString();
+    log('Calling removeConsent: [$consentsString]');
     if (consents.isEmpty) {
       String error = 'removeConsent, consents List is empty';
       log(error, logLevel: LogLevel.WARNING);
@@ -852,6 +901,7 @@ class Countly {
   /// Give consent for all features
   /// Should be call after Countly init
   static Future<String?> giveAllConsent() async {
+    log('Calling giveAllConsent');
     List<String> args = [];
     final String? result = await _channel.invokeMethod(
         'giveAllConsent', <String, dynamic>{'data': json.encode(args)});
@@ -860,6 +910,7 @@ class Countly {
   }
 
   static Future<String?> removeAllConsent() async {
+    log('Calling removeAllConsent');
     List<String> args = [];
     final String? result = await _channel.invokeMethod(
         'removeAllConsent', <String, dynamic>{'data': json.encode(args)});
@@ -872,6 +923,7 @@ class Countly {
   @Deprecated('Use setRemoteConfigAutomaticDownload of CountlyConfig instead')
   static Future<String?> setRemoteConfigAutomaticDownload(
       Function callback) async {
+    log('Calling setRemoteConfigAutomaticDownload');
     log('setRemoteConfigAutomaticDownload is deprecated, use setRemoteConfigAutomaticDownload of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     
@@ -884,6 +936,7 @@ class Countly {
   }
 
   static Future<String?> remoteConfigUpdate(Function callback) async {
+    log('Calling remoteConfigUpdate');
     List<String> args = [];
 
     
@@ -896,6 +949,8 @@ class Countly {
 
   static Future<String?> updateRemoteConfigForKeysOnly(
       List<String> keys, Function callback) async {
+    String keysString = keys.toString();
+    log('Calling updateRemoteConfigForKeysOnly: [$keysString]');
     if (keys.isEmpty) {
       String error = 'updateRemoteConfigForKeysOnly, keys List is empty';
       log(error, logLevel: LogLevel.WARNING);
@@ -911,6 +966,8 @@ class Countly {
 
   static Future<String?> updateRemoteConfigExceptKeys(
       List<String> keys, Function callback) async {
+    String keysString = keys.toString();
+    log('Calling updateRemoteConfigExceptKeys: [$keysString]');
     if (keys.isEmpty) {
       String error = 'updateRemoteConfigExceptKeys, keys List is empty';
       log(error, logLevel: LogLevel.WARNING);
@@ -925,6 +982,7 @@ class Countly {
   }
 
   static Future<String?> remoteConfigClearValues(Function callback) async {
+    log('Calling remoteConfigClearValues');
     List<String> args = [];
     
     final String? result = await _channel.invokeMethod(
@@ -937,6 +995,7 @@ class Countly {
 
   static Future<String?> getRemoteConfigValueForKey(
       String key, Function callback) async {
+    log('Calling remoteConfigClearValues: [$key]');
     if (key.isEmpty) {
       String error = 'getRemoteConfigValueForKey, key cannot be empty';
       log(error);
@@ -960,6 +1019,7 @@ class Countly {
   @Deprecated('Use setStarRatingDialogTexts of CountlyConfig instead')
   static Future<String?> setStarRatingDialogTexts(String starRatingTextTitle,
       String starRatingTextMessage, String starRatingTextDismiss) async {
+    log('Calling setStarRatingDialogTexts: [$starRatingTextTitle], message: [$starRatingTextMessage], dimiss: [$starRatingTextDismiss]');
     log('setStarRatingDialogTexts is deprecated, use setStarRatingDialogTexts of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     args.add(starRatingTextTitle);
@@ -974,6 +1034,7 @@ class Countly {
   }
 
   static Future<String?> askForStarRating() async {
+    log('Calling askForStarRating');
     List<String> args = [];
     
     final String? result = await _channel.invokeMethod(

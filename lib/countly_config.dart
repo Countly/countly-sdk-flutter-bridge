@@ -183,7 +183,7 @@ class CountlyConfig {
   /// If enable, will automatically download newest remote config values.
   /// enabled set true for enabling it
   /// callback callback called after the update was done
-  CountlyConfig setRemoteConfigAutomaticDownload(bool enabled, Function(String error) callback) {
+  CountlyConfig setRemoteConfigAutomaticDownload(bool enabled, Function(String? error) callback) {
     _enableRemoteConfigAutomaticDownload = enabled;
     Countly.setRemoteConfigCallback(callback);
     return this;
