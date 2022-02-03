@@ -4,7 +4,7 @@
 * Added a way to retrieve feedback widget data and manually report them for iOS also
 * Added Appear and dismiss callback for nps/survey widgets
 * Added "recordIndirectAttribution" method
-* Added "recordDirectAttribution" method for Android
+* Added "recordDirectAttribution" method (Currently supporterd only for Android)
 * Deprecated recordAttributionID method
 * Deprecated enableAttribution method
 * Updated minimum supported iOS versions to 10.0
