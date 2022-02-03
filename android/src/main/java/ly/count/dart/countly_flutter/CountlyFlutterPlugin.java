@@ -467,17 +467,36 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 }
                 result.success("setLoggingEnabled success!");
             } else if ("setuserdata".equals(call.method)) {
+                JSONObject userData = args.getJSONObject(0);
                 Map<String, String> bundle = new HashMap<String, String>();
 
-                bundle.put("name", args.getString(0));
-                bundle.put("username", args.getString(1));
-                bundle.put("email", args.getString(2));
-                bundle.put("organization", args.getString(3));
-                bundle.put("phone", args.getString(4));
-                bundle.put("picture", args.getString(5));
-                bundle.put("picturePath", args.getString(6));
-                bundle.put("gender", args.getString(7));
-                bundle.put("byear", args.getString(8));
+                if(userData.has("name")) {
+                    bundle.put("name", userData.get("name"));
+                }
+                if(userData.has("username")) {
+                    bundle.put("username", userData.get("username"));
+                }
+                if(userData.has("email")) {
+                    bundle.put("email", userData.get("email"));
+                }
+                if(userData.has("organization")) {
+                    bundle.put("organization", userData.get("organization"));
+                }
+                if(userData.has("phone")) {
+                    bundle.put("phone", userData.get("phone"));
+                }
+                if(userData.has("picture")) {
+                    bundle.put("picture", userData.get("picture"));
+                }
+                if(userData.has("picturePath")) {
+                    bundle.put("picturePath", userData.get("picturePath"));
+                }
+                if(userData.has("gender")) {
+                    bundle.put("gender", userData.get("gender"));
+                }
+                if(userData.has("byear")) {
+                    bundle.put("byear", userData.get("byear"));
+                }
 
                 Countly.userData.setUserData(bundle);
                 Countly.userData.save();
@@ -690,10 +709,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 if (getRemoteConfigValueForKeyResult != null)
                     remoteConfigValueForKey = getRemoteConfigValueForKeyResult.toString();
                 result.success(remoteConfigValueForKey);
-            } else if ("askForFeedback".equals(call.method)) {
+            } else if ("presentRatingWidgetWithID".equals(call.method)) {
                 if (activity == null) {
-                    log("askForFeedback failed : Activity is null", LogLevel.ERROR);
-                    result.error("askForFeedback Failed", "Activity is null", null);
+                    log("presentRatingWidgetWithID failed : Activity is null", LogLevel.ERROR);
+                    result.error("presentRatingWidgetWithID failed", "Activity is null", null);
                     return;
                 }
                 String widgetId = args.getString(0);
@@ -702,10 +721,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     @Override
                     public void callback(String error) {
                         if (error != null) {
-                            result.success("Error: Encountered error while showing feedback dialog: [" + error + "]");
+                            result.error("presentRatingWidgetWithID failed", "Error: Encountered error while showing feedback dialog: [" + error + "]", error);
                         } else {
-                            result.success("Feedback submitted.");
+                            result.success("presentRatingWidgetWithID success.");
                         }
+                        methodChannel.invokeMethod("ratingWidgetCallback", error);
                     }
                 });
             } else if (call.method.equals("setStarRatingDialogTexts")) {

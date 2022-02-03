@@ -73,7 +73,8 @@ class Countly {
   /// [VoidCallback? _widgetClosed] Callback to be executed when feedback widget is closed
   static VoidCallback? _widgetShown;
   static VoidCallback? _widgetClosed;
-  static Function(String error)? _remoteConfigCallback;
+  static Function(String? error)? _remoteConfigCallback;
+  static Function(String? error)? _ratingWidgetCallback;
 
   /// Callback handler to handle function calls from native iOS/Android to Dart.
   static Future<void> _methodCallHandler(MethodCall call) async {
@@ -95,10 +96,17 @@ class Countly {
           _remoteConfigCallback!(call.arguments);
           _remoteConfigCallback = null;
         }
+        break;
+      case 'ratingWidgetCallback':
+        if(_ratingWidgetCallback != null) {
+          _ratingWidgetCallback!(call.arguments);
+          _ratingWidgetCallback = null;
+        }
+        break;
     }
   }
 
-  static void setRemoteConfigCallback(Function(String error) callback) {
+  static void setRemoteConfigCallback(Function(String? error) callback) {
     _remoteConfigCallback = callback;
   }
 
@@ -262,31 +270,38 @@ class Countly {
   }
 
   static Future<String?> setUserData(Map<String, Object> options) async {
-    List<String> args = [];
-    options['name'] ??= '';
-    options['username'] ??= '';
-    options['email'] ??= '';
-    options['organization'] ??= '';
-    options['phone'] ??= '';
-    options['picture'] ??= '';
-    options['picturePath'] ??= '';
-    options['gender'] ??= '';
-    options['byear'] ??= '0';
-
-    args.add(options['name'].toString());
-    args.add(options['username'].toString());
-    args.add(options['email'].toString());
-    args.add(options['organization'].toString());
-    args.add(options['phone'].toString());
-    args.add(options['picture'].toString());
-    args.add(options['picturePath'].toString());
-    args.add(options['gender'].toString());
-    args.add(options['byear'].toString());
-
-    log(args.toString());
+    List<dynamic> args = [];
+    Map<String, String> userData = {};
+    if(options.containsKey('name')) {
+      userData['name'] = options['name'].toString();
+    }
+    if(options.containsKey('username')) {
+      userData['username'] = options['username'].toString();
+    }
+    if(options.containsKey('email')) {
+      userData['email'] = options['email'].toString();
+    }
+    if(options.containsKey('organization')) {
+      userData['organization'] = options['organization'].toString();
+    }
+    if(options.containsKey('phone')) {
+      userData['phone'] = options['phone'].toString();
+    }
+    if(options.containsKey('picture')) {
+      userData['picture'] = options['picture'].toString();
+    }
+    if(options.containsKey('picturePath')) {
+      userData['picturePath'] = options['picturePath'].toString();
+    }
+    if(options.containsKey('gender')) {
+      userData['gender'] = options['gender'].toString();
+    }
+    if(options.containsKey('byear')) {
+      userData['byear'] = options['byear'].toString();
+    }
+    args.add(userData);
     final String? result = await _channel.invokeMethod(
         'setuserdata', <String, dynamic>{'data': json.encode(args)});
-    log(result);
     return result;
   }
 
@@ -975,6 +990,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use presentRatingWidgetWithID instead')
   static Future<String?> askForFeedback(
       String widgetId, String? closeButtonText) async {
     if (widgetId.isEmpty) {
@@ -982,14 +998,25 @@ class Countly {
       log(error);
       return 'Error : $error';
     }
+    log('askForFeedback is deprecated, use presentRatingWidgetWithID instead', logLevel: LogLevel.WARNING);
+    final String? result = await presentRatingWidgetWithID(widgetId, closeButtonText: closeButtonText);
+    return result;
+  }
+
+  static Future<String?> presentRatingWidgetWithID(
+      String widgetId, {String? closeButtonText, Function(String? error)? ratingWidgetCallback}) async {
+    if (widgetId.isEmpty) {
+      String error = 'presentRatingWidgetWithID, widgetId cannot be empty';
+      log(error);
+      return 'Error : $error';
+    }
+    _ratingWidgetCallback = ratingWidgetCallback;
     closeButtonText = closeButtonText ??= '';
     List<String> args = [];
     args.add(widgetId);
     args.add(closeButtonText);
-    log(args.toString());
     final String? result = await _channel.invokeMethod(
-        'askForFeedback', <String, dynamic>{'data': json.encode(args)});
-    log(result);
+        'presentRatingWidgetWithID', <String, dynamic>{'data': json.encode(args)});
     return result;
   }
 
