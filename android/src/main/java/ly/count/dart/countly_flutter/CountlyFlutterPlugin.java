@@ -1136,5 +1136,18 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.setLocation(countryCode, city, gpsCoordinates, ipAddress);
         }
 
+        if(_config.has("campaignType")) {
+            String campaignType = _config.getString("campaignType");
+            String campaignData = _config.getString("campaignData");
+            this.config.setDirectAttribution(campaignType, campaignData);
+        }
+
+        if(_config.has("attributionValues")) {
+            JSONObject attributionValues = _config.getJSONObject("attributionValues");
+            this.config.setIndirectAttribution(toMapString(attributionValues));
+        }
+
+
+
     }
 }

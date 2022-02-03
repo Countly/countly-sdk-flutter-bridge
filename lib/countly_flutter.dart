@@ -1509,6 +1509,18 @@ class Countly {
         countlyConfig['enableRemoteConfigAutomaticDownload'] = config.enableRemoteConfigAutomaticDownload;
       }
 
+      if(config.campaignType != null) {
+        countlyConfig['campaignType'] = config.campaignType;
+      }
+
+      if(config.campaignData != null) {
+        countlyConfig['campaignData'] = config.campaignData;
+      }
+
+      if(config.attributionValues != null) {
+        countlyConfig['attributionValues'] = config.attributionValues;
+      }
+
 
     } catch (e) {
       log('_configToJson, Exception occur during converting config to json: $e');

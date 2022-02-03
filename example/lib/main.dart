@@ -41,14 +41,6 @@ class _MyAppState extends State<MyApp> {
         Countly
             .enableApm(); // Enable APM features, which includes the recording of app start time.
 
-        Map<String, String> attributionValues = {};
-        if(Platform.isIOS){
-          attributionValues[AttributionKey.IDFA] = 'IDFA';
-        }
-        else {
-          attributionValues[AttributionKey.AdvertisingID] = 'AdvertisingID';
-        }
-        Countly.recordIndirectAttribution(attributionValues);
         Countly.setRemoteConfigAutomaticDownload((result) {
           print(result);
         }); // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
@@ -59,7 +51,13 @@ class _MyAppState extends State<MyApp> {
             'TEST']!); // Set messaging mode for push notifications
 
         var crashSegment = {'Key': 'Value'};
-
+        Map<String, String> attributionValues = {};
+        if(Platform.isIOS){
+          attributionValues[AttributionKey.IDFA] = 'IDFA';
+        }
+        else {
+          attributionValues[AttributionKey.AdvertisingID] = 'AdvertisingID';
+        }
         CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
           ..enableCrashReporting() // Enable crash reporting to report unhandled crashes to Countly
           ..setRequiresConsent(true) // Set that consent should be required for features to work.
@@ -79,6 +77,7 @@ class _MyAppState extends State<MyApp> {
           ])
           ..setLocation('TR', 'Istanbul', '41.0082,28.9784', '10.2.33.12') // Set user  location.
           ..setCustomCrashSegment(crashSegment)
+          ..recordIndirectAttribution(attributionValues)
           ..setRemoteConfigAutomaticDownload(true, (error) {
             print(error);
           }) // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.

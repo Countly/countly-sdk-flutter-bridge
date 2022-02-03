@@ -991,6 +991,13 @@ FlutterMethodChannel* _channel;
         if(location) {
             [self setLocation:location];
         }
+
+         NSDictionary* attributionValues = _config[@"attributionValues"];
+         NSString* IDFAKey = @"idfa";
+         NSString* attributionID = [attributionValues objectForKey:IDFAKey];
+        if (attributionID) {
+            config.attributionID = attributionID;
+        }
     }
     @catch(NSException *exception){
        COUNTLY_FLUTTER_LOG(@"populateConfig, Unable to parse Config object: %@", exception);
