@@ -1476,7 +1476,6 @@ class Countly {
       log(error);
       return 'Error : $error';
     }
-    campaignData ??= 'null';
     List<String> args = [];
     args.add(campaignType);
     args.add(campaignData);

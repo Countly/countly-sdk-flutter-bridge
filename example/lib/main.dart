@@ -58,6 +58,9 @@ class _MyAppState extends State<MyApp> {
         else {
           attributionValues[AttributionKey.AdvertisingID] = 'AdvertisingID';
         }
+
+        String campaingData = '{cid:"[PROVIDED_CAMPAIGN_ID]", cuid:"[PROVIDED_CAMPAIGN_USER_ID]"}';
+
         CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
           ..enableCrashReporting() // Enable crash reporting to report unhandled crashes to Countly
           ..setRequiresConsent(true) // Set that consent should be required for features to work.
@@ -78,7 +81,7 @@ class _MyAppState extends State<MyApp> {
           ..setLocation('TR', 'Istanbul', '41.0082,28.9784', '10.2.33.12') // Set user  location.
           ..setCustomCrashSegment(crashSegment)
           ..recordIndirectAttribution(attributionValues)
-          ..recordDirectAttribution('Campaign_Type', 'Campaign_Data')
+          ..recordDirectAttribution('countly', campaingData)
           ..setRemoteConfigAutomaticDownload(true, (error) {
             if(error != null) {
               print(error);
@@ -212,7 +215,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   void recordDirectAttribution() {
-    Countly.recordDirectAttribution('Campaign_Type', 'Campaign_Data');
+    String campaingData = '{cid:"[PROVIDED_CAMPAIGN_ID]", cuid:"[PROVIDED_CAMPAIGN_USER_ID]"}';
+    Countly.recordDirectAttribution('countly', campaingData);
   }
 
   void recordIndirectAttribution() {
