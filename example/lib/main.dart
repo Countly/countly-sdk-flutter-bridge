@@ -78,6 +78,7 @@ class _MyAppState extends State<MyApp> {
           ..setLocation('TR', 'Istanbul', '41.0082,28.9784', '10.2.33.12') // Set user  location.
           ..setCustomCrashSegment(crashSegment)
           ..recordIndirectAttribution(attributionValues)
+          ..recordDirectAttribution('Campaign_Type', 'Campaign_Data')
           ..setRemoteConfigAutomaticDownload(true, (error) {
             if(error != null) {
               print(error);
@@ -209,6 +210,22 @@ class _MyAppState extends State<MyApp> {
   void recordViewDashboard() {
     Countly.recordView('Dashboard');
   }
+
+  void recordDirectAttribution() {
+    Countly.recordDirectAttribution('Campaign_Type', 'Campaign_Data');
+  }
+
+  void recordIndirectAttribution() {
+    Map<String, String> attributionValues = {};
+    if(Platform.isIOS){
+      attributionValues[AttributionKey.IDFA] = 'IDFA';
+    }
+    else {
+      attributionValues[AttributionKey.AdvertisingID] = 'AdvertisingID';
+    }
+    Countly.recordIndirectAttribution(attributionValues);
+  }
+
 
   String makeid() {
     int code = Random().nextInt(999999);
@@ -809,6 +826,14 @@ class _MyAppState extends State<MyApp> {
                       text: "Record View: 'Dashboard'",
                       color: 'olive',
                       onPressed: recordViewDashboard),
+                  MyButton(
+                      text: "Record Direct Attribution'",
+                      color: 'olive',
+                      onPressed: recordDirectAttribution),
+                  MyButton(
+                      text: "Record Indirect Attribution'",
+                      color: 'olive',
+                      onPressed: recordIndirectAttribution),
                   MyButton(
                       text: 'Send Users Data',
                       color: 'teal',

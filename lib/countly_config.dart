@@ -7,8 +7,8 @@ class CountlyConfig {
 
   bool? _loggingEnabled;
   bool? _httpPostForced;
-  String? _campaignType;
-  String? _campaignData;
+  String? _daCampaignType;
+  String? _daCampaignData;
   List<String>? _consents;
   bool? _recordAppStartTime;
   int? _maxRequestQueueSize;
@@ -22,7 +22,7 @@ class CountlyConfig {
   Map<String, String>? _location;
   String? _tamperingProtectionSalt;
   bool? _enableUnhandledCrashReporting;
-  Map<String, String>?_attributionValues;
+  Map<String, String>?_iaAttributionValues;
   Map<String, dynamic>? _customCrashSegment;
   bool? _enableRemoteConfigAutomaticDownload;
 
@@ -34,8 +34,8 @@ class CountlyConfig {
   String? get deviceID => _deviceID;
   String get serverURL => _serverURL;
   List<String>? get consents => _consents;
-  String? get campaignType => _campaignType;
-  String? get campaignData => _campaignData;
+  String? get daCampaignType => _daCampaignType;
+  String? get daCampaignData => _daCampaignData;
   bool? get loggingEnabled => _loggingEnabled;
   bool? get httpPostForced => _httpPostForced;
   Map<String, String>? get location => _location;
@@ -49,7 +49,7 @@ class CountlyConfig {
   int? get eventQueueSizeThreshold => _eventQueueSizeThreshold;
   int? get sessionUpdateTimerDelay => _sessionUpdateTimerDelay;
   String? get tamperingProtectionSalt => _tamperingProtectionSalt;
-  Map<String, String>? get attributionValues => _attributionValues;
+  Map<String, String>? get iaAttributionValues => _iaAttributionValues;
   Map<String, dynamic>? get customCrashSegment => _customCrashSegment;
   bool? get enableUnhandledCrashReporting => _enableUnhandledCrashReporting;
   bool? get enableRemoteConfigAutomaticDownload => _enableRemoteConfigAutomaticDownload;
@@ -199,14 +199,14 @@ class CountlyConfig {
   /// Report direct user attribution
   /// Currently implemented for Android only.
   CountlyConfig recordDirectAttribution(String campaignType, String campaignData) {
-    _campaignType = campaignType;
-    _campaignData = campaignData;
+    _daCampaignType = campaignType;
+    _daCampaignData = campaignData;
     return this;
   }
 
   /// Report indirect user attribution
   CountlyConfig recordIndirectAttribution(Map<String, String> attributionValues) {
-    _attributionValues = attributionValues;
+    _iaAttributionValues = attributionValues;
     return this;
   }
 

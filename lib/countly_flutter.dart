@@ -10,7 +10,9 @@ import 'package:pedantic/pedantic.dart';
 /// Attribution Keys to record indirect attribution
 /// IDFA is for iOS and AdvertisingID is for Android
 abstract class AttributionKey {
+  /// For iOS IDFA
   static String IDFA = 'idfa';
+  /// For Android advertising ID
   static String AdvertisingID = 'adid';
 }
 
@@ -1414,28 +1416,40 @@ class Countly {
   /// Enable campaign attribution reporting to Countly.
   @Deprecated('Use recordIndirectAttribution instead')
   static Future<String?> enableAttribution() async {
+    log('Calling enableAttribution');
     String error = 'enableAttribution is deprecated, use recordIndirectAttribution instead';
     log(error);
     return 'Error : $error';
   }
 
   /// set attribution Id for campaign attribution reporting.
+  /// If this is call for iOS then 'attributionID' is IDFA
+  /// If this is call for Android then 'attributionID' is ADID
   @Deprecated('Use recordIndirectAttribution instead')
   static Future<String?> recordAttributionID(String attributionID) async {
+    log('Calling recordAttributionID: [$attributionID]');
+    log('recordAttributionID is deprecated, use recordIndirectAttribution instead');
     if (attributionID.isEmpty) {
       String error = 'recordAttributionID, attributionID cannot be empty';
       log(error);
       return 'Error : $error';
     }
-    List<String> args = [];
-    args.add(attributionID);
-    final String? result = await _channel.invokeMethod(
-        'recordIndirectAttribution', <String, dynamic>{'data': json.encode(args)});
+    Map<String, String> attributionValues = {};
+    if(Platform.isIOS){
+      attributionValues[AttributionKey.IDFA] = attributionID;
+    }
+    else {
+      attributionValues[AttributionKey.AdvertisingID] = attributionID;
+    }
+    final String? result = await recordIndirectAttribution(attributionValues);
     return result;
   }
 
   /// set indirect attribution Id for campaign attribution reporting.
+  /// Use 'AttributionKey' to set key of IDFA and ADID
   static Future<String?> recordIndirectAttribution(Map<String, String> attributionValues) async {
+    int attributionValuesCount = attributionValues.length;
+    log('Calling recordIndirectAttribution: [$attributionValuesCount]');
     attributionValues.forEach((k, v) {
       if(k.isEmpty) {
         String error = 'recordIndirectAttribution, Key should not be empty, ignoring that key-value pair';
@@ -1452,19 +1466,20 @@ class Countly {
 
   /// set direct attribution Id for campaign attribution reporting.
   /// Currently implemented for Android only.
-  static Future<String?> recordDirectAttribution(String campaignId, String campaignUserId) async {
+  static Future<String?> recordDirectAttribution(String campaignType, String campaignData) async {
+    log('Calling recordDirectAttribution: [$campaignType] with campaignData: [$campaignData]');
     if (!Platform.isAndroid) {
       return 'recordDirectAttribution : To be implemented';
     }
-    if (campaignId.isEmpty) {
+    if (campaignType.isEmpty) {
       String error = 'recordDirectAttribution, campaignId cannot be empty';
       log(error);
       return 'Error : $error';
     }
-    campaignUserId ??= 'null';
+    campaignData ??= 'null';
     List<String> args = [];
-    args.add(campaignId);
-    args.add(campaignUserId);
+    args.add(campaignType);
+    args.add(campaignData);
     final String? result = await _channel.invokeMethod(
         'recordDirectAttribution', <String, dynamic>{'data': json.encode(args)});
     return result;
@@ -1536,16 +1551,16 @@ class Countly {
         countlyConfig['enableRemoteConfigAutomaticDownload'] = config.enableRemoteConfigAutomaticDownload;
       }
 
-      if(config.campaignType != null) {
-        countlyConfig['campaignType'] = config.campaignType;
+      if(config.daCampaignType != null) {
+        countlyConfig['campaignType'] = config.daCampaignType;
       }
 
-      if(config.campaignData != null) {
-        countlyConfig['campaignData'] = config.campaignData;
+      if(config.daCampaignData != null) {
+        countlyConfig['campaignData'] = config.daCampaignData;
       }
 
-      if(config.attributionValues != null) {
-        countlyConfig['attributionValues'] = config.attributionValues;
+      if(config.iaAttributionValues != null) {
+        countlyConfig['attributionValues'] = config.iaAttributionValues;
       }
 
 

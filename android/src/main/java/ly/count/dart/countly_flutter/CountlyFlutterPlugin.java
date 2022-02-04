@@ -898,20 +898,16 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 throw new IllegalStateException("Native Exception Crashhh!");
 //            throw new RuntimeException("Native Exception Crash!");
 
-            } else if ("enableAttribution".equals(call.method)) {
-                this.config.setEnableAttribution(true);
-                result.success("enableAttribution: success");
             }
             else if ("recordIndirectAttribution".equals(call.method)) {
                 JSONObject attributionValues = args.getJSONObject(0);
-                String AdvertisingIDKey = "adid";
                 if (attributionValues != null && attributionValues.length() > 0) {
                     Map<String, String>  attributionMap = toMapString(attributionValues);
                     Countly.sharedInstance().attribution().recordIndirectAttribution(attributionMap);
                     result.success("recordIndirectAttribution: success");
                 }
                 else {
-                    result.error("","recordIndirectAttribution: failure", null);
+                    result.error("iaAttributionFailed","recordIndirectAttribution: failure, no attribution values provided", null);
                 }
             }
             else if ("recordDirectAttribution".equals(call.method)) {
@@ -1018,15 +1014,19 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         return map;
     }
 
-    public static Map<String, String> toMapString(JSONObject jsonobj) throws JSONException {
+    public static Map<String, String> toMapString(JSONObject jsonobj) {
         Map<String, String> map = new HashMap<String, String>();
-        Iterator<String> keys = jsonobj.keys();
-        while (keys.hasNext()) {
-            String key = keys.next();
-            Object value = jsonobj.get(key);
-            if(value instanceof String){
-                map.put(key, (String) value);
+        try {
+            Iterator<String> keys = jsonobj.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                Object value = jsonobj.get(key);
+                if(value instanceof String){
+                    map.put(key, (String) value);
+                }
             }
+        } catch (JSONException e) {
+            log("Exception occurred at 'toMapString' method: ", e.getMessage(), LogLevel.ERROR);
         }
         return map;
     }
