@@ -1046,6 +1046,7 @@ class Countly {
   @Deprecated('Use presentRatingWidgetWithID instead')
   static Future<String?> askForFeedback(
       String widgetId, String? closeButtonText) async {
+    log('Calling askForFeedback: [$widgetId]');
     if (widgetId.isEmpty) {
       String error = 'askForFeedback, widgetId cannot be empty';
       log(error);
@@ -1058,6 +1059,8 @@ class Countly {
 
   static Future<String?> presentRatingWidgetWithID(
       String widgetId, {String? closeButtonText, Function(String? error)? ratingWidgetCallback}) async {
+    bool isCallback = ratingWidgetCallback != null ? true : false;
+    log('Calling presentRatingWidgetWithID: [$widgetId] with callback: [$isCallback]');
     if (widgetId.isEmpty) {
       String error = 'presentRatingWidgetWithID, widgetId cannot be empty';
       log(error);
@@ -1075,6 +1078,7 @@ class Countly {
 
   /// Get a list of available feedback widgets for this device ID
   static Future<FeedbackWidgetsResponse> getAvailableFeedbackWidgets() async {
+    log('Calling getAvailableFeedbackWidgets');
     List<CountlyPresentableFeedback> presentableFeedback = [];
     String? error;
     try {
@@ -1101,13 +1105,15 @@ class Countly {
   static Future<String?> presentFeedbackWidget(
       CountlyPresentableFeedback widgetInfo, String closeButtonText,
       {VoidCallback? widgetShown, VoidCallback? widgetClosed}) async {
-
+    String widgetId = widgetInfo.widgetId;
+    String widgetType = widgetInfo.type;
+    log('Calling presentFeedbackWidget : [$presentFeedbackWidget] with Type: [$widgetType]');
     _widgetShown = widgetShown;
     _widgetClosed = widgetClosed;
 
     List<String> args = [];
-    args.add(widgetInfo.widgetId);
-    args.add(widgetInfo.type);
+    args.add(widgetId);
+    args.add(widgetType);
     args.add(widgetInfo.name);
     args.add(closeButtonText);
     
@@ -1127,11 +1133,14 @@ class Countly {
   /// [CountlyPresentableFeedback widgetInfo] - identifies the specific widget for which you want to download widget data
   static Future<List> getFeedbackWidgetData(
       CountlyPresentableFeedback widgetInfo) async {
+    String widgetId = widgetInfo.widgetId;
+    String widgetType = widgetInfo.type;
+    log('Calling getFeedbackWidgetData : [$presentFeedbackWidget] with Type: [$widgetType]');
     Map<String, dynamic> widgetData = Map<String, dynamic>();
     String? error;
     List<String> args = [];
-    args.add(widgetInfo.widgetId);
-    args.add(widgetInfo.type);
+    args.add(widgetId);
+    args.add(widgetType);
     args.add(widgetInfo.name);
     
     try {
@@ -1154,9 +1163,12 @@ class Countly {
       CountlyPresentableFeedback widgetInfo,
       Map<String, dynamic> widgetData,
       Map<String, Object> widgetResult) async {
+    String widgetId = widgetInfo.widgetId;
+    String widgetType = widgetInfo.type;
+    log('Calling getFeedbackWidgetData : [$presentFeedbackWidget] with Type: [$widgetType]');
     List<String> widgetInfoList = [];
-    widgetInfoList.add(widgetInfo.widgetId);
-    widgetInfoList.add(widgetInfo.type);
+    widgetInfoList.add(widgetId);
+    widgetInfoList.add(widgetType);
     widgetInfoList.add(widgetInfo.name);
 
     List<dynamic> args = [];
@@ -1176,6 +1188,7 @@ class Countly {
   }
 
   static Future<String?> startEvent(String key) async {
+    log('Calling startEvent: [$key]');
     if (key.isEmpty) {
       String error = "startEvent, Can't start event with empty key";
       log(error);
@@ -1191,9 +1204,10 @@ class Countly {
   }
 
   static Future<String?> endEvent(Map<String, Object> options) async {
+    String eventKey = options['key'] != null ? options['key'].toString() : '';
+    log('Calling startEvent: [$eventKey]');
     List<String> args = [];
     var segmentation = {};
-    String eventKey = options['key'] != null ? options['key'].toString() : '';
 
     if (eventKey.isEmpty) {
       String error = "endEvent, Can't end event with a null or empty key";
@@ -1225,6 +1239,7 @@ class Countly {
   /// Call used for testing error handling
   /// Should not be used
   static Future<String?> throwNativeException() async {
+    log('Calling throwNativeException');
     List<String> args = [];
     
     final String? result = await _channel.invokeMethod(
@@ -1237,6 +1252,7 @@ class Countly {
   /// Should be call before Countly init
   @Deprecated('Use enableCrashReporting of CountlyConfig instead')
   static Future<String?> enableCrashReporting() async {
+    log('Calling enableCrashReporting');
     log('enableCrashReporting is deprecated, use enableCrashReporting of CountlyConfig instead', logLevel: LogLevel.WARNING);
     FlutterError.onError = _recordFlutterError;
     List<String> args = [];
@@ -1259,6 +1275,8 @@ class Countly {
   /// [Map<String, Object> segmentation] - allows to add optional segmentation
   static Future<String?> logException(String exception, bool nonfatal,
       [Map<String, Object>? segmentation]) async {
+    int segCount = segmentation !=null? segmentation.length : 0;
+    log('Calling logException: [$exception] nonfatal: [$nonfatal]: with segmentation count: [$segCount]');
     List<String> args = [];
     args.add(exception);
     args.add(nonfatal.toString());
@@ -1279,6 +1297,8 @@ class Countly {
   @Deprecated('Use setCustomCrashSegment of CountlyConfig instead')
   static Future<String?> setCustomCrashSegment(
       Map<String, Object> segments) async {
+    int segCount = segments.length;
+    log('Calling setCustomCrashSegment segmentation count: [$segCount]');
     log('setCustomCrashSegment is deprecated, use setCustomCrashSegment of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     segments.forEach((k, v) {
@@ -1293,6 +1313,7 @@ class Countly {
   }
 
   static Future<String?> startTrace(String traceKey) async {
+    log('Calling startTrace: [$traceKey]');
     List<String> args = [];
     args.add(traceKey);
     
@@ -1303,6 +1324,7 @@ class Countly {
   }
 
   static Future<String?> cancelTrace(String traceKey) async {
+    log('Calling cancelTrace: [$traceKey]');
     List<String> args = [];
     args.add(traceKey);
     
@@ -1313,6 +1335,7 @@ class Countly {
   }
 
   static Future<String?> clearAllTraces() async {
+    log('Calling clearAllTraces');
     List<String> args = [];
     final String? result = await _channel.invokeMethod(
         'clearAllTraces', <String, dynamic>{'data': json.encode(args)});
@@ -1322,6 +1345,8 @@ class Countly {
 
   static Future<String?> endTrace(
       String traceKey, Map<String, int>? customMetric) async {
+    int metricCount = customMetric != null ? customMetric.length : 0;
+    log('Calling endTrace: [$traceKey] with metric count: [$metricCount]');
     List<String> args = [];
     args.add(traceKey);
     if (customMetric != null) {
@@ -1344,6 +1369,7 @@ class Countly {
       int responsePayloadSize,
       int startTime,
       int endTime) async {
+    log('Calling recordNetworkTrace: [$networkTraceKey] with response Code: [$responseCode]');
     List<String> args = [];
     args.add(networkTraceKey);
     args.add(responseCode.toString());
@@ -1362,6 +1388,7 @@ class Countly {
   /// Should be call before Countly init
   @Deprecated('Use setRecordAppStartTime of CountlyConfig instead')
   static Future<String?> enableApm() async {
+    log('Calling enableApm');
     log('enableApm is deprecated, use setRecordAppStartTime of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
     final String? result = await _channel.invokeMethod(
@@ -1381,9 +1408,11 @@ class Countly {
   /// [Map<String, Object> segmentation] - allows to add optional segmentation
   static Future<String?> logExceptionEx(Exception exception, bool nonfatal,
       {StackTrace? stacktrace, Map<String, Object>? segmentation}) async {
+    String exceptionString = exception.toString();
+    log('Calling logExceptionEx: [$exceptionString] nonfatal: [$nonfatal]');
     stacktrace ??= StackTrace.current;
     final result = logException(
-        '${exception.toString()}\n\n$stacktrace', nonfatal, segmentation);
+        '${exceptionString}\n\n$stacktrace', nonfatal, segmentation);
     return result;
   }
 
@@ -1398,6 +1427,7 @@ class Countly {
   /// [Map<String, Object> segmentation] - allows to add optional segmentation
   static Future<String?> logExceptionManual(String message, bool nonfatal,
       {StackTrace? stacktrace, Map<String, Object>? segmentation}) async {
+    log('Calling logExceptionManual: [$message] nonfatal: [$nonfatal]');
     stacktrace ??= StackTrace.current;
     final result =
         logException('$message\n\n$stacktrace', nonfatal, segmentation);
