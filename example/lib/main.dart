@@ -34,16 +34,32 @@ class _MyAppState extends State<MyApp> {
       if (!isInitialized) {
         /// Recommended settings for Countly initialisation
         /// Optional settings for Countly initialisation
-        if (Platform.isIOS) {
-          Countly.recordAttributionID('ADVERTISING_ID');
-        } else {
-          Countly
-              .enableAttribution(); // Enable to measure your marketing campaign performance by attributing installs from specific campaigns.
-        }
+        Countly.enableParameterTamperingProtection(
+            'salt'); // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
+        Countly.setHttpPostForced(
+            false); // Set to 'true' if you want HTTP POST to be used for all requests
+        Countly
+            .enableApm(); // Enable APM features, which includes the recording of app start time.
+
+        Countly.setRemoteConfigAutomaticDownload((result) {
+          print(result);
+        }); // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
+        var segment = {'Key': 'Value'};
+        Countly.setCustomCrashSegment(
+            segment); // Set optional key/value segment added for crash reports.
         Countly.pushTokenType(Countly.messagingMode[
             'TEST']!); // Set messaging mode for push notifications
 
         var crashSegment = {'Key': 'Value'};
+        Map<String, String> attributionValues = {};
+        if(Platform.isIOS){
+          attributionValues[AttributionKey.IDFA] = 'IDFA';
+        }
+        else {
+          attributionValues[AttributionKey.AdvertisingID] = 'AdvertisingID';
+        }
+
+        String campaignData = '{cid:"[PROVIDED_CAMPAIGN_ID]", cuid:"[PROVIDED_CAMPAIGN_USER_ID]"}';
 
         CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
           ..enableCrashReporting() // Enable crash reporting to report unhandled crashes to Countly
@@ -64,6 +80,8 @@ class _MyAppState extends State<MyApp> {
           ])
           ..setLocation('TR', 'Istanbul', '41.0082,28.9784', '10.2.33.12') // Set user  location.
           ..setCustomCrashSegment(crashSegment)
+          ..recordIndirectAttribution(attributionValues)
+          ..recordDirectAttribution('countly', campaignData)
           ..setRemoteConfigAutomaticDownload(true, (error) {
             if(error != null) {
               print(error);
@@ -195,6 +213,23 @@ class _MyAppState extends State<MyApp> {
   void recordViewDashboard() {
     Countly.recordView('Dashboard');
   }
+
+  void recordDirectAttribution() {
+    String campaignData = '{cid:"[PROVIDED_CAMPAIGN_ID]", cuid:"[PROVIDED_CAMPAIGN_USER_ID]"}';
+    Countly.recordDirectAttribution('countly', campaignData);
+  }
+
+  void recordIndirectAttribution() {
+    Map<String, String> attributionValues = {};
+    if(Platform.isIOS){
+      attributionValues[AttributionKey.IDFA] = 'IDFA';
+    }
+    else {
+      attributionValues[AttributionKey.AdvertisingID] = 'AdvertisingID';
+    }
+    Countly.recordIndirectAttribution(attributionValues);
+  }
+
 
   String makeid() {
     int code = Random().nextInt(999999);
@@ -795,6 +830,14 @@ class _MyAppState extends State<MyApp> {
                       text: "Record View: 'Dashboard'",
                       color: 'olive',
                       onPressed: recordViewDashboard),
+                  MyButton(
+                      text: "Record Direct Attribution'",
+                      color: 'olive',
+                      onPressed: recordDirectAttribution),
+                  MyButton(
+                      text: "Record Indirect Attribution'",
+                      color: 'olive',
+                      onPressed: recordIndirectAttribution),
                   MyButton(
                       text: 'Send Users Data',
                       color: 'teal',

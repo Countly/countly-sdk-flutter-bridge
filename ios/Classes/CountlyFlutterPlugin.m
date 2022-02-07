@@ -883,19 +883,18 @@ FlutterMethodChannel* _channel;
             NSException *e = [NSException exceptionWithName:@"Native Exception Crash!" reason:@"Throw Native Exception..." userInfo:nil];
             @throw e;
         });
-    }else if ([@"enableAttribution" isEqualToString:call.method]) {
+    }else if([@"recordIndirectAttribution" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
-            config.enableAttribution = YES;
-        });
-        result(@"enableAttribution: success");
-    } else if([@"recordAttributionID" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^ {
-            NSString* attributionID = [command objectAtIndex:0];
-            if(CountlyCommon.sharedInstance.hasStarted) {
-              [Countly.sharedInstance recordAttributionID: attributionID];
-            }
-            else {
-              config.attributionID = attributionID;
+            NSDictionary* attributionValues = [command objectAtIndex:0];
+            NSString* IDFAKey = @"idfa";
+            NSString* attributionID = [attributionValues objectForKey:IDFAKey];
+            if (attributionID) {
+                if(CountlyCommon.sharedInstance.hasStarted) {
+                  [Countly.sharedInstance recordAttributionID: attributionID];
+                }
+                else {
+                  config.attributionID = attributionID;
+                }
             }
         });
     }else if ([@"appLoadingFinished" isEqualToString:call.method]) {
@@ -1013,6 +1012,13 @@ FlutterMethodChannel* _channel;
         NSDictionary* location = _config[@"location"];
         if(location) {
             [self setLocation:location];
+        }
+
+         NSDictionary* attributionValues = _config[@"attributionValues"];
+         NSString* IDFAKey = @"idfa";
+         NSString* attributionID = [attributionValues objectForKey:IDFAKey];
+        if (attributionID) {
+            config.attributionID = attributionID;
         }
     }
     @catch(NSException *exception){
