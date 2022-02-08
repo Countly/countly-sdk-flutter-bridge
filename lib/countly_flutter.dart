@@ -586,7 +586,9 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use setUserLocation instead')
   static Future<String?> setLocation(String latitude, String longitude) async {
+    log('setLocation is deprecated, use setUserLocation instead', logLevel: LogLevel.WARNING);
     if (latitude.isEmpty) {
       String error = 'setLocation, latitude cannot be empty';
       log(error);
@@ -597,16 +599,30 @@ class Countly {
       log(error);
       return 'Error : $error';
     }
-    List<String> args = [];
 
-    args.add(latitude);
-    args.add(longitude);
-    log(args.toString());
-    final String? result = await _channel.invokeMethod(
-        'setLocation', <String, dynamic>{'data': json.encode(args)});
-    log(result);
+    final String? result = await setUserLocation(gpsCoordinates: '$latitude,$longitude');
     return result;
   }
+
+  /// Set user location
+  /// [String country_code] - ISO Country code for the user's country
+  /// [String city] - Name of the user's city
+  /// [String gpsCoordinates] - comma separate lat and lng values. For example, "56.42345,123.45325"
+  /// [String ipAddress] - ip address
+  static Future<String?> setUserLocation({String? countryCode, String? city,
+      String? gpsCoordinates, String? ipAddress}) async {
+    Map<String, String?> location = {};
+    location['countryCode'] = countryCode;
+    location['city'] = city;
+    location['gpsCoordinates'] = gpsCoordinates;
+    location['ipAddress'] = ipAddress;
+    List<dynamic> args = [];
+    args.add(location);
+    final String? result = await _channel.invokeMethod(
+        'setUserLocation', <String, dynamic>{'data': json.encode(args)});
+    return result;
+  }
+
 
   static Future<String?> setProperty(String keyName, String keyValue) async {
     if (keyName.isEmpty) {

@@ -359,7 +359,34 @@ FlutterMethodChannel* _channel;
         result(@"setLocation!");
         });
 
-    }else if ([@"enableCrashReporting" isEqualToString:call.method]) {
+    }else if ([@"setUserLocation" isEqualToString:call.method]) {
+         dispatch_async(dispatch_get_main_queue(), ^ {
+            NSDictionary* location = [command objectAtIndex:0];
+            NSString* gpsCoordinates =  location[@"gpsCoordinates"];
+            CLLocationCoordinate2D location = kCLLocationCoordinate2DInvalid;
+            if(gpsCoordinates && [gpsCoordinates containsString:@","]){
+                @try{
+                    NSArray *locationArray = [gpsCoordinates componentsSeparatedByString:@","];
+                    NSString* latitudeString = [locationArray objectAtIndex:0];
+                    NSString* longitudeString = [locationArray objectAtIndex:1];
+
+                    double latitudeDouble = [latitudeString doubleValue];
+                    double longitudeDouble = [longitudeString doubleValue];
+                    location = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
+                }
+                @catch(NSException *exception){
+                    COUNTLY_FLUTTER_LOG(@"Invalid location: %@", gpsCoordinates);
+                }
+             }
+             NSString* city =  location[@"city"];
+             NSString* countryCode =  location[@"countryCode"];
+             NSString* ipAddress =  location[@"ipAddress"];
+             [Countly.sharedInstance recordLocation:location city:city ISOCountryCode:countryCode IP:ipAddress];
+             result(@"setUserLocation!");
+         });
+
+     }
+    else if ([@"enableCrashReporting" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         // config.features = @[CLYCrashReporting];
         [self addCountlyFeature:CLYCrashReporting];
@@ -1046,7 +1073,7 @@ FlutterMethodChannel* _channel;
     if(countryCode) {
        config.ISOCountryCode = countryCode;
     }
-    
+
     NSString* ipAddress =  location[@"ipAddress"];
     if(ipAddress) {
        config.IP = ipAddress;

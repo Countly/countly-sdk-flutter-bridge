@@ -290,6 +290,28 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     Countly.sharedInstance().setLocation(null, null, latlng, null);
                 }
                 result.success("setLocation success!");
+            } else if ("setUserLocation".equals(call.method)) {
+                JSONObject location = args.getJSONObject(0);
+                String countryCode = null;
+                String city = null;
+                String gpsCoordinates = null;
+                String ipAddress = null;
+
+                if(location.has("countryCode")) {
+                    countryCode = location.getString("countryCode");
+                }
+                if(location.has("city")) {
+                    city = location.getString("city");
+                }
+                if(location.has("gpsCoordinates")) {
+                    gpsCoordinates = location.getString("gpsCoordinates");
+                }
+                if(location.has("ipAddress")) {
+                    ipAddress = location.getString("ipAddress");
+                }
+
+                Countly.sharedInstance().setLocation(countryCode, city, gpsCoordinates, ipAddress);
+                result.success("setUserLocation success!");
             } else if ("enableCrashReporting".equals(call.method)) {
                 this.config.enableCrashReporting();
                 // Countly.sharedInstance().enableCrashReporting();
