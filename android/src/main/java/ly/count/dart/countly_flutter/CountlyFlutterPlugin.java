@@ -471,31 +471,31 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 Map<String, String> bundle = new HashMap<String, String>();
 
                 if(userData.has("name")) {
-                    bundle.put("name", userData.get("name"));
+                    bundle.put("name", userData.getString("name"));
                 }
                 if(userData.has("username")) {
-                    bundle.put("username", userData.get("username"));
+                    bundle.put("username", userData.getString("username"));
                 }
                 if(userData.has("email")) {
-                    bundle.put("email", userData.get("email"));
+                    bundle.put("email", userData.getString("email"));
                 }
                 if(userData.has("organization")) {
-                    bundle.put("organization", userData.get("organization"));
+                    bundle.put("organization", userData.getString("organization"));
                 }
                 if(userData.has("phone")) {
-                    bundle.put("phone", userData.get("phone"));
+                    bundle.put("phone", userData.getString("phone"));
                 }
                 if(userData.has("picture")) {
-                    bundle.put("picture", userData.get("picture"));
+                    bundle.put("picture", userData.getString("picture"));
                 }
                 if(userData.has("picturePath")) {
-                    bundle.put("picturePath", userData.get("picturePath"));
+                    bundle.put("picturePath", userData.getString("picturePath"));
                 }
                 if(userData.has("gender")) {
-                    bundle.put("gender", userData.get("gender"));
+                    bundle.put("gender", userData.getString("gender"));
                 }
                 if(userData.has("byear")) {
-                    bundle.put("byear", userData.get("byear"));
+                    bundle.put("byear", userData.getString("byear"));
                 }
 
                 Countly.userData.setUserData(bundle);
@@ -898,10 +898,26 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 throw new IllegalStateException("Native Exception Crashhh!");
 //            throw new RuntimeException("Native Exception Crash!");
 
-            } else if ("enableAttribution".equals(call.method)) {
-                this.config.setEnableAttribution(true);
-                result.success("enableAttribution: success");
-            } else if ("appLoadingFinished".equals(call.method)) {
+            }
+            else if ("recordIndirectAttribution".equals(call.method)) {
+                JSONObject attributionValues = args.getJSONObject(0);
+                if (attributionValues != null && attributionValues.length() > 0) {
+                    Map<String, String>  attributionMap = toMapString(attributionValues);
+                    Countly.sharedInstance().attribution().recordIndirectAttribution(attributionMap);
+                    result.success("recordIndirectAttribution: success");
+                }
+                else {
+                    result.error("iaAttributionFailed","recordIndirectAttribution: failure, no attribution values provided", null);
+                }
+            }
+            else if ("recordDirectAttribution".equals(call.method)) {
+                String campaignType = args.getString(0);
+                String campaignData = args.getString(1);
+
+                Countly.sharedInstance().attribution().recordDirectAttribution(campaignType, campaignData);
+                result.success("recordIndirectAttribution: success");
+            }
+            else if ("appLoadingFinished".equals(call.method)) {
                 Countly.sharedInstance().apm().setAppIsLoaded();
                 result.success("appLoadingFinished: success");
             } else {
@@ -994,6 +1010,23 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 value = toMap((JSONObject) value);
             }
             map.put(key, value);
+        }
+        return map;
+    }
+
+    public static Map<String, String> toMapString(JSONObject jsonobj) {
+        Map<String, String> map = new HashMap<String, String>();
+        try {
+            Iterator<String> keys = jsonobj.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                Object value = jsonobj.get(key);
+                if(value instanceof String){
+                    map.put(key, (String) value);
+                }
+            }
+        } catch (JSONException e) {
+            log("Exception occurred at 'toMapString' method: ", e, LogLevel.ERROR);
         }
         return map;
     }
@@ -1122,6 +1155,19 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             }
             this.config.setLocation(countryCode, city, gpsCoordinates, ipAddress);
         }
+
+        if(_config.has("campaignType")) {
+            String campaignType = _config.getString("campaignType");
+            String campaignData = _config.getString("campaignData");
+            this.config.setDirectAttribution(campaignType, campaignData);
+        }
+
+        if(_config.has("attributionValues")) {
+            JSONObject attributionValues = _config.getJSONObject("attributionValues");
+            this.config.setIndirectAttribution(toMapString(attributionValues));
+        }
+
+
 
     }
 }

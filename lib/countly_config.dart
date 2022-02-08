@@ -7,6 +7,8 @@ class CountlyConfig {
 
   bool? _loggingEnabled;
   bool? _httpPostForced;
+  String? _daCampaignType;
+  String? _daCampaignData;
   List<String>? _consents;
   bool? _recordAppStartTime;
   int? _maxRequestQueueSize;
@@ -20,8 +22,10 @@ class CountlyConfig {
   Map<String, String>? _location;
   String? _tamperingProtectionSalt;
   bool? _enableUnhandledCrashReporting;
+  Map<String, String>?_iaAttributionValues;
   Map<String, dynamic>? _customCrashSegment;
   bool? _enableRemoteConfigAutomaticDownload;
+
 
   CountlyConfig(this._serverURL, this._appKey);
 
@@ -30,6 +34,8 @@ class CountlyConfig {
   String? get deviceID => _deviceID;
   String get serverURL => _serverURL;
   List<String>? get consents => _consents;
+  String? get daCampaignType => _daCampaignType;
+  String? get daCampaignData => _daCampaignData;
   bool? get loggingEnabled => _loggingEnabled;
   bool? get httpPostForced => _httpPostForced;
   Map<String, String>? get location => _location;
@@ -43,6 +49,7 @@ class CountlyConfig {
   int? get eventQueueSizeThreshold => _eventQueueSizeThreshold;
   int? get sessionUpdateTimerDelay => _sessionUpdateTimerDelay;
   String? get tamperingProtectionSalt => _tamperingProtectionSalt;
+  Map<String, String>? get iaAttributionValues => _iaAttributionValues;
   Map<String, dynamic>? get customCrashSegment => _customCrashSegment;
   bool? get enableUnhandledCrashReporting => _enableUnhandledCrashReporting;
   bool? get enableRemoteConfigAutomaticDownload => _enableRemoteConfigAutomaticDownload;
@@ -183,11 +190,26 @@ class CountlyConfig {
   /// If enable, will automatically download newest remote config values.
   /// enabled set true for enabling it
   /// callback callback called after the update was done
-  CountlyConfig setRemoteConfigAutomaticDownload(bool enabled, Function(String error) callback) {
+  CountlyConfig setRemoteConfigAutomaticDownload(bool enabled, Function(String? error) callback) {
     _enableRemoteConfigAutomaticDownload = enabled;
     Countly.setRemoteConfigCallback(callback);
     return this;
   }
+
+  /// Report direct user attribution
+  /// Currently implemented for Android only.
+  CountlyConfig recordDirectAttribution(String campaignType, String campaignData) {
+    _daCampaignType = campaignType;
+    _daCampaignData = campaignData;
+    return this;
+  }
+
+  /// Report indirect user attribution
+  CountlyConfig recordIndirectAttribution(Map<String, String> attributionValues) {
+    _iaAttributionValues = attributionValues;
+    return this;
+  }
+
 
 }
 
