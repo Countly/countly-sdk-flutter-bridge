@@ -1437,7 +1437,7 @@ class Countly {
     log('Calling "logExceptionEx":[$exceptionString] nonfatal:[$nonfatal]');
     stacktrace ??= StackTrace.current;
     final result = logException(
-        '${exceptionString}\n\n$stacktrace', nonfatal, segmentation);
+        '$exceptionString\n\n$stacktrace', nonfatal, segmentation);
     return result;
   }
 
@@ -1474,7 +1474,7 @@ class Countly {
         _internalRecordError(details.exceptionAsString(), details.stack));
   }
 
-  /// Callback to catch and report Dart errors, [enableCrashReporting()] must call before [init] to make it work.
+  /// Callback to catch and report Dart errors, [enableCrashReporting()] must call before [initWithConfig] to make it work.
   ///
   /// This callback has to be provided when the app is about to be run.
   /// It has to be done inside a custom Zone by providing [Countly.recordDartError] in onError() callback.
