@@ -3,6 +3,10 @@
 * Marked lots of function deprecated due to methods added in CountlyConfig.
 * Added a way to retrieve feedback widget data and manually report them for iOS also
 * Added Appear and dismiss callback for nps/survey widgets
+* Added "recordIndirectAttribution" method
+* Added "recordDirectAttribution" method (Currently supporterd only for Android)
+* Deprecated recordAttributionID method
+* Deprecated enableAttribution method
 * Deprecated 'askForFeedback' method. Added 'presentRatingWidgetWithID' method that should be used as it's replacement.
 * Fixed bug that occured when recording user profile values. Parameters not provided would be deleted from the server.
 * Updated minimum supported iOS versions to 10.0
