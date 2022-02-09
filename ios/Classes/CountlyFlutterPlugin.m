@@ -363,7 +363,7 @@ FlutterMethodChannel* _channel;
          dispatch_async(dispatch_get_main_queue(), ^ {
             NSDictionary* location = [command objectAtIndex:0];
             NSString* gpsCoordinates =  location[@"gpsCoordinates"];
-            CLLocationCoordinate2D location = kCLLocationCoordinate2DInvalid;
+            CLLocationCoordinate2D locationCoordinate = kCLLocationCoordinate2DInvalid;
             if(gpsCoordinates && [gpsCoordinates containsString:@","]){
                 @try{
                     NSArray *locationArray = [gpsCoordinates componentsSeparatedByString:@","];
@@ -372,7 +372,7 @@ FlutterMethodChannel* _channel;
 
                     double latitudeDouble = [latitudeString doubleValue];
                     double longitudeDouble = [longitudeString doubleValue];
-                    location = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
+                    locationCoordinate = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
                 }
                 @catch(NSException *exception){
                     COUNTLY_FLUTTER_LOG(@"Invalid location: %@", gpsCoordinates);
@@ -381,7 +381,7 @@ FlutterMethodChannel* _channel;
              NSString* city =  location[@"city"];
              NSString* countryCode =  location[@"countryCode"];
              NSString* ipAddress =  location[@"ipAddress"];
-             [Countly.sharedInstance recordLocation:location city:city ISOCountryCode:countryCode IP:ipAddress];
+             [Countly.sharedInstance recordLocation:locationCoordinate city:city ISOCountryCode:countryCode IP:ipAddress];
              result(@"setUserLocation!");
          });
 
@@ -746,7 +746,7 @@ FlutterMethodChannel* _channel;
             NSString* errorStr = nil;
             if (error){
                 errorStr = error.localizedDescription;
-                NSString *theError = [@"presentRatingWidgetWithID failed: " stringByAppendingString: errorStr;
+                NSString *theError = [@"presentRatingWidgetWithID failed: " stringByAppendingString: errorStr];
                 result(theError);
             }
             else{

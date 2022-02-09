@@ -5,6 +5,7 @@
 * Added Appear and dismiss callback for nps/survey widgets
 * Added "recordIndirectAttribution" method
 * Added "recordDirectAttribution" method (Currently supporterd only for Android)
+* Added "setUserLocation" method to set user location
 * Deprecated recordAttributionID method
 * Deprecated enableAttribution method
 * Deprecated 'askForFeedback' method. Added 'presentRatingWidgetWithID' method that should be used as it's replacement.
