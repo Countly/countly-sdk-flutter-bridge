@@ -369,7 +369,7 @@ FlutterMethodChannel* _channel;
                     @try{
                         NSArray *locationArray = [gpsCoordinates componentsSeparatedByString:@","];
                         if(locationArray.count > 2) {
-                            COUNTLY_FLUTTER_LOG(@"Invalid locationCoordinate: '%@', it should contains only two comma seperated values", gpsCoordinates);
+                            COUNTLY_FLUTTER_LOG(@"Invalid location Coordinates: '%@', it should contains only two comma seperated values", gpsCoordinates);
                         }
                         NSString* latitudeString = [locationArray objectAtIndex:0];
                         NSString* longitudeString = [locationArray objectAtIndex:1];
@@ -377,16 +377,16 @@ FlutterMethodChannel* _channel;
                         double latitudeDouble = [latitudeString doubleValue];
                         double longitudeDouble = [longitudeString doubleValue];
                         if(latitudeDouble == 0 || longitudeDouble == 0) {
-                            COUNTLY_FLUTTER_LOG(@"Invalid locationCoordinate: '%@'", gpsCoordinates);
+                            COUNTLY_FLUTTER_LOG(@"Invalid location Coordinates: '%@', it should contains two comma seperated double values", gpsCoordinates);
                         }
                         locationCoordinate = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
                     }
                     @catch(NSException *exception){
-                        COUNTLY_FLUTTER_LOG(@"Invalid locationCoordinate: '%@'", gpsCoordinates);
+                        COUNTLY_FLUTTER_LOG(@"Invalid location Coordinates: '%@'", gpsCoordinates);
                     }
                 }
                 else {
-                    COUNTLY_FLUTTER_LOG(@"Invalid locationCoordinate: '%@', lat and long values should be comma seperated", gpsCoordinates);
+                    COUNTLY_FLUTTER_LOG(@"Invalid location Coordinates: '%@', lat and long values should be comma seperated", gpsCoordinates);
                 }
                 
              }
