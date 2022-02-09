@@ -362,21 +362,33 @@ FlutterMethodChannel* _channel;
     }else if ([@"setUserLocation" isEqualToString:call.method]) {
          dispatch_async(dispatch_get_main_queue(), ^ {
             NSDictionary* location = [command objectAtIndex:0];
-            NSString* gpsCoordinates =  location[@"gpsCoordinates"];
+             NSString* gpsCoordinates = location[@"gpsCoordinates"];
             CLLocationCoordinate2D locationCoordinate = kCLLocationCoordinate2DInvalid;
-            if(gpsCoordinates && [gpsCoordinates containsString:@","]){
-                @try{
-                    NSArray *locationArray = [gpsCoordinates componentsSeparatedByString:@","];
-                    NSString* latitudeString = [locationArray objectAtIndex:0];
-                    NSString* longitudeString = [locationArray objectAtIndex:1];
+            if(gpsCoordinates){
+                if([gpsCoordinates containsString:@","]) {
+                    @try{
+                        NSArray *locationArray = [gpsCoordinates componentsSeparatedByString:@","];
+                        if(locationArray.count > 2) {
+                            COUNTLY_FLUTTER_LOG(@"Invalid locationCoordinate: '%@', it should contains only two comma seperated values", gpsCoordinates);
+                        }
+                        NSString* latitudeString = [locationArray objectAtIndex:0];
+                        NSString* longitudeString = [locationArray objectAtIndex:1];
 
-                    double latitudeDouble = [latitudeString doubleValue];
-                    double longitudeDouble = [longitudeString doubleValue];
-                    locationCoordinate = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
+                        double latitudeDouble = [latitudeString doubleValue];
+                        double longitudeDouble = [longitudeString doubleValue];
+                        if(latitudeDouble == 0 || longitudeDouble == 0) {
+                            COUNTLY_FLUTTER_LOG(@"Invalid locationCoordinate: '%@'", gpsCoordinates);
+                        }
+                        locationCoordinate = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
+                    }
+                    @catch(NSException *exception){
+                        COUNTLY_FLUTTER_LOG(@"Invalid locationCoordinate: '%@'", gpsCoordinates);
+                    }
                 }
-                @catch(NSException *exception){
-                    COUNTLY_FLUTTER_LOG(@"Invalid location: %@", gpsCoordinates);
+                else {
+                    COUNTLY_FLUTTER_LOG(@"Invalid locationCoordinate: '%@', lat and long values should be comma seperated", gpsCoordinates);
                 }
+                
              }
              NSString* city =  location[@"city"];
              NSString* countryCode =  location[@"countryCode"];
