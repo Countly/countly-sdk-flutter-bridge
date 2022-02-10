@@ -51,6 +51,9 @@ class Countly {
   /// Set true when user enabled crash logging
   static bool _enableCrashReportingFlag = false;
 
+  /// Flag to determine if manual session is enabled
+  static bool _manualSessionControlEnabled = false;
+
   static Map<String, String> messagingMode = Platform.isAndroid ? {
     'TEST': '2',
     'PRODUCTION': '0'
@@ -379,6 +382,58 @@ class Countly {
     });
     return '';
   }
+
+  /// Starts session for manual session handling.
+  /// This method needs to be called for starting a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
+  static Future<String?>  beginSession() async {
+      log('Calling "beginSession", manual session control enabled:[$_manualSessionControlEnabled]');
+
+      if (!_manualSessionControlEnabled) {
+        String error = '"beginSession" will be ignored since manual session control is not enabled';
+        log(error);
+        return error;
+      }
+      List<String> args = [];
+      final String? result = await _channel
+          .invokeMethod('beginSession', <String, dynamic>{'data': json.encode(args)});
+
+      return result;
+  }
+
+  /// Update session for manual session handling.
+  /// This method needs to be called for updating a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
+  static Future<String?>  updateSession() async {
+    log('Calling "updateSession", manual session control enabled:[$_manualSessionControlEnabled]');
+
+    if (!_manualSessionControlEnabled) {
+      String error = '"updateSession" will be ignored since manual session control is not enabled';
+      log(error);
+      return error;
+    }
+    List<String> args = [];
+    final String? result = await _channel
+        .invokeMethod('updateSession', <String, dynamic>{'data': json.encode(args)});
+
+    return result;
+  }
+
+  /// End session for manual session handling.
+  /// This method needs to be called for ending a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
+  static Future<String?>  endSession() async {
+    log('Calling "endSession", manual session control enabled:[$_manualSessionControlEnabled]');
+
+    if (!_manualSessionControlEnabled) {
+      String error = '"endSession" will be ignored since manual session control is not enabled';
+      log(error);
+      return error;
+    }
+    List<String> args = [];
+    final String? result = await _channel
+        .invokeMethod('endSession', <String, dynamic>{'data': json.encode(args)});
+
+    return result;
+  }
+
 
   static Future<String?> start() async {
     log('Calling "start"');
@@ -1625,8 +1680,10 @@ class Countly {
         countlyConfig['enableUnhandledCrashReporting'] = config.enableUnhandledCrashReporting;
       }
 
+
       if(config.manualSessionEnabled != null) {
-        countlyConfig['manualSessionEnabled'] = config.manualSessionEnabled;
+        _manualSessionControlEnabled = config.manualSessionEnabled!;
+        countlyConfig['manualSessionEnabled'] = _manualSessionControlEnabled;
       }
 
       if(config.maxRequestQueueSize != null) {

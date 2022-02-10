@@ -384,6 +384,18 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         }
                     }
                 });
+            } else if ("beginSession".equals(call.method)) {
+                Countly.sharedInstance().sessions().beginSession();
+                result.success("beginSession!");
+
+            } else if ("updateSession".equals(call.method)) {
+                Countly.sharedInstance().sessions().updateSession();
+                result.success("updateSession!");
+
+            } else if ("endSession".equals(call.method)) {
+                Countly.sharedInstance().sessions().endSession();
+                result.success("endSession!");
+
             } else if ("start".equals(call.method)) {
                 if (isSessionStarted_) {
                     log("session already started", LogLevel.INFO);
