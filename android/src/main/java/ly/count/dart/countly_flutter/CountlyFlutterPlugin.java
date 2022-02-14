@@ -1156,25 +1156,24 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             });
         }
 
-        if(_config.has("location")) {
-            JSONObject location = _config.getJSONObject("location");
-            String countryCode = null;
-            String city = null;
-            String gpsCoordinates = null;
-            String ipAddress = null;
+        String countryCode = null;
+        String city = null;
+        String gpsCoordinates = null;
+        String ipAddress = null;
 
-            if(location.has("countryCode")) {
-                countryCode = location.getString("countryCode");
-            }
-            if(location.has("city")) {
-                city = location.getString("city");
-            }
-            if(location.has("gpsCoordinates")) {
-                gpsCoordinates = location.getString("gpsCoordinates");
-            }
-            if(location.has("ipAddress")) {
-                ipAddress = location.getString("ipAddress");
-            }
+        if(_config.has("countryCode")) {
+            countryCode = _config.getString("countryCode");
+        }
+        if(_config.has("city")) {
+            city = _config.getString("city");
+        }
+        if(_config.has("gpsCoordinates")) {
+            gpsCoordinates = _config.getString("gpsCoordinates");
+        }
+        if(_config.has("ipAddress")) {
+            ipAddress = _config.getString("ipAddress");
+        }
+        if(city != null || countryCode != null || gpsCoordinates != null || ipAddress != null) {
             this.config.setLocation(countryCode, city, gpsCoordinates, ipAddress);
         }
 

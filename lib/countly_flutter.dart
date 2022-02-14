@@ -650,6 +650,7 @@ class Countly {
   /// [String city] - Name of the user's city
   /// [String gpsCoordinates] - comma separate lat and lng values. For example, "56.42345,123.45325"
   /// [String ipAddress] - ip address
+  ///  All parameters are optional, but at least one has to be set
   static Future<String?> setUserLocation({String? countryCode, String? city,
       String? gpsCoordinates, String? ipAddress}) async {
     Map<String, String?> location = {};
@@ -1648,8 +1649,20 @@ class Countly {
         countlyConfig['maxRequestQueueSize'] = config.maxRequestQueueSize;
       }
 
-      if(config.location != null) {
-        countlyConfig['location'] = config.location;
+      if(config.city != null) {
+        countlyConfig['city'] = config.city;
+      }
+
+      if(config.countryCode != null) {
+        countlyConfig['countryCode'] = config.countryCode;
+      }
+
+      if(config.gpsCoordinates != null) {
+        countlyConfig['gpsCoordinates'] = config.gpsCoordinates;
+      }
+
+      if(config.ipAddress != null) {
+        countlyConfig['ipAddress'] = config.ipAddress;
       }
 
       if(config.enableRemoteConfigAutomaticDownload != null) {
