@@ -1,24 +1,24 @@
 ## 21.11.0
 * Added 'CountlyConfig' class for init time configurations.
 * Deprecated old init config methods. You should use the config object now. Those methods are:
-    * init
-    * manualSessionHandling
-    * updateSessionPeriod
-    * updateSessionInterval
-    * eventSendThreshold
-    * storedRequestsLimit
-    * setOptionalParametersForInitialization
-    * setLoggingEnabled
-    * enableParameterTamperingProtection
-    * setHttpPostForced
-    * setLocationInit
-    * setRequiresConsent
-    * giveConsentInit
-    * setRemoteConfigAutomaticDownload
-    * setStarRatingDialogTexts
-    * enableCrashReporting
-    * setCustomCrashSegment
-    * enableApm
+    - init
+    - manualSessionHandling
+    - updateSessionPeriod
+    - updateSessionInterval
+    - eventSendThreshold
+    - storedRequestsLimit
+    - setOptionalParametersForInitialization
+    - setLoggingEnabled
+    - enableParameterTamperingProtection
+    - setHttpPostForced
+    - setLocationInit
+    - setRequiresConsent
+    - giveConsentInit
+    - setRemoteConfigAutomaticDownload
+    - setStarRatingDialogTexts
+    - enableCrashReporting
+    - setCustomCrashSegment
+    - enableApm
 * Added a way to retrieve feedback widget data and manually report them for iOS also
 * Added Appear and dismiss callback for nps/survey widgets
 * Added "recordIndirectAttribution" method
