@@ -75,6 +75,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private MethodChannel methodChannel;
     private Lifecycle lifecycle;
     private Boolean isSessionStarted_ = false;
+    private Boolean manualSessionControlEnabled_ = false;
 
     private boolean isOnResumeBeforeInit = false;
 
@@ -156,7 +157,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     public void onStart(@NonNull LifecycleOwner owner) {
         log("onStart", LogLevel.INFO);
         if (Countly.sharedInstance().isInitialized()) {
-            if (isSessionStarted_) {
+            if (isSessionStarted_ || manualSessionControlEnabled_) {
                 Countly.sharedInstance().onStart(activity);
             }
             Countly.sharedInstance().apm().triggerForeground();
@@ -181,7 +182,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     @Override
     public void onStop(@NonNull LifecycleOwner owner) {
         log("onStop", LogLevel.INFO);
-        if (isSessionStarted_) {
+        if (isSessionStarted_ || manualSessionControlEnabled_) {
             Countly.sharedInstance().onStop();
         }
     }
