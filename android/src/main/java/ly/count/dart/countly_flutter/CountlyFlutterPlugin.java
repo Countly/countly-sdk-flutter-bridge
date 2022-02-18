@@ -1069,6 +1069,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
         return stringArray;
     }
+    private void enableManualSessionControl() {
+        manualSessionControlEnabled_ = true;
+        this.config.enableManualSessionControl();
+    }
 
     private void populateConfig(JSONObject _config) throws JSONException {
         if(_config.has("serverURL")) {
@@ -1134,7 +1138,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
 
         if(_config.has("manualSessionEnabled") && _config.getBoolean("manualSessionEnabled")) {
-            this.config.enableManualSessionControl();
+            enableManualSessionControl();
         }
 
         if(_config.has("enableRemoteConfigAutomaticDownload")) {
