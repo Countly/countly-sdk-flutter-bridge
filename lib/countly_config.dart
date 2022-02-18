@@ -5,12 +5,12 @@ class CountlyConfig {
   String _serverURL;
   String? _deviceID;
 
-  String? _city;
-  String? _ipAddress;
-  String? _countryCode;
+  String? _locationCity;
+  String? _locationIpAddress;
+  String? _locationCountryCode;
   bool? _loggingEnabled;
   bool? _httpPostForced;
-  String? _gpsCoordinates;
+  String? _locationGpsCoordinates;
   String? _daCampaignType;
   String? _daCampaignData;
   List<String>? _consents;
@@ -37,11 +37,11 @@ class CountlyConfig {
   String get appKey => _appKey;
   String? get deviceID => _deviceID;
   String get serverURL => _serverURL;
-  String? get city => _city;
-  String? get ipAddress => _ipAddress;
-  String? get countryCode => _countryCode;
+  String? get locationCity => _locationCity;
+  String? get locationIpAddress => _locationIpAddress;
+  String? get locationCountryCode => _locationCountryCode;
   List<String>? get consents => _consents;
-  String? get gpsCoordinates => _gpsCoordinates;
+  String? get locationGpsCoordinates => _locationGpsCoordinates;
   String? get daCampaignType => _daCampaignType;
   String? get daCampaignData => _daCampaignData;
   bool? get loggingEnabled => _loggingEnabled;
@@ -174,10 +174,10 @@ class CountlyConfig {
   /// [String gpsCoordinates] - comma separate lat and lng values. For example, "56.42345,123.45325"
   /// [String ipAddress] - ip address
   CountlyConfig setLocation({String? country_code, String? city, String? gpsCoordinates, String? ipAddress}) {
-    _countryCode = country_code;
-    _city = city;
-    _gpsCoordinates = gpsCoordinates;
-    _ipAddress = ipAddress;
+    _locationCountryCode = country_code;
+    _locationCity = city;
+    _locationGpsCoordinates = gpsCoordinates;
+    _locationIpAddress = ipAddress;
     return this;
   }
 

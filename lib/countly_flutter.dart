@@ -1649,20 +1649,20 @@ class Countly {
         countlyConfig['maxRequestQueueSize'] = config.maxRequestQueueSize;
       }
 
-      if(config.city != null) {
-        countlyConfig['city'] = config.city;
+      if(config.locationCity != null) {
+        countlyConfig['locationCity'] = config.locationCity;
       }
 
-      if(config.countryCode != null) {
-        countlyConfig['countryCode'] = config.countryCode;
+      if(config.locationCountryCode != null) {
+        countlyConfig['locationCountryCode'] = config.locationCountryCode;
       }
 
-      if(config.gpsCoordinates != null) {
-        countlyConfig['gpsCoordinates'] = config.gpsCoordinates;
+      if(config.locationGpsCoordinates != null) {
+        countlyConfig['locationGpsCoordinates'] = config.locationGpsCoordinates;
       }
 
-      if(config.ipAddress != null) {
-        countlyConfig['ipAddress'] = config.ipAddress;
+      if(config.locationIpAddress != null) {
+        countlyConfig['locationIpAddress'] = config.locationIpAddress;
       }
 
       if(config.enableRemoteConfigAutomaticDownload != null) {

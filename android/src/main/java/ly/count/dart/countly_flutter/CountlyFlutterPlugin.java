@@ -1161,17 +1161,17 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         String gpsCoordinates = null;
         String ipAddress = null;
 
-        if(_config.has("countryCode")) {
-            countryCode = _config.getString("countryCode");
+        if(_config.has("locationCountryCode")) {
+            countryCode = _config.getString("locationCountryCode");
         }
-        if(_config.has("city")) {
-            city = _config.getString("city");
+        if(_config.has("locationCity")) {
+            city = _config.getString("locationCity");
         }
-        if(_config.has("gpsCoordinates")) {
-            gpsCoordinates = _config.getString("gpsCoordinates");
+        if(_config.has("locationGpsCoordinates")) {
+            gpsCoordinates = _config.getString("locationGpsCoordinates");
         }
-        if(_config.has("ipAddress")) {
-            ipAddress = _config.getString("ipAddress");
+        if(_config.has("locationIpAddress")) {
+            ipAddress = _config.getString("locationIpAddress");
         }
         if(city != null || countryCode != null || gpsCoordinates != null || ipAddress != null) {
             this.config.setLocation(countryCode, city, gpsCoordinates, ipAddress);
