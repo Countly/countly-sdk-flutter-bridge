@@ -364,11 +364,11 @@ FlutterMethodChannel* _channel;
             NSDictionary* location = [command objectAtIndex:0];
             NSString* gpsCoordinate = location[@"gpsCoordinates"];
             CLLocationCoordinate2D locationCoordinate = [self getCoordinate:gpsCoordinate];
-             NSString* city =  location[@"city"];
-             NSString* countryCode =  location[@"countryCode"];
-             NSString* ipAddress =  location[@"ipAddress"];
-             [Countly.sharedInstance recordLocation:locationCoordinate city:city ISOCountryCode:countryCode IP:ipAddress];
-             result(@"setUserLocation!");
+            NSString* city =  location[@"city"];
+            NSString* countryCode =  location[@"countryCode"];
+            NSString* ipAddress =  location[@"ipAddress"];
+            [Countly.sharedInstance recordLocation:locationCoordinate city:city ISOCountryCode:countryCode IP:ipAddress];
+            result(@"setUserLocation!");
          });
 
      }
