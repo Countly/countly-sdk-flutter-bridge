@@ -32,24 +32,8 @@ class _MyAppState extends State<MyApp> {
     });
     Countly.isInitialized().then((bool isInitialized) {
       if (!isInitialized) {
-        /// Recommended settings for Countly initialisation
-        /// Optional settings for Countly initialisation
-        Countly.enableParameterTamperingProtection(
-            'salt'); // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
-        Countly.setHttpPostForced(
-            false); // Set to 'true' if you want HTTP POST to be used for all requests
-        Countly
-            .enableApm(); // Enable APM features, which includes the recording of app start time.
-
-        Countly.setRemoteConfigAutomaticDownload((result) {
-          print(result);
-        }); // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
-        var segment = {'Key': 'Value'};
-        Countly.setCustomCrashSegment(
-            segment); // Set optional key/value segment added for crash reports.
         Countly.pushTokenType(Countly.messagingMode[
             'TEST']!); // Set messaging mode for push notifications
-
         var crashSegment = {'Key': 'Value'};
         Map<String, String> attributionValues = {};
         if(Platform.isIOS){
@@ -124,10 +108,6 @@ class _MyAppState extends State<MyApp> {
     Countly.changeDeviceId(Countly.deviceIDType['TemporaryDeviceID']!, false);
   }
 
-  void manualSessionHandling() {
-    Countly.manualSessionHandling();
-  }
-
   void basicEvent() {
     // example for basic event
     var event = {'key': 'Basic Event', 'count': 1};
@@ -164,21 +144,21 @@ class _MyAppState extends State<MyApp> {
 
   void endEventBasic() {
     Countly.startEvent('Timed Event');
-    Timer timer = Timer(Duration(seconds: 5), () {
+    Timer(Duration(seconds: 5), () {
       Countly.endEvent({'key': 'Timed Event'});
     });
   }
 
   void endEventWithSum() {
     Countly.startEvent('Timed Event With Sum');
-    Timer timer = Timer(Duration(seconds: 5), () {
+    Timer(Duration(seconds: 5), () {
       Countly.endEvent({'key': 'Timed Event With Sum', 'sum': '0.99'});
     });
   }
 
   void endEventWithSegment() {
     Countly.startEvent('Timed Event With Segment');
-    Timer timer = Timer(Duration(seconds: 5), () {
+    Timer(Duration(seconds: 5), () {
       var event = {
         'key': 'Timed Event With Segment',
         'count': 1,
@@ -190,7 +170,7 @@ class _MyAppState extends State<MyApp> {
 
   void endEventWithSumSegment() {
     Countly.startEvent('Timed Event With Segment, Sum and Count');
-    Timer timer = Timer(Duration(seconds: 5), () {
+    Timer(Duration(seconds: 5), () {
       var event = {
         'key': 'Timed Event With Segment, Sum and Count',
         'count': 1,
@@ -456,25 +436,9 @@ class _MyAppState extends State<MyApp> {
     Countly.changeDeviceId('123456', false);
   }
 
-  void enableParameterTamperingProtection() {
-    Countly.enableParameterTamperingProtection('salt');
-  }
-
-  void setOptionalParametersForInitialization() {
-    Map<String, Object> options = {
-      'city': 'Tampa',
-      'country': 'US',
-      'latitude': '28.006324',
-      'longitude': '-82.7166183',
-      'ipAddress': '255.255.255.255'
-    };
-    Countly.setOptionalParametersForInitialization(options);
-  }
-
   void addCrashLog() {
-    Countly.enableCrashReporting();
     Countly.addCrashLog('User Performed Step A');
-    Timer timer = Timer(Duration(seconds: 5), () {
+    Timer(Duration(seconds: 5), () {
       Countly.logException(
           'one.js \n two.js \n three.js', true, {'_facebook_version': '0.0.1'});
     });
@@ -522,10 +486,6 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  void setLoggingEnabled() {
-    Countly.setLoggingEnabled(false);
-  }
-
   void askForStarRating() {
     Countly.askForStarRating();
   }
@@ -533,7 +493,7 @@ class _MyAppState extends State<MyApp> {
   void presentRatingWidget() {
     // Trying to show a rating widget with a previously know ID.
     // You should replace the given ID with your own, it would be retrieved from your Countly Dashboard.
-    Countly.presentRatingWidgetWithID('61eaaf37c935575c7b932b97', closeButtonText: "close", ratingWidgetCallback: (error) {
+    Countly.presentRatingWidgetWithID('61eaaf37c935575c7b932b97', closeButtonText: 'close', ratingWidgetCallback: (error) {
       if(error != null) {
         print(error);
       }
@@ -543,7 +503,7 @@ class _MyAppState extends State<MyApp> {
   void presentRatingWidgetUsingEditBox() {
     // Trying to show a rating widget with the ID give in the App.
     // In the EditBox you would write the ID that you retrieved from your Countly Dashboard.
-    Countly.presentRatingWidgetWithID(ratingIdController.text, closeButtonText: "close", ratingWidgetCallback: (error) {
+    Countly.presentRatingWidgetWithID(ratingIdController.text, closeButtonText: 'close', ratingWidgetCallback: (error) {
       if(error != null) {
         print(error);
       }
@@ -639,10 +599,10 @@ class _MyAppState extends State<MyApp> {
     List result = await Countly.getFeedbackWidgetData(chosenWidget);
     String? error = result[1];
     if (error == null) {
-      Map<String, dynamic> retrievedWidgetData = result[0];
+      Map<String, dynamic>? retrievedWidgetData = result[0];
       Map<String, Object> segments = {};
       if (retrievedWidgetData != null && retrievedWidgetData.isNotEmpty) {
-        List<dynamic> questions = retrievedWidgetData['questions'];
+        List<dynamic>? questions = retrievedWidgetData['questions'];
 
         if (questions != null) {
           Random rnd = Random();
@@ -688,7 +648,7 @@ class _MyAppState extends State<MyApp> {
         }
       }
       await Countly.reportFeedbackWidgetManually(
-          chosenWidget, retrievedWidgetData, segments);
+          chosenWidget, retrievedWidgetData?? {}, segments);
     }
 
   }
@@ -731,7 +691,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void setLocation() {
-    Countly.setLocation('-33.9142687', '18.0955802');
+    Countly.setUserLocation(countryCode: 'TR', city: 'Istanbul', gpsCoordinates: '41.0082,28.9784', ipAddress: '10.2.33.12');
   }
 
   // APM Examples
@@ -1021,14 +981,6 @@ class _MyAppState extends State<MyApp> {
                       color: 'violet',
                       onPressed: changeDeviceIdWithoutMerge),
                   MyButton(
-                      text: 'Enable Parameter Tapmering Protection',
-                      color: 'violet',
-                      onPressed: enableParameterTamperingProtection),
-                  MyButton(
-                      text: 'City, State, and Location',
-                      color: 'violet',
-                      onPressed: setOptionalParametersForInitialization),
-                  MyButton(
                       text: 'setLocation', color: 'violet', onPressed: setLocation),
                   MyButton(
                       text: 'Send Crash Report',
@@ -1058,10 +1010,6 @@ class _MyAppState extends State<MyApp> {
                       text: 'Divided By Zero Exception',
                       color: 'violet',
                       onPressed: dividedByZero),
-                  MyButton(
-                      text: 'Enabling logging',
-                      color: 'violet',
-                      onPressed: setLoggingEnabled),
                   MyButton(
                       text: 'Open rating modal',
                       color: 'orange',
