@@ -669,8 +669,10 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use setUserLocation instead')
   static Future<String?> setLocation(String latitude, String longitude) async {
     log('Calling "setLocationInit" with latitude:[$latitude], longitude:[$longitude]');
+    log('setLocation is deprecated, use setUserLocation instead', logLevel: LogLevel.WARNING);
     if (latitude.isEmpty) {
       String error = 'setLocation, latitude cannot be empty';
       log(error);
@@ -681,16 +683,30 @@ class Countly {
       log(error);
       return 'Error : $error';
     }
-    List<String> args = [];
-
-    args.add(latitude);
-    args.add(longitude);
-    
-    final String? result = await _channel.invokeMethod(
-        'setLocation', <String, dynamic>{'data': json.encode(args)});
-    
+    final String? result = await setUserLocation(gpsCoordinates: '$latitude,$longitude');
     return result;
   }
+
+  /// Set user location
+  /// [String country_code] - ISO Country code for the user's country
+  /// [String city] - Name of the user's city
+  /// [String gpsCoordinates] - comma separate lat and lng values. For example, "56.42345,123.45325"
+  /// [String ipAddress] - ip address
+  ///  All parameters are optional, but at least one has to be set
+  static Future<String?> setUserLocation({String? countryCode, String? city,
+      String? gpsCoordinates, String? ipAddress}) async {
+    Map<String, String?> location = {};
+    location['countryCode'] = countryCode;
+    location['city'] = city;
+    location['gpsCoordinates'] = gpsCoordinates;
+    location['ipAddress'] = ipAddress;
+    List<dynamic> args = [];
+    args.add(location);
+    final String? result = await _channel.invokeMethod(
+        'setUserLocation', <String, dynamic>{'data': json.encode(args)});
+    return result;
+  }
+
 
   static Future<String?> setProperty(String keyName, String keyValue) async {
     log('Calling "setProperty":[$keyName], value:[$keyValue]');
@@ -1436,7 +1452,7 @@ class Countly {
     log('Calling "logExceptionEx":[$exceptionString] nonfatal:[$nonfatal]');
     stacktrace ??= StackTrace.current;
     final result = logException(
-        '${exceptionString}\n\n$stacktrace', nonfatal, segmentation);
+        '$exceptionString\n\n$stacktrace', nonfatal, segmentation);
     return result;
   }
 
@@ -1473,7 +1489,7 @@ class Countly {
         _internalRecordError(details.exceptionAsString(), details.stack));
   }
 
-  /// Callback to catch and report Dart errors, [enableCrashReporting()] must call before [init] to make it work.
+  /// Callback to catch and report Dart errors, [enableCrashReporting()] must call before [initWithConfig] to make it work.
   ///
   /// This callback has to be provided when the app is about to be run.
   /// It has to be done inside a custom Zone by providing [Countly.recordDartError] in onError() callback.
@@ -1648,8 +1664,20 @@ class Countly {
         countlyConfig['maxRequestQueueSize'] = config.maxRequestQueueSize;
       }
 
-      if(config.location != null) {
-        countlyConfig['location'] = config.location;
+      if(config.locationCity != null) {
+        countlyConfig['locationCity'] = config.locationCity;
+      }
+
+      if(config.locationCountryCode != null) {
+        countlyConfig['locationCountryCode'] = config.locationCountryCode;
+      }
+
+      if(config.locationGpsCoordinates != null) {
+        countlyConfig['locationGpsCoordinates'] = config.locationGpsCoordinates;
+      }
+
+      if(config.locationIpAddress != null) {
+        countlyConfig['locationIpAddress'] = config.locationIpAddress;
       }
 
       if(config.enableRemoteConfigAutomaticDownload != null) {

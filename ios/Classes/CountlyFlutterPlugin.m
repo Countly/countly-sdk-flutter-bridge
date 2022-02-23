@@ -371,7 +371,20 @@ FlutterMethodChannel* _channel;
         result(@"setLocation!");
         });
 
-    }else if ([@"enableCrashReporting" isEqualToString:call.method]) {
+    }else if ([@"setUserLocation" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            NSDictionary* location = [command objectAtIndex:0];
+            NSString* gpsCoordinate = location[@"gpsCoordinates"];
+            CLLocationCoordinate2D locationCoordinate = [self getCoordinate:gpsCoordinate];
+            NSString* city =  location[@"city"];
+            NSString* countryCode =  location[@"countryCode"];
+            NSString* ipAddress =  location[@"ipAddress"];
+            [Countly.sharedInstance recordLocation:locationCoordinate city:city ISOCountryCode:countryCode IP:ipAddress];
+            result(@"setUserLocation!");
+         });
+
+     }
+    else if ([@"enableCrashReporting" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         // config.features = @[CLYCrashReporting];
         [self addCountlyFeature:CLYCrashReporting];
@@ -731,7 +744,7 @@ FlutterMethodChannel* _channel;
             NSString* errorStr = nil;
             if (error){
                 errorStr = error.localizedDescription;
-                NSString *theError = [@"presentRatingWidgetWithID failed: " stringByAppendingString: errorStr;
+                NSString *theError = [@"presentRatingWidgetWithID failed: " stringByAppendingString: errorStr];
                 result(theError);
             }
             else{
@@ -931,6 +944,37 @@ FlutterMethodChannel* _channel;
   }
   return nil;
 }
+- (CLLocationCoordinate2D) getCoordinate:(NSString*) gpsCoordinate
+{
+    CLLocationCoordinate2D locationCoordinate = kCLLocationCoordinate2DInvalid;
+    if(gpsCoordinate){
+        if([gpsCoordinate containsString:@","]) {
+            @try{
+                NSArray *locationArray = [gpsCoordinate componentsSeparatedByString:@","];
+                if(locationArray.count > 2) {
+                    COUNTLY_FLUTTER_LOG(@"Invalid location Coordinates:[%@], it should contains only two comma seperated values", gpsCoordinate);
+                }
+                NSString* latitudeString = [locationArray objectAtIndex:0];
+                NSString* longitudeString = [locationArray objectAtIndex:1];
+
+                double latitudeDouble = [latitudeString doubleValue];
+                double longitudeDouble = [longitudeString doubleValue];
+                if(latitudeDouble == 0 || longitudeDouble == 0) {
+                    COUNTLY_FLUTTER_LOG(@"Invalid location Coordinates, One of the values parsed to a 0, double check that given coordinates are correct:[%@]", gpsCoordinate);
+                }
+                locationCoordinate = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
+            }
+            @catch(NSException *exception) {
+                COUNTLY_FLUTTER_LOG(@"Invalid location Coordinates:[%@], Exception occurred while parsing Coordinates:[%@]", gpsCoordinate, exception);
+            }
+        }
+        else {
+            COUNTLY_FLUTTER_LOG(@"Invalid location Coordinates:[%@], lat and long values should be comma separated", gpsCoordinate);
+        }
+
+     }
+     return locationCoordinate;
+}
 
 - (void)populateConfig:(NSDictionary*)_config
 {
@@ -1021,14 +1065,27 @@ FlutterMethodChannel* _channel;
             };
         }
 
-        NSDictionary* location = _config[@"location"];
-        if(location) {
-            [self setLocation:location];
+        NSString* gpsCoordinate =  _config[@"locationGpsCoordinates"];
+        CLLocationCoordinate2D coordinate = [self getCoordinate:gpsCoordinate];
+        if (CLLocationCoordinate2DIsValid(coordinate)) {
+            config.location = coordinate;
+        }
+        NSString* city =  _config[@"locationCity"];
+        if(city) {
+           config.city = city;
+        }
+        NSString* countryCode =  _config[@"locationCountryCode"];
+        if(countryCode) {
+           config.ISOCountryCode = countryCode;
         }
 
-         NSDictionary* attributionValues = _config[@"attributionValues"];
-         NSString* IDFAKey = @"idfa";
-         NSString* attributionID = [attributionValues objectForKey:IDFAKey];
+        NSString* ipAddress =  _config[@"locationIpAddress"];
+        if(ipAddress) {
+           config.IP = ipAddress;
+        }
+        NSDictionary* attributionValues = _config[@"attributionValues"];
+        NSString* IDFAKey = @"idfa";
+        NSString* attributionID = [attributionValues objectForKey:IDFAKey];
         if (attributionID) {
             config.attributionID = attributionID;
         }
@@ -1036,40 +1093,8 @@ FlutterMethodChannel* _channel;
     @catch(NSException *exception){
        COUNTLY_FLUTTER_LOG(@"populateConfig, Unable to parse Config object: %@", exception);
     }
-
 }
 
--(void) setLocation:(NSDictionary*)location
-{
-    NSString* gpsCoordinates =  location[@"gpsCoordinates"];
-    if(gpsCoordinates && [gpsCoordinates containsString:@","]){
-       @try{
-           NSArray *locationArray = [gpsCoordinates componentsSeparatedByString:@","];
-           NSString* latitudeString = [locationArray objectAtIndex:0];
-           NSString* longitudeString = [locationArray objectAtIndex:1];
-
-           double latitudeDouble = [latitudeString doubleValue];
-           double longitudeDouble = [longitudeString doubleValue];
-           config.location = (CLLocationCoordinate2D){latitudeDouble,longitudeDouble};
-       }
-       @catch(NSException *exception){
-           COUNTLY_FLUTTER_LOG(@"Invalid location: %@", gpsCoordinates);
-       }
-    }
-    NSString* city =  location[@"city"];
-    if(city) {
-       config.city = city;
-    }
-    NSString* countryCode =  location[@"countryCode"];
-    if(countryCode) {
-       config.ISOCountryCode = countryCode;
-    }
-    
-    NSString* ipAddress =  location[@"ipAddress"];
-    if(ipAddress) {
-       config.IP = ipAddress;
-    }
-}
 
 + (void)onNotification: (NSDictionary *) notificationMessage{
     COUNTLY_FLUTTER_LOG(@"Notification received");
@@ -1139,3 +1164,4 @@ void CountlyFlutterInternalLog(NSString *format, ...)
     va_end(args);
 }
 @end
+

@@ -291,6 +291,28 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     Countly.sharedInstance().setLocation(null, null, latlng, null);
                 }
                 result.success("setLocation success!");
+            } else if ("setUserLocation".equals(call.method)) {
+                JSONObject location = args.getJSONObject(0);
+                String countryCode = null;
+                String city = null;
+                String gpsCoordinates = null;
+                String ipAddress = null;
+
+                if(location.has("countryCode")) {
+                    countryCode = location.getString("countryCode");
+                }
+                if(location.has("city")) {
+                    city = location.getString("city");
+                }
+                if(location.has("gpsCoordinates")) {
+                    gpsCoordinates = location.getString("gpsCoordinates");
+                }
+                if(location.has("ipAddress")) {
+                    ipAddress = location.getString("ipAddress");
+                }
+
+                Countly.sharedInstance().setLocation(countryCode, city, gpsCoordinates, ipAddress);
+                result.success("setUserLocation success!");
             } else if ("enableCrashReporting".equals(call.method)) {
                 this.config.enableCrashReporting();
                 // Countly.sharedInstance().enableCrashReporting();
@@ -1151,25 +1173,24 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             });
         }
 
-        if(_config.has("location")) {
-            JSONObject location = _config.getJSONObject("location");
-            String countryCode = null;
-            String city = null;
-            String gpsCoordinates = null;
-            String ipAddress = null;
+        String countryCode = null;
+        String city = null;
+        String gpsCoordinates = null;
+        String ipAddress = null;
 
-            if(location.has("countryCode")) {
-                countryCode = location.getString("countryCode");
-            }
-            if(location.has("city")) {
-                city = location.getString("city");
-            }
-            if(location.has("gpsCoordinates")) {
-                gpsCoordinates = location.getString("gpsCoordinates");
-            }
-            if(location.has("ipAddress")) {
-                ipAddress = location.getString("ipAddress");
-            }
+        if(_config.has("locationCountryCode")) {
+            countryCode = _config.getString("locationCountryCode");
+        }
+        if(_config.has("locationCity")) {
+            city = _config.getString("locationCity");
+        }
+        if(_config.has("locationGpsCoordinates")) {
+            gpsCoordinates = _config.getString("locationGpsCoordinates");
+        }
+        if(_config.has("locationIpAddress")) {
+            ipAddress = _config.getString("locationIpAddress");
+        }
+        if(city != null || countryCode != null || gpsCoordinates != null || ipAddress != null) {
             this.config.setLocation(countryCode, city, gpsCoordinates, ipAddress);
         }
 
