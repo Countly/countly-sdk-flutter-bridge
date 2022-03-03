@@ -24,6 +24,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final ratingIdController = TextEditingController();
+  String _deviceIdType = '';
   @override
   void initState() {
     super.initState();
@@ -428,6 +429,18 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  void getDeviceIDType() async {
+    List result = await Countly.getDeviceIDType();
+    DeviceIdType deviceIdType = result[0];
+    setState(() {
+      _deviceIdType = deviceIdType.toString();
+    });
+    String? error = result[1];
+    if (error != null) {
+      print(error);
+    }
+  }
+
   void changeDeviceIdWithMerge() {
     Countly.changeDeviceId('123456', true);
   }
@@ -752,6 +765,10 @@ class _MyAppState extends State<MyApp> {
             child: SingleChildScrollView(
               child: Column(
                 children: <Widget>[
+                  Text(_deviceIdType,
+                  style: TextStyle(color: Colors.red), textAlign: TextAlign.center),
+                  MyButton(
+                      text: 'Get Device Id Type', color: 'green', onPressed: getDeviceIDType),
                   MyButton(
                       text: 'Basic event', color: 'brown', onPressed: basicEvent),
                   MyButton(
