@@ -17,7 +17,7 @@ abstract class AttributionKey {
 }
 
 enum LogLevel { INFO, DEBUG, VERBOSE, WARNING, ERROR }
-enum DeviceIdType { DEVELOPER_SUPPLIED, SDK_GENERATED, TEMPORARY_ID, UNKNOWN }
+enum DeviceIdType { DEVELOPER_SUPPLIED, SDK_GENERATED, TEMPORARY_ID }
 
 abstract class CountlyConsent {
   static const String sessions = 'sessions';
@@ -518,34 +518,18 @@ class Countly {
 
   /// Get currently used device Id type.
   /// Should be call after Countly init
-  static Future<List> getDeviceIDType() async {
+  static Future<DeviceIdTypeResponse> getDeviceIDType() async {
     log('Calling "getDeviceIDType"');
     if (!_isInitialized) {
       log('getDeviceIDType, init must be called before getDeviceIDType',
           logLevel: LogLevel.WARNING);
-      return [
-        DeviceIdType.UNKNOWN,
-        'init must be called before getDeviceIDType'
-      ];
+      return DeviceIdTypeResponse(DeviceIdType.SDK_GENERATED, 'init must be called before getDeviceIDType');
     }
     final String? result = await _channel.invokeMethod('getDeviceIDType');
     if (result == null) {
-      return [DeviceIdType.SDK_GENERATED, 'Error: No device Id type found'];
+      return DeviceIdTypeResponse(DeviceIdType.SDK_GENERATED, 'Error: No device Id type found');
     }
-    return [_getType(result), null];
-  }
-
-  static DeviceIdType _getType(String deviceIdType) {
-    DeviceIdType _deviceIdType = DeviceIdType.SDK_GENERATED;
-    switch (deviceIdType) {
-      case 'DEVELOPER_SUPPLIED':
-        _deviceIdType = DeviceIdType.DEVELOPER_SUPPLIED;
-        break;
-      case 'TEMPORARY_ID':
-        _deviceIdType = DeviceIdType.TEMPORARY_ID;
-        break;
-    }
-    return _deviceIdType;
+    return DeviceIdTypeResponse.byString(result);
   }
 
   static Future<String?> changeDeviceId(
@@ -1739,4 +1723,27 @@ class FeedbackWidgetsResponse {
 
   final String? error;
   final List<CountlyPresentableFeedback> presentableFeedback;
+}
+
+class DeviceIdTypeResponse {
+  final String? error;
+  DeviceIdType deviceIdType = DeviceIdType.SDK_GENERATED;
+
+  DeviceIdTypeResponse(deviceIdType, [this.error]);
+
+  DeviceIdTypeResponse.byString(String _deviceIdType, [this.error]) {
+    _populateIdType(_deviceIdType);
+  }
+
+  void _populateIdType(String _deviceIdType) {
+    deviceIdType = DeviceIdType.SDK_GENERATED;
+    switch (_deviceIdType) {
+      case 'DEVELOPER_SUPPLIED':
+        deviceIdType = DeviceIdType.DEVELOPER_SUPPLIED;
+        break;
+      case 'TEMPORARY_ID':
+        deviceIdType = DeviceIdType.TEMPORARY_ID;
+        break;
+    }
+  }
 }

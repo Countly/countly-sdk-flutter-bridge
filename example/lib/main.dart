@@ -430,14 +430,12 @@ class _MyAppState extends State<MyApp> {
   }
 
   void getDeviceIDType() async {
-    List result = await Countly.getDeviceIDType();
-    DeviceIdType deviceIdType = result[0];
+    DeviceIdTypeResponse deviceIdTypeResponse = await Countly.getDeviceIDType();
     setState(() {
-      _deviceIdType = deviceIdType.toString();
+      _deviceIdType = deviceIdTypeResponse.deviceIdType.toString();
     });
-    String? error = result[1];
-    if (error != null) {
-      print(error);
+    if (deviceIdTypeResponse.error != null) {
+      print(deviceIdTypeResponse.error);
     }
   }
 
