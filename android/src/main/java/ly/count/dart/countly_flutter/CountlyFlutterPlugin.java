@@ -76,6 +76,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private MethodChannel methodChannel;
     private Lifecycle lifecycle;
     private Boolean isSessionStarted_ = false;
+    private Boolean manualSessionControlEnabled_ = false;
 
     private boolean isOnResumeBeforeInit = false;
 
@@ -157,7 +158,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     public void onStart(@NonNull LifecycleOwner owner) {
         log("onStart", LogLevel.INFO);
         if (Countly.sharedInstance().isInitialized()) {
-            if (isSessionStarted_) {
+            if (isSessionStarted_ || manualSessionControlEnabled_) {
                 Countly.sharedInstance().onStart(activity);
             }
             Countly.sharedInstance().apm().triggerForeground();
@@ -182,7 +183,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     @Override
     public void onStop(@NonNull LifecycleOwner owner) {
         log("onStop", LogLevel.INFO);
-        if (isSessionStarted_) {
+        if (isSessionStarted_ || manualSessionControlEnabled_) {
             Countly.sharedInstance().onStop();
         }
     }
@@ -414,6 +415,18 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         }
                     }
                 });
+            } else if ("beginSession".equals(call.method)) {
+                Countly.sharedInstance().sessions().beginSession();
+                result.success("beginSession!");
+
+            } else if ("updateSession".equals(call.method)) {
+                Countly.sharedInstance().sessions().updateSession();
+                result.success("updateSession!");
+
+            } else if ("endSession".equals(call.method)) {
+                Countly.sharedInstance().sessions().endSession();
+                result.success("endSession!");
+
             } else if ("start".equals(call.method)) {
                 if (isSessionStarted_) {
                     log("session already started", LogLevel.INFO);
@@ -1086,6 +1099,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
         return stringArray;
     }
+    private void enableManualSessionControl() {
+        manualSessionControlEnabled_ = true;
+        this.config.enableManualSessionControl();
+    }
 
     private void populateConfig(JSONObject _config) throws JSONException {
         if(_config.has("serverURL")) {
@@ -1151,7 +1168,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
 
         if(_config.has("manualSessionEnabled") && _config.getBoolean("manualSessionEnabled")) {
-            this.config.enableManualSessionControl();
+            enableManualSessionControl();
         }
 
         if(_config.has("enableRemoteConfigAutomaticDownload")) {
