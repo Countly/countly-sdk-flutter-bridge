@@ -51,6 +51,9 @@ class Countly {
   /// Set true when user enabled crash logging
   static bool _enableCrashReportingFlag = false;
 
+  /// Flag to determine if manual session is enabled
+  static bool _manualSessionControlEnabled = false;
+
   static Map<String, String> messagingMode = Platform.isAndroid ? {
     'TEST': '2',
     'PRODUCTION': '0'
@@ -126,6 +129,9 @@ class Countly {
   }
 
   static Future<String?> initWithConfig(CountlyConfig config) async {
+    if(config.loggingEnabled != null) {
+      _isDebug = config.loggingEnabled!;
+    }
     log('Calling "initWithConfig"');
     if(_isInitialized) {
       String msg = 'initWithConfig, SDK is already initialized';
@@ -142,14 +148,15 @@ class Countly {
       Countly.log(msg, logLevel: LogLevel.ERROR);
       return msg;
     }
-    if(config.loggingEnabled != null) {
-      _isDebug = config.loggingEnabled!;
+    if(config.manualSessionEnabled != null) {
+      _manualSessionControlEnabled = config.manualSessionEnabled!;
     }
     _channel.setMethodCallHandler(_methodCallHandler);
 
+
     List<dynamic> args = [];
     args.add(_configToJson(config));
-    
+
     final String? result = await _channel
         .invokeMethod('init', <String, dynamic>{'data': json.encode(args)});
     _isInitialized = true;
@@ -159,9 +166,7 @@ class Countly {
 
   static Future<bool> isInitialized() async {
     log('Calling "isInitialized"');
-    List<String> args = [];
-    final String? result = await _channel.invokeMethod(
-        'isInitialized', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod('isInitialized');
     if (result == 'true') {
       return true;
     } else {
@@ -200,9 +205,8 @@ class Countly {
           logLevel: LogLevel.WARNING);
       return 'init must be called before appLoadingFinished';
     }
-    List<String> args = [];
     final String? result = await _channel.invokeMethod(
-        'appLoadingFinished', <String, dynamic>{'data': json.encode(args)});
+        'appLoadingFinished');
     
     return result;
   }
@@ -238,7 +242,7 @@ class Countly {
       });
     }
 
-    
+
     final String? result = await _channel.invokeMethod(
         'recordEvent', <String, dynamic>{'data': json.encode(args)});
     
@@ -322,10 +326,7 @@ class Countly {
   /// Should be call after Countly init
   static Future<String?> askForNotificationPermission() async {
     log('Calling "askForNotificationPermission"');
-    List<String> args = [];
-    final String? result = await _channel.invokeMethod(
-        'askForNotificationPermission',
-        <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod('askForNotificationPermission');
     
     return result;
   }
@@ -338,10 +339,7 @@ class Countly {
     if (!Platform.isIOS) {
       return 'disablePushNotifications : To be implemented';
     }
-    List<String> args = [];
-    final String? result = await _channel.invokeMethod(
-        'disablePushNotifications',
-        <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod('disablePushNotifications');
     
     return result;
   }
@@ -368,10 +366,7 @@ class Countly {
   /// @param { callback listner } callback
   static Future<String?> onNotification(Function callback) async {
     log('Calling "onNotification"');
-    List<String> args = [];
-    log('registerForNotification');
-    await _channel.invokeMethod('registerForNotification',
-        <String, dynamic>{'data': json.encode(args)}).then((value) {
+    await _channel.invokeMethod('registerForNotification').then((value) {
       callback(value.toString());
       onNotification(callback);
     }).catchError((error) {
@@ -380,11 +375,60 @@ class Countly {
     return '';
   }
 
+  /// Starts session for manual session handling.
+  /// This method needs to be called for starting a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
+  static Future<String?>  beginSession() async {
+      log('Calling "beginSession", manual session control enabled:[$_manualSessionControlEnabled]');
+
+      if (!_manualSessionControlEnabled) {
+        String error = '"beginSession" will be ignored since manual session control is not enabled';
+        log(error);
+        return error;
+      }
+      final String? result = await _channel.invokeMethod('beginSession');
+
+      return result;
+  }
+
+  /// Update session for manual session handling.
+  /// This method needs to be called for updating a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
+  static Future<String?>  updateSession() async {
+    log('Calling "updateSession", manual session control enabled:[$_manualSessionControlEnabled]');
+
+    if (!_manualSessionControlEnabled) {
+      String error = '"updateSession" will be ignored since manual session control is not enabled';
+      log(error);
+      return error;
+    }
+    final String? result = await _channel.invokeMethod('updateSession');
+
+    return result;
+  }
+
+  /// End session for manual session handling.
+  /// This method needs to be called for ending a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
+  static Future<String?>  endSession() async {
+    log('Calling "endSession", manual session control enabled:[$_manualSessionControlEnabled]');
+
+    if (!_manualSessionControlEnabled) {
+      String error = '"endSession" will be ignored since manual session control is not enabled';
+      log(error);
+      return error;
+    }
+    final String? result = await _channel.invokeMethod('endSession');
+
+    return result;
+  }
+
+
   static Future<String?> start() async {
     log('Calling "start"');
-    List<String> args = [];
-    final String? result = await _channel
-        .invokeMethod('start', <String, dynamic>{'data': json.encode(args)});
+    if (_manualSessionControlEnabled) {
+      String error = '"start" will be ignored since manual session control is enabled';
+      log(error);
+      return error;
+    }
+    final String? result = await _channel.invokeMethod('start');
     
     return result;
   }
@@ -393,18 +437,19 @@ class Countly {
   static Future<String?> manualSessionHandling() async {
     log('Calling "manualSessionHandling"');
     log('manualSessionHandling is deprecated, use enableManualSessionHandling of CountlyConfig instead', logLevel: LogLevel.WARNING);
-    List<String> args = [];
-    final String? result = await _channel.invokeMethod(
-        'manualSessionHandling', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod('manualSessionHandling');
     
     return result;
   }
 
   static Future<String?> stop() async {
     log('Calling "stop"');
-    List<String> args = [];
-    final String? result = await _channel
-        .invokeMethod('stop', <String, dynamic>{'data': json.encode(args)});
+    if (_manualSessionControlEnabled) {
+      String error = '"stop" will be ignored since manual session control is enabled';
+      log(error);
+      return error;
+    }
+    final String? result = await _channel.invokeMethod('stop');
     
     return result;
   }
@@ -458,9 +503,7 @@ class Countly {
   static Future<String?> storedRequestsLimit() async {
     log('Calling "storedRequestsLimit"');
     log('storedRequestsLimit is deprecated, use setMaxRequestQueueSize of CountlyConfig instead', logLevel: LogLevel.WARNING);
-    List<String> args = [];
-    final String? result = await _channel.invokeMethod(
-        'storedRequestsLimit', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod('storedRequestsLimit');
     
     return result;
   }
@@ -508,9 +551,8 @@ class Countly {
           logLevel: LogLevel.WARNING);
       return 'init must be called before getCurrentDeviceId';
     }
-    List<String> args = [];
     final String? result = await _channel.invokeMethod(
-        'getCurrentDeviceId', <String, dynamic>{'data': json.encode(args)});
+        'getCurrentDeviceId');
     
     return result;
   }
@@ -928,18 +970,14 @@ class Countly {
   /// Should be call after Countly init
   static Future<String?> giveAllConsent() async {
     log('Calling "giveAllConsent"');
-    List<String> args = [];
-    final String? result = await _channel.invokeMethod(
-        'giveAllConsent', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod('giveAllConsent');
     
     return result;
   }
 
   static Future<String?> removeAllConsent() async {
     log('Calling "removeAllConsent"');
-    List<String> args = [];
-    final String? result = await _channel.invokeMethod(
-        'removeAllConsent', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod('removeAllConsent');
     
     return result;
   }
@@ -951,11 +989,7 @@ class Countly {
       Function callback) async {
     log('Calling "setRemoteConfigAutomaticDownload"');
     log('setRemoteConfigAutomaticDownload is deprecated, use setRemoteConfigAutomaticDownload of CountlyConfig instead', logLevel: LogLevel.WARNING);
-    List<String> args = [];
-    
-    final String? result = await _channel.invokeMethod(
-        'setRemoteConfigAutomaticDownload',
-        <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod('setRemoteConfigAutomaticDownload');
     
     callback(result);
     return result;
@@ -963,11 +997,7 @@ class Countly {
 
   static Future<String?> remoteConfigUpdate(Function callback) async {
     log('Calling "remoteConfigUpdate"');
-    List<String> args = [];
-
-    
-    final String? result = await _channel.invokeMethod(
-        'remoteConfigUpdate', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod('remoteConfigUpdate');
     
     callback(result);
     return result;
@@ -1009,11 +1039,7 @@ class Countly {
 
   static Future<String?> remoteConfigClearValues(Function callback) async {
     log('Calling "remoteConfigClearValues"');
-    List<String> args = [];
-    
-    final String? result = await _channel.invokeMethod(
-        'remoteConfigClearValues',
-        <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod('remoteConfigClearValues');
     
     callback(result);
     return result;
@@ -1061,10 +1087,7 @@ class Countly {
 
   static Future<String?> askForStarRating() async {
     log('Calling "askForStarRating"');
-    List<String> args = [];
-    
-    final String? result = await _channel.invokeMethod(
-        'askForStarRating', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod('askForStarRating');
     
     return result;
   }
@@ -1266,10 +1289,7 @@ class Countly {
   /// Should not be used
   static Future<String?> throwNativeException() async {
     log('Calling "throwNativeException"');
-    List<String> args = [];
-    
-    final String? result = await _channel.invokeMethod(
-        'throwNativeException', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod('throwNativeException');
     
     return result;
   }
@@ -1281,10 +1301,8 @@ class Countly {
     log('Calling "enableCrashReporting"');
     log('enableCrashReporting is deprecated, use enableCrashReporting of CountlyConfig instead', logLevel: LogLevel.WARNING);
     FlutterError.onError = _recordFlutterError;
-    List<String> args = [];
     _enableCrashReportingFlag = true;
-    final String? result = await _channel.invokeMethod(
-        'enableCrashReporting', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod('enableCrashReporting');
     
     return result;
   }
@@ -1362,9 +1380,7 @@ class Countly {
 
   static Future<String?> clearAllTraces() async {
     log('Calling "clearAllTraces"');
-    List<String> args = [];
-    final String? result = await _channel.invokeMethod(
-        'clearAllTraces', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod('clearAllTraces');
     
     return result;
   }
@@ -1416,9 +1432,7 @@ class Countly {
   static Future<String?> enableApm() async {
     log('Calling "enableApm"');
     log('enableApm is deprecated, use setRecordAppStartTime of CountlyConfig instead', logLevel: LogLevel.WARNING);
-    List<String> args = [];
-    final String? result = await _channel.invokeMethod(
-        'enableApm', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod('enableApm');
     
     return result;
   }
@@ -1641,8 +1655,9 @@ class Countly {
         countlyConfig['enableUnhandledCrashReporting'] = config.enableUnhandledCrashReporting;
       }
 
+
       if(config.manualSessionEnabled != null) {
-        countlyConfig['manualSessionEnabled'] = config.manualSessionEnabled;
+        countlyConfig['manualSessionEnabled'] = _manualSessionControlEnabled;
       }
 
       if(config.maxRequestQueueSize != null) {

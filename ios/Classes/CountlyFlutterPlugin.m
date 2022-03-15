@@ -179,16 +179,28 @@ FlutterMethodChannel* _channel;
         result(@"setuserdata!");
         });
 
+    }else if ([@"beginSession" isEqualToString:call.method]) {
+         dispatch_async(dispatch_get_main_queue(), ^ {
+         [Countly.sharedInstance beginSession];
+         result(@"beginSession!");
+         });
+
+     }else if ([@"updateSession" isEqualToString:call.method]) {
+           dispatch_async(dispatch_get_main_queue(), ^ {
+           [Countly.sharedInstance updateSession];
+           result(@"updateSession!");
+           });
+
+     }else if ([@"endSession" isEqualToString:call.method]) {
+           dispatch_async(dispatch_get_main_queue(), ^ {
+           [Countly.sharedInstance endSession];
+           result(@"endSession!");
+           });
+
     }else if ([@"start" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
         [Countly.sharedInstance beginSession];
         result(@"start!");
-        });
-
-    }else if ([@"update" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^ {
-        [Countly.sharedInstance updateSession];
-        result(@"update!");
         });
 
     }else if ([@"manualSessionHandling" isEqualToString:call.method]) {
