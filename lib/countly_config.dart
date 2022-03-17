@@ -26,10 +26,9 @@ class CountlyConfig {
   Map<String, String>? _location;
   String? _tamperingProtectionSalt;
   bool? _enableUnhandledCrashReporting;
-  Map<String, String>?_iaAttributionValues;
+  Map<String, String>? _iaAttributionValues;
   Map<String, dynamic>? _customCrashSegment;
   bool? _enableRemoteConfigAutomaticDownload;
-
 
   CountlyConfig(this._serverURL, this._appKey);
 
@@ -60,7 +59,8 @@ class CountlyConfig {
   Map<String, String>? get iaAttributionValues => _iaAttributionValues;
   Map<String, dynamic>? get customCrashSegment => _customCrashSegment;
   bool? get enableUnhandledCrashReporting => _enableUnhandledCrashReporting;
-  bool? get enableRemoteConfigAutomaticDownload => _enableRemoteConfigAutomaticDownload;
+  bool? get enableRemoteConfigAutomaticDownload =>
+      _enableRemoteConfigAutomaticDownload;
 
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
@@ -113,15 +113,15 @@ class CountlyConfig {
 
   /// Set custom crash segmentation which will be added to all recorded crashes
   /// [Map<String, dynamic> customCrashSegment] - crashSegment segmentation information. Accepted values are "Integer", "String", "Double", "Boolean"
-  CountlyConfig setCustomCrashSegment(Map<String, dynamic> customCrashSegment){
+  CountlyConfig setCustomCrashSegment(Map<String, dynamic> customCrashSegment) {
     _customCrashSegment = customCrashSegment;
     return this;
   }
 
   /// Set if consent should be required
   CountlyConfig setRequiresConsent(bool shouldRequireConsent) {
-  _shouldRequireConsent = shouldRequireConsent;
-  return this;
+    _shouldRequireConsent = shouldRequireConsent;
+    return this;
   }
 
   /// Sets which features are enabled in case consent is required
@@ -173,7 +173,11 @@ class CountlyConfig {
   /// [String city] - Name of the user's city
   /// [String gpsCoordinates] - comma separate lat and lng values. For example, "56.42345,123.45325"
   /// [String ipAddress] - ip address
-  CountlyConfig setLocation({String? country_code, String? city, String? gpsCoordinates, String? ipAddress}) {
+  CountlyConfig setLocation(
+      {String? country_code,
+      String? city,
+      String? gpsCoordinates,
+      String? ipAddress}) {
     _locationCountryCode = country_code;
     _locationCity = city;
     _locationGpsCoordinates = gpsCoordinates;
@@ -197,7 +201,8 @@ class CountlyConfig {
   /// If enable, will automatically download newest remote config values.
   /// enabled set true for enabling it
   /// callback callback called after the update was done
-  CountlyConfig setRemoteConfigAutomaticDownload(bool enabled, Function(String? error) callback) {
+  CountlyConfig setRemoteConfigAutomaticDownload(
+      bool enabled, Function(String? error) callback) {
     _enableRemoteConfigAutomaticDownload = enabled;
     Countly.setRemoteConfigCallback(callback);
     return this;
@@ -205,18 +210,17 @@ class CountlyConfig {
 
   /// Report direct user attribution
   /// Currently implemented for Android only.
-  CountlyConfig recordDirectAttribution(String campaignType, String campaignData) {
+  CountlyConfig recordDirectAttribution(
+      String campaignType, String campaignData) {
     _daCampaignType = campaignType;
     _daCampaignData = campaignData;
     return this;
   }
 
   /// Report indirect user attribution
-  CountlyConfig recordIndirectAttribution(Map<String, String> attributionValues) {
+  CountlyConfig recordIndirectAttribution(
+      Map<String, String> attributionValues) {
     _iaAttributionValues = attributionValues;
     return this;
   }
-
-
 }
-
