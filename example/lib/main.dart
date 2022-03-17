@@ -29,6 +29,7 @@ class _MyAppState extends State<MyApp> {
   /// To Show the device id type in UI, when user tap on 'Get Device Id Type' button
   String _deviceIdType = '';
   final bool _enableManualSession = false;
+
   @override
   void initState() {
     super.initState();
@@ -117,6 +118,7 @@ class _MyAppState extends State<MyApp> {
 
   // ignore: non_constant_identifier_names
   static String SERVER_URL = 'https://try.count.ly';
+
   // ignore: non_constant_identifier_names
   static String APP_KEY = 'YOUR_API_KEY';
 

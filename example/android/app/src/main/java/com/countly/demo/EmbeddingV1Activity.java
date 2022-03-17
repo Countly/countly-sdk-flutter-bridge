@@ -1,6 +1,7 @@
 package com.countly.demo;
 
 import android.os.Bundle;
+
 import io.flutter.app.FlutterActivity;
 import ly.count.dart.countly_flutter.CountlyFlutterPlugin;
 

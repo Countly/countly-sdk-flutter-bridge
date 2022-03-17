@@ -34,31 +34,57 @@ class CountlyConfig {
 
   /// Getters of private members
   String get appKey => _appKey;
+
   String? get deviceID => _deviceID;
+
   String get serverURL => _serverURL;
+
   String? get locationCity => _locationCity;
+
   String? get locationIpAddress => _locationIpAddress;
+
   String? get locationCountryCode => _locationCountryCode;
+
   List<String>? get consents => _consents;
+
   String? get locationGpsCoordinates => _locationGpsCoordinates;
+
   String? get daCampaignType => _daCampaignType;
+
   String? get daCampaignData => _daCampaignData;
+
   bool? get loggingEnabled => _loggingEnabled;
+
   bool? get httpPostForced => _httpPostForced;
+
   Map<String, String>? get location => _location;
+
   bool? get recordAppStartTime => _recordAppStartTime;
+
   int? get maxRequestQueueSize => _maxRequestQueueSize;
+
   bool? get manualSessionEnabled => _manualSessionEnabled;
+
   bool? get shouldRequireConsent => _shouldRequireConsent;
+
   String? get starRatingTextTitle => _starRatingTextTitle;
+
   String? get starRatingTextMessage => _starRatingTextMessage;
+
   String? get starRatingTextDismiss => _starRatingTextDismiss;
+
   int? get eventQueueSizeThreshold => _eventQueueSizeThreshold;
+
   int? get sessionUpdateTimerDelay => _sessionUpdateTimerDelay;
+
   String? get tamperingProtectionSalt => _tamperingProtectionSalt;
+
   Map<String, String>? get iaAttributionValues => _iaAttributionValues;
+
   Map<String, dynamic>? get customCrashSegment => _customCrashSegment;
+
   bool? get enableUnhandledCrashReporting => _enableUnhandledCrashReporting;
+
   bool? get enableRemoteConfigAutomaticDownload =>
       _enableRemoteConfigAutomaticDownload;
 
