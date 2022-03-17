@@ -309,16 +309,16 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 String gpsCoordinates = null;
                 String ipAddress = null;
 
-                if(location.has("countryCode")) {
+                if (location.has("countryCode")) {
                     countryCode = location.getString("countryCode");
                 }
-                if(location.has("city")) {
+                if (location.has("city")) {
                     city = location.getString("city");
                 }
-                if(location.has("gpsCoordinates")) {
+                if (location.has("gpsCoordinates")) {
                     gpsCoordinates = location.getString("gpsCoordinates");
                 }
-                if(location.has("ipAddress")) {
+                if (location.has("ipAddress")) {
                     ipAddress = location.getString("ipAddress");
                 }
 
@@ -516,31 +516,31 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 JSONObject userData = args.getJSONObject(0);
                 Map<String, String> bundle = new HashMap<String, String>();
 
-                if(userData.has("name")) {
+                if (userData.has("name")) {
                     bundle.put("name", userData.getString("name"));
                 }
-                if(userData.has("username")) {
+                if (userData.has("username")) {
                     bundle.put("username", userData.getString("username"));
                 }
-                if(userData.has("email")) {
+                if (userData.has("email")) {
                     bundle.put("email", userData.getString("email"));
                 }
-                if(userData.has("organization")) {
+                if (userData.has("organization")) {
                     bundle.put("organization", userData.getString("organization"));
                 }
-                if(userData.has("phone")) {
+                if (userData.has("phone")) {
                     bundle.put("phone", userData.getString("phone"));
                 }
-                if(userData.has("picture")) {
+                if (userData.has("picture")) {
                     bundle.put("picture", userData.getString("picture"));
                 }
-                if(userData.has("picturePath")) {
+                if (userData.has("picturePath")) {
                     bundle.put("picturePath", userData.getString("picturePath"));
                 }
-                if(userData.has("gender")) {
+                if (userData.has("gender")) {
                     bundle.put("gender", userData.getString("gender"));
                 }
-                if(userData.has("byear")) {
+                if (userData.has("byear")) {
                     bundle.put("byear", userData.getString("byear"));
                 }
 
@@ -827,12 +827,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 String closeBtnText = args.getString(3);
 
                 CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
-                if(feedbackWidget == null) {
+                if (feedbackWidget == null) {
                     String errorMessage = "No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
                     log(errorMessage, LogLevel.WARNING);
                     result.error("presentFeedbackWidget", errorMessage, null);
-                }
-                else {
+                } else {
                     Countly.sharedInstance().feedback().presentFeedbackWidget(feedbackWidget, activity, closeBtnText, new FeedbackCallback() {
                         @Override
                         public void onFinished(String error) {
@@ -843,6 +842,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                                 result.success("presentFeedbackWidget success");
                             }
                         }
+
                         @Override
                         public void onClosed() {
                             methodChannel.invokeMethod("widgetClosed", null);
@@ -853,12 +853,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 String widgetId = args.getString(0);
 
                 CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
-                if(feedbackWidget == null) {
+                if (feedbackWidget == null) {
                     String errorMessage = "No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
                     log(errorMessage, LogLevel.WARNING);
                     result.error("getFeedbackWidgetData", errorMessage, null);
-                }
-                else {
+                } else {
                     Countly.sharedInstance().feedback().getFeedbackWidgetData(feedbackWidget, new RetrieveFeedbackWidgetData() {
                         @Override
                         public void onFinished(JSONObject retrievedWidgetData, String error) {
@@ -886,12 +885,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 String widgetId = widgetInfo.getString(0);
 
                 CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
-                if(feedbackWidget == null) {
+                if (feedbackWidget == null) {
                     String errorMessage = "No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
                     log(errorMessage, LogLevel.WARNING);
                     result.error("reportFeedbackWidgetManually", errorMessage, null);
-                }
-                else {
+                } else {
                     Countly.sharedInstance().feedback().reportFeedbackWidgetManually(feedbackWidget, widgetData, widgetResultMap);
                     result.success("reportFeedbackWidgetManually success");
                 }
@@ -944,26 +942,22 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 throw new IllegalStateException("Native Exception Crashhh!");
 //            throw new RuntimeException("Native Exception Crash!");
 
-            }
-            else if ("recordIndirectAttribution".equals(call.method)) {
+            } else if ("recordIndirectAttribution".equals(call.method)) {
                 JSONObject attributionValues = args.getJSONObject(0);
                 if (attributionValues != null && attributionValues.length() > 0) {
-                    Map<String, String>  attributionMap = toMapString(attributionValues);
+                    Map<String, String> attributionMap = toMapString(attributionValues);
                     Countly.sharedInstance().attribution().recordIndirectAttribution(attributionMap);
                     result.success("recordIndirectAttribution: success");
+                } else {
+                    result.error("iaAttributionFailed", "recordIndirectAttribution: failure, no attribution values provided", null);
                 }
-                else {
-                    result.error("iaAttributionFailed","recordIndirectAttribution: failure, no attribution values provided", null);
-                }
-            }
-            else if ("recordDirectAttribution".equals(call.method)) {
+            } else if ("recordDirectAttribution".equals(call.method)) {
                 String campaignType = args.getString(0);
                 String campaignData = args.getString(1);
 
                 Countly.sharedInstance().attribution().recordDirectAttribution(campaignType, campaignData);
                 result.success("recordIndirectAttribution: success");
-            }
-            else if ("appLoadingFinished".equals(call.method)) {
+            } else if ("appLoadingFinished".equals(call.method)) {
                 Countly.sharedInstance().apm().setAppIsLoaded();
                 result.success("appLoadingFinished: success");
             } else {
@@ -976,11 +970,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     }
 
     CountlyFeedbackWidget getFeedbackWidget(String widgetId) {
-        if(retrievedWidgetList == null) {
+        if (retrievedWidgetList == null) {
             return null;
         }
         for (CountlyFeedbackWidget feedbackWidget : retrievedWidgetList) {
-            if(feedbackWidget.widgetId.equals(widgetId)) {
+            if (feedbackWidget.widgetId.equals(widgetId)) {
                 return feedbackWidget;
             }
         }
@@ -1067,7 +1061,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             while (keys.hasNext()) {
                 String key = keys.next();
                 Object value = jsonobj.get(key);
-                if(value instanceof String){
+                if (value instanceof String) {
                     map.put(key, (String) value);
                 }
             }
@@ -1092,29 +1086,30 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     }
 
     public static String[] toStringArray(JSONArray array) {
-        if(array==null)
+        if (array == null)
             return null;
 
         int size = array.length();
         String[] stringArray = new String[size];
-        for(int i=0; i<size; i++) {
-            stringArray[i]=array.optString(i);
+        for (int i = 0; i < size; i++) {
+            stringArray[i] = array.optString(i);
         }
         return stringArray;
     }
+
     private void enableManualSessionControl() {
         manualSessionControlEnabled_ = true;
         this.config.enableManualSessionControl();
     }
 
     private void populateConfig(JSONObject _config) throws JSONException {
-        if(_config.has("serverURL")) {
+        if (_config.has("serverURL")) {
             this.config.setServerURL(_config.getString("serverURL"));
         }
-        if(_config.has("appKey")) {
+        if (_config.has("appKey")) {
             this.config.setAppKey(_config.getString("appKey"));
         }
-        if(_config.has("deviceID")) {
+        if (_config.has("deviceID")) {
             String deviceID = _config.getString("deviceID");
             if (deviceID.equals("TemporaryDeviceID")) {
                 this.config.enableTemporaryDeviceIdMode();
@@ -1123,58 +1118,58 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 this.config.setDeviceId(deviceID);
             }
         }
-        if(_config.has("loggingEnabled")) {
+        if (_config.has("loggingEnabled")) {
             this.config.setLoggingEnabled(_config.getBoolean("loggingEnabled"));
         }
-        if(_config.has("httpPostForced")) {
+        if (_config.has("httpPostForced")) {
             this.config.setHttpPostForced(_config.getBoolean("httpPostForced"));
         }
-        if(_config.has("shouldRequireConsent")) {
+        if (_config.has("shouldRequireConsent")) {
             this.config.setRequiresConsent(_config.getBoolean("shouldRequireConsent"));
         }
-        if(_config.has("tamperingProtectionSalt")) {
+        if (_config.has("tamperingProtectionSalt")) {
             this.config.setParameterTamperingProtectionSalt(_config.getString("tamperingProtectionSalt"));
         }
-        if(_config.has("eventQueueSizeThreshold")) {
+        if (_config.has("eventQueueSizeThreshold")) {
             this.config.setEventQueueSizeToSend(_config.getInt("eventQueueSizeThreshold"));
         }
-        if(_config.has("sessionUpdateTimerDelay")) {
+        if (_config.has("sessionUpdateTimerDelay")) {
             this.config.setUpdateSessionTimerDelay(_config.getInt("sessionUpdateTimerDelay"));
         }
 
-        if(_config.has("customCrashSegment")) {
-            Map<String, Object> customCrashSegment =  toMap(_config.getJSONObject("customCrashSegment"));
+        if (_config.has("customCrashSegment")) {
+            Map<String, Object> customCrashSegment = toMap(_config.getJSONObject("customCrashSegment"));
             this.config.setCustomCrashSegment(customCrashSegment);
         }
-        if(_config.has("consents")) {
+        if (_config.has("consents")) {
             String[] consents = toStringArray(_config.getJSONArray("consents"));
             this.config.setConsentEnabled(consents);
         }
-        if(_config.has("starRatingTextTitle")) {
+        if (_config.has("starRatingTextTitle")) {
             this.config.setStarRatingTextTitle(_config.getString("starRatingTextTitle"));
         }
-        if(_config.has("starRatingTextMessage")) {
+        if (_config.has("starRatingTextMessage")) {
             this.config.setStarRatingTextMessage(_config.getString("starRatingTextMessage"));
         }
-        if(_config.has("starRatingTextDismiss")) {
+        if (_config.has("starRatingTextDismiss")) {
             this.config.setStarRatingTextDismiss(_config.getString("starRatingTextDismiss"));
         }
-        if(_config.has("recordAppStartTime")) {
+        if (_config.has("recordAppStartTime")) {
             this.config.setRecordAppStartTime(_config.getBoolean("recordAppStartTime"));
         }
-        if(_config.has("enableUnhandledCrashReporting") && _config.getBoolean("enableUnhandledCrashReporting")) {
+        if (_config.has("enableUnhandledCrashReporting") && _config.getBoolean("enableUnhandledCrashReporting")) {
             this.config.enableCrashReporting();
         }
 
-        if(_config.has("maxRequestQueueSize")) {
+        if (_config.has("maxRequestQueueSize")) {
             this.config.setMaxRequestQueueSize(_config.getInt("maxRequestQueueSize"));
         }
 
-        if(_config.has("manualSessionEnabled") && _config.getBoolean("manualSessionEnabled")) {
+        if (_config.has("manualSessionEnabled") && _config.getBoolean("manualSessionEnabled")) {
             enableManualSessionControl();
         }
 
-        if(_config.has("enableRemoteConfigAutomaticDownload")) {
+        if (_config.has("enableRemoteConfigAutomaticDownload")) {
             boolean enableRemoteConfigAutomaticDownload = _config.getBoolean("enableRemoteConfigAutomaticDownload");
             this.config.setRemoteConfigAutomaticDownload(enableRemoteConfigAutomaticDownload, new RemoteConfigCallback() {
                 @Override
@@ -1189,33 +1184,32 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         String gpsCoordinates = null;
         String ipAddress = null;
 
-        if(_config.has("locationCountryCode")) {
+        if (_config.has("locationCountryCode")) {
             countryCode = _config.getString("locationCountryCode");
         }
-        if(_config.has("locationCity")) {
+        if (_config.has("locationCity")) {
             city = _config.getString("locationCity");
         }
-        if(_config.has("locationGpsCoordinates")) {
+        if (_config.has("locationGpsCoordinates")) {
             gpsCoordinates = _config.getString("locationGpsCoordinates");
         }
-        if(_config.has("locationIpAddress")) {
+        if (_config.has("locationIpAddress")) {
             ipAddress = _config.getString("locationIpAddress");
         }
-        if(city != null || countryCode != null || gpsCoordinates != null || ipAddress != null) {
+        if (city != null || countryCode != null || gpsCoordinates != null || ipAddress != null) {
             this.config.setLocation(countryCode, city, gpsCoordinates, ipAddress);
         }
 
-        if(_config.has("campaignType")) {
+        if (_config.has("campaignType")) {
             String campaignType = _config.getString("campaignType");
             String campaignData = _config.getString("campaignData");
             this.config.setDirectAttribution(campaignType, campaignData);
         }
 
-        if(_config.has("attributionValues")) {
+        if (_config.has("attributionValues")) {
             JSONObject attributionValues = _config.getJSONObject("attributionValues");
             this.config.setIndirectAttribution(toMapString(attributionValues));
         }
-
 
 
     }
