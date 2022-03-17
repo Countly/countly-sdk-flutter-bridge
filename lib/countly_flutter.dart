@@ -17,6 +17,7 @@ abstract class AttributionKey {
 }
 
 enum LogLevel { INFO, DEBUG, VERBOSE, WARNING, ERROR }
+enum DeviceIdType { DEVELOPER_SUPPLIED, SDK_GENERATED, TEMPORARY_ID }
 
 abstract class CountlyConsent {
   static const String sessions = 'sessions';
@@ -555,6 +556,37 @@ class Countly {
         'getCurrentDeviceId');
     
     return result;
+  }
+
+  /// Get currently used device Id type.
+  /// Should be call after Countly init
+  static Future<DeviceIdType?> getDeviceIDType() async {
+    log('Calling "getDeviceIDType"');
+    if (!_isInitialized) {
+      log('getDeviceIDType, init must be called before getDeviceIDType',
+          logLevel: LogLevel.ERROR);
+      return null;
+    }
+    final String? result = await _channel.invokeMethod('getDeviceIDType');
+    if (result == null) {
+      log('getDeviceIDType, unexpected null value from native side',
+          logLevel: LogLevel.ERROR);
+      return null;
+    }
+    return _getDeviceIdType(result);
+  }
+
+  static DeviceIdType _getDeviceIdType(String _deviceIdType) {
+    DeviceIdType deviceIdType = DeviceIdType.SDK_GENERATED;
+    switch (_deviceIdType) {
+      case 'DS':
+        deviceIdType = DeviceIdType.DEVELOPER_SUPPLIED;
+        break;
+      case 'TID':
+        deviceIdType = DeviceIdType.TEMPORARY_ID;
+        break;
+    }
+    return deviceIdType;
   }
 
   static Future<String?> changeDeviceId(

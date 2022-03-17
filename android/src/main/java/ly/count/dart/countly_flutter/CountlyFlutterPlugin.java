@@ -17,6 +17,7 @@ import ly.count.android.sdk.DeviceId;
 import ly.count.android.sdk.FeedbackRatingCallback;
 import ly.count.android.sdk.ModuleFeedback.*;
 import ly.count.android.sdk.RemoteConfig;
+import ly.count.android.sdk.DeviceIdType;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -244,13 +245,23 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("getCurrentDeviceId".equals(call.method)) {
                 String deviceID = Countly.sharedInstance().getDeviceID();
                 result.success(deviceID);
-            } else if ("getDeviceIdAuthor".equals(call.method)) {
-                DeviceId.Type deviceIDType = Countly.sharedInstance().getDeviceIDType();
-                if (deviceIDType == DeviceId.Type.DEVELOPER_SUPPLIED) {
-                    result.success("developerProvided");
-                } else {
-                    result.success("sdkGenerated");
+            } else if ("getDeviceIDType".equals(call.method)) {
+                DeviceIdType deviceIDType = Countly.sharedInstance().deviceId().getType();
+                String deviceIDTypeString = null;
+                switch (deviceIDType) {
+                    case DEVELOPER_SUPPLIED:
+                        deviceIDTypeString = "DS";
+                        break;
+                    case OPEN_UDID:
+                    case ADVERTISING_ID:
+                    default:
+                        deviceIDTypeString = "SG";
+                        break;
+                    case TEMPORARY_ID:
+                        deviceIDTypeString = "TID";
+                        break;
                 }
+                result.success(deviceIDTypeString);
             } else if ("changeDeviceId".equals(call.method)) {
                 String newDeviceID = args.getString(0);
                 String onServerString = args.getString(1);

@@ -25,6 +25,8 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final _messangerKey = GlobalKey<ScaffoldMessengerState>();
   final ratingIdController = TextEditingController();
+  /// To Show the device id type in UI, when user tap on 'Get Device Id Type' button
+  String _deviceIdType = '';
   final bool _enableManualSession = false;
   @override
   void initState() {
@@ -470,6 +472,15 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  void getDeviceIDType() async {
+    DeviceIdType? deviceIdType = await Countly.getDeviceIDType();
+    if (deviceIdType != null) {
+      setState(() {
+        _deviceIdType = deviceIdType.toString();
+      });
+    }
+  }
+
   void changeDeviceIdWithMerge() {
     Countly.changeDeviceId('123456', true);
   }
@@ -799,6 +810,13 @@ class _MyAppState extends State<MyApp> {
             child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
+              Text(_deviceIdType,
+                  style: TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center),
+              MyButton(
+                  text: 'Get Device Id Type',
+                  color: 'green',
+                  onPressed: getDeviceIDType),
               MyButton(
                   text: 'Begin Session',
                   color: 'green',
