@@ -255,16 +255,23 @@ FlutterMethodChannel* _channel;
         result(deviceId);
     }else if ([@"getDeviceIDType" isEqualToString:call.method]) {
         CLYDeviceIDType deviceIDType = [Countly.sharedInstance deviceIDType];
-        NSString* deviceIDTypeString = @"SDK_GENERATED";
+        NSString* deviceIDTypeString = NULL;
         if([deviceIDType isEqualToString:CLYDeviceIDTypeCustom])
         {
-            deviceIDTypeString = @"DEVELOPER_SUPPLIED";
+            deviceIDTypeString = @"DS";
+        }
+        else if([deviceIDType isEqualToString:CLYDeviceIDTypeIDFV])
+        {
+            deviceIDTypeString = @"SG";
         }
         else if([deviceIDType isEqualToString:CLYDeviceIDTypeTemporary])
         {
-            deviceIDTypeString = @"TEMPORARY_ID";
+            deviceIDTypeString = @"TID";
         }
-
+        else
+        {
+            deviceIDTypeString = @"SG";
+        }
         result(deviceIDTypeString);
         
     }else if ([@"changeDeviceId" isEqualToString:call.method]) {

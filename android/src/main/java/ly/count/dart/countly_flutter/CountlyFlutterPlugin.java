@@ -247,13 +247,18 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success(deviceID);
             } else if ("getDeviceIDType".equals(call.method)) {
                 DeviceIdType deviceIDType = Countly.sharedInstance().deviceId().getType();
-                String deviceIDTypeString = "SDK_GENERATED";
+                String deviceIDTypeString = null;
                 switch (deviceIDType) {
                     case DEVELOPER_SUPPLIED:
-                        deviceIDTypeString = "DEVELOPER_SUPPLIED";
+                        deviceIDTypeString = "DS";
+                        break;
+                    case OPEN_UDID:
+                    case ADVERTISING_ID:
+                    default:
+                        deviceIDTypeString = "SG";
                         break;
                     case TEMPORARY_ID:
-                        deviceIDTypeString = "TEMPORARY_ID";
+                        deviceIDTypeString = "TID";
                         break;
                 }
                 result.success(deviceIDTypeString);

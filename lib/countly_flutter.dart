@@ -564,13 +564,13 @@ class Countly {
     log('Calling "getDeviceIDType"');
     if (!_isInitialized) {
       log('getDeviceIDType, init must be called before getDeviceIDType',
-          logLevel: LogLevel.WARNING);
+          logLevel: LogLevel.ERROR);
       return null;
     }
     final String? result = await _channel.invokeMethod('getDeviceIDType');
     if (result == null) {
       log('getDeviceIDType, unexpected null value from native side',
-          logLevel: LogLevel.WARNING);
+          logLevel: LogLevel.ERROR);
       return null;
     }
     return _getDeviceIdType(result);
@@ -579,10 +579,10 @@ class Countly {
   static DeviceIdType _getDeviceIdType(String _deviceIdType) {
     DeviceIdType deviceIdType = DeviceIdType.SDK_GENERATED;
     switch (_deviceIdType) {
-      case 'DEVELOPER_SUPPLIED':
+      case 'DS':
         deviceIdType = DeviceIdType.DEVELOPER_SUPPLIED;
         break;
-      case 'TEMPORARY_ID':
+      case 'TID':
         deviceIdType = DeviceIdType.TEMPORARY_ID;
         break;
     }
