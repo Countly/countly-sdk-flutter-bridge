@@ -25,6 +25,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final _messangerKey = GlobalKey<ScaffoldMessengerState>();
   final ratingIdController = TextEditingController();
+  /// To Show the device id type in UI, when user tap on 'Get Device Id Type' button
   String _deviceIdType = '';
   final bool _enableManualSession = false;
   @override

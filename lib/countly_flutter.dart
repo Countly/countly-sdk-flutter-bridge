@@ -569,7 +569,9 @@ class Countly {
     }
     final String? result = await _channel.invokeMethod('getDeviceIDType');
     if (result == null) {
-      return DeviceIdType.SDK_GENERATED;
+      log('getDeviceIDType, unexpected null value from native side',
+          logLevel: LogLevel.WARNING);
+      return null;
     }
     return _getDeviceIdType(result);
   }
