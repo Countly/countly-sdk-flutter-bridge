@@ -85,8 +85,7 @@ class CountlyConfig {
 
   bool? get enableUnhandledCrashReporting => _enableUnhandledCrashReporting;
 
-  bool? get enableRemoteConfigAutomaticDownload =>
-      _enableRemoteConfigAutomaticDownload;
+  bool? get enableRemoteConfigAutomaticDownload => _enableRemoteConfigAutomaticDownload;
 
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
@@ -199,11 +198,7 @@ class CountlyConfig {
   /// [String city] - Name of the user's city
   /// [String gpsCoordinates] - comma separate lat and lng values. For example, "56.42345,123.45325"
   /// [String ipAddress] - ip address
-  CountlyConfig setLocation(
-      {String? country_code,
-      String? city,
-      String? gpsCoordinates,
-      String? ipAddress}) {
+  CountlyConfig setLocation({String? country_code, String? city, String? gpsCoordinates, String? ipAddress}) {
     _locationCountryCode = country_code;
     _locationCity = city;
     _locationGpsCoordinates = gpsCoordinates;
@@ -227,8 +222,7 @@ class CountlyConfig {
   /// If enable, will automatically download newest remote config values.
   /// enabled set true for enabling it
   /// callback callback called after the update was done
-  CountlyConfig setRemoteConfigAutomaticDownload(
-      bool enabled, Function(String? error) callback) {
+  CountlyConfig setRemoteConfigAutomaticDownload(bool enabled, Function(String? error) callback) {
     _enableRemoteConfigAutomaticDownload = enabled;
     Countly.setRemoteConfigCallback(callback);
     return this;
@@ -236,16 +230,14 @@ class CountlyConfig {
 
   /// Report direct user attribution
   /// Currently implemented for Android only.
-  CountlyConfig recordDirectAttribution(
-      String campaignType, String campaignData) {
+  CountlyConfig recordDirectAttribution(String campaignType, String campaignData) {
     _daCampaignType = campaignType;
     _daCampaignData = campaignData;
     return this;
   }
 
   /// Report indirect user attribution
-  CountlyConfig recordIndirectAttribution(
-      Map<String, String> attributionValues) {
+  CountlyConfig recordIndirectAttribution(Map<String, String> attributionValues) {
     _iaAttributionValues = attributionValues;
     return this;
   }
