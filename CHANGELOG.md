@@ -1,8 +1,37 @@
 ## 21.11.0
+* Added 'CountlyConfig' class for init time configurations.
+* Deprecated old init config methods. You should use the config object now. Those methods are:
+    - init
+    - manualSessionHandling
+    - updateSessionPeriod
+    - updateSessionInterval
+    - eventSendThreshold
+    - storedRequestsLimit
+    - setOptionalParametersForInitialization
+    - setLoggingEnabled
+    - enableParameterTamperingProtection
+    - setHttpPostForced
+    - setLocationInit
+    - setRequiresConsent
+    - giveConsentInit
+    - setRemoteConfigAutomaticDownload
+    - setStarRatingDialogTexts
+    - enableCrashReporting
+    - setCustomCrashSegment
+    - enableApm
 * Added a way to retrieve feedback widget data and manually report them for iOS also
 * Added Appear and dismiss callback for nps/survey widgets
+* Added "getDeviceIDType" method to get current device id type
+* Added "recordIndirectAttribution" method
+* Added "recordDirectAttribution" method (Currently supporterd only for Android)
+* Added "setUserLocation" method to set user location
+* Deprecated "setLocation" method
+* Deprecated recordAttributionID method
+* Deprecated enableAttribution method
+* Deprecated 'askForFeedback' method. Added 'presentRatingWidgetWithID' method that should be used as it's replacement.
+* Fixed bug that occured when recording user profile values. Parameters not provided would be deleted from the server.
 * Updated minimum supported iOS versions to 10.0
-* Updated underlying android SDK to 21.11.0-RC2
+* Updated underlying android SDK to 21.11.0-RC5
 * Updated underlying iOS SDK to 21.11.1
 
 ## 20.11.4

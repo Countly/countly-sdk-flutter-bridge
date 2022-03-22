@@ -7,6 +7,9 @@
 build/
 .orig
 
+.gradle
+.watchmanconfig
+
 example/.flutter-plugins-dependencies
 
 pubspec.lock
@@ -30,6 +33,7 @@ example/android/.settings
 example/android/app/.classpath
 example/android/app/.project
 example/android/app/.settings
+example/android/app/release
 
 
 example/ios/Podfile.lock

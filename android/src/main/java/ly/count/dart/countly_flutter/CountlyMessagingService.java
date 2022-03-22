@@ -16,7 +16,7 @@ public class CountlyMessagingService extends FirebaseMessagingService {
     public void onNewToken(String token) {
         super.onNewToken(token);
         Log.d(TAG, "got new token: " + token);
-        if(Countly.sharedInstance().isInitialized()) {
+        if (Countly.sharedInstance().isInitialized()) {
             CountlyPush.onTokenRefresh(token);
         }
     }
@@ -25,11 +25,11 @@ public class CountlyMessagingService extends FirebaseMessagingService {
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
 
-        if(!Countly.sharedInstance().isInitialized()) {
+        if (!Countly.sharedInstance().isInitialized()) {
             int mode = CountlyPush.getLastMessagingMethod(this);
-            if(mode == 0) {
+            if (mode == 0) {
                 CountlyPush.init(getApplication(), Countly.CountlyMessagingMode.TEST);
-            } else if(mode == 1) {
+            } else if (mode == 1) {
                 CountlyPush.init(getApplication(), Countly.CountlyMessagingMode.PRODUCTION);
             }
         }

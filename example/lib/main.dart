@@ -6,6 +6,7 @@ import 'dart:math';
 import 'dart:convert';
 
 import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter/countly_config.dart';
 
 /// This or a similar call needs to added to catch and report Dart Errors to Countly,
 /// You need to run app inside a Zone
@@ -22,61 +23,67 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final _messangerKey = GlobalKey<ScaffoldMessengerState>();
+  final ratingIdController = TextEditingController();
+
+  /// To Show the device id type in UI, when user tap on 'Get Device Id Type' button
+  String _deviceIdType = '';
+  final bool _enableManualSession = false;
+
   @override
   void initState() {
     super.initState();
+    ratingIdController.addListener(() {
+      setState(() {});
+    });
     Countly.isInitialized().then((bool isInitialized) {
       if (!isInitialized) {
-        /// Recommended settings for Countly initialisation
-        Countly.setLoggingEnabled(
-            true); // Enable countly internal debugging logs
-        Countly
-            .enableCrashReporting(); // Enable crash reporting to report unhandled crashes to Countly
-        Countly.setRequiresConsent(
-            true); // Set that consent should be required for features to work.
-        Countly.giveConsentInit([
-          'location',
-          'sessions',
-          'attribution',
-          'push',
-          'events',
-          'views',
-          'crashes',
-          'users',
-          'push',
-          'star-rating',
-          'apm',
-          'feedback',
-          'remote-config'
-        ]);
-        Countly.setLocationInit('TR', 'Istanbul', '41.0082,28.9784',
-            '10.2.33.12'); // Set user initial location.
-
-        /// Optional settings for Countly initialisation
-        Countly.enableParameterTamperingProtection(
-            'salt'); // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
-        Countly.setHttpPostForced(
-            false); // Set to 'true' if you want HTTP POST to be used for all requests
-        Countly
-            .enableApm(); // Enable APM features, which includes the recording of app start time.
+        Countly.pushTokenType(Countly.messagingMode['TEST']!); // Set messaging mode for push notifications
+        var crashSegment = {'Key': 'Value'};
+        Map<String, String> attributionValues = {};
         if (Platform.isIOS) {
-          Countly.recordAttributionID('ADVERTISING_ID');
+          attributionValues[AttributionKey.IDFA] = 'IDFA';
         } else {
-          Countly
-              .enableAttribution(); // Enable to measure your marketing campaign performance by attributing installs from specific campaigns.
+          attributionValues[AttributionKey.AdvertisingID] = 'AdvertisingID';
         }
-        Countly.setRemoteConfigAutomaticDownload((result) {
-          print(result);
-        }); // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
-        var segment = {'Key': 'Value'};
-        Countly.setCustomCrashSegment(
-            segment); // Set optional key/value segment added for crash reports.
-        Countly.pushTokenType(Countly.messagingMode[
-            'TEST']!); // Set messaging mode for push notifications
 
-        Countly.setStarRatingDialogTexts('Title', 'Message', 'Dismiss');
+        String campaignData = '{cid:"[PROVIDED_CAMPAIGN_ID]", cuid:"[PROVIDED_CAMPAIGN_USER_ID]"}';
 
-        Countly.init(SERVER_URL, APP_KEY).then((value) {
+        CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
+          ..enableCrashReporting() // Enable crash reporting to report unhandled crashes to Countly
+          ..setRequiresConsent(true) // Set that consent should be required for features to work.
+          ..setConsentEnabled([
+            CountlyConsent.sessions,
+            CountlyConsent.events,
+            CountlyConsent.views,
+            CountlyConsent.location,
+            CountlyConsent.crashes,
+            CountlyConsent.attribution,
+            CountlyConsent.users,
+            CountlyConsent.push,
+            CountlyConsent.starRating,
+            CountlyConsent.apm,
+            CountlyConsent.feedback,
+            CountlyConsent.remoteConfig
+          ])
+          ..setLocation(country_code: 'TR', city: 'Istanbul', ipAddress: '41.0082,28.9784', gpsCoordinates: '10.2.33.12') // Set user  location.
+          ..setCustomCrashSegment(crashSegment)
+          ..recordIndirectAttribution(attributionValues)
+          ..recordDirectAttribution('countly', campaignData)
+          ..setRemoteConfigAutomaticDownload(true, (error) {
+            if (error != null) {
+              print(error);
+            }
+          }) // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
+          ..setRecordAppStartTime(true) // Enable APM features, which includes the recording of app start time.
+          ..setStarRatingTextMessage('Message for start rating dialog')
+          ..setLoggingEnabled(true) // Enable countly internal debugging logs
+          ..setParameterTamperingProtectionSalt('salt') // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
+          ..setHttpPostForced(false); // Set to 'true' if you want HTTP POST to be used for all requests
+        if (_enableManualSession) {
+          config.enableManualSessionHandling();
+        }
+        Countly.initWithConfig(config).then((value) {
           Countly.appLoadingFinished();
           Countly.start();
 
@@ -86,11 +93,9 @@ class _MyAppState extends State<MyApp> {
             print('The notification');
             print(notification);
           }); // Set callback to receive push notifications
-          Countly
-              .askForNotificationPermission(); // This method will ask for permission, enables push notification and send push token to countly server.;
+          Countly.askForNotificationPermission(); // This method will ask for permission, enables push notification and send push token to countly server.;
 
-          Countly
-              .giveAllConsent(); // give consent for all features, should be call after init
+          Countly.giveAllConsent(); // give consent for all features, should be call after init
 //        Countly.giveConsent(['events', 'views']); // give consent for some specific features, should be call after init.
         }); // Initialize the countly SDK.
       } else {
@@ -101,6 +106,7 @@ class _MyAppState extends State<MyApp> {
 
   // ignore: non_constant_identifier_names
   static String SERVER_URL = 'https://try.count.ly';
+
   // ignore: non_constant_identifier_names
   static String APP_KEY = 'YOUR_API_KEY';
 
@@ -108,8 +114,33 @@ class _MyAppState extends State<MyApp> {
     Countly.changeDeviceId(Countly.deviceIDType['TemporaryDeviceID']!, false);
   }
 
-  void manualSessionHandling() {
-    Countly.manualSessionHandling();
+  bool isManualSession() {
+    //
+    if (!_enableManualSession) {
+      final snackBar = SnackBar(
+        content: const Text("Set '_enableManualSession = true' in 'main.dart' to test Manual Session Handling"),
+      );
+      _messangerKey.currentState!.showSnackBar(snackBar);
+    }
+    return _enableManualSession;
+  }
+
+  void beginSession() {
+    if (isManualSession()) {
+      Countly.beginSession();
+    }
+  }
+
+  void updateSession() {
+    if (isManualSession()) {
+      Countly.updateSession();
+    }
+  }
+
+  void endSession() {
+    if (isManualSession()) {
+      Countly.endSession();
+    }
   }
 
   void basicEvent() {
@@ -137,32 +168,28 @@ class _MyAppState extends State<MyApp> {
 
   void eventWithSumSegment() {
     // example for event with segment and sum
-    var event = {
-      'key': 'Event With Sum And Segment',
-      'count': 1,
-      'sum': '0.99'
-    };
+    var event = {'key': 'Event With Sum And Segment', 'count': 1, 'sum': '0.99'};
     event['segmentation'] = {'Country': 'Turkey', 'Age': '28'};
     Countly.recordEvent(event);
   }
 
   void endEventBasic() {
     Countly.startEvent('Timed Event');
-    Timer timer = Timer(Duration(seconds: 5), () {
+    Timer(Duration(seconds: 5), () {
       Countly.endEvent({'key': 'Timed Event'});
     });
   }
 
   void endEventWithSum() {
     Countly.startEvent('Timed Event With Sum');
-    Timer timer = Timer(Duration(seconds: 5), () {
+    Timer(Duration(seconds: 5), () {
       Countly.endEvent({'key': 'Timed Event With Sum', 'sum': '0.99'});
     });
   }
 
   void endEventWithSegment() {
     Countly.startEvent('Timed Event With Segment');
-    Timer timer = Timer(Duration(seconds: 5), () {
+    Timer(Duration(seconds: 5), () {
       var event = {
         'key': 'Timed Event With Segment',
         'count': 1,
@@ -174,28 +201,35 @@ class _MyAppState extends State<MyApp> {
 
   void endEventWithSumSegment() {
     Countly.startEvent('Timed Event With Segment, Sum and Count');
-    Timer timer = Timer(Duration(seconds: 5), () {
-      var event = {
-        'key': 'Timed Event With Segment, Sum and Count',
-        'count': 1,
-        'sum': '0.99'
-      };
+    Timer(Duration(seconds: 5), () {
+      var event = {'key': 'Timed Event With Segment, Sum and Count', 'count': 1, 'sum': '0.99'};
       event['segmentation'] = {'Country': 'Turkey', 'Age': '28'};
       Countly.endEvent(event);
     });
   }
 
   void recordViewHome() {
-    Map<String, Object> segments = {
-      'Cats': 123,
-      'Moons': 9.98,
-      'Moose': 'Deer'
-    };
+    Map<String, Object> segments = {'Cats': 123, 'Moons': 9.98, 'Moose': 'Deer'};
     Countly.recordView('HomePage', segments);
   }
 
   void recordViewDashboard() {
     Countly.recordView('Dashboard');
+  }
+
+  void recordDirectAttribution() {
+    String campaignData = '{cid:"[PROVIDED_CAMPAIGN_ID]", cuid:"[PROVIDED_CAMPAIGN_USER_ID]"}';
+    Countly.recordDirectAttribution('countly', campaignData);
+  }
+
+  void recordIndirectAttribution() {
+    Map<String, String> attributionValues = {};
+    if (Platform.isIOS) {
+      attributionValues[AttributionKey.IDFA] = 'IDFA';
+    } else {
+      attributionValues[AttributionKey.AdvertisingID] = 'AdvertisingID';
+    }
+    Countly.recordIndirectAttribution(attributionValues);
   }
 
   String makeid() {
@@ -415,6 +449,15 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  void getDeviceIDType() async {
+    DeviceIdType? deviceIdType = await Countly.getDeviceIDType();
+    if (deviceIdType != null) {
+      setState(() {
+        _deviceIdType = deviceIdType.toString();
+      });
+    }
+  }
+
   void changeDeviceIdWithMerge() {
     Countly.changeDeviceId('123456', true);
   }
@@ -423,27 +466,10 @@ class _MyAppState extends State<MyApp> {
     Countly.changeDeviceId('123456', false);
   }
 
-  void enableParameterTamperingProtection() {
-    Countly.enableParameterTamperingProtection('salt');
-  }
-
-  void setOptionalParametersForInitialization() {
-    Map<String, Object> options = {
-      'city': 'Tampa',
-      'country': 'US',
-      'latitude': '28.006324',
-      'longitude': '-82.7166183',
-      'ipAddress': '255.255.255.255'
-    };
-    Countly.setOptionalParametersForInitialization(options);
-  }
-
   void addCrashLog() {
-    Countly.enableCrashReporting();
     Countly.addCrashLog('User Performed Step A');
-    Timer timer = Timer(Duration(seconds: 5), () {
-      Countly.logException(
-          'one.js \n two.js \n three.js', true, {'_facebook_version': '0.0.1'});
+    Timer(Duration(seconds: 5), () {
+      Countly.logException('one.js \n two.js \n three.js', true, {'_facebook_version': '0.0.1'});
     });
   }
 
@@ -489,23 +515,51 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  void setLoggingEnabled() {
-    Countly.setLoggingEnabled(false);
-  }
-
   void askForStarRating() {
     Countly.askForStarRating();
   }
 
-  void askForFeedback() {
-    Countly.askForFeedback('5e391ef47975d006a22532c0', 'Close');
+  void presentRatingWidget() {
+    // Trying to show a rating widget with a previously know ID.
+    // You should replace the given ID with your own, it would be retrieved from your Countly Dashboard.
+    Countly.presentRatingWidgetWithID('61eaaf37c935575c7b932b97', closeButtonText: 'close', ratingWidgetCallback: (error) {
+      if (error != null) {
+        print(error);
+      }
+    });
+  }
+
+  void presentRatingWidgetUsingEditBox() {
+    // Trying to show a rating widget with the ID give in the App.
+    // In the EditBox you would write the ID that you retrieved from your Countly Dashboard.
+    Countly.presentRatingWidgetWithID(ratingIdController.text, closeButtonText: 'close', ratingWidgetCallback: (error) {
+      if (error != null) {
+        print(error);
+      }
+    });
+  }
+
+  void showFeedbackWidget() async {
+    FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets();
+    List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
+    String? error = feedbackWidgetsResponse.error;
+
+    if (error != null) {
+      return;
+    }
+
+    if (widgets.isNotEmpty) {
+      await Countly.presentFeedbackWidget(widgets.first, 'Close', widgetShown: () {
+        print('showFeedbackWidget widgetShown');
+      }, widgetClosed: () {
+        print('showFeedbackWidget widgetClosed');
+      });
+    }
   }
 
   void showSurvey() async {
-    FeedbackWidgetsResponse feedbackWidgetsResponse =
-        await Countly.getAvailableFeedbackWidgets();
-    List<CountlyPresentableFeedback> widgets =
-        feedbackWidgetsResponse.presentableFeedback;
+    FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets();
+    List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
     String? error = feedbackWidgetsResponse.error;
 
     if (error != null) {
@@ -521,10 +575,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   void showNPS() async {
-    FeedbackWidgetsResponse feedbackWidgetsResponse =
-        await Countly.getAvailableFeedbackWidgets();
-    List<CountlyPresentableFeedback> widgets =
-        feedbackWidgetsResponse.presentableFeedback;
+    FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets();
+    List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
     String? error = feedbackWidgetsResponse.error;
 
     if (error != null) {
@@ -544,10 +596,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   void reportSurveyManually() async {
-    FeedbackWidgetsResponse feedbackWidgetsResponse =
-        await Countly.getAvailableFeedbackWidgets();
-    List<CountlyPresentableFeedback> widgets =
-        feedbackWidgetsResponse.presentableFeedback;
+    FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets();
+    List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
     String? error = feedbackWidgetsResponse.error;
 
     if (error != null) {
@@ -560,7 +610,7 @@ class _MyAppState extends State<MyApp> {
         break;
       }
     }
-    if(chosenWidget != null) {
+    if (chosenWidget != null) {
       reportSurvey(chosenWidget);
     }
   }
@@ -569,10 +619,10 @@ class _MyAppState extends State<MyApp> {
     List result = await Countly.getFeedbackWidgetData(chosenWidget);
     String? error = result[1];
     if (error == null) {
-      Map<String, dynamic> retrievedWidgetData = result[0];
+      Map<String, dynamic>? retrievedWidgetData = result[0];
       Map<String, Object> segments = {};
       if (retrievedWidgetData != null && retrievedWidgetData.isNotEmpty) {
-        List<dynamic> questions = retrievedWidgetData['questions'];
+        List<dynamic>? questions = retrievedWidgetData['questions'];
 
         if (questions != null) {
           Random rnd = Random();
@@ -583,7 +633,7 @@ class _MyAppState extends State<MyApp> {
             String questionId = question['id'];
             String answerKey = 'answ-' + questionId;
             switch (wType) {
-            //multiple answer question
+              //multiple answer question
               case 'multi':
                 List<dynamic> choices = question['choices'];
                 String str = '';
@@ -602,14 +652,13 @@ class _MyAppState extends State<MyApp> {
               case 'dropdown':
                 List<dynamic> choices = question['choices'];
                 int pick = rnd.nextInt(choices.length);
-                segments[answerKey] =
-                choices[pick]['key']; //pick the key of random choice
+                segments[answerKey] = choices[pick]['key']; //pick the key of random choice
                 break;
-            //text input field
+              //text input field
               case 'text':
                 segments[answerKey] = 'Some random text';
                 break;
-            //rating picker
+              //rating picker
               case 'rating':
                 segments[answerKey] = rnd.nextInt(11);
                 break;
@@ -617,17 +666,13 @@ class _MyAppState extends State<MyApp> {
           }
         }
       }
-      await Countly.reportFeedbackWidgetManually(
-          chosenWidget, retrievedWidgetData, segments);
+      await Countly.reportFeedbackWidgetManually(chosenWidget, retrievedWidgetData ?? {}, segments);
     }
-
   }
 
   void reportNPSManually() async {
-    FeedbackWidgetsResponse feedbackWidgetsResponse =
-        await Countly.getAvailableFeedbackWidgets();
-    List<CountlyPresentableFeedback> widgets =
-        feedbackWidgetsResponse.presentableFeedback;
+    FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets();
+    List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
     String? error = feedbackWidgetsResponse.error;
 
     if (error != null) {
@@ -641,7 +686,7 @@ class _MyAppState extends State<MyApp> {
         break;
       }
     }
-    if(chosenWidget != null) {
+    if (chosenWidget != null) {
       reportNPS(chosenWidget);
     }
   }
@@ -651,17 +696,13 @@ class _MyAppState extends State<MyApp> {
     String? error = result[1];
     if (error == null) {
       Map<String, dynamic> retrievedWidgetData = result[0];
-      Map<String, Object> segments = {
-        'rating': 3,
-        'comment': 'Filled out comment'
-      };
-      await Countly.reportFeedbackWidgetManually(
-          chosenWidget, retrievedWidgetData, segments);
+      Map<String, Object> segments = {'rating': 3, 'comment': 'Filled out comment'};
+      await Countly.reportFeedbackWidgetManually(chosenWidget, retrievedWidgetData, segments);
     }
   }
 
   void setLocation() {
-    Countly.setLocation('-33.9142687', '18.0955802');
+    Countly.setUserLocation(countryCode: 'TR', city: 'Istanbul', gpsCoordinates: '41.0082,28.9784', ipAddress: '10.2.33.12');
   }
 
   // APM Examples
@@ -687,8 +728,7 @@ class _MyAppState extends State<MyApp> {
     int responsePayloadSize = rnd.nextInt(700) + 200;
     int startTime = DateTime.now().millisecondsSinceEpoch;
     int endTime = startTime + 500;
-    Countly.recordNetworkTrace(networkTraceKey, responseCode,
-        requestPayloadSize, responsePayloadSize, startTime, endTime);
+    Countly.recordNetworkTrace(networkTraceKey, responseCode, requestPayloadSize, responsePayloadSize, startTime, endTime);
   }
 
   void recordNetworkTraceFailure() {
@@ -699,13 +739,20 @@ class _MyAppState extends State<MyApp> {
     int responsePayloadSize = rnd.nextInt(700) + 250;
     int startTime = DateTime.now().millisecondsSinceEpoch;
     int endTime = startTime + 500;
-    Countly.recordNetworkTrace(networkTraceKey, responseCode,
-        requestPayloadSize, responsePayloadSize, startTime, endTime);
+    Countly.recordNetworkTrace(networkTraceKey, responseCode, requestPayloadSize, responsePayloadSize, startTime, endTime);
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    ratingIdController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      scaffoldMessengerKey: _messangerKey,
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Countly SDK Dart Demo'),
@@ -714,298 +761,97 @@ class _MyAppState extends State<MyApp> {
             child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
-              MyButton(
-                  text: 'Basic event', color: 'brown', onPressed: basicEvent),
-              MyButton(
-                  text: 'Event with Sum',
-                  color: 'brown',
-                  onPressed: eventWithSum),
-              MyButton(
-                  text: 'Event with Segment',
-                  color: 'brown',
-                  onPressed: eventWithSegment),
-              MyButton(
-                  text: 'Even with Sum and Segment',
-                  color: 'brown',
-                  onPressed: eventWithSumSegment),
-              MyButton(
-                  text: 'Timed event: Start / Stop',
-                  color: 'grey',
-                  onPressed: endEventBasic),
-              MyButton(
-                  text: 'Timed event Sum: Start / Stop',
-                  color: 'grey',
-                  onPressed: endEventWithSum),
-              MyButton(
-                  text: 'Timed event Segment: Start / Stop',
-                  color: 'grey',
-                  onPressed: endEventWithSegment),
-              MyButton(
-                  text: 'Timed event Sum Segment: Start / Stop',
-                  color: 'grey',
-                  onPressed: endEventWithSumSegment),
-              MyButton(
-                  text: "Record View: 'HomePage'",
-                  color: 'olive',
-                  onPressed: recordViewHome),
-              MyButton(
-                  text: "Record View: 'Dashboard'",
-                  color: 'olive',
-                  onPressed: recordViewDashboard),
-              MyButton(
-                  text: 'Send Users Data',
-                  color: 'teal',
-                  onPressed: setUserData),
-              MyButton(
-                  text: 'UserData.setProperty',
-                  color: 'teal',
-                  onPressed: setProperty),
-              MyButton(
-                  text: 'UserData.increment',
-                  color: 'teal',
-                  onPressed: increment),
-              MyButton(
-                  text: 'UserData.incrementBy',
-                  color: 'teal',
-                  onPressed: incrementBy),
-              MyButton(
-                  text: 'UserData.multiply',
-                  color: 'teal',
-                  onPressed: multiply),
-              MyButton(
-                  text: 'UserData.saveMax', color: 'teal', onPressed: saveMax),
-              MyButton(
-                  text: 'UserData.saveMin', color: 'teal', onPressed: saveMin),
-              MyButton(
-                  text: 'UserData.setOnce', color: 'teal', onPressed: setOnce),
-              MyButton(
-                  text: 'UserData.pushUniqueValue',
-                  color: 'teal',
-                  onPressed: pushUniqueValue),
-              MyButton(
-                  text: 'UserData.pushValue',
-                  color: 'teal',
-                  onPressed: pushValue),
-              MyButton(
-                  text: 'UserData.pullValue',
-                  color: 'teal',
-                  onPressed: pullValue),
-              MyButton(
-                  text: 'Give multiple consent',
-                  color: 'blue',
-                  onPressed: giveMultipleConsent),
-              MyButton(
-                  text: 'Remove multiple consent',
-                  color: 'blue',
-                  onPressed: removeMultipleConsent),
-              MyButton(
-                  text: 'Give all Consent',
-                  color: 'blue',
-                  onPressed: giveAllConsent),
-              MyButton(
-                  text: 'Remove all Consent',
-                  color: 'blue',
-                  onPressed: removeAllConsent),
-              MyButton(
-                  text: 'Give Consent Sessions',
-                  color: 'blue',
-                  onPressed: giveConsentSessions),
-              MyButton(
-                  text: 'Give Consent Events',
-                  color: 'blue',
-                  onPressed: giveConsentEvents),
-              MyButton(
-                  text: 'Give Consent Views',
-                  color: 'blue',
-                  onPressed: giveConsentViews),
-              MyButton(
-                  text: 'Give Consent Location',
-                  color: 'blue',
-                  onPressed: giveConsentLocation),
-              MyButton(
-                  text: 'Give Consent Crashes',
-                  color: 'blue',
-                  onPressed: giveConsentCrashes),
-              MyButton(
-                  text: 'Give Consent Attribution',
-                  color: 'blue',
-                  onPressed: giveConsentAttribution),
-              MyButton(
-                  text: 'Give Consent Users',
-                  color: 'blue',
-                  onPressed: giveConsentUsers),
-              MyButton(
-                  text: 'Give Consent Push',
-                  color: 'blue',
-                  onPressed: giveConsentPush),
-              MyButton(
-                  text: 'Give Consent starRating',
-                  color: 'blue',
-                  onPressed: giveConsentStarRating),
-              MyButton(
-                  text: 'Give Consent Performance',
-                  color: 'blue',
-                  onPressed: giveConsentAPM),
-              MyButton(
-                  text: 'Remove Consent Sessions',
-                  color: 'blue',
-                  onPressed: removeConsentsessions),
-              MyButton(
-                  text: 'Remove Consent Events',
-                  color: 'blue',
-                  onPressed: removeConsentEvents),
-              MyButton(
-                  text: 'Remove Consent Views',
-                  color: 'blue',
-                  onPressed: removeConsentViews),
-              MyButton(
-                  text: 'Remove Consent Location',
-                  color: 'blue',
-                  onPressed: removeConsentlocation),
-              MyButton(
-                  text: 'Remove Consent Crashes',
-                  color: 'blue',
-                  onPressed: removeConsentcrashes),
-              MyButton(
-                  text: 'Remove Consent Attribution',
-                  color: 'blue',
-                  onPressed: removeConsentattribution),
-              MyButton(
-                  text: 'Remove Consent Users',
-                  color: 'blue',
-                  onPressed: removeConsentusers),
-              MyButton(
-                  text: 'Remove Consent Push',
-                  color: 'blue',
-                  onPressed: removeConsentpush),
-              MyButton(
-                  text: 'Remove Consent starRating',
-                  color: 'blue',
-                  onPressed: removeConsentstarRating),
-              MyButton(
-                  text: 'Remove Consent Performance',
-                  color: 'blue',
-                  onPressed: removeConsentAPM),
-              MyButton(
-                  text: 'Countly.remoteConfigUpdate',
-                  color: 'purple',
-                  onPressed: remoteConfigUpdate),
-              MyButton(
-                  text: 'Countly.updateRemoteConfigForKeysOnly',
-                  color: 'purple',
-                  onPressed: updateRemoteConfigForKeysOnly),
-              MyButton(
-                  text: 'Countly.updateRemoteConfigExceptKeys',
-                  color: 'purple',
-                  onPressed: updateRemoteConfigExceptKeys),
-              MyButton(
-                  text: 'Countly.remoteConfigClearValues',
-                  color: 'purple',
-                  onPressed: remoteConfigClearValues),
-              MyButton(
-                  text: 'Get String Value',
-                  color: 'purple',
-                  onPressed: getRemoteConfigValueForKeyString),
-              MyButton(
-                  text: 'Get Boolean Value',
-                  color: 'purple',
-                  onPressed: getRemoteConfigValueForKeyBoolean),
-              MyButton(
-                  text: 'Get Float Value',
-                  color: 'purple',
-                  onPressed: getRemoteConfigValueForKeyFloat),
-              MyButton(
-                  text: 'Get Integer Value',
-                  color: 'purple',
-                  onPressed: getRemoteConfigValueForKeyInteger),
-              MyButton(
-                  text: 'Push Notification',
-                  color: 'primary',
-                  onPressed: askForNotificationPermission),
-              MyButton(
-                  text: 'Enable Temporary ID Mode',
-                  color: 'violet',
-                  onPressed: enableTemporaryIdMode),
-              MyButton(
-                  text: 'Change Device ID With Merge',
-                  color: 'violet',
-                  onPressed: changeDeviceIdWithMerge),
-              MyButton(
-                  text: 'Change Device ID Without Merge',
-                  color: 'violet',
-                  onPressed: changeDeviceIdWithoutMerge),
-              MyButton(
-                  text: 'Enable Parameter Tapmering Protection',
-                  color: 'violet',
-                  onPressed: enableParameterTamperingProtection),
-              MyButton(
-                  text: 'City, State, and Location',
-                  color: 'violet',
-                  onPressed: setOptionalParametersForInitialization),
-              MyButton(
-                  text: 'setLocation', color: 'violet', onPressed: setLocation),
-              MyButton(
-                  text: 'Send Crash Report',
-                  color: 'violet',
-                  onPressed: addCrashLog),
-              MyButton(
-                  text: 'Cause Exception',
-                  color: 'violet',
-                  onPressed: causeException),
-              MyButton(
-                  text: 'Throw Exception',
-                  color: 'violet',
-                  onPressed: throwException),
-              MyButton(
-                  text: 'Throw Exception Async',
-                  color: 'violet',
-                  onPressed: throwExceptionAsync),
-              MyButton(
-                  text: 'Throw Native Exception',
-                  color: 'violet',
-                  onPressed: throwNativeException),
-              MyButton(
-                  text: 'Record Exception Manually',
-                  color: 'violet',
-                  onPressed: recordExceptionManually),
-              MyButton(
-                  text: 'Divided By Zero Exception',
-                  color: 'violet',
-                  onPressed: dividedByZero),
-              MyButton(
-                  text: 'Enabling logging',
-                  color: 'violet',
-                  onPressed: setLoggingEnabled),
-              MyButton(
-                  text: 'Open rating modal',
-                  color: 'orange',
-                  onPressed: askForStarRating),
-              MyButton(
-                  text: 'Open feedback modal',
-                  color: 'orange',
-                  onPressed: askForFeedback),
-              MyButton(
-                  text: 'Show Survey', color: 'orange', onPressed: showSurvey),
+              Text(_deviceIdType, style: TextStyle(color: Colors.red), textAlign: TextAlign.center),
+              MyButton(text: 'Get Device Id Type', color: 'green', onPressed: getDeviceIDType),
+              MyButton(text: 'Begin Session', color: 'green', onPressed: beginSession),
+              MyButton(text: 'Update Session', color: 'green', onPressed: updateSession),
+              MyButton(text: 'End Session', color: 'green', onPressed: endSession),
+              MyButton(text: 'Basic event', color: 'brown', onPressed: basicEvent),
+              MyButton(text: 'Event with Sum', color: 'brown', onPressed: eventWithSum),
+              MyButton(text: 'Event with Segment', color: 'brown', onPressed: eventWithSegment),
+              MyButton(text: 'Even with Sum and Segment', color: 'brown', onPressed: eventWithSumSegment),
+              MyButton(text: 'Timed event: Start / Stop', color: 'grey', onPressed: endEventBasic),
+              MyButton(text: 'Timed event Sum: Start / Stop', color: 'grey', onPressed: endEventWithSum),
+              MyButton(text: 'Timed event Segment: Start / Stop', color: 'grey', onPressed: endEventWithSegment),
+              MyButton(text: 'Timed event Sum Segment: Start / Stop', color: 'grey', onPressed: endEventWithSumSegment),
+              MyButton(text: "Record View: 'HomePage'", color: 'olive', onPressed: recordViewHome),
+              MyButton(text: "Record View: 'Dashboard'", color: 'olive', onPressed: recordViewDashboard),
+              MyButton(text: "Record Direct Attribution'", color: 'olive', onPressed: recordDirectAttribution),
+              MyButton(text: "Record Indirect Attribution'", color: 'olive', onPressed: recordIndirectAttribution),
+              MyButton(text: 'Send Users Data', color: 'teal', onPressed: setUserData),
+              MyButton(text: 'UserData.setProperty', color: 'teal', onPressed: setProperty),
+              MyButton(text: 'UserData.increment', color: 'teal', onPressed: increment),
+              MyButton(text: 'UserData.incrementBy', color: 'teal', onPressed: incrementBy),
+              MyButton(text: 'UserData.multiply', color: 'teal', onPressed: multiply),
+              MyButton(text: 'UserData.saveMax', color: 'teal', onPressed: saveMax),
+              MyButton(text: 'UserData.saveMin', color: 'teal', onPressed: saveMin),
+              MyButton(text: 'UserData.setOnce', color: 'teal', onPressed: setOnce),
+              MyButton(text: 'UserData.pushUniqueValue', color: 'teal', onPressed: pushUniqueValue),
+              MyButton(text: 'UserData.pushValue', color: 'teal', onPressed: pushValue),
+              MyButton(text: 'UserData.pullValue', color: 'teal', onPressed: pullValue),
+              MyButton(text: 'Give multiple consent', color: 'blue', onPressed: giveMultipleConsent),
+              MyButton(text: 'Remove multiple consent', color: 'blue', onPressed: removeMultipleConsent),
+              MyButton(text: 'Give all Consent', color: 'blue', onPressed: giveAllConsent),
+              MyButton(text: 'Remove all Consent', color: 'blue', onPressed: removeAllConsent),
+              MyButton(text: 'Give Consent Sessions', color: 'blue', onPressed: giveConsentSessions),
+              MyButton(text: 'Give Consent Events', color: 'blue', onPressed: giveConsentEvents),
+              MyButton(text: 'Give Consent Views', color: 'blue', onPressed: giveConsentViews),
+              MyButton(text: 'Give Consent Location', color: 'blue', onPressed: giveConsentLocation),
+              MyButton(text: 'Give Consent Crashes', color: 'blue', onPressed: giveConsentCrashes),
+              MyButton(text: 'Give Consent Attribution', color: 'blue', onPressed: giveConsentAttribution),
+              MyButton(text: 'Give Consent Users', color: 'blue', onPressed: giveConsentUsers),
+              MyButton(text: 'Give Consent Push', color: 'blue', onPressed: giveConsentPush),
+              MyButton(text: 'Give Consent starRating', color: 'blue', onPressed: giveConsentStarRating),
+              MyButton(text: 'Give Consent Performance', color: 'blue', onPressed: giveConsentAPM),
+              MyButton(text: 'Remove Consent Sessions', color: 'blue', onPressed: removeConsentsessions),
+              MyButton(text: 'Remove Consent Events', color: 'blue', onPressed: removeConsentEvents),
+              MyButton(text: 'Remove Consent Views', color: 'blue', onPressed: removeConsentViews),
+              MyButton(text: 'Remove Consent Location', color: 'blue', onPressed: removeConsentlocation),
+              MyButton(text: 'Remove Consent Crashes', color: 'blue', onPressed: removeConsentcrashes),
+              MyButton(text: 'Remove Consent Attribution', color: 'blue', onPressed: removeConsentattribution),
+              MyButton(text: 'Remove Consent Users', color: 'blue', onPressed: removeConsentusers),
+              MyButton(text: 'Remove Consent Push', color: 'blue', onPressed: removeConsentpush),
+              MyButton(text: 'Remove Consent starRating', color: 'blue', onPressed: removeConsentstarRating),
+              MyButton(text: 'Remove Consent Performance', color: 'blue', onPressed: removeConsentAPM),
+              MyButton(text: 'Countly.remoteConfigUpdate', color: 'purple', onPressed: remoteConfigUpdate),
+              MyButton(text: 'Countly.updateRemoteConfigForKeysOnly', color: 'purple', onPressed: updateRemoteConfigForKeysOnly),
+              MyButton(text: 'Countly.updateRemoteConfigExceptKeys', color: 'purple', onPressed: updateRemoteConfigExceptKeys),
+              MyButton(text: 'Countly.remoteConfigClearValues', color: 'purple', onPressed: remoteConfigClearValues),
+              MyButton(text: 'Get String Value', color: 'purple', onPressed: getRemoteConfigValueForKeyString),
+              MyButton(text: 'Get Boolean Value', color: 'purple', onPressed: getRemoteConfigValueForKeyBoolean),
+              MyButton(text: 'Get Float Value', color: 'purple', onPressed: getRemoteConfigValueForKeyFloat),
+              MyButton(text: 'Get Integer Value', color: 'purple', onPressed: getRemoteConfigValueForKeyInteger),
+              MyButton(text: 'Push Notification', color: 'primary', onPressed: askForNotificationPermission),
+              MyButton(text: 'Enable Temporary ID Mode', color: 'violet', onPressed: enableTemporaryIdMode),
+              MyButton(text: 'Change Device ID With Merge', color: 'violet', onPressed: changeDeviceIdWithMerge),
+              MyButton(text: 'Change Device ID Without Merge', color: 'violet', onPressed: changeDeviceIdWithoutMerge),
+              MyButton(text: 'setLocation', color: 'violet', onPressed: setLocation),
+              MyButton(text: 'Send Crash Report', color: 'violet', onPressed: addCrashLog),
+              MyButton(text: 'Cause Exception', color: 'violet', onPressed: causeException),
+              MyButton(text: 'Throw Exception', color: 'violet', onPressed: throwException),
+              MyButton(text: 'Throw Exception Async', color: 'violet', onPressed: throwExceptionAsync),
+              MyButton(text: 'Throw Native Exception', color: 'violet', onPressed: throwNativeException),
+              MyButton(text: 'Record Exception Manually', color: 'violet', onPressed: recordExceptionManually),
+              MyButton(text: 'Divided By Zero Exception', color: 'violet', onPressed: dividedByZero),
+              MyButton(text: 'Open rating modal', color: 'orange', onPressed: askForStarRating),
+              MyButton(text: 'Open feedback modal', color: 'orange', onPressed: presentRatingWidget),
+              TextField(
+                controller: ratingIdController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'Enter a Rating ID',
+                ),
+              ),
+              MyButton(text: 'Show Rating using EditBox', color: 'orange', onPressed: ratingIdController.text.isNotEmpty ? presentRatingWidgetUsingEditBox : null),
+              MyButton(text: 'Show Survey', color: 'orange', onPressed: showSurvey),
               MyButton(text: 'Show NPS', color: 'orange', onPressed: showNPS),
-              MyButton(
-                  text: 'Report Survey Manually',
-                  color: 'orange',
-                  onPressed: reportSurveyManually),
-              MyButton(
-                  text: 'Report NPS Manually',
-                  color: 'orange',
-                  onPressed: reportNPSManually),
-              MyButton(
-                  text: 'Start Trace', color: 'black', onPressed: startTrace),
+              MyButton(text: 'Show Feedback Widget', color: 'orange', onPressed: showFeedbackWidget),
+              MyButton(text: 'Report Survey Manually', color: 'orange', onPressed: reportSurveyManually),
+              MyButton(text: 'Report NPS Manually', color: 'orange', onPressed: reportNPSManually),
+              MyButton(text: 'Start Trace', color: 'black', onPressed: startTrace),
               MyButton(text: 'End Trace', color: 'black', onPressed: endTrace),
-              MyButton(
-                  text: 'Record Network Trace Success',
-                  color: 'black',
-                  onPressed: recordNetworkTraceSuccess),
-              MyButton(
-                  text: 'Record Network Trace Failure',
-                  color: 'black',
-                  onPressed: recordNetworkTraceFailure),
+              MyButton(text: 'Record Network Trace Success', color: 'black', onPressed: recordNetworkTraceSuccess),
+              MyButton(text: 'Record Network Trace Failure', color: 'black', onPressed: recordNetworkTraceFailure),
             ],
           ),
         )),
@@ -1081,13 +927,6 @@ class MyButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-        style: ElevatedButton.styleFrom(
-            primary: _button,
-            padding: EdgeInsets.all(10.0),
-            minimumSize: Size(double.infinity, 36)),
-        onPressed: _onPressed,
-        child: Text(_text!,
-            style: TextStyle(color: _textC), textAlign: TextAlign.center));
+    return ElevatedButton(style: ElevatedButton.styleFrom(primary: _button, padding: EdgeInsets.all(10.0), minimumSize: Size(double.infinity, 36)), onPressed: _onPressed, child: Text(_text!, style: TextStyle(color: _textC), textAlign: TextAlign.center));
   }
 }
