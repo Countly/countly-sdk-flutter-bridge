@@ -648,16 +648,17 @@ class _MyAppState extends State<MyApp> {
   }
 
   void reportNPS(CountlyPresentableFeedback chosenWidget) async {
-    unawaited(Countly.getFeedbackWidgetData(chosenWidget, onFinished: (retrievedWidgetData, error) {
-      if (error == null) {
-        Map<String, Object> segments = {
-          'rating': 3,
-          'comment': 'Filled out comment'
-        };
-        unawaited(Countly.reportFeedbackWidgetManually(
-            chosenWidget, retrievedWidgetData, segments));
-      }
-    }));
+    List result = await Countly.getFeedbackWidgetData(chosenWidget);
+    String? error = result[1];
+    if (error == null) {
+      Map<String, dynamic> retrievedWidgetData = result[0];
+      Map<String, Object> segments = {
+        'rating': 3,
+        'comment': 'Filled out comment'
+      };
+      await Countly.reportFeedbackWidgetManually(
+          chosenWidget, retrievedWidgetData, segments);
+    }
 
   }
 

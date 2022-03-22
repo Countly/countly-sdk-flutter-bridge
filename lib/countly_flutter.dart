@@ -960,7 +960,7 @@ class Countly {
   /// Downloads widget info and returns [widgetData, error]
   /// [CountlyPresentableFeedback widgetInfo] - identifies the specific widget for which you want to download widget data
   static Future<List> getFeedbackWidgetData(
-      CountlyPresentableFeedback widgetInfo, {Function(Map<String, dynamic> widgetData, String? error)? onFinished}) async {
+      CountlyPresentableFeedback widgetInfo) async {
     Map<String, dynamic> widgetData = Map<String, dynamic>();
     String? error;
     List<String> args = [];
@@ -977,7 +977,6 @@ class Countly {
       error = e.message;
       log('getAvailableFeedbackWidgets Error : $error');
     }
-    onFinished!(widgetData, error);
     return [widgetData, error];
   }
 
