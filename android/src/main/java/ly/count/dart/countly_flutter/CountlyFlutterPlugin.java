@@ -851,23 +851,27 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 }
             } else if ("getFeedbackWidgetData".equals(call.method)) {
                 String widgetId = args.getString(0);
-
                 CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
                 if (feedbackWidget == null) {
                     String errorMessage = "No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
                     log(errorMessage, LogLevel.WARNING);
                     result.error("getFeedbackWidgetData", errorMessage, null);
+                    feedbackWidgetDataCallback(null, errorMessage);
                 } else {
                     Countly.sharedInstance().feedback().getFeedbackWidgetData(feedbackWidget, new RetrieveFeedbackWidgetData() {
                         @Override
                         public void onFinished(JSONObject retrievedWidgetData, String error) {
                             if (error != null) {
                                 result.error("getFeedbackWidgetData", error, null);
+                                feedbackWidgetDataCallback(null, error);
                             } else {
                                 try {
                                     result.success(toMap(retrievedWidgetData));
+                                    feedbackWidgetDataCallback(toMap(retrievedWidgetData), null);
+
                                 } catch (JSONException e) {
                                     result.error("getFeedbackWidgetData", e.getMessage(), null);
+                                    feedbackWidgetDataCallback(null, e.getMessage());
                                 }
                             }
                         }
@@ -981,6 +985,16 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         return null;
     }
 
+    private void feedbackWidgetDataCallback(Map<String, Object> widgetData, String error) {
+        Map<String, Object> feedbackWidgetData = new HashMap<String, Object>();
+        if (widgetData != null) {
+            feedbackWidgetData.put("widgetData", widgetData);
+        }
+        if (error != null) {
+            feedbackWidgetData.put("error", error);
+        }
+        methodChannel.invokeMethod("feedbackWidgetDataCallback", feedbackWidgetData);
+    }
 
     public String registerForNotification(JSONArray args, final Callback theCallback) {
         notificationListener = theCallback;
