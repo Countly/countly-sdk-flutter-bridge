@@ -168,7 +168,7 @@ class Countly {
   /// these requests' app key will be replaced with the current app key.
   static Future<String?> replaceAllAppKeysInQueueWithCurrentAppKey() async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before replaceAllAppKeysInQueueWithCurrentAppKey';
+      String message = '"initWithConfig" must be called before "replaceAllAppKeysInQueueWithCurrentAppKey"';
       log('replaceAllAppKeysInQueueWithCurrentAppKey, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -183,7 +183,7 @@ class Countly {
   /// these requests will be removed from request queue.
   static Future<String?> removeDifferentAppKeysFromQueue() async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before removeDifferentAppKeysFromQueue';
+      String message = '"initWithConfig" must be called before "removeDifferentAppKeysFromQueue"';
       log('removeDifferentAppKeysFromQueue, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -198,8 +198,9 @@ class Countly {
   static Future<String?> appLoadingFinished() async {
     log('Calling "appLoadingFinished"');
     if (!_isInitialized) {
-      log('appLoadingFinished, initWithConfig must be called before appLoadingFinished', logLevel: LogLevel.WARNING);
-      return 'initWithConfig must be called before appLoadingFinished';
+      String message = '"initWithConfig" must be called before "appLoadingFinished"';
+      log('appLoadingFinished, $message', logLevel: LogLevel.WARNING);
+      return message;
     }
     final String? result = await _channel.invokeMethod('appLoadingFinished');
 
@@ -210,7 +211,7 @@ class Countly {
 
   static Future<String?> recordEvent(Map<String, Object> options) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before recordEvent';
+      String message = '"initWithConfig" must be called before "recordEvent"';
       log('recordEvent, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -254,7 +255,7 @@ class Countly {
   /// Supported data type for segmentation values are String, int, double and bool
   static Future<String?> recordView(String view, [Map<String, Object>? segmentation]) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before recordView';
+      String message = '"initWithConfig" must be called before "recordView"';
       log('recordView, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -285,7 +286,7 @@ class Countly {
 
   static Future<String?> setUserData(Map<String, Object> options) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before setUserData';
+      String message = '"initWithConfig" must be called before "setUserData"';
       log('setUserData, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -329,7 +330,7 @@ class Countly {
   /// Should be call after Countly init
   static Future<String?> askForNotificationPermission() async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before askForNotificationPermission';
+      String message = '"initWithConfig" must be called before "askForNotificationPermission"';
       log('askForNotificationPermission, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -386,7 +387,7 @@ class Countly {
   /// This method needs to be called for starting a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
   static Future<String?> beginSession() async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before beginSession';
+      String message = '"initWithConfig" must be called before "beginSession"';
       log('beginSession, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -406,7 +407,7 @@ class Countly {
   /// This method needs to be called for updating a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
   static Future<String?> updateSession() async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before updateSession';
+      String message = '"initWithConfig" must be called before "updateSession"';
       log('updateSession, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -426,7 +427,7 @@ class Countly {
   /// This method needs to be called for ending a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
   static Future<String?> endSession() async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before endSession';
+      String message = '"initWithConfig" must be called before "endSession"';
       log('endSession, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -444,7 +445,7 @@ class Countly {
 
   static Future<String?> start() async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before start';
+      String message = '"initWithConfig" must be called before "start"';
       log('start, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -470,7 +471,7 @@ class Countly {
 
   static Future<String?> stop() async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before stop';
+      String message = '"initWithConfig" must be called before "stop"';
       log('stop, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -571,8 +572,9 @@ class Countly {
   static Future<String?> getCurrentDeviceId() async {
     log('Calling "getCurrentDeviceId"');
     if (!_isInitialized) {
-      log('getCurrentDeviceId, initWithConfig must be called before getCurrentDeviceId', logLevel: LogLevel.WARNING);
-      return 'initWithConfig must be called before getCurrentDeviceId';
+      String message = '"initWithConfig" must be called before "getCurrentDeviceId"';
+      log('getCurrentDeviceId, $message', logLevel: LogLevel.ERROR);
+      return message;
     }
     final String? result = await _channel.invokeMethod('getCurrentDeviceId');
 
@@ -584,7 +586,7 @@ class Countly {
   static Future<DeviceIdType?> getDeviceIDType() async {
     log('Calling "getDeviceIDType"');
     if (!_isInitialized) {
-      log('getDeviceIDType, initWithConfig must be called before getDeviceIDType', logLevel: LogLevel.ERROR);
+      log('getDeviceIDType, "initWithConfig" must be called before "getDeviceIDType"', logLevel: LogLevel.ERROR);
       return null;
     }
     final String? result = await _channel.invokeMethod('getDeviceIDType');
@@ -610,7 +612,7 @@ class Countly {
 
   static Future<String?> changeDeviceId(String newDeviceID, bool onServer) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before changeDeviceId';
+      String message = '"initWithConfig" must be called before "changeDeviceId"';
       log('changeDeviceId, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -637,7 +639,7 @@ class Countly {
 
   static Future<String?> addCrashLog(String logs) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before addCrashLog';
+      String message = '"initWithConfig" must be called before "addCrashLog"';
       log('addCrashLog, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -724,7 +726,7 @@ class Countly {
   @Deprecated('Use setUserLocation instead')
   static Future<String?> setLocation(String latitude, String longitude) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before setLocation';
+      String message = '"initWithConfig" must be called before "setLocation"';
       log('setLocation, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -752,7 +754,7 @@ class Countly {
   ///  All parameters are optional, but at least one has to be set
   static Future<String?> setUserLocation({String? countryCode, String? city, String? gpsCoordinates, String? ipAddress}) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before setUserLocation';
+      String message = '"initWithConfig" must be called before "setUserLocation"';
       log('setUserLocation, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -769,7 +771,7 @@ class Countly {
 
   static Future<String?> setProperty(String keyName, String keyValue) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before setProperty';
+      String message = '"initWithConfig" must be called before "setProperty"';
       log('setProperty, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -795,7 +797,7 @@ class Countly {
 
   static Future<String?> increment(String keyName) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before increment';
+      String message = '"initWithConfig" must be called before "increment"';
       log('increment, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -815,7 +817,7 @@ class Countly {
 
   static Future<String?> incrementBy(String keyName, int keyIncrement) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before incrementBy';
+      String message = '"initWithConfig" must be called before "incrementBy"';
       log('incrementBy, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -836,7 +838,7 @@ class Countly {
 
   static Future<String?> multiply(String keyName, int multiplyValue) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before multiply';
+      String message = '"initWithConfig" must be called before "multiply"';
       log('multiply, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -857,7 +859,7 @@ class Countly {
 
   static Future<String?> saveMax(String keyName, int saveMax) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before saveMax';
+      String message = '"initWithConfig" must be called before "saveMax"';
       log('saveMax, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -878,7 +880,7 @@ class Countly {
 
   static Future<String?> saveMin(String keyName, int saveMin) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before saveMin';
+      String message = '"initWithConfig" must be called before "saveMin"';
       log('saveMin, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -899,7 +901,7 @@ class Countly {
 
   static Future<String?> setOnce(String keyName, String setOnce) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before setOnce';
+      String message = '"initWithConfig" must be called before "setOnce"';
       log('setOnce, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -925,7 +927,7 @@ class Countly {
 
   static Future<String?> pushUniqueValue(String type, String pushUniqueValue) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before pushUniqueValue';
+      String message = '"initWithConfig" must be called before "pushUniqueValue"';
       log('pushUniqueValue, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -951,7 +953,7 @@ class Countly {
 
   static Future<String?> pushValue(String type, String pushValue) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before pushValue';
+      String message = '"initWithConfig" must be called before "pushValue"';
       log('pushValue, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -977,7 +979,7 @@ class Countly {
 
   static Future<String?> pullValue(String type, String pullValue) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before pullValue';
+      String message = '"initWithConfig" must be called before "pullValue"';
       log('pullValue, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1035,7 +1037,7 @@ class Countly {
 
   static Future<String?> giveConsent(List<String> consents) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before giveConsent';
+      String message = '"initWithConfig" must be called before "giveConsent"';
       log('giveConsent, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1053,7 +1055,7 @@ class Countly {
 
   static Future<String?> removeConsent(List<String> consents) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before removeConsent';
+      String message = '"initWithConfig" must be called before "removeConsent"';
       log('removeConsent, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1073,7 +1075,7 @@ class Countly {
   /// Should be call after Countly init
   static Future<String?> giveAllConsent() async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before giveAllConsent';
+      String message = '"initWithConfig" must be called before "giveAllConsent"';
       log('giveAllConsent, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1085,7 +1087,7 @@ class Countly {
 
   static Future<String?> removeAllConsent() async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before removeAllConsent';
+      String message = '"initWithConfig" must be called before "removeAllConsent"';
       log('removeAllConsent, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1109,7 +1111,7 @@ class Countly {
 
   static Future<String?> remoteConfigUpdate(Function callback) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before remoteConfigUpdate';
+      String message = '"initWithConfig" must be called before "remoteConfigUpdate"';
       log('remoteConfigUpdate, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1122,7 +1124,7 @@ class Countly {
 
   static Future<String?> updateRemoteConfigForKeysOnly(List<String> keys, Function callback) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before updateRemoteConfigForKeysOnly';
+      String message = '"initWithConfig" must be called before "updateRemoteConfigForKeysOnly"';
       log('updateRemoteConfigForKeysOnly, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1141,7 +1143,7 @@ class Countly {
 
   static Future<String?> updateRemoteConfigExceptKeys(List<String> keys, Function callback) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before updateRemoteConfigExceptKeys';
+      String message = '"initWithConfig" must be called before "updateRemoteConfigExceptKeys"';
       log('updateRemoteConfigExceptKeys, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1160,7 +1162,7 @@ class Countly {
 
   static Future<String?> remoteConfigClearValues(Function callback) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before remoteConfigClearValues';
+      String message = '"initWithConfig" must be called before "remoteConfigClearValues"';
       log('remoteConfigClearValues, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1173,7 +1175,7 @@ class Countly {
 
   static Future<String?> getRemoteConfigValueForKey(String key, Function callback) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before getRemoteConfigValueForKey';
+      String message = '"initWithConfig" must be called before "getRemoteConfigValueForKey"';
       log('getRemoteConfigValueForKey, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1212,7 +1214,7 @@ class Countly {
 
   static Future<String?> askForStarRating() async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before askForStarRating';
+      String message = '"initWithConfig" must be called before "askForStarRating"';
       log('askForStarRating, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1225,7 +1227,7 @@ class Countly {
   @Deprecated('Use presentRatingWidgetWithID instead')
   static Future<String?> askForFeedback(String widgetId, String? closeButtonText) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before askForFeedback';
+      String message = '"initWithConfig" must be called before "askForFeedback"';
       log('askForFeedback, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1242,7 +1244,7 @@ class Countly {
 
   static Future<String?> presentRatingWidgetWithID(String widgetId, {String? closeButtonText, Function(String? error)? ratingWidgetCallback}) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before presentRatingWidgetWithID';
+      String message = '"initWithConfig" must be called before "presentRatingWidgetWithID"';
       log('presentRatingWidgetWithID, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1265,7 +1267,7 @@ class Countly {
   /// Get a list of available feedback widgets for this device ID
   static Future<FeedbackWidgetsResponse> getAvailableFeedbackWidgets() async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before reportFeedbackWidgetManually';
+      String message = '"initWithConfig" must be called before "reportFeedbackWidgetManually"';
       log('reportFeedbackWidgetManually, $message', logLevel: LogLevel.ERROR);
       return FeedbackWidgetsResponse([], message);
     }
@@ -1292,7 +1294,7 @@ class Countly {
   /// Note: widgetClosed is only implemented for iOS
   static Future<String?> presentFeedbackWidget(CountlyPresentableFeedback widgetInfo, String closeButtonText, {VoidCallback? widgetShown, VoidCallback? widgetClosed}) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before presentFeedbackWidget';
+      String message = '"initWithConfig" must be called before "presentFeedbackWidget"';
       log('presentFeedbackWidget, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1323,7 +1325,7 @@ class Countly {
   static Future<List> getFeedbackWidgetData(CountlyPresentableFeedback widgetInfo) async {
     Map<String, dynamic> widgetData = {};
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before reportFeedbackWidgetManually';
+      String message = '"initWithConfig" must be called before "getFeedbackWidgetData"';
       log('reportFeedbackWidgetManually, $message', logLevel: LogLevel.ERROR);
       return [widgetData, message];
     }
@@ -1352,7 +1354,7 @@ class Countly {
   /// [Map<String, Object> widgetResult] - segmentation of the filled out feedback. If this segmentation is null, it will be assumed that the survey was closed before completion and mark it appropriately
   static Future<String?> reportFeedbackWidgetManually(CountlyPresentableFeedback widgetInfo, Map<String, dynamic> widgetData, Map<String, Object> widgetResult) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before reportFeedbackWidgetManually';
+      String message = '"initWithConfig" must be called before "reportFeedbackWidgetManually"';
       log('reportFeedbackWidgetManually, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1381,7 +1383,7 @@ class Countly {
 
   static Future<String?> startEvent(String key) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before startEvent';
+      String message = '"initWithConfig" must be called before "startEvent"';
       log('startEvent, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1401,7 +1403,7 @@ class Countly {
 
   static Future<String?> endEvent(Map<String, Object> options) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before endEvent';
+      String message = '"initWithConfig" must be called before "endEvent"';
       log('endEvent, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1470,7 +1472,7 @@ class Countly {
   /// [Map<String, Object> segmentation] - allows to add optional segmentation
   static Future<String?> logException(String exception, bool nonfatal, [Map<String, Object>? segmentation]) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before logException';
+      String message = '"initWithConfig" must be called before "logException"';
       log('logException, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1510,7 +1512,7 @@ class Countly {
 
   static Future<String?> startTrace(String traceKey) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before startTrace';
+      String message = '"initWithConfig" must be called before "startTrace"';
       log('startTrace, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1525,7 +1527,7 @@ class Countly {
 
   static Future<String?> cancelTrace(String traceKey) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before cancelTrace';
+      String message = '"initWithConfig" must be called before "cancelTrace"';
       log('cancelTrace, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1540,7 +1542,7 @@ class Countly {
 
   static Future<String?> clearAllTraces() async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before clearAllTraces';
+      String message = '"initWithConfig" must be called before "clearAllTraces"';
       log('clearAllTraces, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1552,7 +1554,7 @@ class Countly {
 
   static Future<String?> endTrace(String traceKey, Map<String, int>? customMetric) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before endTrace';
+      String message = '"initWithConfig" must be called before "endTrace"';
       log('endTrace, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1574,7 +1576,7 @@ class Countly {
 
   static Future<String?> recordNetworkTrace(String networkTraceKey, int responseCode, int requestPayloadSize, int responsePayloadSize, int startTime, int endTime) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before recordNetworkTrace';
+      String message = '"initWithConfig" must be called before "recordNetworkTrace"';
       log('recordNetworkTrace, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1705,7 +1707,7 @@ class Countly {
   @Deprecated('Use recordIndirectAttribution instead')
   static Future<String?> recordAttributionID(String attributionID) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before recordAttributionID';
+      String message = '"initWithConfig" must be called before "recordAttributionID"';
       log('recordAttributionID, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1730,7 +1732,7 @@ class Countly {
   /// Use 'AttributionKey' to set key of IDFA and ADID
   static Future<String?> recordIndirectAttribution(Map<String, String> attributionValues) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before recordIndirectAttribution';
+      String message = '"initWithConfig" must be called before "recordIndirectAttribution"';
       log('recordIndirectAttribution, $message', logLevel: LogLevel.ERROR);
       return message;
     }
@@ -1753,7 +1755,7 @@ class Countly {
   /// Currently implemented for Android only.
   static Future<String?> recordDirectAttribution(String campaignType, String campaignData) async {
     if (!_isInitialized) {
-      String message = 'initWithConfig must be called before recordDirectAttribution';
+      String message = '"initWithConfig" must be called before "recordDirectAttribution"';
       log('recordDirectAttribution, $message', logLevel: LogLevel.ERROR);
       return message;
     }
