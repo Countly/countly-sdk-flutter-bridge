@@ -1656,7 +1656,6 @@ class Countly {
   /// This callback has to be provided when the app is about to be run.
   /// It has to be done inside a custom Zone by providing [Countly.recordDartError] in onError() callback.
   ///
-  /// ```
   /// void main() {
   ///   runZonedGuarded<Future<void>>(() async {
   ///     runApp(MyApp());
