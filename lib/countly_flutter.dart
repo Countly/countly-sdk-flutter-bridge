@@ -73,6 +73,7 @@ class Countly {
   static VoidCallback? _widgetClosed;
   static Function(String? error)? _remoteConfigCallback;
   static Function(String? error)? _ratingWidgetCallback;
+  static Function(Map<String, dynamic> widgetData, String? error)? _feedbackWidgetDataCallback;
 
   /// Callback handler to handle function calls from native iOS/Android to Dart.
   static Future<void> _methodCallHandler(MethodCall call) async {
@@ -99,6 +100,18 @@ class Countly {
         if (_ratingWidgetCallback != null) {
           _ratingWidgetCallback!(call.arguments);
           _ratingWidgetCallback = null;
+        }
+        break;
+      case 'feedbackWidgetDataCallback':
+        if (_feedbackWidgetDataCallback != null) {
+          Map<String, dynamic> widgetData = {};
+          Map<String, dynamic> argumentsMap = Map<String, dynamic>.from(call.arguments);
+          String? error = argumentsMap['error'];
+          if (error == null) {
+            widgetData = Map<String, dynamic>.from(argumentsMap['widgetData']);
+          }
+          _feedbackWidgetDataCallback!(widgetData, error);
+          _feedbackWidgetDataCallback = null;
         }
         break;
     }
@@ -1322,13 +1335,14 @@ class Countly {
 
   /// Downloads widget info and returns [widgetData, error]
   /// [CountlyPresentableFeedback widgetInfo] - identifies the specific widget for which you want to download widget data
-  static Future<List> getFeedbackWidgetData(CountlyPresentableFeedback widgetInfo) async {
+  static Future<List> getFeedbackWidgetData(CountlyPresentableFeedback widgetInfo, {Function(Map<String, dynamic> widgetData, String? error)? onFinished}) async {
     Map<String, dynamic> widgetData = {};
     if (!_isInitialized) {
       String message = '"initWithConfig" must be called before "getFeedbackWidgetData"';
       log('reportFeedbackWidgetManually, $message', logLevel: LogLevel.ERROR);
       return [widgetData, message];
     }
+    _feedbackWidgetDataCallback = onFinished;
     String widgetId = widgetInfo.widgetId;
     String widgetType = widgetInfo.type;
     log('Calling "getFeedbackWidgetData":[$presentFeedbackWidget] with Type:[$widgetType]');
