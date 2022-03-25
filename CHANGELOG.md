@@ -21,6 +21,7 @@
     - enableApm
 * Added a way to retrieve feedback widget data and manually report them for iOS also
 * Added Appear and dismiss callback for nps/survey widgets
+* Added an optional 'onFinished' callback to 'getFeedbackWidgetData' method
 * Added "getDeviceIDType" method to get current device id type
 * Added "recordIndirectAttribution" method
 * Added "recordDirectAttribution" method (Currently supporterd only for Android)

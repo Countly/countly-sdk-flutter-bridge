@@ -826,15 +826,18 @@ FlutterMethodChannel* _channel;
                 NSString* errorMessage = [NSString stringWithFormat:@"No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId];
                 COUNTLY_FLUTTER_LOG(errorMessage);
                 result(errorMessage);
+                [self feedbackWidgetDataCallback:NULL error:errorMessage];
             }
             else {
                 [feedbackWidget getWidgetData:^(NSDictionary * _Nullable widgetData, NSError * _Nullable error) {
                     if (error){
                         NSString *theError = [@"getFeedbackWidgetData failed: " stringByAppendingString: error.localizedDescription];
                         result(theError);
+                        [self feedbackWidgetDataCallback:NULL error:theError];
                     }
                     else{
                         result(widgetData);
+                        [self feedbackWidgetDataCallback:widgetData error:NULL];
                     }
                 }];
             }
@@ -949,6 +952,17 @@ FlutterMethodChannel* _channel;
         result(FlutterMethodNotImplemented);
     }
 }
+
+-(void) feedbackWidgetDataCallback:(NSDictionary * __nullable) widgetData error:(NSString * __nullable )error{
+    NSMutableDictionary *feedbackWidgetData = [[NSMutableDictionary alloc] init];
+    if(widgetData) {
+        feedbackWidgetData[@"widgetData"] = widgetData;
+    }
+    if(error) {
+        feedbackWidgetData[@"error"] = error;
+    }
+    [_channel invokeMethod:@"feedbackWidgetDataCallback" arguments: feedbackWidgetData];
+    }
 
 - (CountlyFeedbackWidget*)getFeedbackWidget:(NSString*)widgetId
 {

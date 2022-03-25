@@ -691,14 +691,13 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  void reportNPS(CountlyPresentableFeedback chosenWidget) async {
-    List result = await Countly.getFeedbackWidgetData(chosenWidget);
-    String? error = result[1];
-    if (error == null) {
-      Map<String, dynamic> retrievedWidgetData = result[0];
-      Map<String, Object> segments = {'rating': 3, 'comment': 'Filled out comment'};
-      await Countly.reportFeedbackWidgetManually(chosenWidget, retrievedWidgetData, segments);
-    }
+  void reportNPS(CountlyPresentableFeedback chosenWidget) {
+    Countly.getFeedbackWidgetData(chosenWidget, onFinished: (retrievedWidgetData, error) {
+      if (error == null) {
+        Map<String, Object> segments = {'rating': 3, 'comment': 'Filled out comment'};
+        Countly.reportFeedbackWidgetManually(chosenWidget, retrievedWidgetData, segments);
+      }
+    });
   }
 
   void setLocation() {
