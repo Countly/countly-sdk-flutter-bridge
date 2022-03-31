@@ -15,7 +15,6 @@ import ly.count.android.sdk.Countly;
 import ly.count.android.sdk.CountlyConfig;
 import ly.count.android.sdk.FeedbackRatingCallback;
 import ly.count.android.sdk.ModuleFeedback.*;
-import ly.count.android.sdk.RemoteConfig;
 import ly.count.android.sdk.DeviceIdType;
 
 import java.util.HashMap;
@@ -758,7 +757,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 }
                 String widgetId = args.getString(0);
                 String closeButtonText = args.getString(1);
-                Countly.sharedInstance().ratings().showFeedbackPopup(widgetId, closeButtonText, activity, new FeedbackRatingCallback() {
+                Countly.sharedInstance().ratings().presentRatingWidgetWithID(widgetId, closeButtonText, activity, new FeedbackRatingCallback() {
                     @Override
                     public void callback(String error) {
                         if (error != null) {
@@ -803,7 +802,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         retrievedWidgetList = new ArrayList(retrievedWidgets);
                         List<Map<String, String>> retrievedWidgetsArray = new ArrayList<>();
                         for (CountlyFeedbackWidget presentableFeedback : retrievedWidgets) {
-                            Map<String, String> feedbackWidget = new HashMap<String, String>();
+                            Map<String, String> feedbackWidget = new HashMap<>();
                             feedbackWidget.put("id", presentableFeedback.widgetId);
                             feedbackWidget.put("type", presentableFeedback.type.name());
                             feedbackWidget.put("name", presentableFeedback.name);
@@ -893,10 +892,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     result.success("reportFeedbackWidgetManually success");
                 }
             } else if ("replaceAllAppKeysInQueueWithCurrentAppKey".equals(call.method)) {
-                Countly.sharedInstance().requestQueueOverwriteAppKeys();
+                Countly.sharedInstance().requestQueue().overwriteAppKeys();
                 result.success("replaceAllAppKeysInQueueWithCurrentAppKey Success");
             } else if ("removeDifferentAppKeysFromQueue".equals(call.method)) {
-                Countly.sharedInstance().requestQueueEraseAppKeysRequests();
+                Countly.sharedInstance().requestQueue().eraseWrongAppKeyRequests();
                 result.success("removeDifferentAppKeysFromQueue Success");
             } else if ("startTrace".equals(call.method)) {
                 String traceKey = args.getString(0);
@@ -911,7 +910,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success("clearAllTraces: success");
             } else if ("endTrace".equals(call.method)) {
                 String traceKey = args.getString(0);
-                HashMap<String, Integer> customMetric = new HashMap<String, Integer>();
+                HashMap<String, Integer> customMetric = new HashMap<>();
                 for (int i = 1, il = args.length(); i < il; i += 2) {
                     try {
                         customMetric.put(args.getString(i), Integer.parseInt(args.getString(i + 1)));
@@ -981,7 +980,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     }
 
     private void feedbackWidgetDataCallback(Map<String, Object> widgetData, String error) {
-        Map<String, Object> feedbackWidgetData = new HashMap<String, Object>();
+        Map<String, Object> feedbackWidgetData = new HashMap<>();
         if (widgetData != null) {
             feedbackWidgetData.put("widgetData", widgetData);
         }
@@ -1048,7 +1047,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     }
 
     public static Map<String, Object> toMap(JSONObject jsonobj) throws JSONException {
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         Iterator<String> keys = jsonobj.keys();
         while (keys.hasNext()) {
             String key = keys.next();
@@ -1064,7 +1063,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     }
 
     public static Map<String, String> toMapString(JSONObject jsonobj) {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         try {
             Iterator<String> keys = jsonobj.keys();
             while (keys.hasNext()) {
@@ -1081,7 +1080,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     }
 
     public static List<Object> toList(JSONArray array) throws JSONException {
-        List<Object> list = new ArrayList<Object>();
+        List<Object> list = new ArrayList<>();
         for (int i = 0; i < array.length(); i++) {
             Object value = array.get(i);
             if (value instanceof JSONArray) {
