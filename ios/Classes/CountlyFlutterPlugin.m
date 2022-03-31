@@ -47,7 +47,7 @@ FlutterMethodChannel* _channel;
     }
     NSData* data = [commandString dataUsingEncoding:NSUTF8StringEncoding];
     NSError *e;
-    NSArray *command = [NSJSONSerialization JSONObjectWithData:data options:nil error:&e];
+    NSArray *command = [NSJSONSerialization JSONObjectWithData:data options:0 error:&e];
     
     if(config == nil){
         config = CountlyConfig.new;
@@ -146,7 +146,6 @@ FlutterMethodChannel* _channel;
             NSString* organization = userData[@"organization"];
             NSString* phone = userData[@"phone"];
             NSString* picture = userData[@"picture"];
-            NSString* picturePath = userData[@"picturePath"];
             NSString* gender = userData[@"gender"];
             NSString* byear = userData[@"byear"];
             
