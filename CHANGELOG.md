@@ -31,6 +31,7 @@
 * Deprecated enableAttribution method
 * Deprecated 'askForFeedback' method. Added 'presentRatingWidgetWithID' method that should be used as it's replacement.
 * Fixed bug that occured when recording user profile values. Parameters not provided would be deleted from the server.
+* Added mitigations for potential push notification issue where some apps might be unable to display push notifications in their kill state.
 * Updated minimum supported iOS versions to 10.0
 * Updated underlying android SDK to 21.11.0-RC5
 * Updated underlying iOS SDK to 21.11.1
