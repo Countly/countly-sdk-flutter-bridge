@@ -180,6 +180,11 @@ class Countly {
   /// In request queue, if there are any request whose app key is different than the current app key,
   /// these requests' app key will be replaced with the current app key.
   static Future<String?> replaceAllAppKeysInQueueWithCurrentAppKey() async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "replaceAllAppKeysInQueueWithCurrentAppKey"';
+      log('replaceAllAppKeysInQueueWithCurrentAppKey, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "replaceAllAppKeysInQueueWithCurrentAppKey"');
     final String? result = await _channel.invokeMethod('replaceAllAppKeysInQueueWithCurrentAppKey');
 
@@ -190,6 +195,11 @@ class Countly {
   /// In request queue, if there are any request whose app key is different than the current app key,
   /// these requests will be removed from request queue.
   static Future<String?> removeDifferentAppKeysFromQueue() async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "removeDifferentAppKeysFromQueue"';
+      log('removeDifferentAppKeysFromQueue, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "removeDifferentAppKeysFromQueue"');
     final String? result = await _channel.invokeMethod('removeDifferentAppKeysFromQueue');
 
@@ -201,8 +211,9 @@ class Countly {
   static Future<String?> appLoadingFinished() async {
     log('Calling "appLoadingFinished"');
     if (!_isInitialized) {
-      log('appLoadingFinished, init must be called before appLoadingFinished', logLevel: LogLevel.WARNING);
-      return 'init must be called before appLoadingFinished';
+      String message = '"initWithConfig" must be called before "appLoadingFinished"';
+      log('appLoadingFinished, $message', logLevel: LogLevel.WARNING);
+      return message;
     }
     final String? result = await _channel.invokeMethod('appLoadingFinished');
 
@@ -212,6 +223,11 @@ class Countly {
   static bool isNullOrEmpty(String? s) => s == null || s.isEmpty;
 
   static Future<String?> recordEvent(Map<String, Object> options) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "recordEvent"';
+      log('recordEvent, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     List<String> args = [];
     options['key'] ??= '';
     String eventKey = options['key'].toString();
@@ -251,6 +267,11 @@ class Countly {
   /// [Map<String, Object> segmentation] - allows to add optional segmentation,
   /// Supported data type for segmentation values are String, int, double and bool
   static Future<String?> recordView(String view, [Map<String, Object>? segmentation]) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "recordView"';
+      log('recordView, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     int segCount = segmentation != null ? segmentation.length : 0;
     log('Calling "recordView":[$view] with segmentation Count:[$segCount]');
     if (view.isEmpty) {
@@ -277,6 +298,11 @@ class Countly {
   }
 
   static Future<String?> setUserData(Map<String, Object> options) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "setUserData"';
+      log('setUserData, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     int optionsCount = options.length;
     log('Calling "setUserData" with options Count:[$optionsCount]');
     List<dynamic> args = [];
@@ -316,6 +342,11 @@ class Countly {
   /// This method will ask for permission, enables push notification and send push token to countly server.
   /// Should be call after Countly init
   static Future<String?> askForNotificationPermission() async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "askForNotificationPermission"';
+      log('askForNotificationPermission, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "askForNotificationPermission"');
     final String? result = await _channel.invokeMethod('askForNotificationPermission');
 
@@ -368,6 +399,11 @@ class Countly {
   /// Starts session for manual session handling.
   /// This method needs to be called for starting a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
   static Future<String?> beginSession() async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "beginSession"';
+      log('beginSession, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "beginSession", manual session control enabled:[$_manualSessionControlEnabled]');
 
     if (!_manualSessionControlEnabled) {
@@ -383,6 +419,11 @@ class Countly {
   /// Update session for manual session handling.
   /// This method needs to be called for updating a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
   static Future<String?> updateSession() async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "updateSession"';
+      log('updateSession, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "updateSession", manual session control enabled:[$_manualSessionControlEnabled]');
 
     if (!_manualSessionControlEnabled) {
@@ -398,6 +439,11 @@ class Countly {
   /// End session for manual session handling.
   /// This method needs to be called for ending a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
   static Future<String?> endSession() async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "endSession"';
+      log('endSession, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "endSession", manual session control enabled:[$_manualSessionControlEnabled]');
 
     if (!_manualSessionControlEnabled) {
@@ -411,6 +457,11 @@ class Countly {
   }
 
   static Future<String?> start() async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "start"';
+      log('start, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "start"');
     if (_manualSessionControlEnabled) {
       String error = '"start" will be ignored since manual session control is enabled';
@@ -432,6 +483,11 @@ class Countly {
   }
 
   static Future<String?> stop() async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "stop"';
+      log('stop, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "stop"');
     if (_manualSessionControlEnabled) {
       String error = '"stop" will be ignored since manual session control is enabled';
@@ -529,8 +585,9 @@ class Countly {
   static Future<String?> getCurrentDeviceId() async {
     log('Calling "getCurrentDeviceId"');
     if (!_isInitialized) {
-      log('getCurrentDeviceId, init must be called before getCurrentDeviceId', logLevel: LogLevel.WARNING);
-      return 'init must be called before getCurrentDeviceId';
+      String message = '"initWithConfig" must be called before "getCurrentDeviceId"';
+      log('getCurrentDeviceId, $message', logLevel: LogLevel.ERROR);
+      return message;
     }
     final String? result = await _channel.invokeMethod('getCurrentDeviceId');
 
@@ -542,7 +599,7 @@ class Countly {
   static Future<DeviceIdType?> getDeviceIDType() async {
     log('Calling "getDeviceIDType"');
     if (!_isInitialized) {
-      log('getDeviceIDType, init must be called before getDeviceIDType', logLevel: LogLevel.ERROR);
+      log('getDeviceIDType, "initWithConfig" must be called before "getDeviceIDType"', logLevel: LogLevel.ERROR);
       return null;
     }
     final String? result = await _channel.invokeMethod('getDeviceIDType');
@@ -567,6 +624,11 @@ class Countly {
   }
 
   static Future<String?> changeDeviceId(String newDeviceID, bool onServer) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "changeDeviceId"';
+      log('changeDeviceId, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "changeDeviceId":[$newDeviceID] with onServer:[$onServer]');
     if (newDeviceID.isEmpty) {
       String error = 'changeDeviceId, deviceId cannot be null or empty';
@@ -589,6 +651,11 @@ class Countly {
   }
 
   static Future<String?> addCrashLog(String logs) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "addCrashLog"';
+      log('addCrashLog, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "addCrashLog":[$logs]');
     if (logs.isEmpty) {
       String error = "addCrashLog, Can't add a null or empty crash logs";
@@ -671,6 +738,11 @@ class Countly {
 
   @Deprecated('Use setUserLocation instead')
   static Future<String?> setLocation(String latitude, String longitude) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "setLocation"';
+      log('setLocation, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "setLocationInit" with latitude:[$latitude], longitude:[$longitude]');
     log('setLocation is deprecated, use setUserLocation instead', logLevel: LogLevel.WARNING);
     if (latitude.isEmpty) {
@@ -694,6 +766,11 @@ class Countly {
   /// [String ipAddress] - ip address
   ///  All parameters are optional, but at least one has to be set
   static Future<String?> setUserLocation({String? countryCode, String? city, String? gpsCoordinates, String? ipAddress}) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "setUserLocation"';
+      log('setUserLocation, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     Map<String, String?> location = {};
     location['countryCode'] = countryCode;
     location['city'] = city;
@@ -706,6 +783,11 @@ class Countly {
   }
 
   static Future<String?> setProperty(String keyName, String keyValue) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "setProperty"';
+      log('setProperty, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "setProperty":[$keyName], value:[$keyValue]');
     if (keyName.isEmpty) {
       String error = 'setProperty, key cannot be empty';
@@ -727,6 +809,11 @@ class Countly {
   }
 
   static Future<String?> increment(String keyName) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "increment"';
+      log('increment, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "increment":[$keyName]');
     if (keyName.isEmpty) {
       String error = 'increment, key cannot be empty';
@@ -742,6 +829,11 @@ class Countly {
   }
 
   static Future<String?> incrementBy(String keyName, int keyIncrement) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "incrementBy"';
+      log('incrementBy, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "incrementBy":[$keyName], Value:[$keyIncrement]');
     if (keyName.isEmpty) {
       String error = 'incrementBy, key cannot be empty';
@@ -758,6 +850,11 @@ class Countly {
   }
 
   static Future<String?> multiply(String keyName, int multiplyValue) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "multiply"';
+      log('multiply, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "multiply":[$keyName], Value:[$multiplyValue]');
     if (keyName.isEmpty) {
       String error = 'multiply, key cannot be empty';
@@ -774,6 +871,11 @@ class Countly {
   }
 
   static Future<String?> saveMax(String keyName, int saveMax) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "saveMax"';
+      log('saveMax, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "saveMax":[$keyName], Value:[$saveMax]');
     if (keyName.isEmpty) {
       String error = 'saveMax, key cannot be empty';
@@ -790,6 +892,11 @@ class Countly {
   }
 
   static Future<String?> saveMin(String keyName, int saveMin) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "saveMin"';
+      log('saveMin, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "saveMin":[$keyName], Value:[$saveMin]');
     if (keyName.isEmpty) {
       String error = 'saveMin, key cannot be empty';
@@ -806,6 +913,11 @@ class Countly {
   }
 
   static Future<String?> setOnce(String keyName, String setOnce) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "setOnce"';
+      log('setOnce, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "setOnce":[$keyName], Value:[$setOnce]');
     if (keyName.isEmpty) {
       String error = 'setOnce, key cannot be empty';
@@ -827,6 +939,11 @@ class Countly {
   }
 
   static Future<String?> pushUniqueValue(String type, String pushUniqueValue) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "pushUniqueValue"';
+      log('pushUniqueValue, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "pushUniqueValue":[$type], Value:[$pushUniqueValue]');
     if (type.isEmpty) {
       String error = 'pushUniqueValue, key cannot be empty';
@@ -848,6 +965,11 @@ class Countly {
   }
 
   static Future<String?> pushValue(String type, String pushValue) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "pushValue"';
+      log('pushValue, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "pushValue":[$type], Value:[$pushValue]');
     if (type.isEmpty) {
       String error = 'pushValue, key cannot be empty';
@@ -869,6 +991,11 @@ class Countly {
   }
 
   static Future<String?> pullValue(String type, String pullValue) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "pullValue"';
+      log('pullValue, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "pullValue":[$type], Value:[$pullValue]');
     if (type.isEmpty) {
       String error = 'pullValue, key cannot be empty';
@@ -922,6 +1049,11 @@ class Countly {
   }
 
   static Future<String?> giveConsent(List<String> consents) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "giveConsent"';
+      log('giveConsent, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     String consentsString = consents.toString();
     log('Calling "giveConsent":[$consentsString]');
     if (consents.isEmpty) {
@@ -935,6 +1067,11 @@ class Countly {
   }
 
   static Future<String?> removeConsent(List<String> consents) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "removeConsent"';
+      log('removeConsent, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     String consentsString = consents.toString();
     log('Calling "removeConsent":[$consentsString]');
     if (consents.isEmpty) {
@@ -950,6 +1087,11 @@ class Countly {
   /// Give consent for all features
   /// Should be call after Countly init
   static Future<String?> giveAllConsent() async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "giveAllConsent"';
+      log('giveAllConsent, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "giveAllConsent"');
     final String? result = await _channel.invokeMethod('giveAllConsent');
 
@@ -957,6 +1099,11 @@ class Countly {
   }
 
   static Future<String?> removeAllConsent() async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "removeAllConsent"';
+      log('removeAllConsent, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "removeAllConsent"');
     final String? result = await _channel.invokeMethod('removeAllConsent');
 
@@ -976,6 +1123,11 @@ class Countly {
   }
 
   static Future<String?> remoteConfigUpdate(Function callback) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "remoteConfigUpdate"';
+      log('remoteConfigUpdate, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "remoteConfigUpdate"');
     final String? result = await _channel.invokeMethod('remoteConfigUpdate');
 
@@ -984,6 +1136,11 @@ class Countly {
   }
 
   static Future<String?> updateRemoteConfigForKeysOnly(List<String> keys, Function callback) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "updateRemoteConfigForKeysOnly"';
+      log('updateRemoteConfigForKeysOnly, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     String keysString = keys.toString();
     log('Calling "updateRemoteConfigForKeysOnly":[$keysString]');
     if (keys.isEmpty) {
@@ -998,6 +1155,11 @@ class Countly {
   }
 
   static Future<String?> updateRemoteConfigExceptKeys(List<String> keys, Function callback) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "updateRemoteConfigExceptKeys"';
+      log('updateRemoteConfigExceptKeys, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     String keysString = keys.toString();
     log('Calling "updateRemoteConfigExceptKeys":[$keysString]');
     if (keys.isEmpty) {
@@ -1012,6 +1174,11 @@ class Countly {
   }
 
   static Future<String?> remoteConfigClearValues(Function callback) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "remoteConfigClearValues"';
+      log('remoteConfigClearValues, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "remoteConfigClearValues"');
     final String? result = await _channel.invokeMethod('remoteConfigClearValues');
 
@@ -1020,6 +1187,11 @@ class Countly {
   }
 
   static Future<String?> getRemoteConfigValueForKey(String key, Function callback) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "getRemoteConfigValueForKey"';
+      log('getRemoteConfigValueForKey, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "remoteConfigClearValues":[$key]');
     if (key.isEmpty) {
       String error = 'getRemoteConfigValueForKey, key cannot be empty';
@@ -1054,6 +1226,11 @@ class Countly {
   }
 
   static Future<String?> askForStarRating() async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "askForStarRating"';
+      log('askForStarRating, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "askForStarRating"');
     final String? result = await _channel.invokeMethod('askForStarRating');
 
@@ -1062,6 +1239,11 @@ class Countly {
 
   @Deprecated('Use presentRatingWidgetWithID instead')
   static Future<String?> askForFeedback(String widgetId, String? closeButtonText) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "askForFeedback"';
+      log('askForFeedback, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "askForFeedback":[$widgetId]');
     if (widgetId.isEmpty) {
       String error = 'askForFeedback, widgetId cannot be empty';
@@ -1074,6 +1256,11 @@ class Countly {
   }
 
   static Future<String?> presentRatingWidgetWithID(String widgetId, {String? closeButtonText, Function(String? error)? ratingWidgetCallback}) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "presentRatingWidgetWithID"';
+      log('presentRatingWidgetWithID, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     bool isCallback = ratingWidgetCallback != null ? true : false;
     log('Calling "presentRatingWidgetWithID":[$widgetId] with callback:[$isCallback]');
     if (widgetId.isEmpty) {
@@ -1092,6 +1279,11 @@ class Countly {
 
   /// Get a list of available feedback widgets for this device ID
   static Future<FeedbackWidgetsResponse> getAvailableFeedbackWidgets() async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "reportFeedbackWidgetManually"';
+      log('reportFeedbackWidgetManually, $message', logLevel: LogLevel.ERROR);
+      return FeedbackWidgetsResponse([], message);
+    }
     log('Calling "getAvailableFeedbackWidgets"');
     List<CountlyPresentableFeedback> presentableFeedback = [];
     String? error;
@@ -1114,6 +1306,11 @@ class Countly {
   /// [VoidCallback? widgetClosed] Callback to be executed when feedback widget is closed
   /// Note: widgetClosed is only implemented for iOS
   static Future<String?> presentFeedbackWidget(CountlyPresentableFeedback widgetInfo, String closeButtonText, {VoidCallback? widgetShown, VoidCallback? widgetClosed}) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "presentFeedbackWidget"';
+      log('presentFeedbackWidget, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     String widgetId = widgetInfo.widgetId;
     String widgetType = widgetInfo.type;
     log('Calling "presentFeedbackWidget":[$presentFeedbackWidget] with Type:[$widgetType]');
@@ -1139,11 +1336,16 @@ class Countly {
   /// Downloads widget info and returns [widgetData, error]
   /// [CountlyPresentableFeedback widgetInfo] - identifies the specific widget for which you want to download widget data
   static Future<List> getFeedbackWidgetData(CountlyPresentableFeedback widgetInfo, {Function(Map<String, dynamic> widgetData, String? error)? onFinished}) async {
+    Map<String, dynamic> widgetData = {};
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "getFeedbackWidgetData"';
+      log('reportFeedbackWidgetManually, $message', logLevel: LogLevel.ERROR);
+      return [widgetData, message];
+    }
     _feedbackWidgetDataCallback = onFinished;
     String widgetId = widgetInfo.widgetId;
     String widgetType = widgetInfo.type;
     log('Calling "getFeedbackWidgetData":[$presentFeedbackWidget] with Type:[$widgetType]');
-    Map<String, dynamic> widgetData = Map<String, dynamic>();
     String? error;
     List<String> args = [];
     args.add(widgetId);
@@ -1165,6 +1367,11 @@ class Countly {
   /// [Map<String, dynamic> widgetData] - widget data for this specific widget
   /// [Map<String, Object> widgetResult] - segmentation of the filled out feedback. If this segmentation is null, it will be assumed that the survey was closed before completion and mark it appropriately
   static Future<String?> reportFeedbackWidgetManually(CountlyPresentableFeedback widgetInfo, Map<String, dynamic> widgetData, Map<String, Object> widgetResult) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "reportFeedbackWidgetManually"';
+      log('reportFeedbackWidgetManually, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     String widgetId = widgetInfo.widgetId;
     String widgetType = widgetInfo.type;
     log('Calling "getFeedbackWidgetData":[$presentFeedbackWidget] with Type:[$widgetType]');
@@ -1189,6 +1396,11 @@ class Countly {
   }
 
   static Future<String?> startEvent(String key) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "startEvent"';
+      log('startEvent, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "startEvent":[$key]');
     if (key.isEmpty) {
       String error = "startEvent, Can't start event with empty key";
@@ -1204,6 +1416,11 @@ class Countly {
   }
 
   static Future<String?> endEvent(Map<String, Object> options) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "endEvent"';
+      log('endEvent, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     String eventKey = options['key'] != null ? options['key'].toString() : '';
     log('Calling "startEvent":[$eventKey]');
     List<String> args = [];
@@ -1268,6 +1485,11 @@ class Countly {
   /// [bool nonfatal] - reports if the error was fatal or not
   /// [Map<String, Object> segmentation] - allows to add optional segmentation
   static Future<String?> logException(String exception, bool nonfatal, [Map<String, Object>? segmentation]) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "logException"';
+      log('logException, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     int segCount = segmentation != null ? segmentation.length : 0;
     log('Calling "logException":[$exception] nonfatal:[$nonfatal]: with segmentation count:[$segCount]');
     List<String> args = [];
@@ -1303,6 +1525,11 @@ class Countly {
   }
 
   static Future<String?> startTrace(String traceKey) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "startTrace"';
+      log('startTrace, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "startTrace":[$traceKey]');
     List<String> args = [];
     args.add(traceKey);
@@ -1313,6 +1540,11 @@ class Countly {
   }
 
   static Future<String?> cancelTrace(String traceKey) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "cancelTrace"';
+      log('cancelTrace, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "cancelTrace":[$traceKey]');
     List<String> args = [];
     args.add(traceKey);
@@ -1323,6 +1555,11 @@ class Countly {
   }
 
   static Future<String?> clearAllTraces() async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "clearAllTraces"';
+      log('clearAllTraces, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "clearAllTraces"');
     final String? result = await _channel.invokeMethod('clearAllTraces');
 
@@ -1330,6 +1567,11 @@ class Countly {
   }
 
   static Future<String?> endTrace(String traceKey, Map<String, int>? customMetric) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "endTrace"';
+      log('endTrace, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     int metricCount = customMetric != null ? customMetric.length : 0;
     log('Calling "endTrace":[$traceKey] with metric count:[$metricCount]');
     List<String> args = [];
@@ -1347,6 +1589,11 @@ class Countly {
   }
 
   static Future<String?> recordNetworkTrace(String networkTraceKey, int responseCode, int requestPayloadSize, int responsePayloadSize, int startTime, int endTime) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "recordNetworkTrace"';
+      log('recordNetworkTrace, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling "recordNetworkTrace":[$networkTraceKey] with response Code:[$responseCode]');
     List<String> args = [];
     args.add(networkTraceKey);
@@ -1423,7 +1670,6 @@ class Countly {
   /// This callback has to be provided when the app is about to be run.
   /// It has to be done inside a custom Zone by providing [Countly.recordDartError] in onError() callback.
   ///
-  /// ```
   /// void main() {
   ///   runZonedGuarded<Future<void>>(() async {
   ///     runApp(MyApp());
@@ -1473,6 +1719,11 @@ class Countly {
   /// If this is call for Android then 'attributionID' is ADID
   @Deprecated('Use recordIndirectAttribution instead')
   static Future<String?> recordAttributionID(String attributionID) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "recordAttributionID"';
+      log('recordAttributionID, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling recordAttributionID: [$attributionID]');
     log('recordAttributionID is deprecated, use recordIndirectAttribution instead');
     if (attributionID.isEmpty) {
@@ -1493,6 +1744,11 @@ class Countly {
   /// set indirect attribution Id for campaign attribution reporting.
   /// Use 'AttributionKey' to set key of IDFA and ADID
   static Future<String?> recordIndirectAttribution(Map<String, String> attributionValues) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "recordIndirectAttribution"';
+      log('recordIndirectAttribution, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     int attributionValuesCount = attributionValues.length;
     log('Calling recordIndirectAttribution: [$attributionValuesCount]');
     attributionValues.forEach((k, v) {
@@ -1511,6 +1767,11 @@ class Countly {
   /// set direct attribution Id for campaign attribution reporting.
   /// Currently implemented for Android only.
   static Future<String?> recordDirectAttribution(String campaignType, String campaignData) async {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "recordDirectAttribution"';
+      log('recordDirectAttribution, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
     log('Calling recordDirectAttribution: [$campaignType] with campaignData: [$campaignData]');
     if (!Platform.isAndroid) {
       return 'recordDirectAttribution : To be implemented';
