@@ -1765,7 +1765,6 @@ class Countly {
   }
 
   /// set direct attribution Id for campaign attribution reporting.
-  /// Currently implemented for Android only.
   static Future<String?> recordDirectAttribution(String campaignType, String campaignData) async {
     if (!_isInitialized) {
       String message = '"initWithConfig" must be called before "recordDirectAttribution"';
@@ -1773,9 +1772,6 @@ class Countly {
       return message;
     }
     log('Calling recordDirectAttribution: [$campaignType] with campaignData: [$campaignData]');
-    if (!Platform.isAndroid) {
-      return 'recordDirectAttribution : To be implemented';
-    }
     if (campaignType.isEmpty) {
       String error = 'recordDirectAttribution, campaignId cannot be empty';
       log(error);

@@ -756,7 +756,7 @@ FlutterMethodChannel* _channel;
     }else if ([@"presentRatingWidgetWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
             NSString* widgetId = [command objectAtIndex:0];
-            [Countly.sharedInstance presentFeedbackWidgetWithID:widgetId completionHandler:^(NSError* error){
+            [Countly.sharedInstance presentRatingWidgetWithID:widgetId completionHandler:^(NSError* error){
                 
                 NSString* errorStr = nil;
                 if (error){
@@ -928,18 +928,27 @@ FlutterMethodChannel* _channel;
             NSException *e = [NSException exceptionWithName:@"Native Exception Crash!" reason:@"Throw Native Exception..." userInfo:nil];
             @throw e;
         });
-    }else if([@"recordIndirectAttribution" isEqualToString:call.method]) {
+    }else if([@"recordDirectAttribution" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^ {
+            NSString* campaignType = [command objectAtIndex:0];
+            NSString* campaignData = [command objectAtIndex:1];
+            if(CountlyCommon.sharedInstance.hasStarted) {
+                [Countly.sharedInstance recordDirectAttributionWithCampaignType:campaignType andCampaignData:campaignData];
+            }
+            else {
+                config.campaignType = campaignType;
+                config.campaignData = campaignData;
+            }
+        });
+    }
+    else if([@"recordIndirectAttribution" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
             NSDictionary* attributionValues = [command objectAtIndex:0];
-            NSString* IDFAKey = @"idfa";
-            NSString* attributionID = [attributionValues objectForKey:IDFAKey];
-            if (attributionID) {
-                if(CountlyCommon.sharedInstance.hasStarted) {
-                    [Countly.sharedInstance recordAttributionID: attributionID];
-                }
-                else {
-                    config.attributionID = attributionID;
-                }
+            if(CountlyCommon.sharedInstance.hasStarted) {
+                [Countly.sharedInstance recordIndirectAttribution: attributionValues];
+            }
+            else {
+                config.indirectAttribution = attributionValues;
             }
         });
     }else if ([@"appLoadingFinished" isEqualToString:call.method]) {
@@ -1114,12 +1123,18 @@ FlutterMethodChannel* _channel;
         if(ipAddress) {
             config.IP = ipAddress;
         }
-        NSDictionary* attributionValues = _config[@"attributionValues"];
-        NSString* IDFAKey = @"idfa";
-        NSString* attributionID = [attributionValues objectForKey:IDFAKey];
-        if (attributionID) {
-            config.attributionID = attributionID;
+        
+        NSString* campaignType =  _config[@"campaignType"];
+        if(campaignType) {
+            config.campaignType = campaignType;
+            config.campaignData = _config[@"campaignData"];;
         }
+        
+        NSDictionary* attributionValues = _config[@"attributionValues"];
+        if(attributionValues) {
+            config.indirectAttribution = attributionValues;
+        }
+        
     }
     @catch(NSException *exception){
         COUNTLY_FLUTTER_LOG(@"populateConfig, Unable to parse Config object: %@", exception);

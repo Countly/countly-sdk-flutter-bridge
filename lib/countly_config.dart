@@ -229,7 +229,6 @@ class CountlyConfig {
   }
 
   /// Report direct user attribution
-  /// Currently implemented for Android only.
   CountlyConfig recordDirectAttribution(String campaignType, String campaignData) {
     _daCampaignType = campaignType;
     _daCampaignData = campaignData;
