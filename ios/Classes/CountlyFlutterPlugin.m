@@ -944,15 +944,11 @@ FlutterMethodChannel* _channel;
     else if([@"recordIndirectAttribution" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
             NSDictionary* attributionValues = [command objectAtIndex:0];
-            NSString* IDFAKey = @"idfa";
-            NSString* attributionID = [attributionValues objectForKey:IDFAKey];
-            if (attributionID) {
-                if(CountlyCommon.sharedInstance.hasStarted) {
-                    [Countly.sharedInstance recordAttributionID: attributionID];
-                }
-                else {
-                    config.attributionID = attributionID;
-                }
+            if(CountlyCommon.sharedInstance.hasStarted) {
+                [Countly.sharedInstance recordIndirectAttribution: attributionValues];
+            }
+            else {
+                config.indirectAttribution = attributionValues;
             }
         });
     }else if ([@"appLoadingFinished" isEqualToString:call.method]) {
