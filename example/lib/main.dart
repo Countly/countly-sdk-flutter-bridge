@@ -8,12 +8,17 @@ import 'dart:convert';
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:countly_flutter/countly_config.dart';
 
+
+final navigatorKey = GlobalKey<NavigatorState>();
 /// This or a similar call needs to added to catch and report Dart Errors to Countly,
 /// You need to run app inside a Zone
 /// and provide the [Countly.recordDartError] callback for [onError()]
 void main() {
   runZonedGuarded<Future<void>>(() async {
-    runApp(MyApp());
+    runApp(MaterialApp(
+      home: MyApp(),
+      navigatorKey: navigatorKey, // Setting a global key for navigator
+    ),);
   }, Countly.recordDartError);
 }
 
@@ -64,7 +69,8 @@ class _MyAppState extends State<MyApp> {
             CountlyConsent.starRating,
             CountlyConsent.apm,
             CountlyConsent.feedback,
-            CountlyConsent.remoteConfig
+            CountlyConsent.remoteConfig,
+            CountlyConsent.crashes
           ])
           ..setLocation(country_code: 'TR', city: 'Istanbul', ipAddress: '41.0082,28.9784', gpsCoordinates: '10.2.33.12') // Set user  location.
           ..setCustomCrashSegment(crashSegment)
@@ -393,6 +399,45 @@ class _MyAppState extends State<MyApp> {
 
   void askForNotificationPermission() {
     Countly.askForNotificationPermission();
+  }
+
+  void _showDialog(String alterText) {
+    showDialog(
+      context: navigatorKey.currentContext!,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Alert!!'),
+          content: Text(alterText),
+          actions: <Widget>[
+            ElevatedButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(navigatorKey.currentContext!).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void getABTestingValues() {
+    Countly.remoteConfigUpdate((result) {
+      Countly.getRemoteConfigValueForKey('baloon', (result) {
+        String alertText = "Value for 'baloon' is : ${result.toString()}";
+        _showDialog(alertText);
+        print(alertText);
+      });
+    });
+  }
+  void eventForGoal_1() {
+    var event = {'key': 'eventForGoal_1', 'count': 1};
+    Countly.recordEvent(event);
+  }
+
+  void eventForGoal_2() {
+    var event = {'key': 'eventForGoal_2', 'count': 1};
+    Countly.recordEvent(event);
   }
 
   void remoteConfigUpdate() {
@@ -775,8 +820,8 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'Timed event Sum Segment: Start / Stop', color: 'grey', onPressed: endEventWithSumSegment),
               MyButton(text: "Record View: 'HomePage'", color: 'olive', onPressed: recordViewHome),
               MyButton(text: "Record View: 'Dashboard'", color: 'olive', onPressed: recordViewDashboard),
-              MyButton(text: "Record Direct Attribution'", color: 'olive', onPressed: recordDirectAttribution),
-              MyButton(text: "Record Indirect Attribution'", color: 'olive', onPressed: recordIndirectAttribution),
+              MyButton(text: 'Record Direct Attribution', color: 'olive', onPressed: recordDirectAttribution),
+              MyButton(text: 'Record Indirect Attribution', color: 'olive', onPressed: recordIndirectAttribution),
               MyButton(text: 'Send Users Data', color: 'teal', onPressed: setUserData),
               MyButton(text: 'UserData.setProperty', color: 'teal', onPressed: setProperty),
               MyButton(text: 'UserData.increment', color: 'teal', onPressed: increment),
@@ -812,6 +857,12 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'Remove Consent Push', color: 'blue', onPressed: removeConsentpush),
               MyButton(text: 'Remove Consent starRating', color: 'blue', onPressed: removeConsentstarRating),
               MyButton(text: 'Remove Consent Performance', color: 'blue', onPressed: removeConsentAPM),
+
+              Text("Section for A/B testing:", style: TextStyle(color: Colors.green), textAlign: TextAlign.center),
+              MyButton(text: 'Get AB testing values', color: 'green', onPressed: getABTestingValues),
+              MyButton(text: 'Record event for goal #1', color: 'green', onPressed: eventForGoal_1),
+              MyButton(text: 'Record event for goal #2', color: 'green', onPressed: eventForGoal_2),
+
               MyButton(text: 'Countly.remoteConfigUpdate', color: 'purple', onPressed: remoteConfigUpdate),
               MyButton(text: 'Countly.updateRemoteConfigForKeysOnly', color: 'purple', onPressed: updateRemoteConfigForKeysOnly),
               MyButton(text: 'Countly.updateRemoteConfigExceptKeys', color: 'purple', onPressed: updateRemoteConfigExceptKeys),

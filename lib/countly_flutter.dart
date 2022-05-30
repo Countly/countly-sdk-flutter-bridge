@@ -155,6 +155,9 @@ class Countly {
     if (config.manualSessionEnabled != null) {
       _manualSessionControlEnabled = config.manualSessionEnabled!;
     }
+    if (config.enableUnhandledCrashReporting != null) {
+      _enableCrashReportingFlag = config.enableUnhandledCrashReporting!;
+    }
     _channel.setMethodCallHandler(_methodCallHandler);
 
     List<dynamic> args = [];
