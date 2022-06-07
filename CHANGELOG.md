@@ -1,3 +1,8 @@
+## 21.11.1
+* Fixed bug that caused crashes when migrating from older versions that don't have a device ID type stored. When migrating from no device ID and no type, SDK will fall back to a generated ID. When migrating from device ID and no type, SDK will set id type to 'DEVELOPER_SUPPLIED' if a custom ID was provided during init. Otherwise the new type will be 'OPEN_UDID'. Adding handling for additional edge cases.
+* Updated underlying android SDK to 21.11.2
+* Underlying iOS SDK version is 21.11.2
+
 ## 21.11.0
 * !! Major breaking change !! Changing device ID without merging will now clear all consent. It has to be given again after this operation.
 * !! Major breaking change !! Entering temporary ID mode will now clear all consent. It has to be given again after this operation.
