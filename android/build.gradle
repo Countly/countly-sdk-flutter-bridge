@@ -34,6 +34,6 @@ android {
 }
 
 dependencies {
-    implementation 'ly.count.android:sdk:21.11.0'
+    implementation 'ly.count.android:sdk:21.11.2'
     implementation 'com.google.firebase:firebase-messaging:20.2.1'
 }

@@ -1,3 +1,8 @@
+## 21.11.1
+* Fixed bug that caused crashes when migrating from older versions on Android devices.
+* Updated underlying android SDK to 21.11.2
+* Underlying iOS SDK version is 21.11.2
+
 ## 21.11.0
 * !! Major breaking change !! Changing device ID without merging will now clear all consent. It has to be given again after this operation.
 * !! Major breaking change !! Entering temporary ID mode will now clear all consent. It has to be given again after this operation.
