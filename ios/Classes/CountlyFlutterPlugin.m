@@ -1039,6 +1039,11 @@ FlutterMethodChannel* _channel;
         if(loggingEnabled) {
             config.enableDebug = [loggingEnabled boolValue];
         }
+        NSNumber* cLYInternalLogLevel = _config[@"cLYInternalLogLevel"];
+        if(cLYInternalLogLevel) {
+            config.internalLogLevel = (CLYInternalLogLevel) cLYInternalLogLevel;
+        }
+        
         NSNumber* httpPostForced = _config[@"httpPostForced"];
         if(httpPostForced) {
             config.alwaysUsePOST = [httpPostForced boolValue];
