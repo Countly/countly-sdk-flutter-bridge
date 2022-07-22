@@ -15,7 +15,7 @@
 + (CountlyFeedbackWidget *)createWithDictionary:(NSDictionary *)dictionary;
 @end
 
-NSString* const kCountlyFlutterSDKVersion = @"21.11.1";
+NSString* const kCountlyFlutterSDKVersion = @"21.11.2";
 NSString* const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 
 FlutterResult notificationListener = nil;
@@ -56,6 +56,7 @@ FlutterMethodChannel* _channel;
     if([@"init" isEqualToString:call.method]){
         NSDictionary* _config = [command objectAtIndex:0];
         [self populateConfig:_config];
+        config.internalLogLevel = CLYInternalLogLevelVerbose;
         CountlyCommon.sharedInstance.SDKName = kCountlyFlutterSDKName;
         CountlyCommon.sharedInstance.SDKVersion = kCountlyFlutterSDKVersion;
         

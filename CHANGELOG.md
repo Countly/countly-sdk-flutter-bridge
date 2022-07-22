@@ -1,3 +1,8 @@
+## 21.11.2
+* Making logs more verbose on iOS by printing network related logs.
+* Underlying android SDK is 21.11.2
+* Underlying iOS SDK version is 21.11.2
+
 ## 21.11.1
 * Fixed bug that caused crashes when migrating from older versions on Android devices.
 * Updated underlying android SDK to 21.11.2
