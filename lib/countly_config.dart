@@ -1,7 +1,5 @@
 import 'countly_flutter.dart';
 
-enum CLYInternalLogLevel { none, error, warning, info, debug, verbose }
-
 class CountlyConfig {
   String _appKey;
   String _serverURL;
@@ -16,7 +14,6 @@ class CountlyConfig {
   String? _daCampaignType;
   String? _daCampaignData;
   List<String>? _consents;
-  int? _cLYInternalLogLevel;
   bool? _recordAppStartTime;
   int? _maxRequestQueueSize;
   bool? _manualSessionEnabled;
@@ -32,7 +29,6 @@ class CountlyConfig {
   Map<String, String>? _iaAttributionValues;
   Map<String, dynamic>? _customCrashSegment;
   bool? _enableRemoteConfigAutomaticDownload;
-
 
   CountlyConfig(this._serverURL, this._appKey);
 
@@ -64,8 +60,6 @@ class CountlyConfig {
   Map<String, String>? get location => _location;
 
   bool? get recordAppStartTime => _recordAppStartTime;
-
-  int? get cLYInternalLogLevel => _cLYInternalLogLevel;
 
   int? get maxRequestQueueSize => _maxRequestQueueSize;
 
@@ -117,13 +111,6 @@ class CountlyConfig {
   /// those logs will be printed to the console
   CountlyConfig setLoggingEnabled(bool enabled) {
     _loggingEnabled = enabled;
-    return this;
-  }
-
-  /// Set Internal logs level
-  /// Currently implemented for iOS only
-  CountlyConfig setInternalLogLevel(CLYInternalLogLevel logLevel) {
-    _cLYInternalLogLevel = logLevel.index;
     return this;
   }
 

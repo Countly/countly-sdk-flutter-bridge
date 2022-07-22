@@ -71,7 +71,6 @@ class _MyAppState extends State<MyApp> {
             CountlyConsent.feedback,
             CountlyConsent.remoteConfig
           ])
-          ..setInternalLogLevel(CLYInternalLogLevel.verbose)
           ..setLocation(country_code: 'TR', city: 'Istanbul', ipAddress: '41.0082,28.9784', gpsCoordinates: '10.2.33.12') // Set user  location.
           ..setCustomCrashSegment(crashSegment)
           ..recordIndirectAttribution(attributionValues)

@@ -1824,9 +1824,6 @@ class Countly {
       if (config.loggingEnabled != null) {
         countlyConfig['loggingEnabled'] = config.loggingEnabled;
       }
-      if (config.cLYInternalLogLevel != null) {
-        countlyConfig['cLYInternalLogLevel'] = config.cLYInternalLogLevel;
-      }
       if (config.httpPostForced != null) {
         countlyConfig['httpPostForced'] = config.httpPostForced;
       }
