@@ -1807,8 +1807,7 @@ class Countly {
       }
 
       if (config.providedUserProperties != null) {
-        Map<String, String> userData = _getUserData(config.providedUserProperties!);
-        countlyConfig['providedUserProperties'] = userData;
+        countlyConfig['providedUserProperties'] = config.providedUserProperties;
       }
 
       if (config.consents != null) {
