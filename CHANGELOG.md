@@ -1,3 +1,7 @@
+## 22.02.0
+* Updated underlying android SDK version to 22.02.1
+* Updated underlying iOS SDK version to 22.06.0
+
 ## 21.11.2
 * Making logs more verbose on iOS by printing network related logs.
 * Underlying android SDK is 21.11.2
