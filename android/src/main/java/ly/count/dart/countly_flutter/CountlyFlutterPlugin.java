@@ -1149,6 +1149,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             Map<String, Object> customCrashSegment = toMap(_config.getJSONObject("customCrashSegment"));
             this.config.setCustomCrashSegment(customCrashSegment);
         }
+        if (_config.has("providedUserProperties")) {
+            Map<String, Object> providedUserProperties = toMap(_config.getJSONObject("providedUserProperties"));
+                this.config.setUserProperties(providedUserProperties);
+        }
+
         if (_config.has("consents")) {
             String[] consents = toStringArray(_config.getJSONArray("consents"));
             this.config.setConsentEnabled(consents);

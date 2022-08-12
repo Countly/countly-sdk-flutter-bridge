@@ -141,39 +141,7 @@ FlutterMethodChannel* _channel;
         dispatch_async(dispatch_get_main_queue(), ^ {
             NSDictionary* userData = [command objectAtIndex:0];
             
-            NSString* name = userData[@"name"];
-            NSString* username = userData[@"username"];
-            NSString* email = userData[@"email"];
-            NSString* organization = userData[@"organization"];
-            NSString* phone = userData[@"phone"];
-            NSString* picture = userData[@"picture"];
-            NSString* gender = userData[@"gender"];
-            NSString* byear = userData[@"byear"];
-            
-            if(name) {
-                Countly.user.name = name;
-            }
-            if(username) {
-                Countly.user.username = username;
-            }
-            if(email) {
-                Countly.user.email = email;
-            }
-            if(organization) {
-                Countly.user.organization = organization;
-            }
-            if(phone) {
-                Countly.user.phone = phone;
-            }
-            if(picture) {
-                Countly.user.pictureURL = picture;
-            }
-            if(gender) {
-                Countly.user.gender = gender;
-            }
-            if(byear) {
-                Countly.user.birthYear = @([byear integerValue]);
-            }
+            [self setUserData:userData];
             
             [Countly.user save];
             result(@"setuserdata!");
@@ -961,7 +929,41 @@ FlutterMethodChannel* _channel;
         result(FlutterMethodNotImplemented);
     }
 }
-
+-(void) setUserData:(NSDictionary * __nullable) userData {
+    NSString* name = userData[@"name"];
+    NSString* username = userData[@"username"];
+    NSString* email = userData[@"email"];
+    NSString* organization = userData[@"organization"];
+    NSString* phone = userData[@"phone"];
+    NSString* picture = userData[@"picture"];
+    NSString* gender = userData[@"gender"];
+    NSString* byear = userData[@"byear"];
+    
+    if(name) {
+        Countly.user.name = name;
+    }
+    if(username) {
+        Countly.user.username = username;
+    }
+    if(email) {
+        Countly.user.email = email;
+    }
+    if(organization) {
+        Countly.user.organization = organization;
+    }
+    if(phone) {
+        Countly.user.phone = phone;
+    }
+    if(picture) {
+        Countly.user.pictureURL = picture;
+    }
+    if(gender) {
+        Countly.user.gender = gender;
+    }
+    if(byear) {
+        Countly.user.birthYear = @([byear integerValue]);
+    }
+}
 -(void) feedbackWidgetDataCallback:(NSDictionary * __nullable) widgetData error:(NSString * __nullable )error{
     NSMutableDictionary *feedbackWidgetData = [[NSMutableDictionary alloc] init];
     if(widgetData) {
@@ -1066,6 +1068,12 @@ FlutterMethodChannel* _channel;
         if(crashSegmentation) {
             config.crashSegmentation = crashSegmentation;
         }
+        
+        NSDictionary* providedUserProperties = _config[@"providedUserProperties"];
+        if(providedUserProperties) {
+            [self setUserData:providedUserProperties];
+        }
+        
         NSArray* consents = _config[@"consents"];
         if(consents) {
             config.consents = consents;
