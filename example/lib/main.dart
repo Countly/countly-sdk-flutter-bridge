@@ -44,7 +44,10 @@ class _MyAppState extends State<MyApp> {
     Countly.isInitialized().then((bool isInitialized) {
       if (!isInitialized) {
         Countly.pushTokenType(Countly.messagingMode['TEST']!); // Set messaging mode for push notifications
+        
         var crashSegment = {'Key': 'Value'};
+        var userProperties = {'customProperty': 'custom Value', 'username': 'USER_NAME', 'email': 'USER_EMAIL'};
+
         Map<String, String> attributionValues = {};
         if (Platform.isIOS) {
           attributionValues[AttributionKey.IDFA] = 'IDFA';
@@ -84,7 +87,8 @@ class _MyAppState extends State<MyApp> {
           ..setStarRatingTextMessage('Message for start rating dialog')
           ..setLoggingEnabled(true) // Enable countly internal debugging logs
           ..setParameterTamperingProtectionSalt('salt') // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
-          ..setHttpPostForced(false); // Set to 'true' if you want HTTP POST to be used for all requests
+          ..setHttpPostForced(false)
+          ..setUserProperties(userProperties); // Set to 'true' if you want HTTP POST to be used for all requests
         if (_enableManualSession) {
           config.enableManualSessionHandling();
         }

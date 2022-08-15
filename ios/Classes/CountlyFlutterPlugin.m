@@ -26,6 +26,17 @@ BOOL enablePushNotifications = true;
 
 NSArray<CountlyFeedbackWidget*>* feedbackWidgetList = nil;
 
+NSString* const NAME_KEY = @"name";
+NSString* const USERNAME_KEY = @"username";
+NSString* const EMAIL_KEY = @"email";
+NSString* const ORG_KEY = @"organization";
+NSString* const PHONE_KEY = @"phone";
+NSString* const PICTURE_KEY = @"picture";
+NSString* const PICTURE_PATH_KEY = @"picturePath";
+NSString* const GENDER_KEY = @"gender";
+NSString* const BYEAR_KEY = @"byear";
+NSString* const CUSTOM_KEY = @"custom";
+
 @implementation CountlyFlutterPlugin
 
 CountlyConfig* config = nil;
@@ -74,6 +85,8 @@ FlutterMethodChannel* _channel;
                 isInitialized = true;
                 [[Countly sharedInstance] startWithConfig:config];
                 [self recordPushAction];
+                //TODO: Remove this line when issue fix in iOS SDK for setting user details during init
+                [Countly.user save];
             });
             result(@"initialized.");
         } else {
@@ -929,15 +942,26 @@ FlutterMethodChannel* _channel;
         result(FlutterMethodNotImplemented);
     }
 }
+
+-(NSDictionary*) removePredefinedUserProperties:(NSDictionary * __nullable) userData {
+    NSMutableDictionary* userProperties = [userData mutableCopy];
+    NSArray* nameFields = [[NSArray alloc] initWithObjects:NAME_KEY, USERNAME_KEY, EMAIL_KEY, ORG_KEY, PHONE_KEY, PICTURE_KEY, PICTURE_PATH_KEY, GENDER_KEY, BYEAR_KEY, nil];
+    
+    for (NSString* nameField in nameFields) {
+        [userProperties removeObjectForKey:nameField];
+    }
+    return userProperties;
+}
+
 -(void) setUserData:(NSDictionary * __nullable) userData {
-    NSString* name = userData[@"name"];
-    NSString* username = userData[@"username"];
-    NSString* email = userData[@"email"];
-    NSString* organization = userData[@"organization"];
-    NSString* phone = userData[@"phone"];
-    NSString* picture = userData[@"picture"];
-    NSString* gender = userData[@"gender"];
-    NSString* byear = userData[@"byear"];
+    NSString* name = userData[NAME_KEY];
+    NSString* username = userData[USERNAME_KEY];
+    NSString* email = userData[EMAIL_KEY];
+    NSString* organization = userData[ORG_KEY];
+    NSString* phone = userData[PHONE_KEY];
+    NSString* picture = userData[PICTURE_KEY];
+    NSString* gender = userData[GENDER_KEY];
+    NSString* byear = userData[BYEAR_KEY];
     
     if(name) {
         Countly.user.name = name;
@@ -973,7 +997,7 @@ FlutterMethodChannel* _channel;
         feedbackWidgetData[@"error"] = error;
     }
     [_channel invokeMethod:@"feedbackWidgetDataCallback" arguments: feedbackWidgetData];
-    }
+}
 
 - (CountlyFeedbackWidget*)getFeedbackWidget:(NSString*)widgetId
 {
@@ -1072,6 +1096,8 @@ FlutterMethodChannel* _channel;
         NSDictionary* providedUserProperties = _config[@"providedUserProperties"];
         if(providedUserProperties) {
             [self setUserData:providedUserProperties];
+            NSDictionary* customeProperties = [self removePredefinedUserProperties:providedUserProperties];
+            Countly.user.custom = customeProperties;
         }
         
         NSArray* consents = _config[@"consents"];
