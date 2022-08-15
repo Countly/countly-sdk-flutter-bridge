@@ -76,6 +76,7 @@ class _MyAppState extends State<MyApp> {
           ])
           ..setLocation(country_code: 'TR', city: 'Istanbul', ipAddress: '41.0082,28.9784', gpsCoordinates: '10.2.33.12') // Set user  location.
           ..setCustomCrashSegment(crashSegment)
+          ..setUserProperties(userProperties)
           ..recordIndirectAttribution(attributionValues)
           ..recordDirectAttribution('countly', campaignData)
           ..setRemoteConfigAutomaticDownload(true, (error) {
@@ -87,8 +88,7 @@ class _MyAppState extends State<MyApp> {
           ..setStarRatingTextMessage('Message for start rating dialog')
           ..setLoggingEnabled(true) // Enable countly internal debugging logs
           ..setParameterTamperingProtectionSalt('salt') // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
-          ..setHttpPostForced(false)
-          ..setUserProperties(userProperties); // Set to 'true' if you want HTTP POST to be used for all requests
+          ..setHttpPostForced(false); // Set to 'true' if you want HTTP POST to be used for all requests
         if (_enableManualSession) {
           config.enableManualSessionHandling();
         }
