@@ -44,7 +44,10 @@ class _MyAppState extends State<MyApp> {
     Countly.isInitialized().then((bool isInitialized) {
       if (!isInitialized) {
         Countly.pushTokenType(Countly.messagingMode['TEST']!); // Set messaging mode for push notifications
+        
         var crashSegment = {'Key': 'Value'};
+        var userProperties = {'customProperty': 'custom Value', 'username': 'USER_NAME', 'email': 'USER_EMAIL'};
+
         Map<String, String> attributionValues = {};
         if (Platform.isIOS) {
           attributionValues[AttributionKey.IDFA] = 'IDFA';
@@ -73,6 +76,7 @@ class _MyAppState extends State<MyApp> {
           ])
           ..setLocation(country_code: 'TR', city: 'Istanbul', ipAddress: '41.0082,28.9784', gpsCoordinates: '10.2.33.12') // Set user  location.
           ..setCustomCrashSegment(crashSegment)
+          ..setUserProperties(userProperties)
           ..recordIndirectAttribution(attributionValues)
           ..recordDirectAttribution('countly', campaignData)
           ..setRemoteConfigAutomaticDownload(true, (error) {

@@ -1,4 +1,6 @@
 ## 22.02.0
+* Fixed notification trampoline restrictions in Android 12 using reverse activity trampolining implementation.
+* Adding a call to provide user properties during initialization.
 * Updated underlying android SDK version to 22.02.1
 * Updated underlying iOS SDK version to 22.06.0
 

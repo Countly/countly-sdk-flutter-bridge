@@ -309,6 +309,14 @@ class Countly {
     int optionsCount = options.length;
     log('Calling "setUserData" with options Count:[$optionsCount]');
     List<dynamic> args = [];
+    Map<String, String> userData = _getUserData(options);
+    args.add(userData);
+    final String? result = await _channel.invokeMethod('setuserdata', <String, dynamic>{'data': json.encode(args)});
+    return result;
+  }
+
+  static Map<String, String> _getUserData(Map<String, dynamic> options)
+  {
     Map<String, String> userData = {};
     if (options.containsKey('name')) {
       userData['name'] = options['name'].toString();
@@ -337,11 +345,8 @@ class Countly {
     if (options.containsKey('byear')) {
       userData['byear'] = options['byear'].toString();
     }
-    args.add(userData);
-    final String? result = await _channel.invokeMethod('setuserdata', <String, dynamic>{'data': json.encode(args)});
-    return result;
+    return userData;
   }
-
   /// This method will ask for permission, enables push notification and send push token to countly server.
   /// Should be call after Countly init
   static Future<String?> askForNotificationPermission() async {
@@ -1800,6 +1805,11 @@ class Countly {
       if (config.customCrashSegment != null) {
         countlyConfig['customCrashSegment'] = config.customCrashSegment;
       }
+
+      if (config.providedUserProperties != null) {
+        countlyConfig['providedUserProperties'] = config.providedUserProperties;
+      }
+
       if (config.consents != null) {
         countlyConfig['consents'] = config.consents;
       }

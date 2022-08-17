@@ -29,6 +29,7 @@ class CountlyConfig {
   Map<String, String>? _iaAttributionValues;
   Map<String, dynamic>? _customCrashSegment;
   bool? _enableRemoteConfigAutomaticDownload;
+  Map<String, dynamic>? _providedUserProperties;
 
   CountlyConfig(this._serverURL, this._appKey);
 
@@ -84,6 +85,8 @@ class CountlyConfig {
   Map<String, dynamic>? get customCrashSegment => _customCrashSegment;
 
   bool? get enableUnhandledCrashReporting => _enableUnhandledCrashReporting;
+
+  Map<String, dynamic>? get providedUserProperties => _providedUserProperties;
 
   bool? get enableRemoteConfigAutomaticDownload => _enableRemoteConfigAutomaticDownload;
 
@@ -238,6 +241,12 @@ class CountlyConfig {
   /// Report indirect user attribution
   CountlyConfig recordIndirectAttribution(Map<String, String> attributionValues) {
     _iaAttributionValues = attributionValues;
+    return this;
+  }
+
+  /// Used to provide user properties that would be sent as soon as possible
+  CountlyConfig setUserProperties(Map<String, dynamic> userProperties) {
+    _providedUserProperties = userProperties;
     return this;
   }
 }
