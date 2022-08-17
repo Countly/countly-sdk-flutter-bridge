@@ -85,8 +85,6 @@ FlutterMethodChannel* _channel;
                 isInitialized = true;
                 [[Countly sharedInstance] startWithConfig:config];
                 [self recordPushAction];
-                //TODO: Remove this line when issue fix in iOS SDK for setting user details during init
-                [Countly.user save];
             });
             result(@"initialized.");
         } else {
