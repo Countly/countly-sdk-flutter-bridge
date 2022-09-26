@@ -7,6 +7,7 @@
     <permission
         android:name="${applicationId}.CountlyPush.BROADCAST_PERMISSION"
         android:protectionLevel="signature" />
+    <uses-permission android:name="android.permission.BROADCAST_CLOSE_SYSTEM_DIALOGS" android:maxSdkVersion="30" />
     <application>
         <service
             android:name="ly.count.dart.countly_flutter.CountlyMessagingService"
