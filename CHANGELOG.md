@@ -31,24 +31,24 @@
 * Fixed possible SecTrustCopyExceptions leak in iOS
 * Fixed bug that occured when recording user profile values. Parameters not provided would be deleted from the server.
 * Deprecated old init config methods. You should use the config object now. Those methods are:
-    - init
-    - manualSessionHandling
-    - updateSessionPeriod
-    - updateSessionInterval
-    - eventSendThreshold
-    - storedRequestsLimit
-    - setOptionalParametersForInitialization
-    - setLoggingEnabled
-    - enableParameterTamperingProtection
-    - setHttpPostForced
-    - setLocationInit
-    - setRequiresConsent
-    - giveConsentInit
-    - setRemoteConfigAutomaticDownload
-    - setStarRatingDialogTexts
-    - enableCrashReporting
-    - setCustomCrashSegment
-    - enableApm
+  * init
+  * manualSessionHandling
+  * updateSessionPeriod
+  * updateSessionInterval
+  * eventSendThreshold
+  * storedRequestsLimit
+  * setOptionalParametersForInitialization
+  * setLoggingEnabled
+  * enableParameterTamperingProtection
+  * setHttpPostForced
+  * setLocationInit
+  * setRequiresConsent
+  * giveConsentInit
+  * setRemoteConfigAutomaticDownload
+  * setStarRatingDialogTexts
+  * enableCrashReporting
+  * setCustomCrashSegment
+  * enableApm
 * Deprecated "setLocation" method
 * Deprecated recordAttributionID method
 * Deprecated enableAttribution method
@@ -87,7 +87,8 @@
 * Updated underlying android SDK to 20.11.4
 
 ## 20.11.0
-* !! Due to cocoapods issue with Xcode 12, we have added the iOS SDK as source code instead of Pod. Due to that change if you have already added the reference of files "CountlyNotificationService.h/m" then you need to update these files references by adding the files from "Pods/Development Pods/countly_flutter" and remove the old reference files
+* !! Due to cocoapods issue with Xcode 12, we have added the iOS SDK as source code instead of Pod. Due to that change,
+ if you have already added the reference of files "CountlyNotificationService.h/m" then you need to update these files references by adding the files from "Pods/Development Pods/countly_flutter" and remove the old reference files
 * !! Consent change !! To use remote config, you now need to give "remote-config" consent
 * !! Push breaking changes !! Google play vulnerability issue fixed due to broadcast receiver for android push notification
 * Added Surveys and NPS feedback widgets
