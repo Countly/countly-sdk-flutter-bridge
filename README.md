@@ -16,7 +16,8 @@ Track, measure, and take action - all without leaving Countly.
 * **Looking for other Countly SDKs?** [An overview of all Countly SDKs for mobile, web and desktop](https://support.count.ly/hc/en-us/articles/360037236571-Downloading-and-Installing-SDKs#officially-supported-sdks)
 
 ## Integrating Countly SDK in your projects
-Link to the script and call helper methods based on what you want to track: sessions, views, clicks, custom events, user data, etc. and for much more [check out our documentation](https://support.count.ly/hc/en-us/articles/360037944212-Flutter).
+
+For a detailed description on how to use this SDK [check out our documentation](https://support.count.ly/hc/en-us/articles/360037944212-Flutter).
 For information about how to add the SDK to your project, please check [this section of the documentation](https://support.count.ly/hc/en-us/articles/360037944212-Flutter#adding-the-sdk-to-the-project).
 You can find minimal SDK integration information for your project in [this section of the documentation](https://support.count.ly/hc/en-us/articles/360037944212-Flutter#minimal-setup).
 For an example integration of this SDK, you can have a look [here](https://github.com/Countly/countly-sdk-flutter-bridge/tree/master/example).
