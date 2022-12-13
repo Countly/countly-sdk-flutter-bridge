@@ -57,13 +57,13 @@ import com.google.firebase.FirebaseApp;
  * CountlyFlutterPlugin
  */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
-    
-    private final boolean BUILDING_WITH_PUSH_DISABLED = false;
-    private final String _pushDisabledMsg = "In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled";
-
     private static final String TAG = "CountlyFlutterPlugin";
     private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "22.02.0";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
+    private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterb-android-np";
+
+    private final boolean BUILDING_WITH_PUSH_DISABLED = false;
+
     /**
      * Plugin registration.
      */
@@ -221,7 +221,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 JSONObject config = args.getJSONObject(0);
                 this.config.setContext(context);
                 populateConfig(config);
-                Countly.sharedInstance().COUNTLY_SDK_NAME = COUNTLY_FLUTTER_SDK_NAME;
+                Countly.sharedInstance().COUNTLY_SDK_NAME = BUILDING_WITH_PUSH_DISABLED ? COUNTLY_FLUTTER_SDK_NAME_NO_PUSH : COUNTLY_FLUTTER_SDK_NAME;
                 Countly.sharedInstance().COUNTLY_SDK_VERSION_STRING = COUNTLY_FLUTTER_SDK_VERSION_STRING;
 
                 if (activity == null) {
@@ -358,20 +358,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 result.success("setCustomCrashSegment success!");
             } else if ("sendPushToken".equals(call.method)) {
-                if(BUILDING_WITH_PUSH_DISABLED) {
-                    log(_pushDisabledMsg, LogLevel.ERROR);
-                    result.error(_pushDisabledMsg, null);
-                    return;
-                }
                 String token = args.getString(0);
                 CountlyPush.onTokenRefresh(token);
                 result.success(" success!");
             } else if ("askForNotificationPermission".equals(call.method)) {
-                if(BUILDING_WITH_PUSH_DISABLED) {
-                    log(_pushDisabledMsg, LogLevel.ERROR);
-                    result.error(_pushDisabledMsg, null);
-                    return;
-                }
                 if (activity == null) {
                     log("askForNotificationPermission failed : Activity is null", LogLevel.ERROR);
                     result.error("askForNotificationPermission Failed", "Activity is null", null);
@@ -408,11 +398,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         });
                 result.success(" askForNotificationPermission!");
             } else if ("pushTokenType".equals(call.method)) {
-                if(BUILDING_WITH_PUSH_DISABLED) {
-                    log(_pushDisabledMsg, LogLevel.ERROR);
-                    result.error(_pushDisabledMsg, null);
-                    return;
-                }
                 String tokenType = args.getString(0);
                 if ("2".equals(tokenType)) {
                     pushTokenType = Countly.CountlyMessagingMode.TEST;
@@ -421,11 +406,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 }
                 result.success("pushTokenType!");
             } else if ("registerForNotification".equals(call.method)) {
-                if(BUILDING_WITH_PUSH_DISABLED) {
-                    log(_pushDisabledMsg, LogLevel.ERROR);
-                    result.error(_pushDisabledMsg, null);
-                    return;
-                }
                 registerForNotification(args, new Callback() {
                     @Override
                     public void callback(final String resultString) {
@@ -1014,11 +994,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     }
 
     public String registerForNotification(JSONArray args, final Callback theCallback) {
-        if(BUILDING_WITH_PUSH_DISABLED) {
-            log(_pushDisabledMsg, LogLevel.ERROR);
-            result.error(_pushDisabledMsg, null);
-            return _pushDisabledMsg;
-        }
         notificationListener = theCallback;
         if (Countly.sharedInstance().isLoggingEnabled()) {
             log("registerForNotification theCallback", LogLevel.INFO);

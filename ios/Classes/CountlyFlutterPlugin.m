@@ -15,12 +15,12 @@
 + (CountlyFeedbackWidget *)createWithDictionary:(NSDictionary *)dictionary;
 @end
 
-
+// #define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
 BOOL BUILDING_WITH_PUSH_DISABLED = false;
-NSString* const _pushDisabledMsg = @"In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled";
 
 NSString* const kCountlyFlutterSDKVersion = @"22.02.0";
 NSString* const kCountlyFlutterSDKName = @"dart-flutterb-ios";
+NSString* const kCountlyFlutterSDKNameNoPush = @"dart-flutterb-ios-np";
 
 FlutterResult notificationListener = nil;
 NSDictionary *lastStoredNotification = nil;
@@ -72,14 +72,14 @@ FlutterMethodChannel* _channel;
         NSDictionary* _config = [command objectAtIndex:0];
         [self populateConfig:_config];
         config.internalLogLevel = CLYInternalLogLevelVerbose;
-        CountlyCommon.sharedInstance.SDKName = kCountlyFlutterSDKName;
+		CountlyCommon.sharedInstance.SDKName = BUILDING_WITH_PUSH_DISABLED ? kCountlyFlutterSDKNameNoPush : kCountlyFlutterSDKName;
         CountlyCommon.sharedInstance.SDKVersion = kCountlyFlutterSDKVersion;
         
         //should only be used for silent pushes if explicitly enabled
         //config.sendPushTokenAlways = YES;
 #if (TARGET_OS_IOS)
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
-        if(enablePushNotifications && !BUILDING_WITH_PUSH_DISABLED) {
+        if(enablePushNotifications) {
             [self addCountlyFeature:CLYPushNotifications];
         }
 #endif
@@ -88,9 +88,7 @@ FlutterMethodChannel* _channel;
             dispatch_async(dispatch_get_main_queue(), ^ {
                 isInitialized = true;
                 [[Countly sharedInstance] startWithConfig:config];
-				if(!BUILDING_WITH_PUSH_DISABLED) {
-					[self recordPushAction];
-				}
+				[self recordPushAction];
             });
             result(@"initialized.");
         } else {
