@@ -22,12 +22,14 @@ NSString* const kCountlyFlutterSDKVersion = @"22.02.0";
 NSString* const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 NSString* const kCountlyFlutterSDKNameNoPush = @"dart-flutterb-ios-np";
 
+#ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
 FlutterResult notificationListener = nil;
 NSDictionary *lastStoredNotification = nil;
 NSMutableArray *notificationIDs = nil;        // alloc here
-NSMutableArray<CLYFeature>* countlyFeatures = nil;
 BOOL enablePushNotifications = true;
+#endif
 
+NSMutableArray<CLYFeature>* countlyFeatures = nil;
 NSArray<CountlyFeedbackWidget*>* feedbackWidgetList = nil;
 
 NSString* const NAME_KEY = @"name";
@@ -88,7 +90,10 @@ FlutterMethodChannel* _channel;
             dispatch_async(dispatch_get_main_queue(), ^ {
                 isInitialized = true;
                 [[Countly sharedInstance] startWithConfig:config];
+				
+#ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
 				[self recordPushAction];
+#endif
             });
             result(@"initialized.");
         } else {
@@ -428,20 +433,22 @@ FlutterMethodChannel* _channel;
         });
         result(@"setCustomCrashSegment!");
     }else if ([@"disablePushNotifications" isEqualToString:call.method]) {
+		
+#ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
         dispatch_async(dispatch_get_main_queue(), ^ {
             enablePushNotifications = false;
         });
+#endif
         result(@"disablePushNotifications!");
     }else if ([@"askForNotificationPermission" isEqualToString:call.method]) {
-#if (TARGET_OS_IOS)
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
         dispatch_async(dispatch_get_main_queue(), ^ {
             [Countly.sharedInstance askForNotificationPermission];
         });
 #endif
-#endif
         result(@"askForNotificationPermission!");
     }else if ([@"pushTokenType" isEqualToString:call.method]) {
+#ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
         dispatch_async(dispatch_get_main_queue(), ^ {
             config.sendPushTokenAlways = YES;
             NSString* tokenType = [command objectAtIndex:0];
@@ -450,15 +457,18 @@ FlutterMethodChannel* _channel;
             } else {
                 config.pushTestMode = @"CLYPushTestModeTestFlightOrAdHoc";
             }
-            result(@"pushTokenType!");
         });
+#endif
+		result(@"pushTokenType!");
     }else if ([@"registerForNotification" isEqualToString:call.method]) {
+#ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
         COUNTLY_FLUTTER_LOG(@"registerForNotification");
         notificationListener = result;
         if(lastStoredNotification != nil){
             result([lastStoredNotification description]);
             lastStoredNotification = nil;
         }
+#endif
     }else if ([@"userData_setProperty" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
             NSString* keyName = [command objectAtIndex:0];
@@ -1178,7 +1188,7 @@ FlutterMethodChannel* _channel;
     }
 }
 
-
+#ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
 + (void)onNotification: (NSDictionary *) notificationMessage{
     COUNTLY_FLUTTER_LOG(@"Notification received");
     COUNTLY_FLUTTER_LOG(@"The notification %@", notificationMessage);
@@ -1196,6 +1206,7 @@ FlutterMethodChannel* _channel;
         [notificationIDs insertObject:notificationID atIndex:[notificationIDs count]];
     }
 }
+
 - (void)recordPushAction
 {
     for(int i=0,il = (int) notificationIDs.count;i<il;i++){
@@ -1210,6 +1221,7 @@ FlutterMethodChannel* _channel;
     
     [notificationIDs removeAllObjects];
 }
+#endif
 
 - (void)addCountlyFeature:(CLYFeature)feature
 {
