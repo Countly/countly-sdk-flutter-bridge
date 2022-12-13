@@ -1,12 +1,27 @@
 import os
+import shutil
 
-# operation constants
-filesToErase = [] # write file names to erase
-fileToModify= [] # write the file name to modify, currently expecting 1 file
-lineToModify = '' # write the line to modify 
-modification = '' # write what to modify to
+#   README
+#   This script should be run from the root of the project with the command: 
+#   python script.py
+#
+#   It will check operation constants, provided below, for information regarding what to erase or where to copy
+#   That information must be filles before running the script
+#
+#   Versions
+#   0.1  
+#       - can remove files if relative path to the script is provided
+#       - can copy files if file and copy directory information is provided
 
-# walks through the all files in the project and writes down the paths of the ones you are looking for
+# OPERATION CONSTANTS
+FILES_TO_ERASE = []  # array of string values. Relative path to the files. Something like: 'android/sth/sth.txt'
+FILES_TO_MOVE = []  # array of, arrays of string tuples. Relative path to the file and the relative path to the copy directory. Something like ['android/sth/sth.txt','android2/folder']
+# fileToModify = [] # write the file name to modify, currently expecting 1 file
+# lineToModify = ''  # write the line to modify
+# modification = ''  # write what to modify to
+
+# walks through all files in the project and writes down the paths of the ones you are looking for. Can only work for unique files. 
+# TODO: Refactor so that it checks only the specified folder and files, like ['android-app', 'gradle']. Makes it easy to find files without the need of relative path information.
 def findFilesTo(src, array):
     paths = []
     for root, dirs, files in os.walk(src):
@@ -17,13 +32,23 @@ def findFilesTo(src, array):
                     paths.append(path)
     return paths
 
-def removeFiles(paths):
+# loops through the provided array of relative paths and erases each file that exists
+def removeFiles(paths, cwd):
     for path in paths:
+        path = os.path.join(cwd, path)
         if os.path.exists(path):
-         print("removing:"+path)
-         os.remove(path)
+            print("Removing:"+path)
+            os.remove(path)
 
- 
+# loops through the provided array of relative paths and copies each file that exists
+def copyFiles(arrays, cwd):
+    for tuple in arrays:
+        file = os.path.join(cwd, tuple[0])
+        folder = os.path.join(cwd, tuple[1])
+        shutil.copy(file,folder)
+
+# Modifies a line in a given document
+# TODO: Make it so that it can modify multiple lines
 def modifyFile(file, varName, replacementName):
     # reading operations
     with open(file, 'r') as f:
@@ -35,26 +60,34 @@ def modifyFile(file, varName, replacementName):
             print("Replacing: "+varName+" with: "+replacementName)
         else:
             fileLines.append(line)
-    f.close()    
-    
+    f.close()
+
     # writing operations
     finalFile = open(file, 'w')
     finalFile.writelines(fileLines)
-    finalFile.close()    
+    finalFile.close()
     print("Modified the file:"+file)
 
 
 def main():
-    cwd = os.getcwd()
-    pathsToErase = findFilesTo(cwd, filesToErase)
+    # give info in set constants
     print("Paths to erase:")
-    print(pathsToErase)
-    pathsToModify = findFilesTo(cwd, fileToModify)
-    print("Paths to modify:")
-    print(pathsToModify)
-    removeFiles(pathsToErase)
-    modifyFile(pathsToModify[0], lineToModify, modification)
-    print("Done")
+    for i in FILES_TO_ERASE:
+        print(i, end = '\n')
+    print("Paths to copy:")
+    for i in FILES_TO_MOVE:
+        print(i, end = '\n')
+    
+    # ask for permission to run the script
+    start = input('Do you want to continue? (y/n)')
+    if start == 'y' or start == 'Y' or start == 'yes' or start == 'YES':
+        cwd = os.getcwd() # get current working directory
+        removeFiles(FILES_TO_ERASE, cwd) # remove files
+        copyFiles(FILES_TO_MOVE, cwd) # copies a file
+        print("Done")
+    else:
+        print("Aborted")
+
 
 if __name__ == "__main__":
     main()
