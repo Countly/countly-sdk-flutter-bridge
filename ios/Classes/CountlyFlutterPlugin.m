@@ -15,6 +15,10 @@
 + (CountlyFeedbackWidget *)createWithDictionary:(NSDictionary *)dictionary;
 @end
 
+
+BOOL BUILDING_WITH_PUSH_DISABLED = false;
+NSString* const _pushDisabledMsg = @"In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled";
+
 NSString* const kCountlyFlutterSDKVersion = @"22.02.0";
 NSString* const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 
@@ -75,7 +79,7 @@ FlutterMethodChannel* _channel;
         //config.sendPushTokenAlways = YES;
 #if (TARGET_OS_IOS)
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
-        if(enablePushNotifications) {
+        if(enablePushNotifications && !BUILDING_WITH_PUSH_DISABLED) {
             [self addCountlyFeature:CLYPushNotifications];
         }
 #endif
@@ -84,7 +88,9 @@ FlutterMethodChannel* _channel;
             dispatch_async(dispatch_get_main_queue(), ^ {
                 isInitialized = true;
                 [[Countly sharedInstance] startWithConfig:config];
-                [self recordPushAction];
+				if(!BUILDING_WITH_PUSH_DISABLED) {
+					[self recordPushAction];
+				}
             });
             result(@"initialized.");
         } else {

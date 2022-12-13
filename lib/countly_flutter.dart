@@ -36,6 +36,11 @@ abstract class CountlyConsent {
 }
 
 class Countly {
+
+
+  static const bool BUILDING_WITH_PUSH_DISABLED = false;
+  static const String _pushDisabledMsg = 'In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled';
+
   static const MethodChannel _channel = MethodChannel('countly_flutter');
 
   /// Used to determine if log messages should be printed to the console
@@ -350,6 +355,10 @@ class Countly {
   /// This method will ask for permission, enables push notification and send push token to countly server.
   /// Should be call after Countly init
   static Future<String?> askForNotificationPermission() async {
+    if(BUILDING_WITH_PUSH_DISABLED) {
+      log('askForNotificationPermission, $_pushDisabledMsg', logLevel: LogLevel.ERROR);
+      return _pushDisabledMsg;
+    }
     if (!_isInitialized) {
       String message = '"initWithConfig" must be called before "askForNotificationPermission"';
       log('askForNotificationPermission, $message', logLevel: LogLevel.ERROR);
@@ -366,6 +375,10 @@ class Countly {
   /// Should be called before Countly init
   static Future<String?> disablePushNotifications() async {
     log('Calling "disablePushNotifications"');
+    if(BUILDING_WITH_PUSH_DISABLED) {
+      log('disablePushNotifications, $_pushDisabledMsg', logLevel: LogLevel.ERROR);
+      return _pushDisabledMsg;
+    }
     if (!Platform.isIOS) {
       return 'disablePushNotifications : To be implemented';
     }
@@ -377,6 +390,10 @@ class Countly {
   /// Set messaging mode for push notifications
   /// Should be call before Countly init
   static Future<String?> pushTokenType(String tokenType) async {
+    if(BUILDING_WITH_PUSH_DISABLED) {
+      log('pushTokenType, $_pushDisabledMsg', logLevel: LogLevel.ERROR);
+      return _pushDisabledMsg;
+    }
     log('Calling "pushTokenType":[$tokenType]');
     if (tokenType.isEmpty) {
       String error = 'pushTokenType, tokenType cannot be empty';
@@ -394,6 +411,10 @@ class Countly {
   /// Set callback to receive push notifications
   /// @param { callback listner } callback
   static Future<String?> onNotification(Function callback) async {
+    if(BUILDING_WITH_PUSH_DISABLED) {
+      log('onNotification, $_pushDisabledMsg', logLevel: LogLevel.ERROR);
+      return _pushDisabledMsg;
+    }
     log('Calling "onNotification"');
     await _channel.invokeMethod('registerForNotification').then((value) {
       callback(value.toString());
