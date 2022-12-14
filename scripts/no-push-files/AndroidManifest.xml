@@ -1,0 +1,14 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="ly.count.dart.countly_flutter">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <application>
+        <receiver
+            android:name="ly.count.android.sdk.ReferrerReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.android.vending.INSTALL_REFERRER" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>
