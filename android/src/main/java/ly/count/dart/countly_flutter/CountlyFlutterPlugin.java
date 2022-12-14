@@ -60,7 +60,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private static final String TAG = "CountlyFlutterPlugin";
     private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "22.02.0";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
-    private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterb-android-np";
+    private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterbnp-android";
 
     private final boolean BUILDING_WITH_PUSH_DISABLED = false;
 

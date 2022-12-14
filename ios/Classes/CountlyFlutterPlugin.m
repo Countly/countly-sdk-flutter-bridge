@@ -20,7 +20,7 @@ BOOL BUILDING_WITH_PUSH_DISABLED = false;
 
 NSString* const kCountlyFlutterSDKVersion = @"22.02.0";
 NSString* const kCountlyFlutterSDKName = @"dart-flutterb-ios";
-NSString* const kCountlyFlutterSDKNameNoPush = @"dart-flutterb-ios-np";
+NSString* const kCountlyFlutterSDKNameNoPush = @"dart-flutterbnp-ios";
 
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
 FlutterResult notificationListener = nil;
