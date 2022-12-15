@@ -2,19 +2,7 @@
     package="ly.count.dart.countly_flutter">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="${applicationId}.CountlyPush.BROADCAST_PERMISSION" />
-    <uses-permission android:name="android.permission.BROADCAST_CLOSE_SYSTEM_DIALOGS" android:maxSdkVersion="30" />
-    <permission
-        android:name="${applicationId}.CountlyPush.BROADCAST_PERMISSION"
-        android:protectionLevel="signature" />
     <application>
-        <service
-            android:name="ly.count.dart.countly_flutter.CountlyMessagingService"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
         <receiver
             android:name="ly.count.android.sdk.ReferrerReceiver"
             android:exported="true">

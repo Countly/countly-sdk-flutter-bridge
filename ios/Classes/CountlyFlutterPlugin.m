@@ -16,7 +16,7 @@
 @end
 
 // #define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
-BOOL BUILDING_WITH_PUSH_DISABLED = false;
+BOOL BUILDING_WITH_PUSH_DISABLED = true;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
 
