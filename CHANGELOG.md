@@ -1,3 +1,8 @@
+## 22.02.1
+* SDK has been internally slightly reworked to support a "no push notification" variant.
+* Underlying android SDK version is 22.02.1
+* Underlying iOS SDK version is 22.06.0
+
 ## 22.02.0
 * Fixed notification trampoline restrictions in Android 12 using reverse activity trampolining implementation.
 * Adding a call to provide user properties during initialization.

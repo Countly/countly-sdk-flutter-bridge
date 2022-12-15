@@ -57,10 +57,13 @@ import com.google.firebase.FirebaseApp;
  * CountlyFlutterPlugin
  */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
-
     private static final String TAG = "CountlyFlutterPlugin";
-    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "22.02.0";
+    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "22.02.1";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
+    private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterbnp-android";
+
+    private final boolean BUILDING_WITH_PUSH_DISABLED = false;
+
     /**
      * Plugin registration.
      */
@@ -218,7 +221,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 JSONObject config = args.getJSONObject(0);
                 this.config.setContext(context);
                 populateConfig(config);
-                Countly.sharedInstance().COUNTLY_SDK_NAME = COUNTLY_FLUTTER_SDK_NAME;
+                Countly.sharedInstance().COUNTLY_SDK_NAME = BUILDING_WITH_PUSH_DISABLED ? COUNTLY_FLUTTER_SDK_NAME_NO_PUSH : COUNTLY_FLUTTER_SDK_NAME;
                 Countly.sharedInstance().COUNTLY_SDK_VERSION_STRING = COUNTLY_FLUTTER_SDK_VERSION_STRING;
 
                 if (activity == null) {
