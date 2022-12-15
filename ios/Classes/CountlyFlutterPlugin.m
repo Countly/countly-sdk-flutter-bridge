@@ -16,7 +16,7 @@
 @end
 
 // #define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
-BOOL BUILDING_WITH_PUSH_DISABLED = false;
+BOOL BUILDING_WITH_PUSH_DISABLED = true;
 
 NSString* const kCountlyFlutterSDKVersion = @"22.02.1";
 NSString* const kCountlyFlutterSDKName = @"dart-flutterb-ios";

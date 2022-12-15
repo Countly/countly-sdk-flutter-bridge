@@ -36,7 +36,7 @@ abstract class CountlyConsent {
 }
 
 class Countly {
-  static const bool BUILDING_WITH_PUSH_DISABLED = false;
+  static const bool BUILDING_WITH_PUSH_DISABLED = true;
   static const String _pushDisabledMsg = 'In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled';
 
   static const MethodChannel _channel = MethodChannel('countly_flutter');

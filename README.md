@@ -23,7 +23,6 @@ You can find minimal SDK integration information for your project in [this secti
 For an example integration of this SDK, you can have a look [here](https://github.com/Countly/countly-sdk-flutter-bridge/tree/master/example).
 This SDK supports the following features:
 * [Analytics](https://support.count.ly/hc/en-us/articles/4431589003545-Analytics)
-* [Push Notifications](https://support.count.ly/hc/en-us/articles/4405405459225-Push-Notifications)
 * [User Profiles](https://support.count.ly/hc/en-us/articles/4403281285913-User-Profiles)
 * [Crash Reports](https://support.count.ly/hc/en-us/articles/4404213566105-Crashes-Errors)
 * [A/B Testing](https://support.count.ly/hc/en-us/articles/4416496362393-A-B-Testing-)

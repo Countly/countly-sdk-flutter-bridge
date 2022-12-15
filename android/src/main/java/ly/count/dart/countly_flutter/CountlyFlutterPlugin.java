@@ -47,11 +47,11 @@ import ly.count.android.sdk.RemoteConfigCallback;
 import ly.count.android.sdk.StarRatingCallback;
 import ly.count.android.sdk.messaging.CountlyPush;
 
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.firebase.FirebaseApp;
+//import com.google.firebase.iid.FirebaseInstanceId;
+//import com.google.firebase.iid.InstanceIdResult;
+//import com.google.android.gms.tasks.Task;
+//import com.google.android.gms.tasks.OnCompleteListener;
+//import com.google.firebase.FirebaseApp;
 
 /**
  * CountlyFlutterPlugin
@@ -62,7 +62,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterbnp-android";
 
-    private final boolean BUILDING_WITH_PUSH_DISABLED = false;
+    private final boolean BUILDING_WITH_PUSH_DISABLED = true;
 
     /**
      * Plugin registration.
@@ -383,19 +383,19 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     }
                 }
                 CountlyPush.init(activity.getApplication(), pushTokenType);
-                FirebaseApp.initializeApp(context);
-                FirebaseInstanceId.getInstance().getInstanceId()
-                        .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                                if (!task.isSuccessful()) {
-                                    log("getInstanceId failed", task.getException(), LogLevel.WARNING);
-                                    return;
-                                }
-                                String token = task.getResult().getToken();
-                                CountlyPush.onTokenRefresh(token);
-                            }
-                        });
+//                FirebaseApp.initializeApp(context);
+//                FirebaseInstanceId.getInstance().getInstanceId()
+//                        .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+//                            @Override
+//                            public void onComplete(@NonNull Task<InstanceIdResult> task) {
+//                                if (!task.isSuccessful()) {
+//                                    log("getInstanceId failed", task.getException(), LogLevel.WARNING);
+//                                    return;
+//                                }
+//                                String token = task.getResult().getToken();
+//                                CountlyPush.onTokenRefresh(token);
+//                            }
+//                        });
                 result.success(" askForNotificationPermission!");
             } else if ("pushTokenType".equals(call.method)) {
                 String tokenType = args.getString(0);
