@@ -18,6 +18,8 @@
 // #define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
 BOOL BUILDING_WITH_PUSH_DISABLED = false;
 
+CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
+
 NSString* const kCountlyFlutterSDKVersion = @"22.02.1";
 NSString* const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 NSString* const kCountlyFlutterSDKNameNoPush = @"dart-flutterbnp-ios";
@@ -452,10 +454,13 @@ FlutterMethodChannel* _channel;
         dispatch_async(dispatch_get_main_queue(), ^ {
             config.sendPushTokenAlways = YES;
             NSString* tokenType = [command objectAtIndex:0];
+			config.pushTestMode =  CLYPushTestModeProduction;
+			
             if([tokenType isEqualToString: @"1"]){
-                config.pushTestMode = @"CLYPushTestModeDevelopment";
-            } else {
-                config.pushTestMode = @"CLYPushTestModeTestFlightOrAdHoc";
+                config.pushTestMode = CLYPushTestModeDevelopment;
+			}
+			else if([tokenType isEqualToString: @"2"]) {
+                config.pushTestMode = CLYPushTestModeTestFlightOrAdHoc;
             }
         });
 #endif
