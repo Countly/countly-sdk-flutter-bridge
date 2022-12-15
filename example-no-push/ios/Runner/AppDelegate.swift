@@ -1,6 +1,6 @@
 import UIKit
 import Flutter
-import countly_flutter
+import countly_flutter_np
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
