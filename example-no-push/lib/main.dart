@@ -5,8 +5,8 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:convert';
 
-import 'package:countly_flutter/countly_flutter.dart';
-import 'package:countly_flutter/countly_config.dart';
+import 'package:countly_flutter_np/countly_flutter.dart';
+import 'package:countly_flutter_np/countly_config.dart';
 
 
 final navigatorKey = GlobalKey<NavigatorState>();
