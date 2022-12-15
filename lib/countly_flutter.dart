@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:countly_flutter/countly_config.dart';
+import 'package:countly_flutter_np/countly_config.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'dart:io' show Platform;
