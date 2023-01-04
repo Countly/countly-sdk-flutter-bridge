@@ -11,7 +11,7 @@ import 'package:countly_flutter/countly_config.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 /// This or a similar call needs to added to catch and report Dart Errors to Countly,
-/// You need to run app inside a Zone
+/// You need to run the app inside a Zone
 /// and provide the [Countly.recordDartError] callback for [onError()]
 void main() {
   runZonedGuarded<Future<void>>(() async {
@@ -404,13 +404,13 @@ class _MyAppState extends State<MyApp> {
     Countly.askForNotificationPermission();
   }
 
-  void _showDialog(String alterText) {
+  void _showDialog(String alertText) {
     showDialog(
       context: navigatorKey.currentContext!,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Alert!!'),
-          content: Text(alterText),
+          content: Text(alertText),
           actions: <Widget>[
             ElevatedButton(
               child: Text('OK'),
@@ -598,9 +598,9 @@ class _MyAppState extends State<MyApp> {
 
     if (widgets.isNotEmpty) {
       await Countly.presentFeedbackWidget(widgets.first, 'Close', widgetShown: () {
-        print('showFeedbackWidget widgetShown');
+        print('showFeedbackWidget widget shown');
       }, widgetClosed: () {
-        print('showFeedbackWidget widgetClosed');
+        print('showFeedbackWidget widget closed');
       });
     }
   }
@@ -634,9 +634,9 @@ class _MyAppState extends State<MyApp> {
     for (CountlyPresentableFeedback widget in widgets) {
       if (widget.type == 'nps') {
         await Countly.presentFeedbackWidget(widget, 'Close', widgetShown: () {
-          print('NPS widgetShown');
+          print('NPS widget shown');
         }, widgetClosed: () {
-          print('NPS widgetClosed');
+          print('NPS widget closed');
         });
         break;
       }
@@ -861,7 +861,7 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'Remove Consent starRating', color: 'blue', onPressed: removeConsentstarRating),
               MyButton(text: 'Remove Consent Performance', color: 'blue', onPressed: removeConsentAPM),
 
-              Text("Section for A/B testing:", style: TextStyle(color: Colors.green), textAlign: TextAlign.center),
+              Text('Section for A/B testing:', style: TextStyle(color: Colors.green), textAlign: TextAlign.center),
               MyButton(text: 'Get AB testing values', color: 'green', onPressed: getABTestingValues),
               MyButton(text: 'Record event for goal #1', color: 'green', onPressed: eventForGoal_1),
               MyButton(text: 'Record event for goal #2', color: 'green', onPressed: eventForGoal_2),
@@ -966,12 +966,14 @@ class MyButton extends StatelessWidget {
   Color? _textC;
   void Function()? _onPressed;
 
-  MyButton({String? color, String? text, void Function()? onPressed}) {
-    _text = text!;
+  MyButton({required String text, String? color, void Function()? onPressed}) {
+    _text = text;
 
     Map<String, Color>? tColor;
     tColor = getColor(color);
-    tColor = tColor ??= theColor['default'];
+    if (tColor == null) {
+      tColor = theColor['default'];
+    }
     _button = tColor?['button'];
     _textC = tColor?['text'];
 
@@ -980,6 +982,6 @@ class MyButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(style: ElevatedButton.styleFrom(primary: _button, padding: EdgeInsets.all(10.0), minimumSize: Size(double.infinity, 36)), onPressed: _onPressed, child: Text(_text!, style: TextStyle(color: _textC), textAlign: TextAlign.center));
+    return ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: _button, padding: EdgeInsets.all(10.0), minimumSize: Size(double.infinity, 36)), onPressed: _onPressed, child: Text(_text!, style: TextStyle(color: _textC), textAlign: TextAlign.center));
   }
 }
