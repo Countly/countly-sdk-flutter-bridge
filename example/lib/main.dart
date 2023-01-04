@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print, depend_on_referenced_packages
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -10,14 +12,15 @@ import 'package:countly_flutter/countly_config.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
-/// This or a similar call needs to added to catch and report Dart Errors to Countly,
+/// This or a similar call needs to added to catch and report Dart Errors to
+/// Countly,
 /// You need to run app inside a Zone
 /// and provide the [Countly.recordDartError] callback for [onError()]
 void main() {
   runZonedGuarded<Future<void>>(() async {
     runApp(
       MaterialApp(
-        home: MyApp(),
+        home: const MyApp(),
         navigatorKey: navigatorKey, // Setting a global key for navigator
       ),
     );
@@ -25,15 +28,18 @@ void main() {
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
-  _MyAppState createState() => _MyAppState();
+  State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
   final _messangerKey = GlobalKey<ScaffoldMessengerState>();
   final ratingIdController = TextEditingController();
 
-  /// To Show the device id type in UI, when user tap on 'Get Device Id Type' button
+  /// To Show the device id type in UI, when user tap on 'Get Device Id Type'
+  /// button
   String _deviceIdType = '';
   final bool _enableManualSession = false;
 
@@ -45,30 +51,32 @@ class _MyAppState extends State<MyApp> {
     });
     Countly.isInitialized().then((bool isInitialized) {
       if (!isInitialized) {
-        Countly.pushTokenType(Countly.messagingMode[
-            'TEST']!); // Set messaging mode for push notifications
+        Countly.pushTokenType(
+          Countly.messagingMode['TEST']!,
+        ); // Set messaging mode for push notifications
 
-        var crashSegment = {'Key': 'Value'};
-        var userProperties = {
+        final crashSegment = {'Key': 'Value'};
+        final userProperties = {
           'customProperty': 'custom Value',
           'username': 'USER_NAME',
           'email': 'USER_EMAIL'
         };
 
-        Map<String, String> attributionValues = {};
+        final Map<String, String> attributionValues = {};
         if (Platform.isIOS) {
           attributionValues[AttributionKey.IDFA] = 'IDFA';
         } else {
           attributionValues[AttributionKey.AdvertisingID] = 'AdvertisingID';
         }
 
-        String campaignData =
-            '{cid:"[PROVIDED_CAMPAIGN_ID]", cuid:"[PROVIDED_CAMPAIGN_USER_ID]"}';
+        const campaignData = '{cid:"[PROVIDED_CAMPAIGN_ID]", cuid:"'
+            '[PROVIDED_CAMPAIGN_USER_ID]"}';
 
-        CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
-          ..enableCrashReporting() // Enable crash reporting to report unhandled crashes to Countly
-          ..setRequiresConsent(
-              true) // Set that consent should be required for features to work.
+        final config = CountlyConfig(SERVER_URL, APP_KEY)
+          ..enableCrashReporting() // Enable crash reporting to report
+          // unhandled crashes to Countly
+          ..setRequiresConsent(true) // Set that consent should be required for
+          // features to work.
           ..setConsentEnabled([
             CountlyConsent.sessions,
             CountlyConsent.events,
@@ -84,10 +92,11 @@ class _MyAppState extends State<MyApp> {
             CountlyConsent.remoteConfig
           ])
           ..setLocation(
-              country_code: 'TR',
-              city: 'Istanbul',
-              ipAddress: '41.0082,28.9784',
-              gpsCoordinates: '10.2.33.12') // Set user  location.
+            country_code: 'TR',
+            city: 'Istanbul',
+            ipAddress: '41.0082,28.9784',
+            gpsCoordinates: '10.2.33.12',
+          ) // Set user  location.
           ..setCustomCrashSegment(crashSegment)
           ..setUserProperties(userProperties)
           ..recordIndirectAttribution(attributionValues)
@@ -96,15 +105,17 @@ class _MyAppState extends State<MyApp> {
             if (error != null) {
               print(error);
             }
-          }) // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
-          ..setRecordAppStartTime(
-              true) // Enable APM features, which includes the recording of app start time.
+          }) // Set Automatic value download happens when the SDK is initiated
+          // or when the device ID is changed.
+          ..setRecordAppStartTime(true) // Enable APM features, which includes
+          // the recording of app start time.
           ..setStarRatingTextMessage('Message for start rating dialog')
           ..setLoggingEnabled(true) // Enable countly internal debugging logs
-          ..setParameterTamperingProtectionSalt(
-              'salt') // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
-          ..setHttpPostForced(
-              false); // Set to 'true' if you want HTTP POST to be used for all requests
+          ..setParameterTamperingProtectionSalt('salt') // Set the optional
+          // salt to be used for calculating the checksum of requested data
+          // which will be sent with each request
+          ..setHttpPostForced(false); // Set to 'true' if you want HTTP POST to 
+          // be used for all requests
         if (_enableManualSession) {
           config.enableManualSessionHandling();
         }
@@ -118,12 +129,14 @@ class _MyAppState extends State<MyApp> {
             print('The notification');
             print(notification);
           }); // Set callback to receive push notifications
-          Countly
-              .askForNotificationPermission(); // This method will ask for permission, enables push notification and send push token to countly server.;
+          Countly.askForNotificationPermission(); // This method will ask for
+          // permission, enables push notification and send push token to
+          // countly server.;
 
-          Countly
-              .giveAllConsent(); // give consent for all features, should be call after init
-          // Countly.giveConsent(['events', 'views']); // give consent for some specific features, should be call after init.
+          Countly.giveAllConsent(); // give consent for all features, should be
+          // call after init
+          // Countly.giveConsent(['events', 'views']); // give consent for some 
+          // specific features, should be call after init.
         }); // Initialize the countly SDK.
       } else {
         print('Countly: Already initialized.');
@@ -131,21 +144,20 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  // ignore: non_constant_identifier_names
-  static String SERVER_URL = 'https://try.count.ly';
+  // ignore: constant_identifier_names
+  static const SERVER_URL = 'https://try.count.ly';
 
-  // ignore: non_constant_identifier_names
-  static String APP_KEY = 'YOUR_API_KEY';
+  // ignore: constant_identifier_names
+  static const APP_KEY = 'YOUR_API_KEY';
 
   void enableTemporaryIdMode() {
     Countly.changeDeviceId(Countly.deviceIDType['TemporaryDeviceID']!, false);
   }
 
   bool isManualSession() {
-    //
     if (!_enableManualSession) {
-      final snackBar = SnackBar(
-        content: const Text(
+      const snackBar = SnackBar(
+        content: Text(
           "Set '_enableManualSession = true' in 'main.dart' to test Manual "
           'Session Handling',
         ),
@@ -175,13 +187,13 @@ class _MyAppState extends State<MyApp> {
 
   void basicEvent() {
     // example for basic event
-    var event = {'key': 'Basic Event', 'count': 1};
+    final event = {'key': 'Basic Event', 'count': 1};
     Countly.recordEvent(event);
   }
 
   void eventWithSum() {
     // example for event with sum
-    var event = {
+    final event = {
       'key': 'Event With Sum',
       'count': 1,
       'sum': '0.99',
@@ -191,17 +203,17 @@ class _MyAppState extends State<MyApp> {
 
   void eventWithSegment() {
     // example for event with segment
-    var event = {'key': 'Event With Segment', 'count': 1};
+    final event = {'key': 'Event With Segment', 'count': 1};
     event['segmentation'] = {'Country': 'Turkey', 'Age': '28'};
     Countly.recordEvent(event);
   }
 
   void eventWithSumSegment() {
     // example for event with segment and sum
-    var event = {
+    final event = {
       'key': 'Event With Sum And Segment',
       'count': 1,
-      'sum': '0.99'
+      'sum': '0.99',
     };
     event['segmentation'] = {'Country': 'Turkey', 'Age': '28'};
     Countly.recordEvent(event);
@@ -209,22 +221,22 @@ class _MyAppState extends State<MyApp> {
 
   void endEventBasic() {
     Countly.startEvent('Timed Event');
-    Timer(Duration(seconds: 5), () {
+    Timer(const Duration(seconds: 5), () {
       Countly.endEvent({'key': 'Timed Event'});
     });
   }
 
   void endEventWithSum() {
     Countly.startEvent('Timed Event With Sum');
-    Timer(Duration(seconds: 5), () {
+    Timer(const Duration(seconds: 5), () {
       Countly.endEvent({'key': 'Timed Event With Sum', 'sum': '0.99'});
     });
   }
 
   void endEventWithSegment() {
     Countly.startEvent('Timed Event With Segment');
-    Timer(Duration(seconds: 5), () {
-      var event = {
+    Timer(const Duration(seconds: 5), () {
+      final event = {
         'key': 'Timed Event With Segment',
         'count': 1,
       };
@@ -235,8 +247,8 @@ class _MyAppState extends State<MyApp> {
 
   void endEventWithSumSegment() {
     Countly.startEvent('Timed Event With Segment, Sum and Count');
-    Timer(Duration(seconds: 5), () {
-      var event = {
+    Timer(const Duration(seconds: 5), () {
+      final event = {
         'key': 'Timed Event With Segment, Sum and Count',
         'count': 1,
         'sum': '0.99'
@@ -247,11 +259,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void recordViewHome() {
-    Map<String, Object> segments = {
-      'Cats': 123,
-      'Moons': 9.98,
-      'Moose': 'Deer'
-    };
+    final segments = {'Cats': 123, 'Moons': 9.98, 'Moose': 'Deer'};
     Countly.recordView('HomePage', segments);
   }
 
@@ -260,7 +268,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void recordDirectAttribution() {
-    String campaignData =
+    const campaignData =
         '{cid:"[PROVIDED_CAMPAIGN_ID]", cuid:"[PROVIDED_CAMPAIGN_USER_ID]"}';
     Countly.recordDirectAttribution('countly', campaignData);
   }
@@ -276,14 +284,14 @@ class _MyAppState extends State<MyApp> {
   }
 
   String makeid() {
-    int code = Random().nextInt(999999);
-    String random = code.toString();
+    final code = Random().nextInt(999999);
+    final random = code.toString();
     print(random);
     return random;
   }
 
   void setUserData() {
-    Map<String, Object> options = {
+    final options = {
       'name': 'Name of User',
       'username': 'Username',
       'email': 'User Email',
@@ -337,7 +345,6 @@ class _MyAppState extends State<MyApp> {
     Countly.pullValue('pushValue', 'morning');
   }
 
-  //
   void giveMultipleConsent() {
     Countly.giveConsent(['events', 'views', 'star-rating', 'crashes']);
   }
@@ -443,11 +450,11 @@ class _MyAppState extends State<MyApp> {
       context: navigatorKey.currentContext!,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Alert!!'),
+          title: const Text('Alert!!'),
           content: Text(alterText),
           actions: <Widget>[
             ElevatedButton(
-              child: Text('OK'),
+              child: const Text('OK'),
               onPressed: () {
                 Navigator.of(navigatorKey.currentContext!).pop();
               },
@@ -461,7 +468,7 @@ class _MyAppState extends State<MyApp> {
   void getABTestingValues() {
     Countly.remoteConfigUpdate((result) {
       Countly.getRemoteConfigValueForKey('baloon', (result) {
-        String alertText = "Value for 'baloon' is : ${result.toString()}";
+        final alertText = "Value for 'baloon' is : ${result.toString()}";
         _showDialog(alertText);
         print(alertText);
       });
@@ -469,12 +476,12 @@ class _MyAppState extends State<MyApp> {
   }
 
   void eventForGoal_1() {
-    var event = {'key': 'eventForGoal_1', 'count': 1};
+    final event = {'key': 'eventForGoal_1', 'count': 1};
     Countly.recordEvent(event);
   }
 
   void eventForGoal_2() {
-    var event = {'key': 'eventForGoal_2', 'count': 1};
+    final event = {'key': 'eventForGoal_2', 'count': 1};
     Countly.recordEvent(event);
   }
 
@@ -533,7 +540,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void getDeviceIDType() async {
-    DeviceIdType? deviceIdType = await Countly.getDeviceIDType();
+    final deviceIdType = await Countly.getDeviceIDType();
     if (deviceIdType != null) {
       setState(() {
         _deviceIdType = deviceIdType.toString();
@@ -551,14 +558,18 @@ class _MyAppState extends State<MyApp> {
 
   void addCrashLog() {
     Countly.addCrashLog('User Performed Step A');
-    Timer(Duration(seconds: 5), () {
+    Timer(const Duration(seconds: 5), () {
       Countly.logException(
-          'one.js \n two.js \n three.js', true, {'_facebook_version': '0.0.1'});
+        'one.js \n two.js \n three.js',
+        true,
+        {'_facebook_version': '0.0.1'},
+      );
     });
   }
 
   void causeException() {
-    Map<String, Object> options = json.decode('This is a on purpose error.');
+    final Map<String, Object> options =
+        json.decode('This is an on purpose error.');
     print(options.length);
   }
 
@@ -588,9 +599,9 @@ class _MyAppState extends State<MyApp> {
 
   void dividedByZero() {
     try {
-      int firstInput = 20;
-      int secondInput = 0;
-      int result = firstInput ~/ secondInput;
+      const firstInput = 20;
+      const secondInput = 0;
+      final result = firstInput ~/ secondInput;
       print('The result of $firstInput divided by $secondInput is $result');
     } catch (e, s) {
       print('Exception occurs: $e');
@@ -605,53 +616,61 @@ class _MyAppState extends State<MyApp> {
 
   void presentRatingWidget() {
     // Trying to show a rating widget with a previously know ID.
-    // You should replace the given ID with your own, it would be retrieved from your Countly Dashboard.
-    Countly.presentRatingWidgetWithID('61eaaf37c935575c7b932b97',
-        closeButtonText: 'close', ratingWidgetCallback: (error) {
-      if (error != null) {
-        print(error);
-      }
-    });
+    // You should replace the given ID with your own, it would be retrieved
+    // from your Countly Dashboard.
+    Countly.presentRatingWidgetWithID(
+      '61eaaf37c935575c7b932b97',
+      closeButtonText: 'close',
+      ratingWidgetCallback: (error) {
+        if (error != null) {
+          print(error);
+        }
+      },
+    );
   }
 
   void presentRatingWidgetUsingEditBox() {
     // Trying to show a rating widget with the ID give in the App.
-    // In the EditBox you would write the ID that you retrieved from your Countly Dashboard.
-    Countly.presentRatingWidgetWithID(ratingIdController.text,
-        closeButtonText: 'close', ratingWidgetCallback: (error) {
-      if (error != null) {
-        print(error);
-      }
-    });
+    // In the EditBox you would write the ID that you retrieved from your
+    // Countly Dashboard.
+    Countly.presentRatingWidgetWithID(
+      ratingIdController.text,
+      closeButtonText: 'close',
+      ratingWidgetCallback: (error) {
+        if (error != null) {
+          print(error);
+        }
+      },
+    );
   }
 
   void showFeedbackWidget() async {
-    FeedbackWidgetsResponse feedbackWidgetsResponse =
-        await Countly.getAvailableFeedbackWidgets();
-    List<CountlyPresentableFeedback> widgets =
-        feedbackWidgetsResponse.presentableFeedback;
-    String? error = feedbackWidgetsResponse.error;
+    final feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets();
+    final widgets = feedbackWidgetsResponse.presentableFeedback;
+    final error = feedbackWidgetsResponse.error;
 
     if (error != null) {
       return;
     }
 
     if (widgets.isNotEmpty) {
-      await Countly.presentFeedbackWidget(widgets.first, 'Close',
-          widgetShown: () {
-        print('showFeedbackWidget widgetShown');
-      }, widgetClosed: () {
-        print('showFeedbackWidget widgetClosed');
-      });
+      await Countly.presentFeedbackWidget(
+        widgets.first,
+        'Close',
+        widgetShown: () {
+          print('showFeedbackWidget widgetShown');
+        },
+        widgetClosed: () {
+          print('showFeedbackWidget widgetClosed');
+        },
+      );
     }
   }
 
   void showSurvey() async {
-    FeedbackWidgetsResponse feedbackWidgetsResponse =
-        await Countly.getAvailableFeedbackWidgets();
-    List<CountlyPresentableFeedback> widgets =
-        feedbackWidgetsResponse.presentableFeedback;
-    String? error = feedbackWidgetsResponse.error;
+    final feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets();
+    final widgets = feedbackWidgetsResponse.presentableFeedback;
+    final error = feedbackWidgetsResponse.error;
 
     if (error != null) {
       return;
@@ -666,17 +685,15 @@ class _MyAppState extends State<MyApp> {
   }
 
   void showNPS() async {
-    FeedbackWidgetsResponse feedbackWidgetsResponse =
-        await Countly.getAvailableFeedbackWidgets();
-    List<CountlyPresentableFeedback> widgets =
-        feedbackWidgetsResponse.presentableFeedback;
-    String? error = feedbackWidgetsResponse.error;
+    final feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets();
+    final widgets = feedbackWidgetsResponse.presentableFeedback;
+    final error = feedbackWidgetsResponse.error;
 
     if (error != null) {
       return;
     }
 
-    for (CountlyPresentableFeedback widget in widgets) {
+    for (final widget in widgets) {
       if (widget.type == 'nps') {
         await Countly.presentFeedbackWidget(widget, 'Close', widgetShown: () {
           print('NPS widgetShown');
@@ -689,17 +706,15 @@ class _MyAppState extends State<MyApp> {
   }
 
   void reportSurveyManually() async {
-    FeedbackWidgetsResponse feedbackWidgetsResponse =
-        await Countly.getAvailableFeedbackWidgets();
-    List<CountlyPresentableFeedback> widgets =
-        feedbackWidgetsResponse.presentableFeedback;
-    String? error = feedbackWidgetsResponse.error;
+    final feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets();
+    final widgets = feedbackWidgetsResponse.presentableFeedback;
+    final error = feedbackWidgetsResponse.error;
 
     if (error != null) {
       return;
     }
     CountlyPresentableFeedback? chosenWidget;
-    for (CountlyPresentableFeedback widget in widgets) {
+    for (final widget in widgets) {
       if (widget.type == 'survey') {
         chosenWidget = widget;
         break;
@@ -711,22 +726,22 @@ class _MyAppState extends State<MyApp> {
   }
 
   void reportSurvey(CountlyPresentableFeedback chosenWidget) async {
-    List result = await Countly.getFeedbackWidgetData(chosenWidget);
-    String? error = result[1];
+    final result = await Countly.getFeedbackWidgetData(chosenWidget);
+    final error = result[1];
     if (error == null) {
-      Map<String, dynamic>? retrievedWidgetData = result[0];
-      Map<String, Object> segments = {};
+      final Map<String, dynamic>? retrievedWidgetData = result[0];
+      final Map<String, Object> segments = {};
       if (retrievedWidgetData != null && retrievedWidgetData.isNotEmpty) {
-        List<dynamic>? questions = retrievedWidgetData['questions'];
+        final List<dynamic>? questions = retrievedWidgetData['questions'];
 
         if (questions != null) {
-          Random rnd = Random();
+          final rnd = Random();
           //iterate over all questions and set random answers
           for (int a = 0; a < questions.length; a++) {
-            Map<dynamic, dynamic> question = questions[a];
-            String wType = question['type'];
-            String questionId = question['id'];
-            String answerKey = 'answ-' + questionId;
+            final Map<String, dynamic> question = questions[a];
+            final String wType = question['type'];
+            final String questionId = question['id'];
+            final answerKey = 'answ-$questionId';
             switch (wType) {
               //multiple answer question
               case 'multi':
@@ -745,10 +760,10 @@ class _MyAppState extends State<MyApp> {
               case 'radio':
               //dropdown value selector
               case 'dropdown':
-                List<dynamic> choices = question['choices'];
-                int pick = rnd.nextInt(choices.length);
-                segments[answerKey] =
-                    choices[pick]['key']; //pick the key of random choice
+                final List<dynamic> choices = question['choices'];
+                final pick = rnd.nextInt(choices.length);
+                segments[answerKey] = choices[pick]['key']; //pick the key of
+                // random choice
                 break;
               //text input field
               case 'text':
@@ -763,23 +778,26 @@ class _MyAppState extends State<MyApp> {
         }
       }
       await Countly.reportFeedbackWidgetManually(
-          chosenWidget, retrievedWidgetData ?? {}, segments);
+        chosenWidget,
+        retrievedWidgetData ?? {},
+        segments,
+      );
     }
   }
 
   void reportNPSManually() async {
-    FeedbackWidgetsResponse feedbackWidgetsResponse =
+    final feedbackWidgetsResponse =
         await Countly.getAvailableFeedbackWidgets();
-    List<CountlyPresentableFeedback> widgets =
+    final widgets =
         feedbackWidgetsResponse.presentableFeedback;
-    String? error = feedbackWidgetsResponse.error;
+    final error = feedbackWidgetsResponse.error;
 
     if (error != null) {
       return;
     }
 
     CountlyPresentableFeedback? chosenWidget;
-    for (CountlyPresentableFeedback widget in widgets) {
+    for (final widget in widgets) {
       if (widget.type == 'nps') {
         chosenWidget = widget;
         break;
@@ -794,7 +812,7 @@ class _MyAppState extends State<MyApp> {
     Countly.getFeedbackWidgetData(chosenWidget,
         onFinished: (retrievedWidgetData, error) {
       if (error == null) {
-        Map<String, Object> segments = {
+        final segments = {
           'rating': 3,
           'comment': 'Filled out comment'
         };
@@ -823,34 +841,40 @@ class _MyAppState extends State<MyApp> {
   }
 
   void endTrace() {
-    String traceKey = 'Trace Key';
-    Map<String, int> customMetric = {'ABC': 1233, 'C44C': 1337};
+    const traceKey = 'Trace Key';
+    final customMetric = {'ABC': 1233, 'C44C': 1337};
     Countly.endTrace(traceKey, customMetric);
   }
 
-  List<int> successCodes = [100, 101, 200, 201, 202, 205, 300, 301, 303, 305];
-  List<int> failureCodes = [400, 402, 405, 408, 500, 501, 502, 505];
+  final successCodes = [100, 101, 200, 201, 202, 205, 300, 301, 303, 305];
+  final failureCodes = [400, 402, 405, 408, 500, 501, 502, 505];
 
   void recordNetworkTraceSuccess() {
-    String networkTraceKey = 'api/endpoint.1';
+    const networkTraceKey = 'api/endpoint.1';
     var rnd = Random();
-    int responseCode = successCodes[rnd.nextInt(successCodes.length)];
-    int requestPayloadSize = rnd.nextInt(700) + 200;
-    int responsePayloadSize = rnd.nextInt(700) + 200;
-    int startTime = DateTime.now().millisecondsSinceEpoch;
-    int endTime = startTime + 500;
-    Countly.recordNetworkTrace(networkTraceKey, responseCode,
-        requestPayloadSize, responsePayloadSize, startTime, endTime);
+    final responseCode = successCodes[rnd.nextInt(successCodes.length)];
+    final requestPayloadSize = rnd.nextInt(700) + 200;
+    final responsePayloadSize = rnd.nextInt(700) + 200;
+    final startTime = DateTime.now().millisecondsSinceEpoch;
+    final endTime = startTime + 500;
+    Countly.recordNetworkTrace(
+      networkTraceKey,
+      responseCode,
+      requestPayloadSize,
+      responsePayloadSize,
+      startTime,
+      endTime,
+    );
   }
 
   void recordNetworkTraceFailure() {
-    String networkTraceKey = 'api/endpoint.1';
-    var rnd = Random();
-    int responseCode = failureCodes[rnd.nextInt(failureCodes.length)];
-    int requestPayloadSize = rnd.nextInt(700) + 250;
-    int responsePayloadSize = rnd.nextInt(700) + 250;
-    int startTime = DateTime.now().millisecondsSinceEpoch;
-    int endTime = startTime + 500;
+    const networkTraceKey = 'api/endpoint.1';
+    final rnd = Random();
+    final responseCode = failureCodes[rnd.nextInt(failureCodes.length)];
+    final requestPayloadSize = rnd.nextInt(700) + 250;
+    final responsePayloadSize = rnd.nextInt(700) + 250;
+    final startTime = DateTime.now().millisecondsSinceEpoch;
+    final endTime = startTime + 500;
     Countly.recordNetworkTrace(
       networkTraceKey,
       responseCode,
@@ -882,7 +906,7 @@ class _MyAppState extends State<MyApp> {
               children: <Widget>[
                 Text(
                   _deviceIdType,
-                  style: TextStyle(color: Colors.red),
+                  style: const TextStyle(color: Colors.red),
                   textAlign: TextAlign.center,
                 ),
                 MyButton(
@@ -1140,7 +1164,7 @@ class _MyAppState extends State<MyApp> {
                   color: 'blue',
                   onPressed: removeConsentAPM,
                 ),
-                Text(
+                const Text(
                   'Section for A/B testing:',
                   style: TextStyle(color: Colors.green),
                   textAlign: TextAlign.center,
@@ -1272,7 +1296,7 @@ class _MyAppState extends State<MyApp> {
                 ),
                 TextField(
                   controller: ratingIdController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     hintText: 'Enter a Rating ID',
                   ),
@@ -1339,20 +1363,35 @@ class _MyAppState extends State<MyApp> {
 }
 
 Map<String, Map<String, Color>> theColor = {
-  'default': {'button': Color(0xffe0e0e0), 'text': Color(0xff000000)},
-  'red': {'button': Color(0xffdb2828), 'text': Color(0xff000000)},
-  'green': {'button': Colors.green, 'text': Color(0xffffffff)},
-  'teal': {'button': Color(0xff00b5ad), 'text': Color(0xff000000)},
-  'blue': {'button': Color(0xff00b5ad), 'text': Color(0xff000000)},
-  'primary': {'button': Color(0xff54c8ff), 'text': Color(0xff000000)},
-  'grey': {'button': Color(0xff767676), 'text': Color(0xff000000)},
-  'brown': {'button': Color(0xffa5673f), 'text': Color(0xff000000)},
-  'purple': {'button': Color(0xffa333c8), 'text': Color(0xff000000)},
-  'violet': {'button': Color(0xff6435c9), 'text': Color(0xff000000)},
-  'yellow': {'button': Color(0xfffbbd08), 'text': Color(0xffffffff)},
-  'black': {'button': Color(0xff1b1c1d), 'text': Color(0xffffffff)},
-  'olive': {'button': Color(0xffd9e778), 'text': Color(0xff000000)},
-  'orange': {'button': Color(0xffff851b), 'text': Color(0xff000000)}
+  'default': {
+    'button': const Color(0xffe0e0e0),
+    'text': const Color(0xff000000)
+  },
+  'red': {'button': const Color(0xffdb2828), 'text': const Color(0xff000000)},
+  'green': {'button': Colors.green, 'text': const Color(0xffffffff)},
+  'teal': {'button': const Color(0xff00b5ad), 'text': const Color(0xff000000)},
+  'blue': {'button': const Color(0xff00b5ad), 'text': const Color(0xff000000)},
+  'primary': {
+    'button': const Color(0xff54c8ff),
+    'text': const Color(0xff000000)
+  },
+  'grey': {'button': const Color(0xff767676), 'text': const Color(0xff000000)},
+  'brown': {'button': const Color(0xffa5673f), 'text': const Color(0xff000000)},
+  'purple': {
+    'button': const Color(0xffa333c8),
+    'text': const Color(0xff000000)
+  },
+  'violet': {
+    'button': const Color(0xff6435c9),
+    'text': const Color(0xff000000)
+  },
+  'yellow': {
+    'button': const Color(0xfffbbd08),
+    'text': const Color(0xffffffff)
+  },
+  'black': {'button': const Color(0xff1b1c1d), 'text': const Color(0xffffffff)},
+  'olive': {'button': const Color(0xffd9e778), 'text': const Color(0xff000000)},
+  'orange': {'button': const Color(0xffff851b), 'text': const Color(0xff000000)}
 };
 
 Map<String, Color>? getColor(color) {
@@ -1386,21 +1425,24 @@ Map<String, Color>? getColor(color) {
 }
 
 class MyButton extends StatelessWidget {
-  String? _text;
-  Color? _button;
-  Color? _textC;
-  void Function()? _onPressed;
+  final String? _text;
+  late final Color? _button;
+  late final Color? _textC;
+  final void Function()? _onPressed;
 
-  MyButton({String? color, String? text, void Function()? onPressed}) {
-    _text = text!;
-
+  MyButton({
+    required String text,
+    String? color,
+    void Function()? onPressed,
+    Key? key,
+  })  : _text = text,
+        _onPressed = onPressed,
+        super(key: key) {
     Map<String, Color>? tColor;
     tColor = getColor(color);
     tColor = tColor ??= theColor['default'];
     _button = tColor?['button'];
     _textC = tColor?['text'];
-
-    _onPressed = onPressed;
   }
 
   @override
@@ -1408,8 +1450,8 @@ class MyButton extends StatelessWidget {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: _button,
-        padding: EdgeInsets.all(10.0),
-        minimumSize: Size(double.infinity, 36),
+        padding: const EdgeInsets.all(10.0),
+        minimumSize: const Size(double.infinity, 36),
       ),
       onPressed: _onPressed,
       child: Text(
