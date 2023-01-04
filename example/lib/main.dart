@@ -980,6 +980,6 @@ class MyButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(style: ElevatedButton.styleFrom(primary: _button, padding: EdgeInsets.all(10.0), minimumSize: Size(double.infinity, 36)), onPressed: _onPressed, child: Text(_text!, style: TextStyle(color: _textC), textAlign: TextAlign.center));
+    return ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: _button, padding: EdgeInsets.all(10.0), minimumSize: Size(double.infinity, 36)), onPressed: _onPressed, child: Text(_text!, style: TextStyle(color: _textC), textAlign: TextAlign.center));
   }
 }
