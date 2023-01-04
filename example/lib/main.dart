@@ -14,7 +14,7 @@ final navigatorKey = GlobalKey<NavigatorState>();
 
 /// This or a similar call needs to added to catch and report Dart Errors to
 /// Countly,
-/// You need to run app inside a Zone
+/// You need to run the app inside a Zone
 /// and provide the [Countly.recordDartError] callback for [onError()]
 void main() {
   runZonedGuarded<Future<void>>(() async {
@@ -36,17 +36,17 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final _messangerKey = GlobalKey<ScaffoldMessengerState>();
-  final ratingIdController = TextEditingController();
+  final _ratingIdController = TextEditingController();
 
   /// To Show the device id type in UI, when user tap on 'Get Device Id Type'
   /// button
   String _deviceIdType = '';
-  final bool _enableManualSession = false;
+  final _enableManualSession = false;
 
   @override
   void initState() {
     super.initState();
-    ratingIdController.addListener(() {
+    _ratingIdController.addListener(() {
       setState(() {});
     });
     Countly.isInitialized().then((bool isInitialized) {
@@ -114,8 +114,8 @@ class _MyAppState extends State<MyApp> {
           ..setParameterTamperingProtectionSalt('salt') // Set the optional
           // salt to be used for calculating the checksum of requested data
           // which will be sent with each request
-          ..setHttpPostForced(false); // Set to 'true' if you want HTTP POST to 
-          // be used for all requests
+          ..setHttpPostForced(false); // Set to 'true' if you want HTTP POST to
+        // be used for all requests
         if (_enableManualSession) {
           config.enableManualSessionHandling();
         }
@@ -131,11 +131,11 @@ class _MyAppState extends State<MyApp> {
           }); // Set callback to receive push notifications
           Countly.askForNotificationPermission(); // This method will ask for
           // permission, enables push notification and send push token to
-          // countly server.;
+          // countly server.
 
           Countly.giveAllConsent(); // give consent for all features, should be
           // call after init
-          // Countly.giveConsent(['events', 'views']); // give consent for some 
+          // Countly.giveConsent(['events', 'views']); // give consent for some
           // specific features, should be call after init.
         }); // Initialize the countly SDK.
       } else {
@@ -274,7 +274,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void recordIndirectAttribution() {
-    Map<String, String> attributionValues = {};
+    final Map<String, String> attributionValues = {};
     if (Platform.isIOS) {
       attributionValues[AttributionKey.IDFA] = 'IDFA';
     } else {
@@ -445,13 +445,13 @@ class _MyAppState extends State<MyApp> {
     Countly.askForNotificationPermission();
   }
 
-  void _showDialog(String alterText) {
+  void _showDialog(String alertText) {
     showDialog(
       context: navigatorKey.currentContext!,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Alert!!'),
-          content: Text(alterText),
+          content: Text(alertText),
           actions: <Widget>[
             ElevatedButton(
               child: const Text('OK'),
@@ -569,7 +569,7 @@ class _MyAppState extends State<MyApp> {
 
   void causeException() {
     final Map<String, Object> options =
-        json.decode('This is an on purpose error.');
+        json.decode('This is a deliberate error.');
     print(options.length);
   }
 
@@ -634,7 +634,7 @@ class _MyAppState extends State<MyApp> {
     // In the EditBox you would write the ID that you retrieved from your
     // Countly Dashboard.
     Countly.presentRatingWidgetWithID(
-      ratingIdController.text,
+      _ratingIdController.text,
       closeButtonText: 'close',
       ratingWidgetCallback: (error) {
         if (error != null) {
@@ -658,10 +658,10 @@ class _MyAppState extends State<MyApp> {
         widgets.first,
         'Close',
         widgetShown: () {
-          print('showFeedbackWidget widgetShown');
+          print('showFeedbackWidget widget shown');
         },
         widgetClosed: () {
-          print('showFeedbackWidget widgetClosed');
+          print('showFeedbackWidget widget closed');
         },
       );
     }
@@ -676,7 +676,7 @@ class _MyAppState extends State<MyApp> {
       return;
     }
 
-    for (CountlyPresentableFeedback widget in widgets) {
+    for (final widget in widgets) {
       if (widget.type == 'survey') {
         await Countly.presentFeedbackWidget(widget, 'Cancel');
         break;
@@ -696,9 +696,9 @@ class _MyAppState extends State<MyApp> {
     for (final widget in widgets) {
       if (widget.type == 'nps') {
         await Countly.presentFeedbackWidget(widget, 'Close', widgetShown: () {
-          print('NPS widgetShown');
+          print('NPS widget shown');
         }, widgetClosed: () {
-          print('NPS widgetClosed');
+          print('NPS widget closed');
         });
         break;
       }
@@ -713,15 +713,11 @@ class _MyAppState extends State<MyApp> {
     if (error != null) {
       return;
     }
-    CountlyPresentableFeedback? chosenWidget;
     for (final widget in widgets) {
       if (widget.type == 'survey') {
-        chosenWidget = widget;
+        reportSurvey(widget);
         break;
       }
-    }
-    if (chosenWidget != null) {
-      reportSurvey(chosenWidget);
     }
   }
 
@@ -752,6 +748,7 @@ class _MyAppState extends State<MyApp> {
                     if (b != 0) {
                       str += ',';
                     }
+                    // ignore: avoid_dynamic_calls
                     str += choices[b]['key'];
                   }
                 }
@@ -762,6 +759,7 @@ class _MyAppState extends State<MyApp> {
               case 'dropdown':
                 final List<dynamic> choices = question['choices'];
                 final pick = rnd.nextInt(choices.length);
+                // ignore: avoid_dynamic_calls
                 segments[answerKey] = choices[pick]['key']; //pick the key of
                 // random choice
                 break;
@@ -786,43 +784,36 @@ class _MyAppState extends State<MyApp> {
   }
 
   void reportNPSManually() async {
-    final feedbackWidgetsResponse =
-        await Countly.getAvailableFeedbackWidgets();
-    final widgets =
-        feedbackWidgetsResponse.presentableFeedback;
+    final feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets();
+    final widgets = feedbackWidgetsResponse.presentableFeedback;
     final error = feedbackWidgetsResponse.error;
 
     if (error != null) {
       return;
     }
 
-    CountlyPresentableFeedback? chosenWidget;
     for (final widget in widgets) {
       if (widget.type == 'nps') {
-        chosenWidget = widget;
+        reportNPS(widget);
         break;
       }
-    }
-    if (chosenWidget != null) {
-      reportNPS(chosenWidget);
     }
   }
 
   void reportNPS(CountlyPresentableFeedback chosenWidget) {
-    Countly.getFeedbackWidgetData(chosenWidget,
-        onFinished: (retrievedWidgetData, error) {
-      if (error == null) {
-        final segments = {
-          'rating': 3,
-          'comment': 'Filled out comment'
-        };
-        Countly.reportFeedbackWidgetManually(
-          chosenWidget,
-          retrievedWidgetData,
-          segments,
-        );
-      }
-    });
+    Countly.getFeedbackWidgetData(
+      chosenWidget,
+      onFinished: (retrievedWidgetData, error) {
+        if (error == null) {
+          final segments = {'rating': 3, 'comment': 'Filled out comment'};
+          Countly.reportFeedbackWidgetManually(
+            chosenWidget,
+            retrievedWidgetData,
+            segments,
+          );
+        }
+      },
+    );
   }
 
   void setLocation() {
@@ -851,7 +842,7 @@ class _MyAppState extends State<MyApp> {
 
   void recordNetworkTraceSuccess() {
     const networkTraceKey = 'api/endpoint.1';
-    var rnd = Random();
+    final rnd = Random();
     final responseCode = successCodes[rnd.nextInt(successCodes.length)];
     final requestPayloadSize = rnd.nextInt(700) + 200;
     final responsePayloadSize = rnd.nextInt(700) + 200;
@@ -888,7 +879,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
-    ratingIdController.dispose();
+    _ratingIdController.dispose();
     super.dispose();
   }
 
@@ -1295,7 +1286,7 @@ class _MyAppState extends State<MyApp> {
                   onPressed: presentRatingWidget,
                 ),
                 TextField(
-                  controller: ratingIdController,
+                  controller: _ratingIdController,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     hintText: 'Enter a Rating ID',
@@ -1304,7 +1295,7 @@ class _MyAppState extends State<MyApp> {
                 MyButton(
                   text: 'Show Rating using EditBox',
                   color: 'orange',
-                  onPressed: ratingIdController.text.isNotEmpty
+                  onPressed: _ratingIdController.text.isNotEmpty
                       ? presentRatingWidgetUsingEditBox
                       : null,
                 ),
@@ -1438,9 +1429,7 @@ class MyButton extends StatelessWidget {
   })  : _text = text,
         _onPressed = onPressed,
         super(key: key) {
-    Map<String, Color>? tColor;
-    tColor = getColor(color);
-    tColor = tColor ??= theColor['default'];
+    final Map<String, Color>? tColor = getColor(color) ?? theColor['default'];
     _button = tColor?['button'];
     _textC = tColor?['text'];
   }
