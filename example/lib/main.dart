@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -10,8 +9,8 @@ import 'package:countly_flutter/countly_config.dart';
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter/material.dart';
 
-
 final navigatorKey = GlobalKey<NavigatorState>();
+
 /// This or a similar call needs to added to catch and report Dart Errors to Countly,
 /// You need to run the app inside a Zone
 /// and provide the [Countly.recordDartError] callback for [onError()]
@@ -50,7 +49,7 @@ class _MyAppState extends State<MyApp> {
     Countly.isInitialized().then((bool isInitialized) {
       if (!isInitialized) {
         Countly.pushTokenType(Countly.messagingMode['TEST']!); // Set messaging mode for push notifications
-        
+
         var crashSegment = {'Key': 'Value'};
         var userProperties = {'customProperty': 'custom Value', 'username': 'USER_NAME', 'email': 'USER_EMAIL'};
 
@@ -439,6 +438,7 @@ class _MyAppState extends State<MyApp> {
       });
     });
   }
+
   void eventForGoal_1() {
     var event = {'key': 'eventForGoal_1', 'count': 1};
     Countly.recordEvent(event);
@@ -866,12 +866,10 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'Remove Consent Push', color: 'blue', onPressed: removeConsentpush),
               MyButton(text: 'Remove Consent starRating', color: 'blue', onPressed: removeConsentstarRating),
               MyButton(text: 'Remove Consent Performance', color: 'blue', onPressed: removeConsentAPM),
-
               const Text('Section for A/B testing:', style: TextStyle(color: Colors.green), textAlign: TextAlign.center),
               MyButton(text: 'Get AB testing values', color: 'green', onPressed: getABTestingValues),
               MyButton(text: 'Record event for goal #1', color: 'green', onPressed: eventForGoal_1),
               MyButton(text: 'Record event for goal #2', color: 'green', onPressed: eventForGoal_2),
-
               MyButton(text: 'Countly.remoteConfigUpdate', color: 'purple', onPressed: remoteConfigUpdate),
               MyButton(text: 'Countly.updateRemoteConfigForKeysOnly', color: 'purple', onPressed: updateRemoteConfigForKeysOnly),
               MyButton(text: 'Countly.updateRemoteConfigExceptKeys', color: 'purple', onPressed: updateRemoteConfigExceptKeys),
@@ -977,7 +975,9 @@ class MyButton extends StatelessWidget {
     String? color,
     void Function()? onPressed,
     Key? key,
-  }) : _text = text, _onPressed = onPressed, super(key: key) {
+  })  : _text = text,
+        _onPressed = onPressed,
+        super(key: key) {
     Map<String, Color>? tColor;
     tColor = getColor(color);
     tColor ??= theColor['default'];

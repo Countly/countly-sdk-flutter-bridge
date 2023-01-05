@@ -50,6 +50,7 @@ linter:
     unawaited_futures: true
     unsafe_html: true
     use_full_hex_values_for_flutter_colors: true
+    curly_braces_in_flow_control_structures: true
     # always_specify_types: true // consider enabling later.
 
 # Additional information about this file can be found at
