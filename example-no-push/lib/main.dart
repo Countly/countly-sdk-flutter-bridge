@@ -1,30 +1,35 @@
-import 'dart:io';
-
-import 'package:flutter/material.dart';
 import 'dart:async';
-import 'dart:math';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
 
-import 'package:countly_flutter_np/countly_flutter.dart';
+// ignore: depend_on_referenced_packages
 import 'package:countly_flutter_np/countly_config.dart';
-
+// ignore: depend_on_referenced_packages
+import 'package:countly_flutter_np/countly_flutter.dart';
+import 'package:flutter/material.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
+
 /// This or a similar call needs to added to catch and report Dart Errors to Countly,
-/// You need to run app inside a Zone
+/// You need to run the app inside a Zone
 /// and provide the [Countly.recordDartError] callback for [onError()]
 void main() {
   runZonedGuarded<Future<void>>(() async {
-    runApp(MaterialApp(
-      home: MyApp(),
-      navigatorKey: navigatorKey, // Setting a global key for navigator
-    ),);
+    runApp(
+      MaterialApp(
+        home: const MyApp(),
+        navigatorKey: navigatorKey, // Setting a global key for navigator
+      ),
+    );
   }, Countly.recordDartError);
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
-  _MyAppState createState() => _MyAppState();
+  State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
@@ -44,7 +49,7 @@ class _MyAppState extends State<MyApp> {
     Countly.isInitialized().then((bool isInitialized) {
       if (!isInitialized) {
         Countly.pushTokenType(Countly.messagingMode['TEST']!); // Set messaging mode for push notifications
-        
+
         var crashSegment = {'Key': 'Value'};
         var userProperties = {'customProperty': 'custom Value', 'username': 'USER_NAME', 'email': 'USER_EMAIL'};
 
@@ -117,7 +122,7 @@ class _MyAppState extends State<MyApp> {
   static String SERVER_URL = 'https://master.count.ly';
 
   // ignore: non_constant_identifier_names
-  static String APP_KEY = '58594c9a3f461ebc000761a68c2146659ef75ea0';
+  static String APP_KEY = 'YOUR_API_KEY';
 
   void enableTemporaryIdMode() {
     Countly.changeDeviceId(Countly.deviceIDType['TemporaryDeviceID']!, false);
@@ -126,8 +131,8 @@ class _MyAppState extends State<MyApp> {
   bool isManualSession() {
     //
     if (!_enableManualSession) {
-      final snackBar = SnackBar(
-        content: const Text("Set '_enableManualSession = true' in 'main.dart' to test Manual Session Handling"),
+      const snackBar = SnackBar(
+        content: Text("Set '_enableManualSession = true' in 'main.dart' to test Manual Session Handling"),
       );
       _messangerKey.currentState!.showSnackBar(snackBar);
     }
@@ -184,21 +189,21 @@ class _MyAppState extends State<MyApp> {
 
   void endEventBasic() {
     Countly.startEvent('Timed Event');
-    Timer(Duration(seconds: 5), () {
+    Timer(const Duration(seconds: 5), () {
       Countly.endEvent({'key': 'Timed Event'});
     });
   }
 
   void endEventWithSum() {
     Countly.startEvent('Timed Event With Sum');
-    Timer(Duration(seconds: 5), () {
+    Timer(const Duration(seconds: 5), () {
       Countly.endEvent({'key': 'Timed Event With Sum', 'sum': '0.99'});
     });
   }
 
   void endEventWithSegment() {
     Countly.startEvent('Timed Event With Segment');
-    Timer(Duration(seconds: 5), () {
+    Timer(const Duration(seconds: 5), () {
       var event = {
         'key': 'Timed Event With Segment',
         'count': 1,
@@ -210,7 +215,7 @@ class _MyAppState extends State<MyApp> {
 
   void endEventWithSumSegment() {
     Countly.startEvent('Timed Event With Segment, Sum and Count');
-    Timer(Duration(seconds: 5), () {
+    Timer(const Duration(seconds: 5), () {
       var event = {'key': 'Timed Event With Segment, Sum and Count', 'count': 1, 'sum': '0.99'};
       event['segmentation'] = {'Country': 'Turkey', 'Age': '28'};
       Countly.endEvent(event);
@@ -404,16 +409,16 @@ class _MyAppState extends State<MyApp> {
     Countly.askForNotificationPermission();
   }
 
-  void _showDialog(String alterText) {
+  void _showDialog(String alertText) {
     showDialog(
       context: navigatorKey.currentContext!,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Alert!!'),
-          content: Text(alterText),
+          title: const Text('Alert!!'),
+          content: Text(alertText),
           actions: <Widget>[
             ElevatedButton(
-              child: Text('OK'),
+              child: const Text('OK'),
               onPressed: () {
                 Navigator.of(navigatorKey.currentContext!).pop();
               },
@@ -433,6 +438,7 @@ class _MyAppState extends State<MyApp> {
       });
     });
   }
+
   void eventForGoal_1() {
     var event = {'key': 'eventForGoal_1', 'count': 1};
     Countly.recordEvent(event);
@@ -497,7 +503,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  void getDeviceIDType() async {
+  Future<void> getDeviceIDType() async {
     DeviceIdType? deviceIdType = await Countly.getDeviceIDType();
     if (deviceIdType != null) {
       setState(() {
@@ -516,7 +522,7 @@ class _MyAppState extends State<MyApp> {
 
   void addCrashLog() {
     Countly.addCrashLog('User Performed Step A');
-    Timer(Duration(seconds: 5), () {
+    Timer(const Duration(seconds: 5), () {
       Countly.logException('one.js \n two.js \n three.js', true, {'_facebook_version': '0.0.1'});
     });
   }
@@ -587,7 +593,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  void showFeedbackWidget() async {
+  Future<void> showFeedbackWidget() async {
     FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets();
     List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
     String? error = feedbackWidgetsResponse.error;
@@ -598,14 +604,14 @@ class _MyAppState extends State<MyApp> {
 
     if (widgets.isNotEmpty) {
       await Countly.presentFeedbackWidget(widgets.first, 'Close', widgetShown: () {
-        print('showFeedbackWidget widgetShown');
+        print('showFeedbackWidget widget shown');
       }, widgetClosed: () {
-        print('showFeedbackWidget widgetClosed');
+        print('showFeedbackWidget widget closed');
       });
     }
   }
 
-  void showSurvey() async {
+  Future<void> showSurvey() async {
     FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets();
     List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
     String? error = feedbackWidgetsResponse.error;
@@ -622,7 +628,7 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  void showNPS() async {
+  Future<void> showNPS() async {
     FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets();
     List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
     String? error = feedbackWidgetsResponse.error;
@@ -634,16 +640,16 @@ class _MyAppState extends State<MyApp> {
     for (CountlyPresentableFeedback widget in widgets) {
       if (widget.type == 'nps') {
         await Countly.presentFeedbackWidget(widget, 'Close', widgetShown: () {
-          print('NPS widgetShown');
+          print('NPS widget shown');
         }, widgetClosed: () {
-          print('NPS widgetClosed');
+          print('NPS widget closed');
         });
         break;
       }
     }
   }
 
-  void reportSurveyManually() async {
+  Future<void> reportSurveyManually() async {
     FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets();
     List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
     String? error = feedbackWidgetsResponse.error;
@@ -659,11 +665,11 @@ class _MyAppState extends State<MyApp> {
       }
     }
     if (chosenWidget != null) {
-      reportSurvey(chosenWidget);
+      unawaited(reportSurvey(chosenWidget));
     }
   }
 
-  void reportSurvey(CountlyPresentableFeedback chosenWidget) async {
+  Future<void> reportSurvey(CountlyPresentableFeedback chosenWidget) async {
     List result = await Countly.getFeedbackWidgetData(chosenWidget);
     String? error = result[1];
     if (error == null) {
@@ -679,7 +685,7 @@ class _MyAppState extends State<MyApp> {
             Map<dynamic, dynamic> question = questions[a];
             String wType = question['type'];
             String questionId = question['id'];
-            String answerKey = 'answ-' + questionId;
+            String answerKey = 'answ-$questionId';
             switch (wType) {
               //multiple answer question
               case 'multi':
@@ -718,7 +724,7 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  void reportNPSManually() async {
+  Future<void> reportNPSManually() async {
     FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets();
     List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
     String? error = feedbackWidgetsResponse.error;
@@ -808,7 +814,7 @@ class _MyAppState extends State<MyApp> {
             child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
-              Text(_deviceIdType, style: TextStyle(color: Colors.red), textAlign: TextAlign.center),
+              Text(_deviceIdType, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
               MyButton(text: 'Get Device Id Type', color: 'green', onPressed: getDeviceIDType),
               MyButton(text: 'Begin Session', color: 'green', onPressed: beginSession),
               MyButton(text: 'Update Session', color: 'green', onPressed: updateSession),
@@ -860,12 +866,10 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'Remove Consent Push', color: 'blue', onPressed: removeConsentpush),
               MyButton(text: 'Remove Consent starRating', color: 'blue', onPressed: removeConsentstarRating),
               MyButton(text: 'Remove Consent Performance', color: 'blue', onPressed: removeConsentAPM),
-
-              Text("Section for A/B testing:", style: TextStyle(color: Colors.green), textAlign: TextAlign.center),
+              const Text('Section for A/B testing:', style: TextStyle(color: Colors.green), textAlign: TextAlign.center),
               MyButton(text: 'Get AB testing values', color: 'green', onPressed: getABTestingValues),
               MyButton(text: 'Record event for goal #1', color: 'green', onPressed: eventForGoal_1),
               MyButton(text: 'Record event for goal #2', color: 'green', onPressed: eventForGoal_2),
-
               MyButton(text: 'Countly.remoteConfigUpdate', color: 'purple', onPressed: remoteConfigUpdate),
               MyButton(text: 'Countly.updateRemoteConfigForKeysOnly', color: 'purple', onPressed: updateRemoteConfigForKeysOnly),
               MyButton(text: 'Countly.updateRemoteConfigExceptKeys', color: 'purple', onPressed: updateRemoteConfigExceptKeys),
@@ -890,7 +894,7 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'Open feedback modal', color: 'orange', onPressed: presentRatingWidget),
               TextField(
                 controller: ratingIdController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   hintText: 'Enter a Rating ID',
                 ),
@@ -914,20 +918,20 @@ class _MyAppState extends State<MyApp> {
 }
 
 Map<String, Map<String, Color>> theColor = {
-  'default': {'button': Color(0xffe0e0e0), 'text': Color(0xff000000)},
-  'red': {'button': Color(0xffdb2828), 'text': Color(0xff000000)},
-  'green': {'button': Colors.green, 'text': Color(0xffffffff)},
-  'teal': {'button': Color(0xff00b5ad), 'text': Color(0xff000000)},
-  'blue': {'button': Color(0xff00b5ad), 'text': Color(0xff000000)},
-  'primary': {'button': Color(0xff54c8ff), 'text': Color(0xff000000)},
-  'grey': {'button': Color(0xff767676), 'text': Color(0xff000000)},
-  'brown': {'button': Color(0xffa5673f), 'text': Color(0xff000000)},
-  'purple': {'button': Color(0xffa333c8), 'text': Color(0xff000000)},
-  'violet': {'button': Color(0xff6435c9), 'text': Color(0xff000000)},
-  'yellow': {'button': Color(0xfffbbd08), 'text': Color(0xffffffff)},
-  'black': {'button': Color(0xff1b1c1d), 'text': Color(0xffffffff)},
-  'olive': {'button': Color(0xffd9e778), 'text': Color(0xff000000)},
-  'orange': {'button': Color(0xffff851b), 'text': Color(0xff000000)}
+  'default': {'button': const Color(0xffe0e0e0), 'text': const Color(0xff000000)},
+  'red': {'button': const Color(0xffdb2828), 'text': const Color(0xff000000)},
+  'green': {'button': Colors.green, 'text': const Color(0xffffffff)},
+  'teal': {'button': const Color(0xff00b5ad), 'text': const Color(0xff000000)},
+  'blue': {'button': const Color(0xff00b5ad), 'text': const Color(0xff000000)},
+  'primary': {'button': const Color(0xff54c8ff), 'text': const Color(0xff000000)},
+  'grey': {'button': const Color(0xff767676), 'text': const Color(0xff000000)},
+  'brown': {'button': const Color(0xffa5673f), 'text': const Color(0xff000000)},
+  'purple': {'button': const Color(0xffa333c8), 'text': const Color(0xff000000)},
+  'violet': {'button': const Color(0xff6435c9), 'text': const Color(0xff000000)},
+  'yellow': {'button': const Color(0xfffbbd08), 'text': const Color(0xffffffff)},
+  'black': {'button': const Color(0xff1b1c1d), 'text': const Color(0xffffffff)},
+  'olive': {'button': const Color(0xffd9e778), 'text': const Color(0xff000000)},
+  'orange': {'button': const Color(0xffff851b), 'text': const Color(0xff000000)}
 };
 
 Map<String, Color>? getColor(color) {
@@ -961,25 +965,28 @@ Map<String, Color>? getColor(color) {
 }
 
 class MyButton extends StatelessWidget {
-  String? _text;
-  Color? _button;
-  Color? _textC;
-  void Function()? _onPressed;
+  final String _text;
+  late final Color? _button;
+  late final Color? _textC;
+  final void Function()? _onPressed;
 
-  MyButton({String? color, String? text, void Function()? onPressed}) {
-    _text = text!;
-
+  MyButton({
+    required String text,
+    String? color,
+    void Function()? onPressed,
+    Key? key,
+  })  : _text = text,
+        _onPressed = onPressed,
+        super(key: key) {
     Map<String, Color>? tColor;
     tColor = getColor(color);
-    tColor = tColor ??= theColor['default'];
+    tColor ??= theColor['default'];
     _button = tColor?['button'];
     _textC = tColor?['text'];
-
-    _onPressed = onPressed;
   }
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(style: ElevatedButton.styleFrom(primary: _button, padding: EdgeInsets.all(10.0), minimumSize: Size(double.infinity, 36)), onPressed: _onPressed, child: Text(_text!, style: TextStyle(color: _textC), textAlign: TextAlign.center));
+    return ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: _button, padding: const EdgeInsets.all(10.0), minimumSize: const Size(double.infinity, 36)), onPressed: _onPressed, child: Text(_text, style: TextStyle(color: _textC), textAlign: TextAlign.center));
   }
 }
