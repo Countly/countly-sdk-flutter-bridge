@@ -15,7 +15,7 @@
 + (CountlyFeedbackWidget *)createWithDictionary:(NSDictionary *)dictionary;
 @end
 
-// #define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
+#define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
 BOOL BUILDING_WITH_PUSH_DISABLED = true;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
