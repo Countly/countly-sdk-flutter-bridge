@@ -3,6 +3,11 @@
 * Underlying android SDK version is 22.06.2
 * Underlying iOS SDK version is 22.09.0
 
+## 22.09.0-np
+* This flavor is a "no push notification" variant of the Countly SDK.
+* Updated underlying android SDK version is 22.06.2
+* Updated underlying iOS SDK version is 22.09.0
+
 ## 22.02.1
 * SDK has been internally slightly reworked to support a "no push notification" variant.
 * Fixed incorrect iOS push token type when passing "Countly.messagingMode.PRODUCTION" as token type.
