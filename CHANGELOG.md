@@ -1,5 +1,5 @@
 ## 22.09.0
-* Fixed isInitialized variable reset on hot reload.
+* Fixed "isInitialized" variable reset on hot reload.
 * Underlying android SDK version is 22.06.2
 * Underlying iOS SDK version is 22.09.0
 
