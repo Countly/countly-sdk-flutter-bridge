@@ -1,6 +1,16 @@
+## 22.09.0
+* Fixed "isInitialized" variable reset on hot reload.
+* Underlying android SDK version is 22.06.2
+* Underlying iOS SDK version is 22.09.0
+
 ## 22.02.1
 * SDK has been internally slightly reworked to support a "no push notification" variant.
 * Fixed incorrect iOS push token type when passing "Countly.messagingMode.PRODUCTION" as token type.
+* Underlying android SDK version is 22.02.1
+* Underlying iOS SDK version is 22.06.0
+
+## 22.02.1-np
+* This flavor is a "no push notification" variant of the Countly SDK.
 * Underlying android SDK version is 22.02.1
 * Underlying iOS SDK version is 22.06.0
 
