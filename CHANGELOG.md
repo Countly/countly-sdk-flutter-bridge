@@ -1,7 +1,7 @@
 ## 22.09.0
 * Fixed "isInitialized" variable reset on hot reload.
-* Underlying android SDK version is 22.06.2
-* Underlying iOS SDK version is 22.09.0
+* Updated underlying android SDK version to 22.06.2
+* Updated underlying iOS SDK version to 22.09.0
 
 ## 22.09.0-np
 * This flavor is a "no push notification" variant of the Countly SDK.
