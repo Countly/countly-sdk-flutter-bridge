@@ -4,7 +4,7 @@
 * Updated underlying iOS SDK version to 22.09.0
 
 ## 22.09.0-np
-* This flavor is a "no push notification" variant of the Countly SDK.
+* Fixed "isInitialized" variable reset on hot reload.
 * Updated underlying android SDK version is 22.06.2
 * Updated underlying iOS SDK version is 22.09.0
 
