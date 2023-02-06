@@ -64,10 +64,6 @@ CLYUserDefaultKey const CLYPushButtonIndexKey = @"notificationBtnIndexKey";
 	});
 }
 
-- (void) saveListener:(FlutterResult) result{
-	notificationListener = result;
-}
-
 - (void) registerForNotification:(FlutterResult) result{
 	dispatch_async(dispatch_get_main_queue(), ^ {
 		notificationListener = result;

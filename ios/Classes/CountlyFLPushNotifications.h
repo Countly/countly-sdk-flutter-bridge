@@ -19,7 +19,7 @@
 - (void)startObservingNotifications;
 - (void)askForNotificationPermission;
 - (void)onNotification:(NSDictionary *_Nullable)notification;
-- (void) registerForNotification:(FlutterResult _Nonnull ) result;
+- (void)registerForNotification:(FlutterResult _Nonnull ) result;
 - (void)onNotificationResponse:(UNNotificationResponse* _Nullable)response;
 #endif
 @end

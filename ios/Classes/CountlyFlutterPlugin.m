@@ -448,7 +448,7 @@ FlutterMethodChannel* _channel;
             if([tokenType isEqualToString: @"1"]){
                 config.pushTestMode = CLYPushTestModeDevelopment;
 			}
-			else if([tokenType isEqualToString: @"2"] || [tokenType isEqualToString: @"0"]) {
+			else if([tokenType isEqualToString: @"2"]) {
                 config.pushTestMode = CLYPushTestModeTestFlightOrAdHoc;
             }
         });
