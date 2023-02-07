@@ -4,14 +4,14 @@
 //
 // Please visit www.count.ly for more information.
 
-#import <Foundation/Foundation.h>
 #import <Flutter/Flutter.h>
+#import <Foundation/Foundation.h>
 
 @interface CountlyFLPushNotifications : NSObject
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
-@property (nonatomic, assign) BOOL enablePushNotifications;
+@property(nonatomic, assign) BOOL enablePushNotifications;
 
-+ (instancetype _Nonnull )sharedInstance;
++ (instancetype _Nonnull)sharedInstance;
 
 - (void)recordPushActions;
 - (void)disablePushNotifications;
@@ -19,7 +19,7 @@
 - (void)startObservingNotifications;
 - (void)askForNotificationPermission;
 - (void)onNotification:(NSDictionary *_Nullable)notification;
-- (void)registerForNotification:(FlutterResult _Nonnull ) result;
-- (void)onNotificationResponse:(UNNotificationResponse* _Nullable)response;
+- (void)registerForNotification:(FlutterResult _Nonnull)result;
+- (void)onNotificationResponse:(UNNotificationResponse *_Nullable)response;
 #endif
 @end
