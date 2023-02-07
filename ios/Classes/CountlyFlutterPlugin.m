@@ -4,6 +4,7 @@
 #import "CountlyCommon.h"
 #import "CountlyDeviceInfo.h"
 #import "CountlyRemoteConfig.h"
+#import "CountlyFLPushNotifications.h"
 
 #if DEBUG
 #define COUNTLY_FLUTTER_LOG(fmt, ...) CountlyFlutterInternalLog(fmt, ##__VA_ARGS__)
@@ -20,16 +21,9 @@ BOOL BUILDING_WITH_PUSH_DISABLED = false;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
 
-NSString* const kCountlyFlutterSDKVersion = @"22.09.0";
+NSString* const kCountlyFlutterSDKVersion = @"22.09.1";
 NSString* const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 NSString* const kCountlyFlutterSDKNameNoPush = @"dart-flutterbnp-ios";
-
-#ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
-FlutterResult notificationListener = nil;
-NSDictionary *lastStoredNotification = nil;
-NSMutableArray *notificationIDs = nil;        // alloc here
-BOOL enablePushNotifications = true;
-#endif
 
 NSMutableArray<CLYFeature>* countlyFeatures = nil;
 NSArray<CountlyFeedbackWidget*>* feedbackWidgetList = nil;
@@ -83,7 +77,7 @@ FlutterMethodChannel* _channel;
         //config.sendPushTokenAlways = YES;
 #if (TARGET_OS_IOS)
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
-        if(enablePushNotifications) {
+        if([CountlyFLPushNotifications.sharedInstance enablePushNotifications]) {
             [self addCountlyFeature:CLYPushNotifications];
         }
 #endif
@@ -94,7 +88,7 @@ FlutterMethodChannel* _channel;
                 [[Countly sharedInstance] startWithConfig:config];
 				
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
-				[self recordPushAction];
+				[CountlyFLPushNotifications.sharedInstance recordPushActions];
 #endif
             });
             result(@"initialized.");
@@ -435,18 +429,13 @@ FlutterMethodChannel* _channel;
         });
         result(@"setCustomCrashSegment!");
     }else if ([@"disablePushNotifications" isEqualToString:call.method]) {
-		
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
-        dispatch_async(dispatch_get_main_queue(), ^ {
-            enablePushNotifications = false;
-        });
+		[CountlyFLPushNotifications.sharedInstance disablePushNotifications];
 #endif
         result(@"disablePushNotifications!");
     }else if ([@"askForNotificationPermission" isEqualToString:call.method]) {
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
-        dispatch_async(dispatch_get_main_queue(), ^ {
-            [Countly.sharedInstance askForNotificationPermission];
-        });
+		[CountlyFLPushNotifications.sharedInstance askForNotificationPermission];
 #endif
         result(@"askForNotificationPermission!");
     }else if ([@"pushTokenType" isEqualToString:call.method]) {
@@ -467,12 +456,8 @@ FlutterMethodChannel* _channel;
 		result(@"pushTokenType!");
     }else if ([@"registerForNotification" isEqualToString:call.method]) {
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
-        COUNTLY_FLUTTER_LOG(@"registerForNotification");
-        notificationListener = result;
-        if(lastStoredNotification != nil){
-            result([lastStoredNotification description]);
-            lastStoredNotification = nil;
-        }
+		COUNTLY_FLUTTER_LOG(@"registerForNotification");
+		[CountlyFLPushNotifications.sharedInstance registerForNotification:result];
 #endif
     }else if ([@"userData_setProperty" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^ {
@@ -1194,37 +1179,15 @@ FlutterMethodChannel* _channel;
 }
 
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
-+ (void)onNotification: (NSDictionary *) notificationMessage{
-    COUNTLY_FLUTTER_LOG(@"Notification received");
-    COUNTLY_FLUTTER_LOG(@"The notification %@", notificationMessage);
-    if(notificationMessage && notificationListener != nil){
-        notificationListener([NSString stringWithFormat:@"%@",notificationMessage]);
-    }else{
-        lastStoredNotification = notificationMessage;
-    }
-    if(notificationMessage){
-        if(notificationIDs == nil){
-            notificationIDs = [[NSMutableArray alloc] init];
-        }
-        NSDictionary* countlyPayload = notificationMessage[@"c"];
-        NSString *notificationID = countlyPayload[@"i"];
-        [notificationIDs insertObject:notificationID atIndex:[notificationIDs count]];
-    }
++ (void)startObservingNotifications {
+	[CountlyFLPushNotifications.sharedInstance startObservingNotifications];
 }
 
-- (void)recordPushAction
-{
-    for(int i=0,il = (int) notificationIDs.count;i<il;i++){
-        NSString *notificationID = notificationIDs[i];
-        NSDictionary* segmentation =
-        @{
-            @"i": notificationID,
-            @"b": @(0)
-        };
-        [Countly.sharedInstance recordEvent:@"[CLY]_push_action" segmentation: segmentation];
-    }
-    
-    [notificationIDs removeAllObjects];
++ (void)onNotification:(NSDictionary *_Nullable)notification {
+	[CountlyFLPushNotifications.sharedInstance onNotification:notification];
+}
++ (void)onNotificationResponse:(UNNotificationResponse* _Nullable)response {
+	[CountlyFLPushNotifications.sharedInstance onNotificationResponse:response];
 }
 #endif
 
