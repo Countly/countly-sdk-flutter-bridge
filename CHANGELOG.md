@@ -1,5 +1,5 @@
 ## 22.09.1
-* !! Resolved issue with handling push notification actions on iOS. 
+* !! Major breaking change !! Resolved issue with handling push notification actions on iOS. 
   * To handle push notification actions, add the following call "CountlyFlutterPlugin.startObservingNotifications();" to "AppDelegate.swift"
   * For further information, refer to the "Handling Push Callbacks" section of the Countly SDK documentation at:
     https://support.count.ly/hc/en-us/articles/360037944212-Flutter#handling-push-callbacks.
