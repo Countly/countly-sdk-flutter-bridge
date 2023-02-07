@@ -14,7 +14,7 @@ import shutil
 #       - can copy files if file and copy directory information is provided
 
 # OPERATION CONSTANTS
-FILES_TO_ERASE = ['../android/src/main/java/ly/count/dart/countly_flutter/CountlyMessagingService.java', '../ios/countly_flutter.podspec']  # array of string values. Relative path to the files. Something like: 'android/sth/sth.txt'
+FILES_TO_ERASE = ['../android/src/main/java/ly/count/dart/countly_flutter/CountlyMessagingService.java', '../ios/countly_flutter.podspec', '../ios/Classes/CountlyFLPushNotifications.h', '../ios/Classes/CountlyFLPushNotifications.m']  # array of string values. Relative path to the files. Something like: 'android/sth/sth.txt'
 FILES_TO_MOVE = [['no-push-files/AndroidManifest.xml','../android/src/main/AndroidManifest.xml'],['no-push-files/build.gradle','../android/build.gradle'],['no-push-files/pubspec.yaml','../pubspec.yaml'],['no-push-files/countly_flutter_np.podspec','../ios/countly_flutter_np.podspec'],['no-push-files/settings.gradle','../android/settings.gradle'],['no-push-files/README.md','../README.md']]  # array of, arrays of string tuples. Relative path to the file and the relative path to the copy directory. Something like ['android/sth/sth.txt','android2/folder']
 # fileToModify = [] # write the file name to modify, currently expecting 1 file
 # lineToModify = ''  # write the line to modify

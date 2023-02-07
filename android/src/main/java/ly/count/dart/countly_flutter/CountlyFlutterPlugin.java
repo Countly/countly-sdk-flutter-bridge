@@ -58,7 +58,7 @@ import ly.count.android.sdk.messaging.CountlyPush;
  */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
     private static final String TAG = "CountlyFlutterPlugin";
-    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "22.09.0";
+    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "22.09.1";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterbnp-android";
 

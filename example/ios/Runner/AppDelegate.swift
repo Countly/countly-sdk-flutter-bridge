@@ -9,6 +9,8 @@ import countly_flutter
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
+	  // For push notification received and action callbacks
+	  CountlyFlutterPlugin.startObservingNotifications();
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
      func application(application: UIApplication,  didReceiveRemoteNotification userInfo: [NSObject : AnyObject],  fetchCompletionHandler completionHandler: (UIBackgroundFetchResult) -> Void) {
