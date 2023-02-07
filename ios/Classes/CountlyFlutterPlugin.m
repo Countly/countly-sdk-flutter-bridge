@@ -1,9 +1,12 @@
+// #define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
 #import "CountlyFlutterPlugin.h"
 #import "Countly.h"
 #import "CountlyCommon.h"
 #import "CountlyConfig.h"
 #import "CountlyDeviceInfo.h"
+#ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
 #import "CountlyFLPushNotifications.h"
+#endif
 #import "CountlyRemoteConfig.h"
 
 #if DEBUG
@@ -16,7 +19,6 @@
 + (CountlyFeedbackWidget *)createWithDictionary:(NSDictionary *)dictionary;
 @end
 
-// #define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
 BOOL BUILDING_WITH_PUSH_DISABLED = false;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
