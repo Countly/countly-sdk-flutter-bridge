@@ -1,10 +1,13 @@
+// #define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
 #import "CountlyFlutterPlugin.h"
 #import "Countly.h"
 #import "CountlyConfig.h"
 #import "CountlyCommon.h"
 #import "CountlyDeviceInfo.h"
 #import "CountlyRemoteConfig.h"
-#import "CountlyFLPushNotifications.h"
+#ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
+	#import "CountlyFLPushNotifications.h"
+#endif
 
 #if DEBUG
 #define COUNTLY_FLUTTER_LOG(fmt, ...) CountlyFlutterInternalLog(fmt, ##__VA_ARGS__)
@@ -16,8 +19,7 @@
 + (CountlyFeedbackWidget *)createWithDictionary:(NSDictionary *)dictionary;
 @end
 
-// #define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
-BOOL BUILDING_WITH_PUSH_DISABLED = false;
+BOOL BUILDING_WITH_PUSH_DISABLED = true;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
 
