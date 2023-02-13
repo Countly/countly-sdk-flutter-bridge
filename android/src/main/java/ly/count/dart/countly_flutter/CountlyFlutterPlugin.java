@@ -373,8 +373,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     return;
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    String channelName = "Default Name";
-                    String channelDescription = "Default Description";
+                    String channelName = "General Notifications";
+                    String channelDescription = "Receive notifications about important updates and events.";
                     NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                     if (notificationManager != null) {
                         NotificationChannel channel = new NotificationChannel(CountlyPush.CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_DEFAULT);
