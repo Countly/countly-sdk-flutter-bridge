@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
 
+
 public class SwiftCountlyFlutterPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "countly_flutter", binaryMessenger: registrar.messenger())

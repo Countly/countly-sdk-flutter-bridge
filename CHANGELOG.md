@@ -1,13 +1,33 @@
+## 22.09.1
+* !! Major breaking change !! Resolved issue with handling push notification actions on iOS. 
+  * To handle push notification actions, add the following call "CountlyFlutterPlugin.startObservingNotifications();" to "AppDelegate.swift"
+  * For further information, refer to the "Handling Push Callbacks" section of the Countly SDK documentation at:
+    https://support.count.ly/hc/en-us/articles/360037944212-Flutter#handling-push-callbacks.
+* Underlying android SDK version is 22.06.2
+* Underlying iOS SDK version is 22.09.0
+* 
+## 22.09.1-np
+* Underlying android SDK version is 22.06.2
+* Underlying iOS SDK version is 22.09.0
+
+## 22.09.0
+* Fixed "isInitialized" variable reset on hot reload.
+* Updated underlying android SDK version to 22.06.2
+* Updated underlying iOS SDK version to 22.09.0
+
+## 22.09.0-np
+* Fixed "isInitialized" variable reset on hot reload.
+* Updated underlying android SDK version is 22.06.2
+* Updated underlying iOS SDK version is 22.09.0
+
 ## 22.02.1
 * SDK has been internally slightly reworked to support a "no push notification" variant.
 * Fixed incorrect iOS push token type when passing "Countly.messagingMode.PRODUCTION" as token type.
-
 * Underlying android SDK version is 22.02.1
 * Underlying iOS SDK version is 22.06.0
 
 ## 22.02.1-np
 * This flavor is a "no push notification" variant of the Countly SDK.
-
 * Underlying android SDK version is 22.02.1
 * Underlying iOS SDK version is 22.06.0
 

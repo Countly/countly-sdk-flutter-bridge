@@ -176,10 +176,11 @@ class Countly {
     log('Calling "isInitialized"');
     final String? result = await _channel.invokeMethod('isInitialized');
     if (result == 'true') {
-      return true;
+      _isInitialized = true;
     } else {
-      return false;
+      _isInitialized =  false;
     }
+    return _isInitialized;
   }
 
   /// Replaces all requests with a different app key with the current app key.
