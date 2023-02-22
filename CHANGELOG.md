@@ -1,3 +1,13 @@
+## 22.09.2
+* Fixed a race condition bug in Android where a recorded event would have the wrong user properties in the drill database on the server. Now event queue is emptied (formed into a request) before recording any user profile changes.
+* Events are now recorded with an internal ID in Android.
+* Updated Underlying android SDK version to 22.09.0
+* Underlying iOS SDK version is 22.09.0
+
+## 22.09.2-np
+* Updated Underlying android SDK version to 22.09.0
+* Underlying iOS SDK version is 22.09.0
+
 ## 22.09.1
 * !! Major breaking change !! Resolved issue with handling push notification actions on iOS. 
   * To handle push notification actions, add the following call "CountlyFlutterPlugin.startObservingNotifications();" to "AppDelegate.swift"
