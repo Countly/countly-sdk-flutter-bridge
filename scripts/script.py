@@ -18,7 +18,9 @@ import shutil
 # OPERATION CONSTANTS
 FILES_TO_ERASE = [
     '../android/src/main/java/ly/count/dart/countly_flutter/CountlyMessagingService.java',
-    '../ios/countly_flutter.podspec'
+    '../ios/countly_flutter.podspec',
+    '../ios/Classes/CountlyFLPushNotifications.h',
+    '../ios/Classes/CountlyFLPushNotifications.m'
 ]  # array of string values. Relative path to the files. Something like: 'android/sth/sth.txt'
 FILES_TO_MOVE = [
     [
@@ -46,9 +48,9 @@ FILES_TO_MOVE = [
         '../README.md'
     ]
 ]  # array of, arrays of string tuples. Relative path to the file and the relative path to the copy directory. Something like ['android/sth/sth.txt','android2/folder']
-modPathAndroid="../android/src/main/java/ly/count/dart/countly_flutter/CountlyFlutterPlugin.java"
-modPathIos="../ios/Classes/CountlyFlutterPlugin.m"
-modPathCountly="../lib/countly_flutter.dart"
+modPathAndroid = "../android/src/main/java/ly/count/dart/countly_flutter/CountlyFlutterPlugin.java"
+modPathIos = "../ios/Classes/CountlyFlutterPlugin.m"
+modPathCountly = "../lib/countly_flutter.dart"
 objectOfComModification = {
     modPathAndroid: {
         "modifications": {
@@ -77,15 +79,15 @@ objectOfComModification = {
     },
     modPathIos: {
         "modifications": {
-            "BOOL BUILDING_WITH_PUSH_DISABLED = false;":"BOOL BUILDING_WITH_PUSH_DISABLED = true;",
-            "// #define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS":"#define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS"
+            "BOOL BUILDING_WITH_PUSH_DISABLED = false;": "BOOL BUILDING_WITH_PUSH_DISABLED = true;",
+            "// #define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS": "#define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS"
         },
         "consecutiveOmits": []
     },
     modPathCountly: {
         "modifications": {
-            "import 'package:countly_flutter/countly_config.dart';":"import 'package:countly_flutter_np/countly_config.dart';",
-            "static const bool BUILDING_WITH_PUSH_DISABLED = false;":"  static const bool BUILDING_WITH_PUSH_DISABLED = true;"
+            "import 'package:countly_flutter/countly_config.dart';": "import 'package:countly_flutter_np/countly_config.dart';",
+            "static const bool BUILDING_WITH_PUSH_DISABLED = false;": "  static const bool BUILDING_WITH_PUSH_DISABLED = true;"
         },
         "consecutiveOmits": []
     }
@@ -93,6 +95,8 @@ objectOfComModification = {
 
 # walks through all files in the project and writes down the paths of the ones you are looking for. Can only work for unique files.
 # TODO: Refactor so that it checks only the specified folder and files, like ['android-app', 'gradle']. Makes it easy to find files without the need of relative path information.
+
+
 def findFilesTo(src, array):
     paths = []
     for root, dirs, files in os.walk(src):
@@ -104,6 +108,8 @@ def findFilesTo(src, array):
     return paths
 
 # loops through the provided array of relative paths and erases each file that exists
+
+
 def removeFiles(paths, cwd):
     for path in paths:
         path = os.path.join(cwd, path)
@@ -112,6 +118,8 @@ def removeFiles(paths, cwd):
             os.remove(path)
 
 # loops through the provided array of relative paths and copies each file that exists
+
+
 def copyFiles(arrays, cwd):
     for tuple in arrays:
         file = os.path.join(cwd, tuple[0])
@@ -122,6 +130,8 @@ def copyFiles(arrays, cwd):
 # (String) filePath - relative path to the file to modify
 # (Obj) modificationInfo - object that contains file path as keys and modification and omittance info as values
 # (String) modificationType - 'bloc' for block removal, 'mod' for modification
+
+
 def modifyFile(filePath, modificationInfo, modificationType):
     # reading operations
     with open(filePath, 'r') as f:
@@ -130,11 +140,13 @@ def modifyFile(filePath, modificationInfo, modificationType):
     for line in content:
         if modificationType == 'mod':
             if line.strip("\n") in modificationInfo[filePath]['modifications']:
-                if  modificationInfo[filePath]['modifications'][line.strip("\n")] == 'remove':
+                if modificationInfo[filePath]['modifications'][line.strip("\n")] == 'remove':
                     print("Removing line: ", line)
                 else:
-                    fileLines.append(modificationInfo[filePath]['modifications'][line.strip("\n")] + "\n")
-                    print("Replacing: ["+line+"] with: ["+modificationInfo[filePath]['modifications'][line.strip("\n")]+"]")
+                    fileLines.append(
+                        modificationInfo[filePath]['modifications'][line.strip("\n")] + "\n")
+                    print("Replacing: ["+line+"] with: ["+modificationInfo[filePath]
+                          ['modifications'][line.strip("\n")]+"]")
             else:
                 fileLines.append(line)
         elif modificationType == 'bloc':
@@ -143,7 +155,7 @@ def modifyFile(filePath, modificationInfo, modificationType):
                     modificationInfo[filePath]['consecutiveOmits'].pop(0)
                     print("Removing line: ", line)
                 else:
-                   fileLines.append(line)
+                    fileLines.append(line)
             else:
                 fileLines.append(line)
     f.close()
@@ -167,7 +179,6 @@ def main():
     print(modPathAndroid)
     print(modPathIos)
     print(modPathCountly)
-        
 
     # ask for permission to run the script
     start = input('Do you want to continue? (y/n)')
