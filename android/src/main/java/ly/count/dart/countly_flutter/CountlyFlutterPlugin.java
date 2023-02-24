@@ -383,19 +383,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     }
                 }
                 CountlyPush.init(activity.getApplication(), pushTokenType);
-//                FirebaseApp.initializeApp(context);
-//                FirebaseInstanceId.getInstance().getInstanceId()
-//                        .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-//                            @Override
-//                            public void onComplete(@NonNull Task<InstanceIdResult> task) {
-//                                if (!task.isSuccessful()) {
-//                                    log("getInstanceId failed", task.getException(), LogLevel.WARNING);
-//                                    return;
-//                                }
-//                                String token = task.getResult().getToken();
-//                                CountlyPush.onTokenRefresh(token);
-//                            }
-//                        });
                 result.success(" askForNotificationPermission!");
             } else if ("pushTokenType".equals(call.method)) {
                 String tokenType = args.getString(0);
