@@ -27,9 +27,6 @@ apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 android {
     compileSdkVersion 31
 
-    lintOptions {
-        disable 'InvalidPackage'
-    }
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
@@ -49,6 +46,10 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+    lint {
+        disable 'InvalidPackage'
+    }
+    namespace 'com.countly.demo'
 }
 
 flutter {
@@ -59,8 +60,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-    implementation 'ly.count.android:sdk:22.09.0'
-    implementation 'com.google.firebase:firebase-messaging:20.2.1'
+    implementation 'ly.count.android:sdk:22.02.1'
+    implementation 'com.google.firebase:firebase-messaging:20.0.0'
 }
 apply plugin: 'com.google.gms.google-services'  // Google Play services Gradle plugin
-
