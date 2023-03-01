@@ -26,7 +26,7 @@ NSString* const kCountlyOrientationKeyMode = @"mode";
 #endif
 @end
 
-NSString* const kCountlySDKVersion = @"22.06.0";
+NSString* const kCountlySDKVersion = @"23.02.0";
 NSString* const kCountlySDKName = @"objc-native-ios";
 
 NSString* const kCountlyErrorDomain = @"ly.count.ErrorDomain";
@@ -152,6 +152,17 @@ void CountlyPrint(NSString *stringToPrint)
     return (NSTimeInterval)(self.lastTimestamp / 1000.0);
 }
 
+- (NSString *)randomEventID
+{
+    const int size = 6;
+    void *randomBuffer = malloc(size);
+    arc4random_buf(randomBuffer, size);
+    NSData* randomData = [NSData dataWithBytesNoCopy:randomBuffer length:size freeWhenDone:YES];
+    NSString* randomBase64 = [randomData base64EncodedStringWithOptions:0];
+    NSTimeInterval timestamp = self.uniqueTimestamp;
+    NSString* randomEventID = [NSString stringWithFormat:@"%@%lld", randomBase64, (long long)(timestamp * 1000)];
+    return randomEventID;
+}
 
 #pragma mark - Orientation
 
@@ -292,6 +303,28 @@ void CountlyPrint(NSString *stringToPrint)
 #pragma mark - Internal ViewController
 #if (TARGET_OS_IOS)
 @implementation CLYInternalViewController : UIViewController
+
+- (void)viewWillLayoutSubviews
+{
+    [super viewWillLayoutSubviews];
+
+    if (self.webView)
+    {
+        CGRect frame = CGRectInset(self.view.bounds, 20.0, 20.0);
+
+        UIEdgeInsets insets = UIEdgeInsetsZero;
+        if (@available(iOS 11.0, *))
+        {
+            #pragma GCC diagnostic push
+            #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+            insets = UIApplication.sharedApplication.keyWindow.safeAreaInsets;
+            #pragma GCC diagnostic pop
+        }
+
+        frame = UIEdgeInsetsInsetRect(frame, insets);
+        self.webView.frame = frame;
+    }
+}
 
 @end
 

@@ -31,6 +31,7 @@
 
 #if (TARGET_OS_IOS)
 #import <UIKit/UIKit.h>
+#import <WebKit/WebKit.h>
 #endif
 
 #if (TARGET_OS_WATCH)
@@ -86,6 +87,7 @@ void CountlyPrint(NSString *stringToPrint);
 - (NSInteger)timeZone;
 - (NSInteger)timeSinceLaunch;
 - (NSTimeInterval)uniqueTimestamp;
+- (NSString *)randomEventID;
 
 - (void)startBackgroundTask;
 - (void)finishBackgroundTask;
@@ -104,6 +106,7 @@ void CountlyPrint(NSString *stringToPrint);
 
 #if (TARGET_OS_IOS)
 @interface CLYInternalViewController : UIViewController
+@property (nonatomic, weak) WKWebView* webView;
 @end
 
 @interface CLYButton : UIButton
@@ -143,7 +146,8 @@ void CountlyPrint(NSString *stringToPrint);
 
 @interface Countly (RecordReservedEvent)
 - (void)recordReservedEvent:(NSString *)key segmentation:(NSDictionary *)segmentation;
-- (void)recordReservedEvent:(NSString *)key segmentation:(NSDictionary *)segmentation count:(NSUInteger)count sum:(double)sum duration:(NSTimeInterval)duration timestamp:(NSTimeInterval)timestamp;
+- (void)recordReservedEvent:(NSString *)key segmentation:(NSDictionary *)segmentation ID:(NSString *)ID;
+- (void)recordReservedEvent:(NSString *)key segmentation:(NSDictionary *)segmentation count:(NSUInteger)count sum:(double)sum duration:(NSTimeInterval)duration ID:(NSString *)ID timestamp:(NSTimeInterval)timestamp;
 @end
 
 @interface CountlyUserDetails (ClearUserDetails)

@@ -21,7 +21,6 @@ pubspec.lock
 .idea/
 
 # Visual Studio Code related
-.vscode/
 android/.classpath
 android/.project
 android/.settings

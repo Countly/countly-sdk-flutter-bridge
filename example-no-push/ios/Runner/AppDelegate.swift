@@ -12,3 +12,4 @@ import countly_flutter_np
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 }
+
