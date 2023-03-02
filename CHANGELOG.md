@@ -7,8 +7,10 @@
 * Events are now recorded with an internal ID in Android.
 * Updated Underlying android SDK version to 22.09.0
 * Updated Underlying iOS SDK version to 23.02.0
-* 
+
 ## 23.2.0-np
+* Fixed a race condition bug in Android where a recorded event would have the wrong user properties in the drill database on the server. Now event queue is emptied (formed into a request) before recording any user profile changes.
+* Events are now recorded with an internal ID in Android.
 * Updated Underlying android SDK version to 22.09.0
 * Updated Underlying iOS SDK version to 23.02.0
 
