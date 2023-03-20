@@ -1,5 +1,5 @@
 PODS:
-  - countly_flutter (23.02.0):
+  - countly_flutter (23.2.1):
     - Flutter
   - Flutter (1.0.0)
 
@@ -14,7 +14,7 @@ EXTERNAL SOURCES:
     :path: Flutter
 
 SPEC CHECKSUMS:
-  countly_flutter: 135f1a4930f8e26ba223a14201d3f265ea7b4c83
+  countly_flutter: 7f716cfa98918f50ecd38a6b705ac581d573d977
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
 
 PODFILE CHECKSUM: ef19549a9bc3046e7bb7d2fab4d021637c0c58a3

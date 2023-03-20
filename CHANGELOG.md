@@ -1,3 +1,10 @@
+## 23.2.1
+* Fixed a bug in Android where metric override values were not applying to crash metrics Fixed a bug where crash metrics sent the "manufacturer" value under the wrong key
+* Fixed a bug in Android where orientation events would have the same view ID as the previous view event
+* Fixed a bug in Android where view ID's were being reported incorrectly
+* Updated Underlying android SDK version to 22.09.1
+* Underlying iOS SDK version is 23.02.0
+
 ## 23.2.0
 * !! Major breaking change !! Resolved issue with handling push notification actions on iOS. 
   * To handle push notification actions, add the following call "CountlyFlutterPlugin.startObservingNotifications();" to "AppDelegate.swift"
@@ -7,8 +14,10 @@
 * Events are now recorded with an internal ID in Android.
 * Updated Underlying android SDK version to 22.09.0
 * Updated Underlying iOS SDK version to 23.02.0
-* 
+
 ## 23.2.0-np
+* Fixed a race condition bug in Android where a recorded event would have the wrong user properties in the drill database on the server. Now event queue is emptied (formed into a request) before recording any user profile changes.
+* Events are now recorded with an internal ID in Android.
 * Updated Underlying android SDK version to 22.09.0
 * Updated Underlying iOS SDK version to 23.02.0
 
