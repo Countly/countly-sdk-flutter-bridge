@@ -3,7 +3,7 @@
 #
 Pod::Spec.new do |s|
   s.name = 'countly_flutter_np'
-  s.version = '23.2.0'
+  s.version = '23.2.1'
   s.summary = 'Countly is an innovative, real-time, open source mobile analytics platform.'
   s.homepage = 'https://github.com/Countly/countly-sdk-flutter-bridge'
   s.social_media_url = 'https://twitter.com/gocountly'

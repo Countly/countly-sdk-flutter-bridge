@@ -1,3 +1,11 @@
+## 23.2.1
+* Fixed a bug in Android where metric override values were not applying to crash metrics Fixed a bug where crash metrics sent the "manufacturer" value under the wrong key
+* Fixed a bug in Android where orientation events would have the same view ID as the previous view event 
+* Fixed a bug in Android where automatic view tracking reported view duration with a duration of "0"
+* Fixed a bug in Android where view ID's were being reported incorrectly
+* Updated Underlying android SDK version to 22.09.1
+* Underlying iOS SDK version is 23.02.0
+
 ## 23.2.0
 * !! Major breaking change !! Resolved issue with handling push notification actions on iOS. 
   * To handle push notification actions, add the following call "CountlyFlutterPlugin.startObservingNotifications();" to "AppDelegate.swift"
