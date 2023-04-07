@@ -1,3 +1,9 @@
+## 23.2.2
+* Added previous event ID and sending it with custom events
+* Session update interval upper limit (10 minutes) has been lifted in Android
+* Updated Underlying android SDK version to 22.09.3
+* Updated Underlying iOS SDK version to 23.02.1
+
 ## 23.2.1
 * Fixed a bug in Android where metric override values were not applying to crash metrics Fixed a bug where crash metrics sent the "manufacturer" value under the wrong key
 * Fixed a bug in Android where orientation events would have the same view ID as the previous view event
