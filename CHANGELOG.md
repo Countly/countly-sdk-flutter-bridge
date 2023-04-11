@@ -1,6 +1,7 @@
 ## 23.2.2
 * Added previous event ID and sending it with custom events
 * Session update interval upper limit (10 minutes) has been lifted in Android
+* Updated default maxSegmentationValues from 30 to 100 for iOS
 * Updated Underlying android SDK version to 22.09.3
 * Updated Underlying iOS SDK version to 23.02.1
 
