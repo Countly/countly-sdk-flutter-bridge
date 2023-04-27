@@ -1,13 +1,11 @@
 ## 23.2.3
 * Not reporting battery level in the crash handler to prevent hanging in iOS
-* Default max segmentation value count changed from 30 to 100 in Android
 * Fixing bug that prevented device ID to be changed when there is no consent given in Android
 * Updated Underlying android SDK version to 22.09.4
 * Updated Underlying iOS SDK version to 23.02.2
 
 ## 23.2.3-np
 * Not reporting battery level in the crash handler to prevent hanging in iOS
-* Default max segmentation value count changed from 30 to 100 in Android
 * Fixing bug that prevented device ID to be changed when there is no consent given in Android
 * Updated Underlying android SDK version to 22.09.4
 * Updated Underlying iOS SDK version to 23.02.2
