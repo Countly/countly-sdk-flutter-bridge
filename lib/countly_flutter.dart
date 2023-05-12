@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:countly_flutter/constants.dart';
 import 'package:countly_flutter/countly_config.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
@@ -166,7 +167,7 @@ class Countly {
     List<dynamic> args = [];
     args.add(_configToJson(config));
 
-    final String? result = await _channel.invokeMethod('init', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.init, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
     _isInitialized = true;
 
     return result;
@@ -174,7 +175,7 @@ class Countly {
 
   static Future<bool> isInitialized() async {
     log('Calling "isInitialized"');
-    final String? result = await _channel.invokeMethod('isInitialized');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.isInitialized);
     if (result == 'true') {
       _isInitialized = true;
     } else {
@@ -193,7 +194,7 @@ class Countly {
       return message;
     }
     log('Calling "replaceAllAppKeysInQueueWithCurrentAppKey"');
-    final String? result = await _channel.invokeMethod('replaceAllAppKeysInQueueWithCurrentAppKey');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.replaceAllAppKeysInQueueWithCurrentAppKey);
 
     return result;
   }
@@ -208,7 +209,7 @@ class Countly {
       return message;
     }
     log('Calling "removeDifferentAppKeysFromQueue"');
-    final String? result = await _channel.invokeMethod('removeDifferentAppKeysFromQueue');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.removeDifferentAppKeysFromQueue);
 
     return result;
   }
@@ -222,7 +223,7 @@ class Countly {
       log('appLoadingFinished, $message', logLevel: LogLevel.WARNING);
       return message;
     }
-    final String? result = await _channel.invokeMethod('appLoadingFinished');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.appLoadingFinished);
 
     return result;
   }
@@ -263,7 +264,7 @@ class Countly {
       });
     }
 
-    final String? result = await _channel.invokeMethod('recordEvent', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.recordEvent, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -299,7 +300,7 @@ class Countly {
       });
     }
 
-    final String? result = await _channel.invokeMethod('recordView', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.recordView, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -315,7 +316,7 @@ class Countly {
     List<dynamic> args = [];
     Map<String, String> userData = _getUserData(options);
     args.add(userData);
-    final String? result = await _channel.invokeMethod('setuserdata', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.setuserdata, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
     return result;
   }
 
@@ -364,7 +365,7 @@ class Countly {
       return message;
     }
     log('Calling "askForNotificationPermission"');
-    final String? result = await _channel.invokeMethod('askForNotificationPermission');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.askForNotificationPermission);
 
     return result;
   }
@@ -381,7 +382,7 @@ class Countly {
     if (!Platform.isIOS) {
       return 'disablePushNotifications : To be implemented';
     }
-    final String? result = await _channel.invokeMethod('disablePushNotifications');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.disablePushNotifications);
 
     return result;
   }
@@ -402,7 +403,7 @@ class Countly {
     List<String> args = [];
     args.add(tokenType);
 
-    final String? result = await _channel.invokeMethod('pushTokenType', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.pushTokenType, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -415,7 +416,7 @@ class Countly {
       return _pushDisabledMsg;
     }
     log('Calling "onNotification"');
-    await _channel.invokeMethod('registerForNotification').then((value) {
+    await _channel.invokeMethod(MethodNameConstants.registerForNotification).then((value) {
       callback(value.toString());
       onNotification(callback);
     }).catchError((error) {
@@ -439,7 +440,7 @@ class Countly {
       log(error);
       return error;
     }
-    final String? result = await _channel.invokeMethod('beginSession');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.beginSession);
 
     return result;
   }
@@ -459,7 +460,7 @@ class Countly {
       log(error);
       return error;
     }
-    final String? result = await _channel.invokeMethod('updateSession');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.updateSession);
 
     return result;
   }
@@ -479,7 +480,7 @@ class Countly {
       log(error);
       return error;
     }
-    final String? result = await _channel.invokeMethod('endSession');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.endSession);
 
     return result;
   }
@@ -496,7 +497,7 @@ class Countly {
       log(error);
       return error;
     }
-    final String? result = await _channel.invokeMethod('start');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.start);
 
     return result;
   }
@@ -505,7 +506,7 @@ class Countly {
   static Future<String?> manualSessionHandling() async {
     log('Calling "manualSessionHandling"');
     log('manualSessionHandling is deprecated, use enableManualSessionHandling of CountlyConfig instead', logLevel: LogLevel.WARNING);
-    final String? result = await _channel.invokeMethod('manualSessionHandling');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.manualSessionHandling);
 
     return result;
   }
@@ -522,7 +523,7 @@ class Countly {
       log(error);
       return error;
     }
-    final String? result = await _channel.invokeMethod('stop');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.stop);
 
     return result;
   }
@@ -550,7 +551,7 @@ class Countly {
     List<String> args = [];
     args.add(sessionInterval.toString());
 
-    final String? result = await _channel.invokeMethod('updateSessionInterval', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.updateSessionInterval, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -564,7 +565,7 @@ class Countly {
     List<String> args = [];
     args.add(limit.toString());
 
-    final String? result = await _channel.invokeMethod('eventSendThreshold', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.eventSendThreshold, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -573,7 +574,7 @@ class Countly {
   static Future<String?> storedRequestsLimit() async {
     log('Calling "storedRequestsLimit"');
     log('storedRequestsLimit is deprecated, use setMaxRequestQueueSize of CountlyConfig instead', logLevel: LogLevel.WARNING);
-    final String? result = await _channel.invokeMethod('storedRequestsLimit');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.storedRequestsLimit);
 
     return result;
   }
@@ -603,7 +604,7 @@ class Countly {
     args.add(longitude);
     args.add(ipAddress);
 
-    final String? result = await _channel.invokeMethod('setOptionalParametersForInitialization', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.setOptionalParametersForInitialization, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -617,7 +618,7 @@ class Countly {
       log('getCurrentDeviceId, $message', logLevel: LogLevel.ERROR);
       return message;
     }
-    final String? result = await _channel.invokeMethod('getCurrentDeviceId');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.getCurrentDeviceId);
 
     return result;
   }
@@ -630,7 +631,7 @@ class Countly {
       log('getDeviceIDType, "initWithConfig" must be called before "getDeviceIDType"', logLevel: LogLevel.ERROR);
       return null;
     }
-    final String? result = await _channel.invokeMethod('getDeviceIDType');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.getDeviceIDType);
     if (result == null) {
       log('getDeviceIDType, unexpected null value from native side', logLevel: LogLevel.ERROR);
       return null;
@@ -673,7 +674,7 @@ class Countly {
     args.add(newDeviceID);
     args.add(onServerString);
 
-    final String? result = await _channel.invokeMethod('changeDeviceId', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.changeDeviceId, <String, dynamic>{'data': json.encode(args)});
 
     return result;
   }
@@ -693,7 +694,7 @@ class Countly {
     List<String> args = [];
     args.add(logs);
 
-    final String? result = await _channel.invokeMethod('addCrashLog', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.addCrashLog, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -708,7 +709,7 @@ class Countly {
     _isDebug = flag;
     args.add(flag.toString());
 
-    final String? result = await _channel.invokeMethod('setLoggingEnabled', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.setLoggingEnabled, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -727,7 +728,7 @@ class Countly {
     List<String> args = [];
     args.add(salt);
 
-    final String? result = await _channel.invokeMethod('enableParameterTamperingProtection', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.enableParameterTamperingProtection, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -741,7 +742,7 @@ class Countly {
     List<String> args = [];
     args.add(isEnabled.toString());
 
-    final String? result = await _channel.invokeMethod('setHttpPostForced', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.setHttpPostForced, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -759,7 +760,7 @@ class Countly {
     args.add(gpsCoordinates);
     args.add(ipAddress);
 
-    final String? result = await _channel.invokeMethod('setLocationInit', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.setLocationInit, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -806,7 +807,7 @@ class Countly {
     location['ipAddress'] = ipAddress;
     List<dynamic> args = [];
     args.add(location);
-    final String? result = await _channel.invokeMethod('setUserLocation', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.setUserLocation, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
     return result;
   }
 
@@ -831,7 +832,7 @@ class Countly {
     args.add(keyName);
     args.add(keyValue);
 
-    final String? result = await _channel.invokeMethod('userData_setProperty', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.userData_setProperty, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -851,7 +852,7 @@ class Countly {
     List<String> args = [];
     args.add(keyName);
 
-    final String? result = await _channel.invokeMethod('userData_increment', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.userData_increment, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -872,7 +873,7 @@ class Countly {
     args.add(keyName);
     args.add(keyIncrement.toString());
 
-    final String? result = await _channel.invokeMethod('userData_incrementBy', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.userData_incrementBy, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -893,7 +894,7 @@ class Countly {
     args.add(keyName);
     args.add(multiplyValue.toString());
 
-    final String? result = await _channel.invokeMethod('userData_multiply', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.userData_multiply, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -914,7 +915,7 @@ class Countly {
     args.add(keyName);
     args.add(saveMax.toString());
 
-    final String? result = await _channel.invokeMethod('userData_saveMax', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.userData_saveMax, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -935,7 +936,7 @@ class Countly {
     args.add(keyName);
     args.add(saveMin.toString());
 
-    final String? result = await _channel.invokeMethod('userData_saveMin', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.userData_saveMin, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -961,7 +962,7 @@ class Countly {
     args.add(keyName);
     args.add(setOnce);
 
-    final String? result = await _channel.invokeMethod('userData_setOnce', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.userData_setOnce, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -987,7 +988,7 @@ class Countly {
     args.add(type);
     args.add(pushUniqueValue);
 
-    final String? result = await _channel.invokeMethod('userData_pushUniqueValue', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.userData_pushUniqueValue, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -1013,7 +1014,7 @@ class Countly {
     args.add(type);
     args.add(pushValue);
 
-    final String? result = await _channel.invokeMethod('userData_pushValue', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.userData_pushValue, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -1039,7 +1040,7 @@ class Countly {
     args.add(type);
     args.add(pullValue);
 
-    final String? result = await _channel.invokeMethod('userData_pullValue', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.userData_pullValue, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -1053,7 +1054,7 @@ class Countly {
     List<String> args = [];
     args.add(flag.toString());
 
-    final String? result = await _channel.invokeMethod('setRequiresConsent', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.setRequiresConsent, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -1071,7 +1072,7 @@ class Countly {
       log(error, logLevel: LogLevel.WARNING);
     }
     log(consents.toString());
-    final String? result = await _channel.invokeMethod('giveConsentInit', <String, dynamic>{'data': json.encode(consents)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.giveConsentInit, <String, dynamic>{MethodNameConstants.data: json.encode(consents)});
 
     return result;
   }
@@ -1089,7 +1090,7 @@ class Countly {
       log(error, logLevel: LogLevel.WARNING);
     }
     log(consents.toString());
-    final String? result = await _channel.invokeMethod('giveConsent', <String, dynamic>{'data': json.encode(consents)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.giveConsent, <String, dynamic>{MethodNameConstants.data: json.encode(consents)});
 
     return result;
   }
@@ -1107,7 +1108,7 @@ class Countly {
       log(error, logLevel: LogLevel.WARNING);
     }
     log(consents.toString());
-    final String? result = await _channel.invokeMethod('removeConsent', <String, dynamic>{'data': json.encode(consents)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.removeConsent, <String, dynamic>{MethodNameConstants.data: json.encode(consents)});
 
     return result;
   }
@@ -1121,7 +1122,7 @@ class Countly {
       return message;
     }
     log('Calling "giveAllConsent"');
-    final String? result = await _channel.invokeMethod('giveAllConsent');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.giveAllConsent);
 
     return result;
   }
@@ -1133,7 +1134,7 @@ class Countly {
       return message;
     }
     log('Calling "removeAllConsent"');
-    final String? result = await _channel.invokeMethod('removeAllConsent');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.removeAllConsent);
 
     return result;
   }
@@ -1144,7 +1145,7 @@ class Countly {
   static Future<String?> setRemoteConfigAutomaticDownload(Function callback) async {
     log('Calling "setRemoteConfigAutomaticDownload"');
     log('setRemoteConfigAutomaticDownload is deprecated, use setRemoteConfigAutomaticDownload of CountlyConfig instead', logLevel: LogLevel.WARNING);
-    final String? result = await _channel.invokeMethod('setRemoteConfigAutomaticDownload');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.setRemoteConfigAutomaticDownload);
 
     callback(result);
     return result;
@@ -1157,7 +1158,7 @@ class Countly {
       return message;
     }
     log('Calling "remoteConfigUpdate"');
-    final String? result = await _channel.invokeMethod('remoteConfigUpdate');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.remoteConfigUpdate);
 
     callback(result);
     return result;
@@ -1176,7 +1177,7 @@ class Countly {
       log(error, logLevel: LogLevel.WARNING);
     }
     log(keys.toString());
-    final String? result = await _channel.invokeMethod('updateRemoteConfigForKeysOnly', <String, dynamic>{'data': json.encode(keys)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.updateRemoteConfigForKeysOnly, <String, dynamic>{MethodNameConstants.data: json.encode(keys)});
 
     callback(result);
     return result;
@@ -1195,7 +1196,7 @@ class Countly {
       log(error, logLevel: LogLevel.WARNING);
     }
     log(keys.toString());
-    final String? result = await _channel.invokeMethod('updateRemoteConfigExceptKeys', <String, dynamic>{'data': json.encode(keys)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.updateRemoteConfigExceptKeys, <String, dynamic>{MethodNameConstants.data: json.encode(keys)});
 
     callback(result);
     return result;
@@ -1208,7 +1209,7 @@ class Countly {
       return message;
     }
     log('Calling "remoteConfigClearValues"');
-    final String? result = await _channel.invokeMethod('remoteConfigClearValues');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.remoteConfigClearValues);
 
     callback(result);
     return result;
@@ -1229,7 +1230,7 @@ class Countly {
     List<String> args = [];
     args.add(key);
 
-    final String? result = await _channel.invokeMethod('getRemoteConfigValueForKey', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.getRemoteConfigValueForKey, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     callback(result);
     return result;
@@ -1248,7 +1249,7 @@ class Countly {
     args.add(starRatingTextMessage);
     args.add(starRatingTextDismiss);
 
-    final String? result = await _channel.invokeMethod('setStarRatingDialogTexts', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.setStarRatingDialogTexts, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -1260,7 +1261,7 @@ class Countly {
       return message;
     }
     log('Calling "askForStarRating"');
-    final String? result = await _channel.invokeMethod('askForStarRating');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.askForStarRating);
 
     return result;
   }
@@ -1301,7 +1302,7 @@ class Countly {
     List<String> args = [];
     args.add(widgetId);
     args.add(closeButtonText);
-    final String? result = await _channel.invokeMethod('presentRatingWidgetWithID', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.presentRatingWidgetWithID, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
     return result;
   }
 
@@ -1316,7 +1317,7 @@ class Countly {
     List<CountlyPresentableFeedback> presentableFeedback = [];
     String? error;
     try {
-      final List<dynamic> retrievedWidgets = await _channel.invokeMethod('getAvailableFeedbackWidgets');
+      final List<dynamic> retrievedWidgets = await _channel.invokeMethod(MethodNameConstants.getAvailableFeedbackWidgets);
       presentableFeedback = retrievedWidgets.map(CountlyPresentableFeedback.fromJson).toList();
     } on PlatformException catch (e) {
       error = e.message;
@@ -1353,7 +1354,7 @@ class Countly {
 
     String? result;
     try {
-      result = await _channel.invokeMethod('presentFeedbackWidget', <String, dynamic>{'data': json.encode(args)});
+      result = await _channel.invokeMethod(MethodNameConstants.presentFeedbackWidget, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
     } on PlatformException catch (e) {
       result = e.message;
     }
@@ -1381,7 +1382,7 @@ class Countly {
     args.add(widgetInfo.name);
 
     try {
-      Map<dynamic, dynamic> retrievedWidgetData = await _channel.invokeMethod('getFeedbackWidgetData', <String, dynamic>{'data': json.encode(args)});
+      Map<dynamic, dynamic> retrievedWidgetData = await _channel.invokeMethod(MethodNameConstants.getFeedbackWidgetData, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
       widgetData = Map<String, dynamic>.from(retrievedWidgetData);
     } on PlatformException catch (e) {
       error = e.message;
@@ -1415,7 +1416,7 @@ class Countly {
 
     String? result;
     try {
-      result = await _channel.invokeMethod('reportFeedbackWidgetManually', <String, dynamic>{'data': json.encode(args)});
+      result = await _channel.invokeMethod(MethodNameConstants.reportFeedbackWidgetManually, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
     } on PlatformException catch (e) {
       result = e.message;
     }
@@ -1438,7 +1439,7 @@ class Countly {
     List<String> args = [];
     args.add(key);
 
-    final String? result = await _channel.invokeMethod('startEvent', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.startEvent, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -1475,7 +1476,7 @@ class Countly {
       });
     }
 
-    final String? result = await _channel.invokeMethod('endEvent', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.endEvent, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -1484,7 +1485,7 @@ class Countly {
   /// Should not be used
   static Future<String?> throwNativeException() async {
     log('Calling "throwNativeException"');
-    final String? result = await _channel.invokeMethod('throwNativeException');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.throwNativeException);
 
     return result;
   }
@@ -1497,7 +1498,7 @@ class Countly {
     log('enableCrashReporting is deprecated, use enableCrashReporting of CountlyConfig instead', logLevel: LogLevel.WARNING);
     FlutterError.onError = _recordFlutterError;
     _enableCrashReportingFlag = true;
-    final String? result = await _channel.invokeMethod('enableCrashReporting');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.enableCrashReporting);
 
     return result;
   }
@@ -1529,7 +1530,7 @@ class Countly {
         args.add(v.toString());
       });
     }
-    final String? result = await _channel.invokeMethod('logException', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.logException, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -1547,7 +1548,7 @@ class Countly {
       args.add(v.toString());
     });
 
-    final String? result = await _channel.invokeMethod('setCustomCrashSegment', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.setCustomCrashSegment, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -1562,7 +1563,7 @@ class Countly {
     List<String> args = [];
     args.add(traceKey);
 
-    final String? result = await _channel.invokeMethod('startTrace', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.startTrace, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -1577,7 +1578,7 @@ class Countly {
     List<String> args = [];
     args.add(traceKey);
 
-    final String? result = await _channel.invokeMethod('cancelTrace', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.cancelTrace, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -1589,7 +1590,7 @@ class Countly {
       return message;
     }
     log('Calling "clearAllTraces"');
-    final String? result = await _channel.invokeMethod('clearAllTraces');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.clearAllTraces);
 
     return result;
   }
@@ -1611,7 +1612,7 @@ class Countly {
       });
     }
 
-    final String? result = await _channel.invokeMethod('endTrace', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.endTrace, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -1631,7 +1632,7 @@ class Countly {
     args.add(startTime.toString());
     args.add(endTime.toString());
 
-    final String? result = await _channel.invokeMethod('recordNetworkTrace', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.recordNetworkTrace, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
 
     return result;
   }
@@ -1642,7 +1643,7 @@ class Countly {
   static Future<String?> enableApm() async {
     log('Calling "enableApm"');
     log('enableApm is deprecated, use setRecordAppStartTime of CountlyConfig instead', logLevel: LogLevel.WARNING);
-    final String? result = await _channel.invokeMethod('enableApm');
+    final String? result = await _channel.invokeMethod(MethodNameConstants.enableApm);
 
     return result;
   }
@@ -1788,7 +1789,7 @@ class Countly {
     });
     List<dynamic> args = [];
     args.add(attributionValues);
-    final String? result = await _channel.invokeMethod('recordIndirectAttribution', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.recordIndirectAttribution, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
     return result;
   }
 
@@ -1808,7 +1809,7 @@ class Countly {
     List<String> args = [];
     args.add(campaignType);
     args.add(campaignData);
-    final String? result = await _channel.invokeMethod('recordDirectAttribution', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _channel.invokeMethod(MethodNameConstants.recordDirectAttribution, <String, dynamic>{MethodNameConstants.data: json.encode(args)});
     return result;
   }
 
