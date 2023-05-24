@@ -17,6 +17,29 @@ abstract class AttributionKey {
   static String AdvertisingID = 'adid';
 }
 
+enum RCCallbackStatusEnum {
+  success,
+  serverCouldntBeReached,
+  connectionTimedOut,
+  sdkCrashed,
+}
+
+enum RCCallbackDataEnum {full, partial}
+
+abstract class RCCallback {
+  late RCCallbackStatusEnum status;
+  late Map<String, RCValue> data;
+  late RCCallbackDataEnum type;
+}
+
+enum RcValueFreshness { cachedFromPrevious, forCurrentUser, noValue }
+
+abstract class RCValue {
+  late Object value;
+  late int timestamp;
+  late RcValueFreshness valueFreshness;
+}
+
 enum LogLevel { INFO, DEBUG, VERBOSE, WARNING, ERROR }
 enum DeviceIdType { DEVELOPER_SUPPLIED, SDK_GENERATED, TEMPORARY_ID }
 
@@ -120,6 +143,158 @@ class Countly {
     }
   }
 
+  static String? rcRegisterCallback(RCCallback callback) {
+    if (!_isInitialized) {
+      String message =
+          '"initWithConfig" must be called before "rcRegisterCallback"';
+      Countly.log(message, logLevel: LogLevel.ERROR);
+      return message;
+    }
+    // shouldn't RCCallback be a function
+    // _remoteConfigCallback = callback;
+    // TODO: IMPLEMENT
+    return null;
+  }
+
+  static String? rcRemoveCallback(RCCallback callback) {
+    if (!_isInitialized) {
+      String message =
+          '"initWithConfig" must be called before "rcRemoveCallback"';
+      Countly.log(message, logLevel: LogLevel.ERROR);
+      return message;
+    }
+    // TODO: IMPLEMENT
+    return null;
+  }
+
+  static String? rcUpdateAll(RCCallback callback) {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "rcUpdateAll"';
+      Countly.log(message, logLevel: LogLevel.ERROR);
+      return message;
+    }
+    // TODO: IMPLEMENT
+    return null;
+  }
+
+  static Future<String?> rcUpdateSpecificOnes(
+    List<String> keys,
+    RCCallback callback,
+  ) async {
+    if (!_isInitialized) {
+      String message =
+          '"initWithConfig" must be called before "rcUpdateSpecificOnes"';
+      Countly.log(message, logLevel: LogLevel.ERROR);
+      return message;
+    }
+    // TODO: IMPLEMENT
+    return null;
+  }
+
+  static Future<String?> rcUpdateOmittingValues(
+    List<String> keys,
+    RCCallback callback,
+  ) async {
+    if (!_isInitialized) {
+      String message =
+          '"initWithConfig" must be called before "rcUpdateOmittingValues"';
+      Countly.log(message, logLevel: LogLevel.ERROR);
+      return message;
+    }
+    // TODO: IMPLEMENT
+    return null;
+  }
+
+  /// returns the values of all keys. useful for debugging
+  static Future<Map<String, RCValue>?>? rcGetAllValues() async {
+    if (!_isInitialized) {
+      String message =
+          '"initWithConfig" must be called before "rcGetAllValues"';
+      Countly.log(message, logLevel: LogLevel.ERROR);
+      return null;
+    }
+    // TODO: IMPLEMENT
+    return null;
+  }
+
+  /// returns the value of a stored key. Returns "null" if there is no entry
+  static Future<RCValue?> rcGetValue(String key) async {
+    if (!_isInitialized) {
+      String message =
+          '"initWithConfig" must be called before "rcGetValueForKey"';
+      Countly.log(message, logLevel: LogLevel.ERROR);
+      return null;
+    }
+    // TODO: IMPLEMENT
+    return null;
+  }
+
+  /// Outside of automatic triggers, it's a way to trigger downloading values from the server. Has as callback to signify when the operation is done or if it failed.
+  static Future<String?> rcManualUpdate(Function(String?) callback) async {
+    if (!_isInitialized) {
+      String message =
+          '"initWithConfig" must be called before "rcManualUpdate"';
+      Countly.log(message, logLevel: LogLevel.ERROR);
+      return message;
+    }
+    log('Calling "remoteConfigUpdate"');
+    final String? result = await _channel.invokeMethod('rcManualUpdate');
+
+    callback(result);
+    return result;
+  }
+
+  /// Outside of automatic triggers, it's a way to trigger downloading some values from the server. Has as callback to signify when the operation is done or if it failed.
+  static Future<String?> rcManualUpdatePartial(
+    List<String> keys,
+    Function(String?) callback,
+  ) async {
+    if (!_isInitialized) {
+      String message =
+          '"initWithConfig" must be called before "rcManualUpdatePartial"';
+      Countly.log(message, logLevel: LogLevel.ERROR);
+      return message;
+    }
+    log('Calling "remoteConfigUpdate"');
+    final String? result = await _channel.invokeMethod('rcManualUpdate');
+
+    callback(result);
+    return result;
+  }
+
+  // static String? rcClearAllValues(RCCallback callback) {
+  //   if (!_isInitialized) {
+  //     String message =
+  //         '"initWithConfig" must be called before "rcClearAllValues"';
+  //     Countly.log(message, logLevel: LogLevel.ERROR);
+  //     return message;
+  //   }
+  //   // TODO: IMPLEMENT
+  //   return null;
+  // }
+
+  static String? rcOptInABTest(String key) {
+    if (!_isInitialized) {
+      String message = '"initWithConfig" must be called before "rcOptInABTest"';
+      Countly.log(message, logLevel: LogLevel.ERROR);
+      return message;
+    }
+    // TODO: IMPLEMENT
+    return null;
+  }
+
+  static String? rcOptOutABTest(String key) {
+    if (!_isInitialized) {
+      String message = 
+          '"initWithConfig" must be called before "rcOptOutABTest"';
+      Countly.log(message, logLevel: LogLevel.ERROR);
+      return message;
+    }
+    // TODO: IMPLEMENT
+    return null;
+  }
+
+  @Deprecated('Use rcRegisterCallback instead')
   static void setRemoteConfigCallback(Function(String? error) callback) {
     _remoteConfigCallback = callback;
   }
@@ -1150,6 +1325,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use rcRegisterCallback instead')
   static Future<String?> remoteConfigUpdate(Function callback) async {
     if (!_isInitialized) {
       String message = '"initWithConfig" must be called before "remoteConfigUpdate"';
@@ -1163,6 +1339,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use rcRegisterCallback instead')
   static Future<String?> updateRemoteConfigForKeysOnly(List<String> keys, Function callback) async {
     if (!_isInitialized) {
       String message = '"initWithConfig" must be called before "updateRemoteConfigForKeysOnly"';
@@ -1182,6 +1359,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use rcRegisterCallback instead')
   static Future<String?> updateRemoteConfigExceptKeys(List<String> keys, Function callback) async {
     if (!_isInitialized) {
       String message = '"initWithConfig" must be called before "updateRemoteConfigExceptKeys"';
@@ -1214,6 +1392,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use rcRegisterCallback instead')
   static Future<String?> getRemoteConfigValueForKey(String key, Function callback) async {
     if (!_isInitialized) {
       String message = '"initWithConfig" must be called before "getRemoteConfigValueForKey"';

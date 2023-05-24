@@ -128,6 +128,34 @@ class _MyAppState extends State<MyApp> {
     Countly.changeDeviceId(Countly.deviceIDType['TemporaryDeviceID']!, false);
   }
 
+  void registerCallback(RCCallback callback) {
+    Countly.rcRegisterCallback(callback);
+  }
+
+  void removeCallback(RCCallback callback) {
+    Countly.rcRemoveCallback(callback);
+  }
+
+  void updateAll(RCCallback callback) {
+    Countly.rcUpdateAll(callback);
+  }
+
+  void rcUpdateSpecificOnes(List<String> keys, RCCallback callback) {
+    Countly.rcUpdateSpecificOnes(keys, callback);
+  }
+
+  void rcUpdateOmittingValues(List<String> keys, RCCallback callback) {
+    Countly.rcUpdateOmittingValues(keys, callback);
+  }
+
+  void rcGetAllValues() {
+    Countly.rcGetAllValues();
+  }
+
+  void rcGetValue(String key) {
+    Countly.rcGetValue(key);
+  }
+
   bool isManualSession() {
     //
     if (!_enableManualSession) {

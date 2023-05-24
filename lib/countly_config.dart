@@ -30,6 +30,10 @@ class CountlyConfig {
   Map<String, dynamic>? _customCrashSegment;
   bool? _enableRemoteConfigAutomaticDownload;
   Map<String, dynamic>? _providedUserProperties;
+  bool? _rCAutomaticRequests;
+  RCCallback? _rCGlobalCallback;
+  bool? _rCValueCaching;
+  int? _rCCallTimeoutDuration;
 
   CountlyConfig(this._serverURL, this._appKey);
 
@@ -88,7 +92,16 @@ class CountlyConfig {
 
   Map<String, dynamic>? get providedUserProperties => _providedUserProperties;
 
-  bool? get enableRemoteConfigAutomaticDownload => _enableRemoteConfigAutomaticDownload;
+  bool? get enableRemoteConfigAutomaticDownload =>
+      _enableRemoteConfigAutomaticDownload;
+
+  bool? get rCAutomaticRequests => _rCAutomaticRequests;
+
+  RCCallback? get rCGlobalCallback => _rCGlobalCallback;
+
+  bool? get rCValueCaching => _rCValueCaching;
+
+  int? get rCCallTimeoutDuration => _rCCallTimeoutDuration;
 
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
@@ -247,6 +260,30 @@ class CountlyConfig {
   /// Used to provide user properties that would be sent as soon as possible
   CountlyConfig setUserProperties(Map<String, dynamic> userProperties) {
     _providedUserProperties = userProperties;
+    return this;
+  }
+
+  /// Used to provide user properties that would be sent as soon as possible
+  CountlyConfig rCDisableAutomaticRequests(bool disableAutomaticRequests) {
+    _rCAutomaticRequests = !disableAutomaticRequests;
+    return this;
+  }
+
+  /// Used to register global callback for RC
+  CountlyConfig rCRegisterGlobalCallback(RCCallback callback) {
+    _rCGlobalCallback = callback;
+    return this;
+  }
+
+  /// Used to disable RC Value caching
+  CountlyConfig rCDisableValueCaching(bool disableValueCaching) {
+    _rCValueCaching = !disableValueCaching;
+    return this;
+  }
+
+  /// Used to specify the call timeout duration.
+  CountlyConfig rCSetCallTimeoutDuration(int milliseconds) {
+    _rCCallTimeoutDuration = milliseconds;
     return this;
   }
 }
