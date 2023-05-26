@@ -31,7 +31,7 @@ class CountlyConfig {
   bool? _enableRemoteConfigAutomaticDownload;
   Map<String, dynamic>? _providedUserProperties;
   bool? _rCAutomaticRequests;
-  RCCallback? _rCGlobalCallback;
+  final List<RCCallback> _rCGlobalCallback = [];
   bool? _rCValueCaching;
   int? _rCCallTimeoutDuration;
 
@@ -97,7 +97,7 @@ class CountlyConfig {
 
   bool? get rCAutomaticRequests => _rCAutomaticRequests;
 
-  RCCallback? get rCGlobalCallback => _rCGlobalCallback;
+  List<RCCallback> get rCGlobalCallback => _rCGlobalCallback;
 
   bool? get rCValueCaching => _rCValueCaching;
 
@@ -271,7 +271,7 @@ class CountlyConfig {
 
   /// Used to register global callback for RC
   CountlyConfig rCRegisterGlobalCallback(RCCallback callback) {
-    _rCGlobalCallback = callback;
+    _rCGlobalCallback.add(callback);
     return this;
   }
 

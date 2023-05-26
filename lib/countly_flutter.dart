@@ -156,7 +156,7 @@ class Countly {
     return null;
   }
 
-  static String? rcRemoveCallback(RCCallback callback) {
+  static void rcRemoveCallback(RCCallback callback) {
     if (!_isInitialized) {
       String message =
           '"initWithConfig" must be called before "rcRemoveCallback"';
@@ -167,7 +167,7 @@ class Countly {
     return null;
   }
 
-  static String? rcUpdateAll(RCCallback callback) {
+  static void rcUpdateAll(RCCallback callback) {
     if (!_isInitialized) {
       String message = '"initWithConfig" must be called before "rcUpdateAll"';
       Countly.log(message, logLevel: LogLevel.ERROR);
