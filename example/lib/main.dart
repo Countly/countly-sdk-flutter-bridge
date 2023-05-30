@@ -119,10 +119,10 @@ class _MyAppState extends State<MyApp> {
   }
 
   // ignore: non_constant_identifier_names
-  static String SERVER_URL = 'https://master.count.ly';
+  static String SERVER_URL = 'https://try.count.ly';
 
   // ignore: non_constant_identifier_names
-  static String APP_KEY = 'e14e913a4b451bc8a5c413acd1d2219a9b30b055';
+  static String APP_KEY = 'YOUR_API_KEY';
 
   void enableTemporaryIdMode() {
     Countly.changeDeviceId(Countly.deviceIDType['TemporaryDeviceID']!, false);
