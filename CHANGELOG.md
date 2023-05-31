@@ -1,3 +1,6 @@
+## xx.x.x
+* Fixed a bug where the app would crash if `gpsCoordinate` in location was null.
+
 ## 23.2.3
 * Not reporting battery level in the crash handler to prevent hanging in iOS
 * Fixing bug that prevented device ID to be changed when there is no consent given in Android
