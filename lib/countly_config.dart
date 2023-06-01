@@ -30,10 +30,9 @@ class CountlyConfig {
   Map<String, dynamic>? _customCrashSegment;
   bool? _enableRemoteConfigAutomaticDownload;
   Map<String, dynamic>? _providedUserProperties;
-  bool? _rCAutomaticRequests;
-  final List<RCCallback> _rCGlobalCallback = [];
-  bool? _rCValueCaching;
-  int? _rCCallTimeoutDuration;
+  bool _remoteConfigAutomaticTriggers = false;
+  final List<RCDownloadCallback> _remoteConfigGlobalCallback = [];
+  bool _remoteConfigValueCaching = false;
 
   CountlyConfig(this._serverURL, this._appKey);
 
@@ -95,13 +94,11 @@ class CountlyConfig {
   bool? get enableRemoteConfigAutomaticDownload =>
       _enableRemoteConfigAutomaticDownload;
 
-  bool? get rCAutomaticRequests => _rCAutomaticRequests;
+  bool get remoteConfigAutomaticTriggers => _remoteConfigAutomaticTriggers;
 
-  List<RCCallback> get rCGlobalCallback => _rCGlobalCallback;
+  List<RCDownloadCallback> get remoteConfigGlobalCallback => _remoteConfigGlobalCallback;
 
-  bool? get rCValueCaching => _rCValueCaching;
-
-  int? get rCCallTimeoutDuration => _rCCallTimeoutDuration;
+  bool get remoteConfigValueCaching => _remoteConfigValueCaching;
 
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
@@ -235,6 +232,7 @@ class CountlyConfig {
     return this;
   }
 
+  @Deprecated('Use remoteConfigRegisterGlobalCallback instead')
   /// If enable, will automatically download newest remote config values.
   /// enabled set true for enabling it
   /// callback callback called after the update was done
@@ -264,26 +262,20 @@ class CountlyConfig {
   }
 
   /// Used to provide user properties that would be sent as soon as possible
-  CountlyConfig rCDisableAutomaticRequests(bool disableAutomaticRequests) {
-    _rCAutomaticRequests = !disableAutomaticRequests;
+  CountlyConfig enableRemoteConfigAutomaticTriggers(bool disableAutomaticRequests) {
+    _remoteConfigAutomaticTriggers = true;
     return this;
   }
 
   /// Used to register global callback for RC
-  CountlyConfig rCRegisterGlobalCallback(RCCallback callback) {
-    _rCGlobalCallback.add(callback);
+  CountlyConfig remoteConfigRegisterGlobalCallback(RCDownloadCallback callback) {
+    _remoteConfigGlobalCallback.add(callback);
     return this;
   }
 
   /// Used to disable RC Value caching
-  CountlyConfig rCDisableValueCaching(bool disableValueCaching) {
-    _rCValueCaching = !disableValueCaching;
-    return this;
-  }
-
-  /// Used to specify the call timeout duration.
-  CountlyConfig rCSetCallTimeoutDuration(int milliseconds) {
-    _rCCallTimeoutDuration = milliseconds;
+  CountlyConfig enableRemoteConfigValueCaching() {
+    _remoteConfigValueCaching = true;
     return this;
   }
 }
