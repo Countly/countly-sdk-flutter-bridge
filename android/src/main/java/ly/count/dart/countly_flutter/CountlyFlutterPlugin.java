@@ -741,7 +741,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                             result.success("Error: " + error);
                         }
                     }
-                });
+                });                
             } else if ("remoteConfigClearValues".equals(call.method)) {
                 Countly.sharedInstance().remoteConfig().clearStoredValues();
                 result.success("remoteConfigClearValues: success");
@@ -752,6 +752,43 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 if (getRemoteConfigValueForKeyResult != null)
                     remoteConfigValueForKey = getRemoteConfigValueForKeyResult.toString();
                 result.success(remoteConfigValueForKey);
+            } else if ("remoteConfigDownloadValues".equals(call.method)) {
+                int requestID = args.getInt(0);
+
+                //todo native implementation
+
+                log("remoteConfigDownloadValues TEST, " + requestID, LogLevel.WARNING);
+
+                result.success();
+            } else if ("remoteConfigDownloadSpecificValue".equals(call.method)) {
+                int requestID = args.getInt(0);
+                JSONArray jArr = args.getJSONArray(1);
+
+                String[] keysOnly = new String[jArr.length()];
+                for (int i = 0, il = jArr.length(); i < il; i++) {
+                    keysOnly[i] = jArr.getString(i);
+                }
+
+                log("remoteConfigDownloadSpecificValue TEST, " + requestID + " , " + keysOnly, LogLevel.WARNING);
+
+                //todo native implementation
+
+                result.success();
+            } else if ("remoteConfigDownloadOmittingValues".equals(call.method)) {
+                int requestID = args.getInt(0);
+                JSONArray jArr = args.getJSONArray(1);
+
+                String[] omitedKeys = new String[jArr.length()];
+                for (int i = 0, il = jArr.length(); i < il; i++) {
+                    omitedKeys[i] = jArr.getString(i);
+                }
+
+                log("remoteConfigDownloadOmittingValues TEST, " + requestID + " , " + omitedKeys, LogLevel.WARNING);
+                
+
+                //todo native implementation
+
+                result.success();
             } else if ("presentRatingWidgetWithID".equals(call.method)) {
                 if (activity == null) {
                     log("presentRatingWidgetWithID failed : Activity is null", LogLevel.ERROR);

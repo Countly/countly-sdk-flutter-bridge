@@ -17,30 +17,31 @@ abstract class AttributionKey {
   static String AdvertisingID = 'adid';
 }
 
+/// REMOTE CONFIG / AB TESTING
+//metadate enum for RC values
 enum RCValueState { cached, currentUser, noValue }
 
 class RCValue {
-  Object value;
-  int timestamp;
-  RCValueState valueState;
+  Object value; // stores the RC value
+  int timestamp; // timestamp of when the value was downloaded
+  RCValueState valueState; // it's state. indicating if it's the value of the current user or the previous one (cached)
   RCValue(this.value, this.timestamp, this.valueState);
 }
 
+//indicates the result of the download action
 enum RequestResult { error, success, networkIssue }
 
-class RCDownloadCallback {
-  RCDownloadCallback(this.callback);
-  void Function(RequestResult rResult, String? error, bool fullValueUpdate,
-      Map<String, Object> downloadedValues, int requestID) callback;
-}
+//used for internal Flutter-Native communication
+typedef RCInnerCallback = void Function(RequestResult rResult, String? error, bool fullValueUpdate, Map<String, Object> downloadedValues, int requestID);
 
-void Function(RequestResult rResult, String? error, bool fullValueUpdate,
-      Map<String, Object> downloadedValues, int requestID)? innerCallback;
+//exposed to the end user
+typedef RCDownloadCallback = void Function(RequestResult rResult, String? error, bool fullValueUpdate, Map<String, Object> downloadedValues);
 
-class RCVariantCallback {
-  RCVariantCallback(this.callback);
-  void Function(RequestResult rResult, String? error) callback;
-}
+//used for internal Flutter-Native communication
+typedef RCVariantInnerCallback = void Function(RequestResult rResult, String? error, int requestID);
+
+//exposed to the end user
+typedef RCVariantCallback = void Function(RequestResult rResult, String? error);
 
 enum LogLevel { INFO, DEBUG, VERBOSE, WARNING, ERROR }
 enum DeviceIdType { DEVELOPER_SUPPLIED, SDK_GENERATED, TEMPORARY_ID }
@@ -101,7 +102,7 @@ class Countly {
   static VoidCallback? _widgetClosed;
   static Function(String? error)? _remoteConfigCallback;
   // static final List<RCDownloadCallback> _remoteConfigDownloadCallback = [];
-  static final Map<int, RCDownloadCallback> _remoteConfigDownloadCallback = {};
+  static final Map<int, RCInnerCallback> _remoteConfigDownloadCallbacks = {};
   static int lastUsedRCID = 0;
   static Function(String? error)? _ratingWidgetCallback;
   static Function(Map<String, dynamic> widgetData, String? error)? _feedbackWidgetDataCallback;
@@ -146,7 +147,8 @@ class Countly {
         }
         break;
         case 'NewRCMethod':
-        //informa all registred callbacks
+        //inform all registred callbacks
+        Countly.log('TEST TEST', logLevel: LogLevel.ERROR);
         break;
     }
   }
@@ -156,7 +158,15 @@ class Countly {
       Countly.log('"initWithConfig" must be called before "remoteConfigRegisterDownloadCallback"', logLevel: LogLevel.ERROR);
       return;
     }
-    _remoteConfigDownloadCallback[callback.callback.] = callback;
+
+    // ignore: prefer_function_declarations_over_variables
+    RCInnerCallback innerCallback = (rResult, error, fullValueUpdate, downloadedValues, requestID) {
+      callback(rResult, error, fullValueUpdate, downloadedValues);
+    };
+
+    int requestID = innerCallback.hashCode;
+    Countly.log('"remoteConfigRegisterDownloadCallback" registring a callback with the hashCode:[' + requestID.toString() + "]", logLevel: LogLevel.ERROR);
+    _remoteConfigDownloadCallbacks[requestID] = innerCallback;
   }
 
   static void remoteConfigRemoveDownloadCallback(RCDownloadCallback callback) {
@@ -164,7 +174,20 @@ class Countly {
       Countly.log('"initWithConfig" must be called before "remoteConfigRemoveDownloadCallback"', logLevel: LogLevel.ERROR);
       return;
     }
-    _remoteConfigDownloadCallback.removeWhere((element) => element == callback);
+
+    // ignore: prefer_function_declarations_over_variables
+    RCInnerCallback innerCallback = (rResult, error, fullValueUpdate, downloadedValues, requestID) {
+      callback(rResult, error, fullValueUpdate, downloadedValues);
+    };
+
+    int requestID = innerCallback.hashCode;
+    Countly.log('"remoteConfigRemoveDownloadCallback" removing a callback with the hashCode:[$requestID]', logLevel: LogLevel.ERROR);
+
+    if(_remoteConfigDownloadCallbacks.containsKey(requestID)) {
+      _remoteConfigDownloadCallbacks.remove(requestID);
+    } else {
+      Countly.log('"remoteConfigRemoveDownloadCallback" provided callback hashCode:[$requestID] is not registred', logLevel: LogLevel.ERROR);
+    }
   }
 
   static Future<void> remoteConfigDownloadValues([RCDownloadCallback? callback]) async {
@@ -173,61 +196,77 @@ class Countly {
       return;
     }
 
-    int requestID = lastUsedRCID++;
+    //setup the ID for remembering afterwards
+    int requestID = _wrapDownloadCallback(callback);
 
-    if (callback != null) {
-      final innerCallback = RCDownloadCallback((rResult, error, fullValueUpdate, downloadedValues, providedRequestID) {
-        if(requestID != providedRequestID) {
-          return;
-        }
-        remoteConfigRemoveDownloadCallback(innerCallback);
-        callback.callback(rResult, error, fullValueUpdate, downloadedValues);
-      },);
-
-
-      remoteConfigRegisterDownloadCallback(innerCallback);
-    }
-    await _channel.invokeMethod('remoteConfigDownloadValues', requestID);//we somehow also pass the ID
+    List<int> args = [];
+    args.add(requestID);
+    return await _channel.invokeMethod('remoteConfigDownloadValues', <String, dynamic>{'data': json.encode(args)});
   }
 
-  static Future<void> remoteConfigDownloadSpecificValue(
-    List<String> keys,
-    RCDownloadCallback callback,
-  ) async {
+  static Future<void> remoteConfigDownloadSpecificValue(List<String> keys, [RCDownloadCallback? callback]) async {
     if (!_isInitialized) {
       Countly.log('"initWithConfig" must be called before "remoteConfigDownloadSpecificValue"', logLevel: LogLevel.ERROR);
       return;
     }
 
-    String keysString = keys.toString();
-    log('Calling "remoteConfigDownloadSpecificValue":[$keysString]');
+    log('Calling "remoteConfigDownloadSpecificValue":[$keys]');
     if (keys.isEmpty) {
       log('remoteConfigDownloadSpecificValue, keys List is empty', logLevel: LogLevel.WARNING);
     }
-    log(keys.toString());
-    final result = await _channel.invokeMethod('remoteConfigDownloadSpecificValue', <String, dynamic>{'data': json.encode(keys)});
 
-    callback.callback(result);
-    return result;
+    int requestID = _wrapDownloadCallback(callback);
+    
+    List<dynamic> args = [];
+    args.add(requestID);
+    args.add(keys);
+
+    await _channel.invokeMethod('remoteConfigDownloadSpecificValue', <String, dynamic>{'data': json.encode(keys)});
   }
 
-  static Future<void> remoteConfigDownloadOmittingValues(List<String> omitKeys, RCDownloadCallback callback) async {
+  static Future<void> remoteConfigDownloadOmittingValues(List<String> omittedKeys, [RCDownloadCallback? callback]) async {
     if (!_isInitialized) {
       Countly.log('"initWithConfig" must be called before "remoteConfigDownloadOmittingValues"', logLevel: LogLevel.ERROR);
       return;
     }
 
-    String keysString = omitKeys.toString();
-    log('Calling "remoteConfigDownloadOmittingValues":[$keysString]');
-    if (omitKeys.isEmpty) {
+    log('Calling "remoteConfigDownloadOmittingValues":[$omittedKeys]');
+    if (omittedKeys.isEmpty) {
       log('remoteConfigDownloadOmittingValues, keys List is empty', logLevel: LogLevel.WARNING);
     }
-    log(omitKeys.toString());
 
-    final result = await _channel.invokeMethod('remoteConfigDownloadOmittingValues', <String, dynamic>{'data': json.encode(omitKeys)});
+    int requestID = _wrapDownloadCallback(callback);
 
-    callback.callback(result);
-    return result;
+    List<dynamic> args = [];
+    args.add(requestID);
+    args.add(omittedKeys);
+
+    await _channel.invokeMethod('remoteConfigDownloadOmittingValues', <String, dynamic>{'data': json.encode(args)});
+  }
+
+  static int _wrapDownloadCallback([RCDownloadCallback? callback]) {
+    int requestID = -1;
+    if(callback != null) {
+      requestID = callback.hashCode;
+
+      // ignore: prefer_function_declarations_over_variables
+      RCInnerCallback innerCallback = (rResult, error, fullValueUpdate, downloadedValues, providedRequestID) {
+        if(requestID != providedRequestID) {
+          return;
+        }
+
+        //remove callback from the inner list if it matches the request. 
+        // TODO(AK): create inner request
+        _remoteConfigDownloadCallbacks.remove(requestID);
+        callback(rResult, error, fullValueUpdate, downloadedValues);
+      };
+
+      //add new callback to the list 
+      // TODO(AK): create inner function
+      _remoteConfigDownloadCallbacks[requestID] = innerCallback;
+    }
+
+    return requestID;
   }
 
   /// returns the values of all keys.
@@ -236,7 +275,10 @@ class Countly {
       Countly.log('"initWithConfig" must be called before "remoteConfigGetAllValues"', logLevel: LogLevel.ERROR);
       return {};
     }
-    return await _channel.invokeMethod('remoteConfigGetAllValues') ?? {};
+
+    Map<String, RCValue> returnValue = await _channel.invokeMethod('remoteConfigGetAllValues');
+    // TODO(AK): validate return value;
+    return returnValue;
   }
 
   /// returns the value of a stored key. Returns "null" if there is no entry
@@ -253,19 +295,18 @@ class Countly {
     List<String> args = [];
     args.add(key);
 
-    return await _channel.invokeMethod('remoteConfigGetValue', <String, dynamic>{'data': json.encode(args)});
+    RCValue returnValue = await _channel.invokeMethod('remoteConfigGetValue', <String, dynamic>{'data': json.encode(args)});
+    // TODO(AK): validate return value;
+    return returnValue;
   }
 
-  static Future<void> remoteConfigClearAllValues(RCDownloadCallback callback) async {
+  static Future<void> remoteConfigClearAllValues() async {
     if (!_isInitialized) {
       Countly.log('remoteConfigClearAllValues, "initWithConfig" must be called before "remoteConfigClearAllValues"', logLevel: LogLevel.ERROR);
       return;
     }
     log('Calling "remoteConfigClearAllValues"');
-    final result = await _channel.invokeMethod('remoteConfigClearAllValues');
-
-    callback.callback(result);
-    return result;
+    await _channel.invokeMethod('remoteConfigClearAllValues');
   }
 
   static Future<void> remoteConfigEnrollIntoABTestsForKeys(List<String> keys) async {
@@ -273,8 +314,7 @@ class Countly {
       Countly.log('"initWithConfig" must be called before "remoteConfigEnrollIntoABTestsForKeys"', logLevel: LogLevel.ERROR);
       return;
     }
-    String keysString = keys.toString();
-    log('Calling "remoteConfigEnrollIntoABTestsForKeys":[$keysString]');
+    log('Calling "remoteConfigEnrollIntoABTestsForKeys":[$keys]');
     if (keys.isEmpty) {
       log('remoteConfigEnrollIntoABTestsForKeys, keys List is empty', logLevel: LogLevel.WARNING);
     }
@@ -288,8 +328,7 @@ class Countly {
       Countly.log('"initWithConfig" must be called before "remoteConfigExitABTestsForKeys"', logLevel: LogLevel.ERROR);
       return;
     }
-    String keysString = keys.toString();
-    log('Calling "remoteConfigExitABTestsForKeys":[$keysString]');
+    log('Calling "remoteConfigExitABTestsForKeys":[$keys]');
     if (keys.isEmpty) {
       log('remoteConfigExitABTestsForKeys, keys List is empty', logLevel: LogLevel.WARNING);
     }
@@ -298,28 +337,33 @@ class Countly {
     return await _channel.invokeMethod('remoteConfigExitABTestsForKeys', <String, dynamic>{'data': json.encode(keys)});
   }
 
-  static Future<Map<String, RCValue>> remoteConfigFetchVariantForKeys(List<String> keys) async {
+  static Future<List<String>> remoteConfigTestingGetVariantsForKey(String key) async {
     if (!_isInitialized) {
       Countly.log('"initWithConfig" must be called before "remoteConfigFetchVariantForKeys"', logLevel: LogLevel.ERROR);
-      return {};
+      return [];
     }
-    String keysString = keys.toString();
-    log('Calling "remoteConfigFetchVariantForKeys":[$keysString]');
-    if (keys.isEmpty) {
+    log('Calling "remoteConfigFetchVariantForKeys":[$key]');
+    if (key.isEmpty) {
       log('remoteConfigFetchVariantForKeys, keys List is empty', logLevel: LogLevel.WARNING);
     }
-    log(keys.toString());
+    log(key.toString());
 
-    return await _channel.invokeMethod('remoteConfigFetchVariantForKeys', <String, dynamic>{'data': json.encode(keys)});
+    return await _channel.invokeMethod('remoteConfigFetchVariantForKeys', <String, dynamic>{'data': json.encode(key)});
   }
 
-  static Future<Map<String, RCValue>> remoteConfigFetchAllVariant() async {
+  static Future<Map<String, List<String>>> remoteConfigTestingGetAllVariants() async {
     if (!_isInitialized) {
       Countly.log('"initWithConfig" must be called before "remoteConfigFetchAllVariant"', logLevel: LogLevel.ERROR);
       return {};
     }
 
     return await _channel.invokeMethod('remoteConfigFetchAllVariant');
+  }
+
+  static Future<void> remoteConfigTestingDownloadVariantInformation(RCVariantCallback rcVariantCallback) async {
+  }
+
+  static Future<void> remoteConfigTestingEnrollIntoVariant(String keyName, String variantName, RCVariantCallback rcVariantCallback) async {
   }
 
   @Deprecated('Use rcRegisterCallback instead')
