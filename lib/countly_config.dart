@@ -262,7 +262,7 @@ class CountlyConfig {
   }
 
   /// Used to provide user properties that would be sent as soon as possible
-  CountlyConfig enableRemoteConfigAutomaticTriggers(bool disableAutomaticRequests) {
+  CountlyConfig enableRemoteConfigAutomaticTriggers() {
     _remoteConfigAutomaticTriggers = true;
     return this;
   }

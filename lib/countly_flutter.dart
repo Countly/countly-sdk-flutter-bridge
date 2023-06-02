@@ -31,12 +31,15 @@ enum RequestResult { error, success, networkIssue }
 class RCDownloadCallback {
   RCDownloadCallback(this.callback);
   void Function(RequestResult rResult, String? error, bool fullValueUpdate,
-      Map<String, Object> downloadedValues) callback;
+      Map<String, Object> downloadedValues, int requestID) callback;
 }
+
+void Function(RequestResult rResult, String? error, bool fullValueUpdate,
+      Map<String, Object> downloadedValues, int requestID)? innerCallback;
 
 class RCVariantCallback {
   RCVariantCallback(this.callback);
-  void Function(RequestResult rResult, String error) callback;
+  void Function(RequestResult rResult, String? error) callback;
 }
 
 enum LogLevel { INFO, DEBUG, VERBOSE, WARNING, ERROR }
@@ -97,7 +100,9 @@ class Countly {
   static VoidCallback? _widgetShown;
   static VoidCallback? _widgetClosed;
   static Function(String? error)? _remoteConfigCallback;
-  static final List<RCDownloadCallback> _remoteConfigDownloadCallback = [];
+  // static final List<RCDownloadCallback> _remoteConfigDownloadCallback = [];
+  static final Map<int, RCDownloadCallback> _remoteConfigDownloadCallback = {};
+  static int lastUsedRCID = 0;
   static Function(String? error)? _ratingWidgetCallback;
   static Function(Map<String, dynamic> widgetData, String? error)? _feedbackWidgetDataCallback;
 
@@ -140,6 +145,9 @@ class Countly {
           _feedbackWidgetDataCallback = null;
         }
         break;
+        case 'NewRCMethod':
+        //informa all registred callbacks
+        break;
     }
   }
 
@@ -148,7 +156,7 @@ class Countly {
       Countly.log('"initWithConfig" must be called before "remoteConfigRegisterDownloadCallback"', logLevel: LogLevel.ERROR);
       return;
     }
-    _remoteConfigDownloadCallback.add(callback);
+    _remoteConfigDownloadCallback[callback.callback.] = callback;
   }
 
   static void remoteConfigRemoveDownloadCallback(RCDownloadCallback callback) {
@@ -159,15 +167,27 @@ class Countly {
     _remoteConfigDownloadCallback.removeWhere((element) => element == callback);
   }
 
-  static Future<void> remoteConfigDownloadValues(RCDownloadCallback callback) async {
+  static Future<void> remoteConfigDownloadValues([RCDownloadCallback? callback]) async {
     if (!_isInitialized) {
       Countly.log('"initWithConfig" must be called before "remoteConfigDownloadValues"', logLevel: LogLevel.ERROR);
       return;
     }
-    final result = await _channel.invokeMethod('remoteConfigDownloadValues');
 
-    callback.callback(result, null, false, {});
-    return result;
+    int requestID = lastUsedRCID++;
+
+    if (callback != null) {
+      final innerCallback = RCDownloadCallback((rResult, error, fullValueUpdate, downloadedValues, providedRequestID) {
+        if(requestID != providedRequestID) {
+          return;
+        }
+        remoteConfigRemoveDownloadCallback(innerCallback);
+        callback.callback(rResult, error, fullValueUpdate, downloadedValues);
+      },);
+
+
+      remoteConfigRegisterDownloadCallback(innerCallback);
+    }
+    await _channel.invokeMethod('remoteConfigDownloadValues', requestID);//we somehow also pass the ID
   }
 
   static Future<void> remoteConfigDownloadSpecificValue(
