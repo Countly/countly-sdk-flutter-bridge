@@ -184,9 +184,11 @@ NSString* previousEventID;
     timer = [NSTimer timerWithTimeInterval:config.updateSessionPeriod target:self selector:@selector(onTimer:) userInfo:nil repeats:YES];
     [NSRunLoop.mainRunLoop addTimer:timer forMode:NSRunLoopCommonModes];
 
-    CountlyRemoteConfig.sharedInstance.isEnabledOnInitialConfig = config.enableRemoteConfig;
+    CountlyRemoteConfig.sharedInstance.isEnabledOnInitialConfig = config.enableRemoteConfigAutomaticTriggers;
+    CountlyRemoteConfig.sharedInstance.IsEnabledRemoteConfigValueCaching = config.enableRemoteConfigValueCaching;
     CountlyRemoteConfig.sharedInstance.remoteConfigCompletionHandler = config.remoteConfigCompletionHandler;
-    [CountlyRemoteConfig.sharedInstance startRemoteConfig];
+    CountlyRemoteConfig.sharedInstance.remoteConfigGlobalCallback = config.remoteConfigGlobalCallback;
+    [CountlyRemoteConfig.sharedInstance downloadRemoteConfig];
     
     CountlyPerformanceMonitoring.sharedInstance.isEnabledOnInitialConfig = config.enablePerformanceMonitoring;
     [CountlyPerformanceMonitoring.sharedInstance startPerformanceMonitoring];
@@ -443,6 +445,14 @@ NSString* previousEventID;
 #endif
 }
 
+- (void)changeDeviceIDWithMerge:(NSString * _Nullable)deviceID {
+    [self setNewDeviceID:deviceID onServer:YES];
+}
+
+- (void)changeDeviceIDWithoutMerge:(NSString * _Nullable)deviceID {
+    [self setNewDeviceID:deviceID onServer:NO];
+}
+
 - (void)setNewDeviceID:(NSString *)deviceID onServer:(BOOL)onServer
 {
     CLY_LOG_I(@"%s %@ %d", __FUNCTION__, deviceID, onServer);
@@ -475,7 +485,7 @@ NSString* previousEventID;
 
         [CountlyConnectionManager.sharedInstance proceedOnQueue];
 
-        [CountlyRemoteConfig.sharedInstance startRemoteConfig];
+        [CountlyRemoteConfig.sharedInstance downloadRemoteConfig];
 
         return;
     }
@@ -507,8 +517,16 @@ NSString* previousEventID;
         [CountlyPersistency.sharedInstance clearAllTimedEvents];
     }
 
-    [CountlyRemoteConfig.sharedInstance clearCachedRemoteConfig];
-    [CountlyRemoteConfig.sharedInstance startRemoteConfig];
+    if(onServer || [deviceID isEqualToString:CLYTemporaryDeviceID] )
+    {
+        [CountlyRemoteConfig.sharedInstance clearCachedRemoteConfig:NO];
+    }
+    [CountlyRemoteConfig.sharedInstance downloadRemoteConfig];
+}
+
+- (void)remoteConfigClearAllValues
+{
+    [CountlyRemoteConfig.sharedInstance clearCachedRemoteConfig:YES];
 }
 
 - (void)storeCustomDeviceIDState:(NSString *)deviceID
@@ -1133,6 +1151,96 @@ NSString* previousEventID;
     CLY_LOG_I(@"%s %@ %@", __FUNCTION__, omitKeys, completionHandler);
 
     [CountlyRemoteConfig.sharedInstance updateRemoteConfigForKeys:nil omitKeys:omitKeys completionHandler:completionHandler];
+}
+
+- (NSDictionary *)testingGetAllVariants
+{
+    CLY_LOG_I(@"%s", __FUNCTION__);
+    
+    return [CountlyRemoteConfig.sharedInstance testingGetAllVariants];
+}
+
+- (NSArray *)testingGetVariantsForKey:(NSString *)key {
+    
+    CLY_LOG_I(@"%s %@", __FUNCTION__, key);
+    
+    return [CountlyRemoteConfig.sharedInstance testingGetVariantsForKey:key];
+}
+
+- (void)testingEnrollIntoVariant:(NSString *)key variantName:(NSString *)variantName completionHandler:(RCVariantCallback)completionHandler {
+    
+    CLY_LOG_I(@"%s %@ %@ %@", __FUNCTION__, key, variantName , completionHandler);
+    
+    [CountlyRemoteConfig.sharedInstance testingEnrollIntoVariant:key variantName:variantName completionHandler:completionHandler];
+}
+
+- (void)testingFetchAllVariants:(void (^)(CLYRequestResult response, NSError * error))completionHandler
+{
+    CLY_LOG_I(@"%s %@", __FUNCTION__, completionHandler);
+    
+    [CountlyRemoteConfig.sharedInstance testingDownloadAllVariants:nil completionHandler:completionHandler];
+}
+
+- (CountlyRCValue *)remoteConfigGetValue:(NSString *)key
+{
+    CLY_LOG_I(@"%s %@", __FUNCTION__, key);
+    return [CountlyRemoteConfig.sharedInstance getValue:key];
+}
+
+- (NSDictionary<NSString*, CountlyRCValue *> *)remoteConfigGetAllValues
+{
+    CLY_LOG_I(@"%s", __FUNCTION__);
+    return [CountlyRemoteConfig.sharedInstance getAllValues];
+}
+
+- (void)remoteConfigEnrollIntoABTestsForKeys:(NSArray *)keys
+{
+    CLY_LOG_I(@"%s %@", __FUNCTION__, keys);
+    [CountlyRemoteConfig.sharedInstance enrollIntoABTestsForKeys:keys];
+}
+
+- (void)remoteConfigExitABTestsForKeys:(NSArray *)keys
+{
+    CLY_LOG_I(@"%s %@", __FUNCTION__, keys);
+    [CountlyRemoteConfig.sharedInstance exitABTestsForKeys:keys];
+}
+
+-(void)remoteConfigRegisterDownloadCallback:(RCDownloadCallback) callback
+{
+    CLY_LOG_I(@"%s %@", __FUNCTION__, callback);
+    [CountlyRemoteConfig.sharedInstance registerDownloadCallback:callback];
+}
+
+-(void)remoteConfigRemoveDownloadCallback:(RCDownloadCallback) callback
+{
+    CLY_LOG_I(@"%s %@", __FUNCTION__, callback);
+    [CountlyRemoteConfig.sharedInstance removeDownloadCallback:callback];
+}
+
+- (void)remoteConfigDownloadValues:(RCDownloadCallback)completionHandler
+{
+    CLY_LOG_I(@"%s %@", __FUNCTION__, completionHandler);
+    [CountlyRemoteConfig.sharedInstance downloadValuesForKeys:nil omitKeys:nil completionHandler:^(CLYRequestResult  _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary * _Nonnull downloadedValues) {
+        CLY_LOG_I(@"%@ %@ %d %lu",response.description, error.description, fullValueUpdate, (unsigned long)downloadedValues.allKeys.count);
+    }];
+
+}
+
+- (void)remoteConfigDownloadSpecificValues:(NSArray *)keys completionHandler:(RCDownloadCallback)completionHandler
+{
+    CLY_LOG_I(@"%s %@ %@", __FUNCTION__, keys, completionHandler);
+    [CountlyRemoteConfig.sharedInstance downloadValuesForKeys:keys omitKeys:nil completionHandler:^(CLYRequestResult  _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary * _Nonnull downloadedValues) {
+        CLY_LOG_I(@"%@ %@ %d %lu",response.description, error.description, fullValueUpdate, (unsigned long)downloadedValues.allKeys.count);
+    }];
+    
+}
+
+- (void)remoteConfigDownloadOmittingValues:(NSArray *)omitKeys completionHandler:(RCDownloadCallback)completionHandler
+{
+    CLY_LOG_I(@"%s %@ %@", __FUNCTION__, omitKeys, completionHandler);
+    [CountlyRemoteConfig.sharedInstance downloadValuesForKeys:nil omitKeys:omitKeys completionHandler:^(CLYRequestResult  _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary * _Nonnull downloadedValues) {
+        CLY_LOG_I(@"%@ %@ %d %lu",response.description, error.description, fullValueUpdate, (unsigned long)downloadedValues.allKeys.count);
+    }];
 }
 
 
