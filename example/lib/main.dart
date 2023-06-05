@@ -39,10 +39,15 @@ class _MyAppState extends State<MyApp> {
   /// To Show the device id type in UI, when user tap on 'Get Device Id Type' button
   String _deviceIdType = '';
   final bool _enableManualSession = false;
+  static late final RCDownloadCallback _rcDownloadCallback;
 
   @override
   void initState() {
     super.initState();
+
+    _rcDownloadCallback = (rResult, error, fullValueUpdate, downloadedValues) {
+      print(rResult);
+    };
     ratingIdController.addListener(() {
       setState(() {});
     });
@@ -84,11 +89,9 @@ class _MyAppState extends State<MyApp> {
           ..setUserProperties(userProperties)
           ..recordIndirectAttribution(attributionValues)
           ..recordDirectAttribution('countly', campaignData)
-          ..remoteConfigRegisterGlobalCallback(RCDownloadCallback((rResult, error, fullValueUpdate, downloadedValues) {
-            if (error != null) {
-              print(error);
-            }
-          })) // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
+          ..remoteConfigRegisterGlobalCallback((rResult, error, fullValueUpdate, downloadedValues) {
+            print(rResult);
+          }) // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
           ..setRecordAppStartTime(true) // Enable APM features, which includes the recording of app start time.
           ..setStarRatingTextMessage('Message for start rating dialog')
           ..setLoggingEnabled(true) // Enable countly internal debugging logs
@@ -129,33 +132,32 @@ class _MyAppState extends State<MyApp> {
   }
 
   void remoteConfigRegisterDownloadCallback() {
-    Countly.remoteConfigRegisterDownloadCallback(RCDownloadCallback((result, error, fullValueUpdate, downloadedValues) {
-      print(result);
-    }));
+    Countly.remoteConfigRegisterDownloadCallback(_rcDownloadCallback);
   }
 
   void remoteConfigRemoveDownloadCallback() {
-    Countly.remoteConfigRemoveDownloadCallback(RCDownloadCallback((result, error, fullValueUpdate, downloadedValues) {
-      print(result);
-    }));
+    Countly.remoteConfigRemoveDownloadCallback(_rcDownloadCallback);
   }
 
   void remoteConfigDownloadValues() {
-    Countly.remoteConfigDownloadValues(RCDownloadCallback((result, error, fullValueUpdate, downloadedValues) {
-      print(result);
-    }));
+    final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
+      print(rResult);
+    };
+    Countly.remoteConfigDownloadValues(callback);
   }
 
   void remoteConfigDownloadSpecificValue() {
-    Countly.remoteConfigDownloadSpecificValue(['testKey'], RCDownloadCallback((result, error, fullValueUpdate, downloadedValues) {
-      print(result);
-    }));
+    final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
+      print(rResult);
+    };
+    Countly.remoteConfigDownloadSpecificValue(['testKey'], callback);
   }
 
   void remoteConfigDownloadOmittingValues() {
-    Countly.remoteConfigDownloadOmittingValues(['testKey'], RCDownloadCallback((result, error, fullValueUpdate, downloadedValues) {
-      print(result);
-    }));
+    final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
+      print(rResult);
+    };
+    Countly.remoteConfigDownloadOmittingValues(['testKey'], callback);
   }
 
   void remoteConfigGetAllValues() {
@@ -167,9 +169,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void remoteConfigClearAllValues() {
-    Countly.remoteConfigClearAllValues(RCDownloadCallback((result, error, fullValueUpdate, downloadedValues) {
-      print(result);
-    }));
+    Countly.remoteConfigClearAllValues();
   }
 
   void remoteConfigEnrollIntoABTestsForKeys() {
@@ -181,11 +181,11 @@ class _MyAppState extends State<MyApp> {
   }
 
   void remoteConfigFetchVariantForKeys() {
-    Countly.remoteConfigFetchVariantForKeys(['testKey']);
+    Countly.remoteConfigTestingGetVariantsForKey('testKey');
   }
 
   void remoteConfigFetchAllVariant() {
-    Countly.remoteConfigFetchAllVariant();
+    Countly.remoteConfigTestingGetAllVariants();
   }
 
   void getRemoteConfigValueString() {

@@ -759,7 +759,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 log("remoteConfigDownloadValues TEST, " + requestID, LogLevel.WARNING);
 
-                result.success();
+                result.success(null);
             } else if ("remoteConfigDownloadSpecificValue".equals(call.method)) {
                 int requestID = args.getInt(0);
                 JSONArray jArr = args.getJSONArray(1);
@@ -773,7 +773,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 //todo native implementation
 
-                result.success();
+                result.success(null);
             } else if ("remoteConfigDownloadOmittingValues".equals(call.method)) {
                 int requestID = args.getInt(0);
                 JSONArray jArr = args.getJSONArray(1);
@@ -788,7 +788,50 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 //todo native implementation
 
-                result.success();
+                result.success(null);
+            } else if ("remoteConfigGetAllValues".equals(call.method)) {
+                log("remoteConfigGetAllValues TEST", LogLevel.WARNING);
+                
+
+                //todo native implementation
+
+                result.success(null);
+            } else if ("remoteConfigGetValue".equals(call.method)) {
+                String key = args.getString(0);
+                log("remoteConfigGetValue TEST, " + key, LogLevel.WARNING);
+
+                //todo native implementation
+
+                result.success(null);
+            } else if ("remoteConfigEnrollIntoABTestsForKeys".equals(call.method)) {
+                JSONArray keys = args;
+
+                log("remoteConfigEnrollIntoABTestsForKeys TEST, " + keys, LogLevel.WARNING);
+
+                //todo native implementation
+
+                result.success(null);
+            } else if ("remoteConfigExitABTestsForKeys".equals(call.method)) {
+                JSONArray keys = args;
+
+                log("remoteConfigExitABTestsForKeys TEST, " + keys, LogLevel.WARNING);
+
+                //todo native implementation
+
+                result.success(null);
+            } else if ("remoteConfigGetVariantsForKey".equals(call.method)) {
+                String key = args.getString(0);
+                log("remoteConfigGetVariantsForKey TEST, " + key, LogLevel.WARNING);
+
+                //todo native implementation
+
+                result.success(null);
+            } else if ("remoteConfigGetAllVariants".equals(call.method)) {
+                log("remoteConfigGetAllVariants TEST, ", LogLevel.WARNING);
+
+                //todo native implementation
+
+                result.success(null);
             } else if ("presentRatingWidgetWithID".equals(call.method)) {
                 if (activity == null) {
                     log("presentRatingWidgetWithID failed : Activity is null", LogLevel.ERROR);
