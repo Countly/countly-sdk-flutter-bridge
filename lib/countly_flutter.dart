@@ -175,7 +175,7 @@ class RemoteConfigInternal implements RemoteConfig {
 
   @override
   Future<List<String>> testingGetVariantsForKey(String key) {
-    if (_cly.)
+    // if (_cly.)
     // TODO: implement testingGetVariantsForKey
     throw UnimplementedError();
   }
