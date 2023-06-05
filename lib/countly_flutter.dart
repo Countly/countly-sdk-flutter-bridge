@@ -61,7 +61,140 @@ abstract class CountlyConsent {
   static const String remoteConfig = 'remote-config';
 }
 
+abstract class RemoteConfig {
+  void registerDownloadCallback(RCDownloadCallback callback);
+
+  void removeDownloadCallback(RCDownloadCallback callback);
+
+  Future<void> downloadValues([RCDownloadCallback? callback]);
+
+  Future<void> downloadSpecificValue(List<String> keys, [RCDownloadCallback? callback]);
+
+  Future<void> downloadOmittingValues(List<String> omittedKeys, [RCDownloadCallback? callback]);
+
+  /// returns the values of all keys.
+  Future<Map<String, RCValue>> getAllValues();
+
+  /// returns the value of a stored key. Returns "null" if there is no entry
+  Future<RCValue?> getValue(String key);
+
+  Future<void> clearAllValues();
+
+  Future<void> enrollIntoABTestsForKeys(List<String> keys);
+
+  Future<void> exitABTestsForKeys(List<String> keys);
+
+  Future<List<String>> testingGetVariantsForKey(String key);
+
+  Future<Map<String, List<String>>> testingGetAllVariants();
+
+  Future<void> testingDownloadVariantInformation(RCVariantCallback rcVariantCallback);
+
+  Future<void> testingEnrollIntoVariant(String keyName, String variantName, RCVariantCallback? rcVariantCallback);
+}
+
+class RemoteConfigInternal implements RemoteConfig {
+  final Countly _cly;
+  RemoteConfigInternal(this._cly);
+
+  @override
+  Future<void> clearAllValues() {
+    // TODO: implement clearAllValues
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> downloadOmittingValues(List<String> omittedKeys, [RCDownloadCallback? callback]) {
+    // TODO: implement downloadOmittingValues
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> downloadSpecificValue(List<String> keys, [RCDownloadCallback? callback]) {
+    // TODO: implement downloadSpecificValue
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> downloadValues([RCDownloadCallback? callback]) {
+    // TODO: implement downloadValues
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> enrollIntoABTestsForKeys(List<String> keys) {
+    // TODO: implement enrollIntoABTestsForKeys
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> exitABTestsForKeys(List<String> keys) {
+    // TODO: implement exitABTestsForKeys
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, RCValue>> getAllValues() {
+    // TODO: implement getAllValues
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<RCValue?> getValue(String key) {
+    // TODO: implement getValue
+    throw UnimplementedError();
+  }
+
+  @override
+  void registerDownloadCallback(RCDownloadCallback callback) {
+    // TODO: implement registerDownloadCallback
+  }
+
+  @override
+  void removeDownloadCallback(RCDownloadCallback callback) {
+    // TODO: implement removeDownloadCallback
+  }
+
+  @override
+  Future<void> testingDownloadVariantInformation(RCVariantCallback rcVariantCallback) {
+    // TODO: implement testingDownloadVariantInformation
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> testingEnrollIntoVariant(String keyName, String variantName, RCVariantCallback? rcVariantCallback) {
+    // TODO: implement testingEnrollIntoVariant
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, List<String>>> testingGetAllVariants() {
+    // TODO: implement testingGetAllVariants
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<String>> testingGetVariantsForKey(String key) {
+    if (_cly.)
+    // TODO: implement testingGetVariantsForKey
+    throw UnimplementedError();
+  }
+}
+
+final instance = Countly.instance;
+// instance.remote
 class Countly {
+  Countly._() {
+    _remoteConfigInternal = RemoteConfigInternal(this);
+  }
+  static final instance = _instance;
+  static final _instance = Countly._();
+
+  late final RemoteConfigInternal _remoteConfigInternal;
+  RemoteConfig remoteConfig () {
+    return _remoteConfigInternal;
+  }
+
   static const bool BUILDING_WITH_PUSH_DISABLED = false;
   static const String _pushDisabledMsg = 'In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled';
 
