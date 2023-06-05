@@ -98,6 +98,22 @@ typedef NSString* CLYAttributionKey NS_EXTENSIBLE_STRING_ENUM;
 extern CLYAttributionKey const CLYAttributionKeyIDFA;
 extern CLYAttributionKey const CLYAttributionKeyADID;
 
+//NOTE: Response values of request
+typedef NSString* CLYRequestResult NS_EXTENSIBLE_STRING_ENUM;
+extern CLYRequestResult const CLYResponseNetworkIssue;
+extern CLYRequestResult const CLYResponseSuccess;
+extern CLYRequestResult const CLYResponseError;
+
+//NOTE: Response values of request
+typedef NSString* CLYRCValueState NS_EXTENSIBLE_STRING_ENUM;
+extern CLYRCValueState const CLYCached;
+extern CLYRCValueState const CLYCurrentUser;
+extern CLYRCValueState const CLYNoValue;
+
+typedef void (^RCVariantCallback)(CLYRequestResult response, NSError * error);
+
+typedef void (^RCDownloadCallback)(CLYRequestResult response, NSError * error, BOOL fullValueUpdate, NSDictionary* downloadedValues);
+
 //NOTE: Internal log levels
 typedef enum : NSUInteger
 {
@@ -366,7 +382,7 @@ typedef enum : NSUInteger
  * For specifying attribution ID (IDFA).
  * @discussion If set, this attribution ID will be sent with all @c begin_session requests.
  */
-@property (nonatomic, copy) NSString* attributionID;
+@property (nonatomic, copy) NSString* attributionID DEPRECATED_MSG_ATTRIBUTE("Use 'campaignType' and 'campaignData' for direct attribution or  'indirectAttribution' for indirect attribution");
 
 /**
  * For specifying direct attribution campaign type.
@@ -508,6 +524,11 @@ typedef enum : NSUInteger
  * @discussion If @c enableRemoteConfig flag is not set on initial config, it will never be executed.
  */
 @property (nonatomic, copy) void (^remoteConfigCompletionHandler)(NSError * _Nullable error);
+
+@property (nonatomic) BOOL enableRemoteConfigAutomaticTriggers;
+@property (nonatomic) BOOL enableRemoteConfigValueCaching;
+
+@property (nonatomic, copy) RCDownloadCallback remoteConfigGlobalCallback;
 
 #pragma mark -
 

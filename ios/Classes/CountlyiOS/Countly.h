@@ -8,6 +8,7 @@
 #import <CoreLocation/CoreLocation.h>
 #import "CountlyUserDetails.h"
 #import "CountlyConfig.h"
+#import "CountlyRCValue.h"
 #import "CountlyFeedbackWidget.h"
 #if (TARGET_OS_IOS || TARGET_OS_OSX)
 #import <UserNotifications/UserNotifications.h>
@@ -162,8 +163,25 @@ NS_ASSUME_NONNULL_BEGIN
  * @param deviceID New device ID
  * @param onServer If set, data on Countly Server will be merged automatically, otherwise device will be counted as a new device
  */
-- (void)setNewDeviceID:(NSString * _Nullable)deviceID onServer:(BOOL)onServer;
+- (void)setNewDeviceID:(NSString * _Nullable)deviceID onServer:(BOOL)onServer DEPRECATED_MSG_ATTRIBUTE("Use 'changeDeviceIDWithMerge: or changeDeviceIDWithoutMerge:' method instead!");
 
+/**
+ * Sets new device ID to be persistently stored and used in following requests.
+ * @discussion Value passed for @c deviceID parameter has to be a non-zero length valid string, otherwise default device ID will be used instead.
+ * @discussion If value passed for @c deviceID parameter is exactly same to the current device ID, method call is ignored.
+ * @discussion When passing @c CLYTemporaryDeviceID for @c deviceID parameter, argument for @c onServer parameter does not matter.
+ * @param deviceID New device ID
+ */
+- (void)changeDeviceIDWithMerge:(NSString * _Nullable)deviceID;
+
+/**
+ * Sets new device ID to be persistently stored and used in following requests.
+ * @discussion Value passed for @c deviceID parameter has to be a non-zero length valid string, otherwise default device ID will be used instead.
+ * @discussion If value passed for @c deviceID parameter is exactly same to the current device ID, method call is ignored.
+ * @discussion When passing @c CLYTemporaryDeviceID for @c deviceID parameter, argument for @c onServer parameter does not matter.
+ * @param deviceID New device ID
+ */
+- (void)changeDeviceIDWithoutMerge:(NSString * _Nullable)deviceID;
 
 
 #pragma mark - Consents
@@ -634,7 +652,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @discussion - Consent for @c CLYConsentAttribution is not given, while @c requiresConsent flag is set on initial configuration.
  * @param attributionID Attribution ID (IDFA)
  */
-- (void)recordAttributionID:(NSString *)attributionID;
+- (void)recordAttributionID:(NSString *)attributionID DEPRECATED_MSG_ATTRIBUTE("Use 'recordDirectAttributionWithCampaignType:' or  'recordIndirectAttribution' method instead!");
 
 /**
  * Records direct attribution with campaign type and data.
@@ -700,7 +718,33 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (void)updateRemoteConfigExceptForKeys:(NSArray *)omitKeys completionHandler:(void (^)(NSError * __nullable error))completionHandler;
 
+- (NSDictionary *)testingGetAllVariants;
 
+- (NSArray *)testingGetVariantsForKey:(NSString *)key;
+
+- (void)testingFetchAllVariants:(void (^)(CLYRequestResult response, NSError * error))completionHandler;
+
+- (void)testingEnrollIntoVariant:(NSString *)key variantName:(NSString *)variantName completionHandler:(RCVariantCallback)completionHandler;
+
+- (void)remoteConfigClearAllValues;
+
+- (CountlyRCValue *)remoteConfigGetValue:(NSString *)key;
+
+- (NSDictionary<NSString*, CountlyRCValue *> *)remoteConfigGetAllValues;
+
+-(void)remoteConfigRegisterDownloadCallback:(RCDownloadCallback) callback;
+
+-(void)remoteConfigRemoveDownloadCallback:(RCDownloadCallback) callback;
+
+- (void)remoteConfigDownloadValues:(RCDownloadCallback)completionHandler;
+
+- (void)remoteConfigDownloadSpecificValues:(NSArray *)keys completionHandler:(RCDownloadCallback)completionHandler;
+
+- (void)remoteConfigDownloadOmittingValues:(NSArray *)omitKeys completionHandler:(RCDownloadCallback)completionHandler;
+
+- (void)remoteConfigEnrollIntoABTestsForKeys:(NSArray *)keys;
+
+- (void)remoteConfigExitABTestsForKeys:(NSArray *)keys;
 
 #pragma mark - Performance Monitoring
 
