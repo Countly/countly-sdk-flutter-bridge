@@ -102,6 +102,7 @@ class Countly {
   static VoidCallback? _widgetClosed;
   static Function(String? error)? _remoteConfigCallback;
   static final Map<int, RCInnerCallback> _remoteConfigDownloadCallbacks = {};
+  static final Map<int, RCVariantInnerCallback> _remoteConfigVariantInnerCallbacks = {};
   static int lastUsedRCID = 0;
   static Function(String? error)? _ratingWidgetCallback;
   static Function(Map<String, dynamic> widgetData, String? error)? _feedbackWidgetDataCallback;
@@ -360,7 +361,11 @@ class Countly {
     List<String> args = [];
     args.add(key);
 
-    return await _channel.invokeMethod('remoteConfigGetVariantsForKey', <String, dynamic>{'data': json.encode(args)});
+    List<String>? returnValue = await _channel.invokeMethod('remoteConfigTestingGetVariantsForKey', <String, dynamic>{'data': json.encode(args)});
+
+    returnValue ??= [];
+
+    return returnValue;
   }
 
   static Future<Map<String, List<String>>> remoteConfigTestingGetAllVariants() async {
@@ -369,15 +374,70 @@ class Countly {
       return {};
     }
 
-    return await _channel.invokeMethod('remoteConfigGetAllVariants');
+    Map<String, List<String>>? returnValue = await _channel.invokeMethod('remoteConfigTestingGetAllVariants');
+
+    returnValue ??= {};
+
+    return returnValue;
   }
 
-  // TODO(PETERBROWN): FIX THIS
   static Future<void> remoteConfigTestingDownloadVariantInformation(RCVariantCallback rcVariantCallback) async {
+    if (!_isInitialized) {
+      Countly.log('"initWithConfig" must be called before "remoteConfigTestingDownloadVariantInformation"', logLevel: LogLevel.ERROR);
+      return;
+    }
+    log('Calling "remoteConfigTestingDownloadVariantInformation"');
+    int requestID = _wrapVariantCallback(rcVariantCallback);
+
+    List<dynamic> args = [];
+    args.add(requestID);
+
+    return await _channel.invokeMethod('remoteConfigTestingDownloadVariantInformation', <String, dynamic>{'data': json.encode(args)});
   }
 
-  // TODO(PETERBROWN): FIX THIS
-  static Future<void> remoteConfigTestingEnrollIntoVariant(String keyName, String variantName, RCVariantCallback rcVariantCallback) async {
+  static Future<void> remoteConfigTestingEnrollIntoVariant(String keyName, String variantName, RCVariantCallback? rcVariantCallback) async {
+    if (!_isInitialized) {
+      Countly.log('"initWithConfig" must be called before "remoteConfigTestingEnrollIntoVariant"', logLevel: LogLevel.ERROR);
+      return;
+    }
+    log('Calling "remoteConfigTestingEnrollIntoVariant":[keyName: $keyName, variantName: $variantName]');
+    if (keyName.isEmpty) {
+      log('remoteConfigTestingEnrollIntoVariant, key is empty', logLevel: LogLevel.WARNING);
+    }
+    int requestID = _wrapVariantCallback(rcVariantCallback);
+    log(keyName.toString());
+
+    List<dynamic> args = [];
+    args.add(requestID);
+    args.add(keyName);
+    args.add(variantName);
+
+    return await _channel.invokeMethod('remoteConfigTestingEnrollIntoVariant', <String, dynamic>{'data': json.encode(args)});
+  }
+
+  static int _wrapVariantCallback([RCVariantCallback? callback]) {
+    int requestID = -1;
+    if(callback != null) {
+      requestID = callback.hashCode;
+
+      // ignore: prefer_function_declarations_over_variables
+      RCVariantInnerCallback innerCallback = (rResult, error, providedRequestID) {
+        if(requestID != providedRequestID) {
+          return;
+        }
+
+        //remove callback from the inner list if it matches the request. 
+        // TODO(AK): create inner request
+        _remoteConfigVariantInnerCallbacks.remove(requestID);
+        callback(rResult, error);
+      };
+
+      //add new callback to the list 
+      // TODO(AK): create inner function
+      _remoteConfigVariantInnerCallbacks[requestID] = innerCallback;
+    }
+
+    return requestID;
   }
 
   @Deprecated('Use rcRegisterCallback instead')

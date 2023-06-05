@@ -803,6 +803,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 //todo native implementation
 
                 result.success(null);
+            } else if ("remoteConfigClearAllValues".equals(call.method)) {
+                log("remoteConfigClearAllValues", LogLevel.WARNING);
+
+                //todo native implementation
+
+                result.success(null);
             } else if ("remoteConfigEnrollIntoABTestsForKeys".equals(call.method)) {
                 JSONArray keys = args;
 
@@ -822,6 +828,30 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("remoteConfigGetVariantsForKey".equals(call.method)) {
                 String key = args.getString(0);
                 log("remoteConfigGetVariantsForKey TEST, " + key, LogLevel.WARNING);
+
+                //todo native implementation
+
+                result.success(null); //
+            } else if ("remoteConfigTestingGetVariantsForKey".equals(call.method)) {
+                log("remoteConfigTestingGetVariantsForKey", LogLevel.WARNING);
+
+                //todo native implementation
+
+                result.success(null);
+            } else if ("remoteConfigTestingGetAllVariants".equals(call.method)) {
+                log("remoteConfigTestingGetAllVariants", LogLevel.WARNING);
+
+                //todo native implementation
+
+                result.success(null);
+            }  else if ("remoteConfigTestingDownloadVariantInformation".equals(call.method)) {
+                log("remoteConfigTestingDownloadVariantInformation", LogLevel.WARNING);
+
+                //todo native implementation
+
+                result.success(null);
+            } else if ("remoteConfigTestingEnrollIntoVariant".equals(call.method)) {
+                log("remoteConfigTestingEnrollIntoVariant", LogLevel.WARNING);
 
                 //todo native implementation
 
