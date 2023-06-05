@@ -741,7 +741,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                             result.success("Error: " + error);
                         }
                     }
-                });                
+                });
             } else if ("remoteConfigClearValues".equals(call.method)) {
                 Countly.sharedInstance().remoteConfig().clearStoredValues();
                 result.success("remoteConfigClearValues: success");
@@ -784,14 +784,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 }
 
                 log("remoteConfigDownloadOmittingValues TEST, " + requestID + " , " + omitedKeys, LogLevel.WARNING);
-                
 
                 //todo native implementation
 
                 result.success(null);
             } else if ("remoteConfigGetAllValues".equals(call.method)) {
                 log("remoteConfigGetAllValues TEST", LogLevel.WARNING);
-                
 
                 //todo native implementation
 
@@ -844,7 +842,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 //todo native implementation
 
                 result.success(null);
-            }  else if ("remoteConfigTestingDownloadVariantInformation".equals(call.method)) {
+            } else if ("remoteConfigTestingDownloadVariantInformation".equals(call.method)) {
                 log("remoteConfigTestingDownloadVariantInformation", LogLevel.WARNING);
 
                 //todo native implementation
@@ -1264,7 +1262,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
         if (_config.has("providedUserProperties")) {
             Map<String, Object> providedUserProperties = toMap(_config.getJSONObject("providedUserProperties"));
-                this.config.setUserProperties(providedUserProperties);
+            this.config.setUserProperties(providedUserProperties);
         }
 
         if (_config.has("consents")) {
