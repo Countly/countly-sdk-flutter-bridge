@@ -3,9 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-// ignore: depend_on_referenced_packages
-import 'package:countly_flutter/countly_config.dart';
-// ignore: depend_on_referenced_packages
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter/material.dart';
 
@@ -132,76 +129,76 @@ class _MyAppState extends State<MyApp> {
   }
 
   void remoteConfigRegisterDownloadCallback() {
-    Countly.remoteConfigRegisterDownloadCallback(_rcDownloadCallback);
+    Countly.instance.remoteConfig().registerDownloadCallback(_rcDownloadCallback);
   }
 
   void remoteConfigRemoveDownloadCallback() {
-    Countly.remoteConfigRemoveDownloadCallback(_rcDownloadCallback);
+    Countly.instance.remoteConfig().removeDownloadCallback(_rcDownloadCallback);
   }
 
   void remoteConfigDownloadValues() {
     final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
       print(rResult);
     };
-    Countly.remoteConfigDownloadValues(callback);
+    Countly.instance.remoteConfig().downloadValues(callback);
   }
 
   void remoteConfigDownloadSpecificValue() {
     final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
       print(rResult);
     };
-    Countly.remoteConfigDownloadSpecificValue(['testKey'], callback);
+    Countly.instance.remoteConfig().downloadSpecificValue(['testKey'], callback);
   }
 
   void remoteConfigDownloadOmittingValues() {
     final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
       print(rResult);
     };
-    Countly.remoteConfigDownloadOmittingValues(['testKey'], callback);
+    Countly.instance.remoteConfig().downloadOmittingValues(['testKey'], callback);
   }
 
   void remoteConfigGetAllValues() {
-    Countly.remoteConfigGetAllValues();
+    Countly.instance.remoteConfig().getAllValues();
   }
 
   void remoteConfigGetValue() {
-    Countly.remoteConfigGetValue('testKey');
+    Countly.instance.remoteConfig().getValue('testKey');
   }
 
   void remoteConfigClearAllValues() {
-    Countly.remoteConfigClearAllValues();
+    Countly.instance.remoteConfig().clearAllValues();
   }
 
   void remoteConfigEnrollIntoABTestsForKeys() {
-    Countly.remoteConfigEnrollIntoABTestsForKeys(['testKey']);
+    Countly.instance.remoteConfig().enrollIntoABTestsForKeys(['testKey']);
   }
 
   void remoteConfigExitABTestsForKeys() {
-    Countly.remoteConfigExitABTestsForKeys(['testKey']);
+    Countly.instance.remoteConfig().exitABTestsForKeys(['testKey']);
   }
 
   void remoteConfigFetchVariantForKeys() {
-    Countly.remoteConfigTestingGetVariantsForKey('testKey');
+    Countly.instance.remoteConfig().testingGetVariantsForKey('testKey');
   }
 
   void remoteConfigFetchAllVariant() {
-    Countly.remoteConfigTestingGetAllVariants();
+    Countly.instance.remoteConfig().testingGetAllVariants();
   }
 
   void getRemoteConfigValueString() {
-    Countly.remoteConfigGetValue('stringValue');
+    Countly.instance.remoteConfig().getValue('stringValue');
   }
 
   void getRemoteConfigValueBoolean() {
-    Countly.remoteConfigGetValue('booleanValue');
+    Countly.instance.remoteConfig().getValue('booleanValue');
   }
 
   void getRemoteConfigValueFloat() {
-    Countly.remoteConfigGetValue('floatValue');
+    Countly.instance.remoteConfig().getValue('floatValue');
   }
 
   void getRemoteConfigValueInteger() {
-    Countly.remoteConfigGetValue('integerValue');
+    Countly.instance.remoteConfig().getValue('integerValue');
   }
 
   bool isManualSession() {
@@ -871,8 +868,8 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'Remote Config Clear All Values', color: 'purple', onPressed: remoteConfigClearAllValues),
               MyButton(text: 'Remote Config Enroll Into AB Tests For Keys', color: 'purple', onPressed: remoteConfigEnrollIntoABTestsForKeys),
               MyButton(text: 'Remote Config Exit AB Tests For Keys', color: 'purple', onPressed: remoteConfigExitABTestsForKeys),
-              MyButton(text: 'Countly.remoteConfigFetchVariantForKeys', color: 'purple', onPressed: remoteConfigFetchVariantForKeys),
-              MyButton(text: 'Countly.remoteConfigFetchAllVariant', color: 'purple', onPressed: remoteConfigFetchAllVariant),
+              MyButton(text: 'Remote Config FetchVariantForKeys', color: 'purple', onPressed: remoteConfigFetchVariantForKeys),
+              MyButton(text: 'Remote Config Fetch All Variant', color: 'purple', onPressed: remoteConfigFetchAllVariant),
               MyButton(text: 'Get String Value', color: 'purple', onPressed: getRemoteConfigValueString),
               MyButton(text: 'Get Boolean Value', color: 'purple', onPressed: getRemoteConfigValueBoolean),
               MyButton(text: 'Get Float Value', color: 'purple', onPressed: getRemoteConfigValueFloat),
