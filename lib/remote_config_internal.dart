@@ -12,7 +12,7 @@ class RemoteConfigInternal implements RemoteConfig {
   static final Map<int, RCVariantInnerCallback> _remoteConfigVariantInnerCallbacks = {};
 
   @override
-  Future<void> clearAllValues() async {
+  Future<void> clearAll() async {
     if (!_countlyState.isInitialized) {
       Countly.log('remoteConfigClearAllValues, "initWithConfig" must be called before "remoteConfigClearAllValues"', logLevel: LogLevel.ERROR);
       return;
@@ -22,8 +22,7 @@ class RemoteConfigInternal implements RemoteConfig {
   }
 
   @override
-  Future<void> downloadOmittingValues(List<String> omittedKeys,
-      [RCDownloadCallback? callback]) async {
+  Future<void> downloadOmittingKeys(List<String> omittedKeys, [RCDownloadCallback? callback]) async {
     if (!_countlyState.isInitialized) {
       Countly.log('"initWithConfig" must be called before "remoteConfigDownloadOmittingValues"', logLevel: LogLevel.ERROR);
       return;
@@ -44,8 +43,7 @@ class RemoteConfigInternal implements RemoteConfig {
   }
 
   @override
-  Future<void> downloadSpecificValue(List<String> keys,
-      [RCDownloadCallback? callback]) async {
+  Future<void> downloadSpecificKeys(List<String> keys, [RCDownloadCallback? callback]) async {
     if (!_countlyState.isInitialized) {
       Countly.log('"initWithConfig" must be called before "remoteConfigDownloadSpecificValue"', logLevel: LogLevel.ERROR);
       return;
@@ -57,7 +55,7 @@ class RemoteConfigInternal implements RemoteConfig {
     }
 
     int requestID = _wrapDownloadCallback(callback);
-    
+
     List<dynamic> args = [];
     args.add(requestID);
     args.add(keys);
@@ -66,7 +64,7 @@ class RemoteConfigInternal implements RemoteConfig {
   }
 
   @override
-  Future<void> downloadValues([RCDownloadCallback? callback]) async {
+  Future<void> downloadAllKeys([RCDownloadCallback? callback]) async {
     if (!_countlyState.isInitialized) {
       Countly.log('"initWithConfig" must be called before "remoteConfigDownloadValues"', logLevel: LogLevel.ERROR);
       return;
@@ -111,42 +109,41 @@ class RemoteConfigInternal implements RemoteConfig {
   }
 
   @override
-  Future<Map<String, RCValue>> getAllValues() async {
+  Future<Map<String, RCData>> getAllValues() async {
     if (!_countlyState.isInitialized) {
       Countly.log('"initWithConfig" must be called before "remoteConfigGetAllValues"', logLevel: LogLevel.ERROR);
       return {};
     }
 
-    Map<String, RCValue>? returnValue = await _countlyState.channel.invokeMethod('remoteConfigGetAllValues');
+    Map<String, RCData>? returnValue = await _countlyState.channel.invokeMethod('remoteConfigGetAllValues');
     // TODO(AK): validate return value;
-    
+
     returnValue ??= {};
     return returnValue;
   }
 
   @override
-  Future<RCValue> getValue(String key) async {
-    final defaultValue = RCValue(null, -1, RCValueState.noValue);
+  Future<RCData> getValue(String key) async {
     if (!_countlyState.isInitialized) {
       Countly.log('"initWithConfig" must be called before "remoteConfigGetValue"', logLevel: LogLevel.ERROR);
-      return defaultValue;
+      return RCData(null, true);
     }
     Countly.log('Calling "remoteConfigGetValue":[$key]');
     if (key.isEmpty) {
       Countly.log('remoteConfigGetValue, key cannot be empty');
-      return defaultValue;
+      return RCData(null, true);
     }
     List<String> args = [];
     args.add(key);
 
-    RCValue? returnValue = await _countlyState.channel.invokeMethod('remoteConfigGetValue', <String, dynamic>{'data': json.encode(args)});
+    RCData? returnValue = await _countlyState.channel.invokeMethod('remoteConfigGetValue', <String, dynamic>{'data': json.encode(args)});
 
-    returnValue ??= defaultValue;
+    returnValue ??= RCData(null, true);
     return returnValue;
   }
 
   @override
-  void registerDownloadCallback(RCDownloadCallback callback){
+  void registerDownloadCallback(RCDownloadCallback callback) {
     if (!_countlyState.isInitialized) {
       Countly.log('"initWithConfig" must be called before "remoteConfigRegisterDownloadCallback"', logLevel: LogLevel.ERROR);
       return;
@@ -177,7 +174,7 @@ class RemoteConfigInternal implements RemoteConfig {
     int requestID = callback.hashCode;
     Countly.log('"remoteConfigRemoveDownloadCallback" removing a callback with the hashCode:[$requestID]', logLevel: LogLevel.ERROR);
 
-    if(_remoteConfigDownloadCallbacks.containsKey(requestID)) {
+    if (_remoteConfigDownloadCallbacks.containsKey(requestID)) {
       _remoteConfigDownloadCallbacks.remove(requestID);
     } else {
       Countly.log('"remoteConfigRemoveDownloadCallback" provided callback hashCode:[$requestID] is not registred', logLevel: LogLevel.ERROR);
@@ -185,8 +182,7 @@ class RemoteConfigInternal implements RemoteConfig {
   }
 
   @override
-  Future<void> testingDownloadVariantInformation(
-      RCVariantCallback rcVariantCallback) async {
+  Future<void> testingDownloadVariantInformation(RCVariantCallback rcVariantCallback) async {
     if (!_countlyState.isInitialized) {
       Countly.log('"initWithConfig" must be called before "remoteConfigTestingDownloadVariantInformation"', logLevel: LogLevel.ERROR);
       return;
@@ -201,8 +197,7 @@ class RemoteConfigInternal implements RemoteConfig {
   }
 
   @override
-  Future<void> testingEnrollIntoVariant(String keyName, String variantName,
-      RCVariantCallback? rcVariantCallback) async {
+  Future<void> testingEnrollIntoVariant(String keyName, String variantName, RCVariantCallback? rcVariantCallback) async {
     if (!_countlyState.isInitialized) {
       Countly.log('"initWithConfig" must be called before "remoteConfigTestingEnrollIntoVariant"', logLevel: LogLevel.ERROR);
       return;
@@ -260,22 +255,22 @@ class RemoteConfigInternal implements RemoteConfig {
 
   int _wrapDownloadCallback([RCDownloadCallback? callback]) {
     int requestID = -1;
-    if(callback != null) {
+    if (callback != null) {
       requestID = callback.hashCode;
 
       // ignore: prefer_function_declarations_over_variables
       RCInnerCallback innerCallback = (rResult, error, fullValueUpdate, downloadedValues, providedRequestID) {
-        if(requestID != providedRequestID) {
+        if (requestID != providedRequestID) {
           return;
         }
 
-        //remove callback from the inner list if it matches the request. 
+        //remove callback from the inner list if it matches the request.
         // TODO(AK): create inner request
         _remoteConfigDownloadCallbacks.remove(requestID);
         callback(rResult, error, fullValueUpdate, downloadedValues);
       };
 
-      //add new callback to the list 
+      //add new callback to the list
       // TODO(AK): create inner function
       _remoteConfigDownloadCallbacks[requestID] = innerCallback;
     }
@@ -285,22 +280,22 @@ class RemoteConfigInternal implements RemoteConfig {
 
   int _wrapVariantCallback([RCVariantCallback? callback]) {
     int requestID = -1;
-    if(callback != null) {
+    if (callback != null) {
       requestID = callback.hashCode;
 
       // ignore: prefer_function_declarations_over_variables
       RCVariantInnerCallback innerCallback = (rResult, error, providedRequestID) {
-        if(requestID != providedRequestID) {
+        if (requestID != providedRequestID) {
           return;
         }
 
-        //remove callback from the inner list if it matches the request. 
+        //remove callback from the inner list if it matches the request.
         // TODO(AK): create inner request
         _remoteConfigVariantInnerCallbacks.remove(requestID);
         callback(rResult, error);
       };
 
-      //add new callback to the list 
+      //add new callback to the list
       // TODO(AK): create inner function
       _remoteConfigVariantInnerCallbacks[requestID] = innerCallback;
     }

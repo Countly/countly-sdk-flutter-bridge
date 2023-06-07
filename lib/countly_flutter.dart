@@ -24,6 +24,7 @@ abstract class AttributionKey {
 }
 
 enum LogLevel { INFO, DEBUG, VERBOSE, WARNING, ERROR }
+
 enum DeviceIdType { DEVELOPER_SUPPLIED, SDK_GENERATED, TEMPORARY_ID }
 
 abstract class CountlyConsent {
@@ -50,7 +51,7 @@ class Countly {
 
   final _countlyState = CountlyState();
   late final RemoteConfigInternal _remoteConfigInternal;
-  RemoteConfig remoteConfig () => _remoteConfigInternal;
+  RemoteConfig remoteConfig() => _remoteConfigInternal;
 
   static const bool BUILDING_WITH_PUSH_DISABLED = false;
   static const String _pushDisabledMsg = 'In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled';
@@ -130,15 +131,15 @@ class Countly {
           _feedbackWidgetDataCallback = null;
         }
         break;
-        case 'remoteConfigDownloadCallback':
-          // Map<String, dynamic> argumentsMap = Map<String, dynamic>.from(call.arguments);
-          // RequestResult requestResult = argumentsMap['requestResult'];
-          // String? error = argumentsMap['error'];
-          // bool fullValueUpdate = argumentsMap['fullValueUpdate'];
-          // Map<String, Object> downloadedValues = argumentsMap['downloadedValues'];
-          // int id = argumentsMap['id'];
-          // _remoteConfigDownloadCallbacks.forEach((key, value) => value(requestResult, error,fullValueUpdate, downloadedValues, id));
-          Countly.log('TEST TEST', logLevel: LogLevel.ERROR);
+      case 'remoteConfigDownloadCallback':
+        // Map<String, dynamic> argumentsMap = Map<String, dynamic>.from(call.arguments);
+        // RequestResult requestResult = argumentsMap['requestResult'];
+        // String? error = argumentsMap['error'];
+        // bool fullValueUpdate = argumentsMap['fullValueUpdate'];
+        // Map<String, Object> downloadedValues = argumentsMap['downloadedValues'];
+        // int id = argumentsMap['id'];
+        // _remoteConfigDownloadCallbacks.forEach((key, value) => value(requestResult, error,fullValueUpdate, downloadedValues, id));
+        Countly.log('TEST TEST', logLevel: LogLevel.ERROR);
         break;
     }
   }
@@ -339,8 +340,7 @@ class Countly {
     return result;
   }
 
-  static Map<String, String> _getUserData(Map<String, dynamic> options)
-  {
+  static Map<String, String> _getUserData(Map<String, dynamic> options) {
     Map<String, String> userData = {};
     if (options.containsKey('name')) {
       userData['name'] = options['name'].toString();
@@ -371,10 +371,11 @@ class Countly {
     }
     return userData;
   }
+
   /// This method will ask for permission, enables push notification and send push token to countly server.
   /// Should be call after Countly init
   static Future<String?> askForNotificationPermission() async {
-    if(BUILDING_WITH_PUSH_DISABLED) {
+    if (BUILDING_WITH_PUSH_DISABLED) {
       log('askForNotificationPermission, $_pushDisabledMsg', logLevel: LogLevel.ERROR);
       return _pushDisabledMsg;
     }
@@ -394,7 +395,7 @@ class Countly {
   /// Should be called before Countly init
   static Future<String?> disablePushNotifications() async {
     log('Calling "disablePushNotifications"');
-    if(BUILDING_WITH_PUSH_DISABLED) {
+    if (BUILDING_WITH_PUSH_DISABLED) {
       log('disablePushNotifications, $_pushDisabledMsg', logLevel: LogLevel.ERROR);
       return _pushDisabledMsg;
     }
@@ -409,7 +410,7 @@ class Countly {
   /// Set messaging mode for push notifications
   /// Should be call before Countly init
   static Future<String?> pushTokenType(String tokenType) async {
-    if(BUILDING_WITH_PUSH_DISABLED) {
+    if (BUILDING_WITH_PUSH_DISABLED) {
       log('pushTokenType, $_pushDisabledMsg', logLevel: LogLevel.ERROR);
       return _pushDisabledMsg;
     }
@@ -430,7 +431,7 @@ class Countly {
   /// Set callback to receive push notifications
   /// @param { callback listner } callback
   static Future<String?> onNotification(Function callback) async {
-    if(BUILDING_WITH_PUSH_DISABLED) {
+    if (BUILDING_WITH_PUSH_DISABLED) {
       log('onNotification, $_pushDisabledMsg', logLevel: LogLevel.ERROR);
       return _pushDisabledMsg;
     }

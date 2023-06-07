@@ -91,8 +91,7 @@ class CountlyConfig {
 
   Map<String, dynamic>? get providedUserProperties => _providedUserProperties;
 
-  bool? get enableRemoteConfigAutomaticDownload =>
-      _enableRemoteConfigAutomaticDownload;
+  bool? get enableRemoteConfigAutomaticDownload => _enableRemoteConfigAutomaticDownload;
 
   bool get remoteConfigAutomaticTriggers => _remoteConfigAutomaticTriggers;
 
@@ -233,6 +232,7 @@ class CountlyConfig {
   }
 
   @Deprecated('Use remoteConfigRegisterGlobalCallback instead')
+
   /// If enable, will automatically download newest remote config values.
   /// enabled set true for enabling it
   /// callback callback called after the update was done

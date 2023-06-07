@@ -136,25 +136,25 @@ class _MyAppState extends State<MyApp> {
     Countly.instance.remoteConfig().removeDownloadCallback(_rcDownloadCallback);
   }
 
-  void remoteConfigDownloadValues() {
+  void remoteConfigDownloadKeys() {
     final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
       print(rResult);
     };
-    Countly.instance.remoteConfig().downloadValues(callback);
+    Countly.instance.remoteConfig().downloadAllKeys(callback);
   }
 
-  void remoteConfigDownloadSpecificValue() {
+  void remoteConfigDownloadSpecificKeys() {
     final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
       print(rResult);
     };
-    Countly.instance.remoteConfig().downloadSpecificValue(['testKey'], callback);
+    Countly.instance.remoteConfig().downloadSpecificKeys(['testKey'], callback);
   }
 
-  void remoteConfigDownloadOmittingValues() {
+  void remoteConfigDownloadOmittingKeys() {
     final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
       print(rResult);
     };
-    Countly.instance.remoteConfig().downloadOmittingValues(['testKey'], callback);
+    Countly.instance.remoteConfig().downloadOmittingKeys(['testKey'], callback);
   }
 
   void remoteConfigGetAllValues() {
@@ -165,8 +165,8 @@ class _MyAppState extends State<MyApp> {
     Countly.instance.remoteConfig().getValue('testKey');
   }
 
-  void remoteConfigClearAllValues() {
-    Countly.instance.remoteConfig().clearAllValues();
+  void remoteConfigClearAll() {
+    Countly.instance.remoteConfig().clearAll();
   }
 
   void remoteConfigEnrollIntoABTestsForKeys() {
@@ -860,12 +860,12 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'Record event for goal #2', color: 'green', onPressed: eventForGoal_2),
               MyButton(text: 'Remote Config Register Download Callback', color: 'purple', onPressed: remoteConfigRegisterDownloadCallback),
               MyButton(text: 'Remote Config Remove Download Callback', color: 'purple', onPressed: remoteConfigRemoveDownloadCallback),
-              MyButton(text: 'Remote Config Download Values', color: 'purple', onPressed: remoteConfigDownloadValues),
-              MyButton(text: 'Remote Config Download Specific Value', color: 'purple', onPressed: remoteConfigDownloadSpecificValue),
-              MyButton(text: 'Remote Config Download Omitting Values', color: 'purple', onPressed: remoteConfigDownloadOmittingValues),
+              MyButton(text: 'Remote Config Download Values', color: 'purple', onPressed: remoteConfigDownloadKeys),
+              MyButton(text: 'Remote Config Download Specific Value', color: 'purple', onPressed: remoteConfigDownloadSpecificKeys),
+              MyButton(text: 'Remote Config Download Omitting Values', color: 'purple', onPressed: remoteConfigDownloadOmittingKeys),
               MyButton(text: 'Remote Config Get All Values', color: 'purple', onPressed: remoteConfigGetAllValues),
               MyButton(text: 'Remote Config Get Value', color: 'purple', onPressed: remoteConfigGetValue),
-              MyButton(text: 'Remote Config Clear All Values', color: 'purple', onPressed: remoteConfigClearAllValues),
+              MyButton(text: 'Remote Config Clear All Values', color: 'purple', onPressed: remoteConfigClearAll),
               MyButton(text: 'Remote Config Enroll Into AB Tests For Keys', color: 'purple', onPressed: remoteConfigEnrollIntoABTestsForKeys),
               MyButton(text: 'Remote Config Exit AB Tests For Keys', color: 'purple', onPressed: remoteConfigExitABTestsForKeys),
               MyButton(text: 'Remote Config FetchVariantForKeys', color: 'purple', onPressed: remoteConfigFetchVariantForKeys),

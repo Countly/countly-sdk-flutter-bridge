@@ -1,12 +1,8 @@
 /// REMOTE CONFIG / AB TESTING
-//metadate enum for RC values
-enum RCValueState { cached, currentUser, noValue }
-
-class RCValue {
+class RCData {
   Object? value; // stores the RC value
-  int timestamp; // timestamp of when the value was downloaded
-  RCValueState valueState; // it's state. indicating if it's the value of the current user or the previous one (cached)
-  RCValue(this.value, this.timestamp, this.valueState);
+  bool isCurrentUsersData;
+  RCData(this.value, this.isCurrentUsersData);
 }
 
 //indicates the result of the download action
@@ -29,19 +25,19 @@ abstract class RemoteConfig {
 
   void removeDownloadCallback(RCDownloadCallback callback);
 
-  Future<void> downloadValues([RCDownloadCallback? callback]);
+  Future<void> downloadAllKeys([RCDownloadCallback? callback]);
 
-  Future<void> downloadSpecificValue(List<String> keys, [RCDownloadCallback? callback]);
+  Future<void> downloadSpecificKeys(List<String> keys, [RCDownloadCallback? callback]);
 
-  Future<void> downloadOmittingValues(List<String> omittedKeys, [RCDownloadCallback? callback]);
+  Future<void> downloadOmittingKeys(List<String> omittedKeys, [RCDownloadCallback? callback]);
 
   /// returns the values of all keys.
-  Future<Map<String, RCValue>> getAllValues();
+  Future<Map<String, RCData>> getAllValues();
 
   /// returns the value of a stored key.
-  Future<RCValue> getValue(String key);
+  Future<RCData> getValue(String key);
 
-  Future<void> clearAllValues();
+  Future<void> clearAll();
 
   Future<void> enrollIntoABTestsForKeys(List<String> keys);
 
