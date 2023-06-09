@@ -87,6 +87,11 @@ objectOfComModification = {
     modPathCountly: {
         "modifications": {
             "import 'package:countly_flutter/countly_config.dart';": "import 'package:countly_flutter_np/countly_config.dart';",
+            "import 'package:countly_flutter/countly_state.dart';": "import 'package:countly_flutter_np/countly_state.dart';",
+            "import 'package:countly_flutter/remote_config.dart';": "import 'package:countly_flutter_np/remote_config.dart';",
+            "import 'package:countly_flutter/remote_config_internal.dart';": "import 'package:countly_flutter_np/remote_config_internal.dart';",
+            "export 'package:countly_flutter/countly_config.dart';": "export 'package:countly_flutter_np/countly_config.dart';",
+            "export 'package:countly_flutter/remote_config.dart';": "export 'package:countly_flutter_np/remote_config.dart';",
             "static const bool BUILDING_WITH_PUSH_DISABLED = false;": "  static const bool BUILDING_WITH_PUSH_DISABLED = true;"
         },
         "consecutiveOmits": []
