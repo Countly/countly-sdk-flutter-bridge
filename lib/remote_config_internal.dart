@@ -8,8 +8,30 @@ class RemoteConfigInternal implements RemoteConfig {
 
   final Countly _cly;
   final CountlyState _countlyState;
-  static final Map<int, RCInnerCallback> _remoteConfigDownloadCallbacks = {};
+  static final Map<int, RCDownloadInnerCallback> _remoteConfigDownloadCallbacks = {};
   static final Map<int, RCVariantInnerCallback> _remoteConfigVariantInnerCallbacks = {};
+  final _downloadKeysToRemove = <int>[];
+  final _variantKeysToRemove = <int>[];
+
+  void notifyDownloadCallbacks(RequestResult requestResult, String? error, bool fullValueUpdate, Map<String, RCData> downloadedValues, int id) {
+    for (final entry in _remoteConfigDownloadCallbacks.entries) {
+      entry.value(requestResult, error, fullValueUpdate, downloadedValues, id);
+    }
+    for (final key in _downloadKeysToRemove) {
+      _remoteConfigDownloadCallbacks.remove(key);
+    }
+    _downloadKeysToRemove.clear();
+  }
+
+  void notifyVariantCallbacks(RequestResult requestResult, String? error, int id) {
+    for (final entry in _remoteConfigVariantInnerCallbacks.entries) {
+      entry.value(requestResult, error, id);
+    }
+    for (final key in _variantKeysToRemove) {
+      _remoteConfigVariantInnerCallbacks.remove(key);
+    }
+    _variantKeysToRemove.clear();
+  }
 
   @override
   Future<void> clearAll() async {
@@ -115,10 +137,13 @@ class RemoteConfigInternal implements RemoteConfig {
       return {};
     }
 
-    Map<String, RCData>? returnValue = await _countlyState.channel.invokeMethod('remoteConfigGetAllValues');
-    // TODO(AK): validate return value;
+    final Map<dynamic, dynamic> allValues = await _countlyState.channel.invokeMethod('remoteConfigGetAllValues');
+    Map<String, RCData> returnValue = {};
+    for (final item in allValues.entries) {
+      returnValue[item.key.toString()] = RCData.fromMap(item.value);
+    }
 
-    returnValue ??= {};
+    // TODO(AK): validate return value;
     return returnValue;
   }
 
@@ -150,7 +175,7 @@ class RemoteConfigInternal implements RemoteConfig {
     }
 
     // ignore: prefer_function_declarations_over_variables
-    RCInnerCallback innerCallback = (rResult, error, fullValueUpdate, downloadedValues, requestID) {
+    RCDownloadInnerCallback innerCallback = (rResult, error, fullValueUpdate, downloadedValues, requestID) {
       callback(rResult, error, fullValueUpdate, downloadedValues);
     };
 
@@ -167,7 +192,7 @@ class RemoteConfigInternal implements RemoteConfig {
     }
 
     // ignore: prefer_function_declarations_over_variables
-    RCInnerCallback innerCallback = (rResult, error, fullValueUpdate, downloadedValues, requestID) {
+    RCDownloadInnerCallback innerCallback = (rResult, error, fullValueUpdate, downloadedValues, requestID) {
       callback(rResult, error, fullValueUpdate, downloadedValues);
     };
 
@@ -259,14 +284,14 @@ class RemoteConfigInternal implements RemoteConfig {
       requestID = callback.hashCode;
 
       // ignore: prefer_function_declarations_over_variables
-      RCInnerCallback innerCallback = (rResult, error, fullValueUpdate, downloadedValues, providedRequestID) {
+      RCDownloadInnerCallback innerCallback = (rResult, error, fullValueUpdate, downloadedValues, providedRequestID) {
         if (requestID != providedRequestID) {
           return;
         }
 
         //remove callback from the inner list if it matches the request.
         // TODO(AK): create inner request
-        _remoteConfigDownloadCallbacks.remove(requestID);
+        _downloadKeysToRemove.add(requestID);
         callback(rResult, error, fullValueUpdate, downloadedValues);
       };
 
@@ -291,7 +316,7 @@ class RemoteConfigInternal implements RemoteConfig {
 
         //remove callback from the inner list if it matches the request.
         // TODO(AK): create inner request
-        _remoteConfigVariantInnerCallbacks.remove(requestID);
+        _variantKeysToRemove.add(requestID);
         callback(rResult, error);
       };
 

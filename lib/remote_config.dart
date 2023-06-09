@@ -3,16 +3,20 @@ class RCData {
   Object? value; // stores the RC value
   bool isCurrentUsersData;
   RCData(this.value, this.isCurrentUsersData);
+
+  factory RCData.fromMap(Map<dynamic, dynamic> json) {
+    return RCData(json['value'] as dynamic, json['isCurrentUsersData'] as bool);
+  }
 }
 
 //indicates the result of the download action
 enum RequestResult { error, success, networkIssue }
 
 //used for internal Flutter-Native communication
-typedef RCInnerCallback = void Function(RequestResult rResult, String? error, bool fullValueUpdate, Map<String, Object> downloadedValues, int requestID);
+typedef RCDownloadInnerCallback = void Function(RequestResult rResult, String? error, bool fullValueUpdate, Map<String, RCData> downloadedValues, int requestID);
 
 //exposed to the end user
-typedef RCDownloadCallback = void Function(RequestResult rResult, String? error, bool fullValueUpdate, Map<String, Object> downloadedValues);
+typedef RCDownloadCallback = void Function(RequestResult rResult, String? error, bool fullValueUpdate, Map<String, RCData> downloadedValues);
 
 //used for internal Flutter-Native communication
 typedef RCVariantInnerCallback = void Function(RequestResult rResult, String? error, int requestID);

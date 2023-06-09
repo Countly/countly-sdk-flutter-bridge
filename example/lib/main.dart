@@ -86,8 +86,15 @@ class _MyAppState extends State<MyApp> {
           ..setUserProperties(userProperties)
           ..recordIndirectAttribution(attributionValues)
           ..recordDirectAttribution('countly', campaignData)
+          ..setRemoteConfigAutomaticDownload(true, (error) {
+            if (error != null) {
+              print(error);
+            }
+          })
           ..remoteConfigRegisterGlobalCallback((rResult, error, fullValueUpdate, downloadedValues) {
-            print(rResult);
+            if (error != null) {
+              print(error);
+            }
           }) // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
           ..setRecordAppStartTime(true) // Enable APM features, which includes the recording of app start time.
           ..setStarRatingTextMessage('Message for start rating dialog')
@@ -109,8 +116,7 @@ class _MyAppState extends State<MyApp> {
           }); // Set callback to receive push notifications
           Countly.askForNotificationPermission(); // This method will ask for permission, enables push notification and send push token to countly server.;
 
-          Countly.giveAllConsent(); // give consent for all features, should be call after init
-//        Countly.giveConsent(['events', 'views']); // give consent for some specific features, should be call after init.
+          Countly.giveAllConsent(); // give consent for all features, should be call after init Countly.giveConsent(['events', 'views']); // give consent for some specific features, should be call after init.
         }); // Initialize the countly SDK.
       } else {
         print('Countly: Already initialized.');
@@ -139,6 +145,11 @@ class _MyAppState extends State<MyApp> {
   void remoteConfigDownloadKeys() {
     final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
       print(rResult);
+      print(error);
+      print(fullValueUpdate);
+      for (final entry in downloadedValues.entries) {
+        print('key: ${entry.key}: value: ${entry.value.value}');
+      }
     };
     Countly.instance.remoteConfig().downloadAllKeys(callback);
   }
@@ -146,6 +157,11 @@ class _MyAppState extends State<MyApp> {
   void remoteConfigDownloadSpecificKeys() {
     final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
       print(rResult);
+      print(error);
+      print(fullValueUpdate);
+      for (final entry in downloadedValues.entries) {
+        print('key: ${entry.key}: value: ${entry.value.value}');
+      }
     };
     Countly.instance.remoteConfig().downloadSpecificKeys(['testKey'], callback);
   }
@@ -153,12 +169,20 @@ class _MyAppState extends State<MyApp> {
   void remoteConfigDownloadOmittingKeys() {
     final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
       print(rResult);
+      print(error);
+      print(fullValueUpdate);
+      for (final entry in downloadedValues.entries) {
+        print('key: ${entry.key}: value: ${entry.value.value}');
+      }
     };
     Countly.instance.remoteConfig().downloadOmittingKeys(['testKey'], callback);
   }
 
-  void remoteConfigGetAllValues() {
-    Countly.instance.remoteConfig().getAllValues();
+  Future<void> remoteConfigGetAllValues() async {
+    final allValues = await Countly.instance.remoteConfig().getAllValues();
+      for (final entry in allValues.entries) {
+        print('key: ${entry.key}: value: ${entry.value.value}');
+      }
   }
 
   void remoteConfigGetValue() {
@@ -482,6 +506,37 @@ class _MyAppState extends State<MyApp> {
     Countly.askForNotificationPermission();
   }
 
+  void _showDialog(String alertText) {
+    showDialog(
+      context: navigatorKey.currentContext!,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Alert!!'),
+          content: Text(alertText),
+          actions: <Widget>[
+            ElevatedButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(navigatorKey.currentContext!).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @deprecated
+  void getABTestingValues() {
+    Countly.remoteConfigUpdate((result) {
+      Countly.getRemoteConfigValueForKey('baloon', (result) {
+        String alertText = "Value for 'baloon' is : ${result.toString()}";
+        _showDialog(alertText);
+        print(alertText);
+      });
+    });
+  }
+
   void eventForGoal_1() {
     var event = {'key': 'eventForGoal_1', 'count': 1};
     Countly.recordEvent(event);
@@ -490,6 +545,69 @@ class _MyAppState extends State<MyApp> {
   void eventForGoal_2() {
     var event = {'key': 'eventForGoal_2', 'count': 1};
     Countly.recordEvent(event);
+  }
+
+  @deprecated
+  void remoteConfigUpdate() {
+    Countly.remoteConfigUpdate((result) {
+      print(result);
+    });
+  }
+
+  @deprecated
+  void updateRemoteConfigForKeysOnly() {
+    Countly.updateRemoteConfigForKeysOnly(['name'], (result) {
+      print(result);
+    });
+  }
+
+  @deprecated
+  void getRemoteConfigValueForKeyString() {
+    Countly.getRemoteConfigValueForKey('stringValue', (result) {
+      print(result);
+    });
+  }
+
+  @deprecated
+  void getRemoteConfigValueForKeyBoolean() {
+    Countly.getRemoteConfigValueForKey('booleanValue', (result) {
+      print(result);
+    });
+  }
+
+  @deprecated
+  void getRemoteConfigValueForKeyFloat() {
+    Countly.getRemoteConfigValueForKey('floatValue', (result) {
+      print(result);
+    });
+  }
+
+  @deprecated
+  void getRemoteConfigValueForKeyInteger() {
+    Countly.getRemoteConfigValueForKey('integerValue', (result) {
+      print(result);
+    });
+  }
+
+  @deprecated
+  void updateRemoteConfigExceptKeys() {
+    Countly.updateRemoteConfigExceptKeys(['url'], (result) {
+      print(result);
+    });
+  }
+
+  @deprecated
+  void remoteConfigClearValues() {
+    Countly.remoteConfigClearValues((result) {
+      print(result);
+    });
+  }
+
+  @deprecated
+  void getRemoteConfigValueForKey() {
+    Countly.getRemoteConfigValueForKey('name', (result) {
+      print(result);
+    });
   }
 
   Future<void> getDeviceIDType() async {
@@ -856,8 +974,17 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'Remove Consent starRating', color: 'blue', onPressed: removeConsentstarRating),
               MyButton(text: 'Remove Consent Performance', color: 'blue', onPressed: removeConsentAPM),
               const Text('Section for A/B testing:', style: TextStyle(color: Colors.green), textAlign: TextAlign.center),
+              MyButton(text: 'Get AB testing values (Legacy)', color: 'green', onPressed: getABTestingValues),
               MyButton(text: 'Record event for goal #1', color: 'green', onPressed: eventForGoal_1),
               MyButton(text: 'Record event for goal #2', color: 'green', onPressed: eventForGoal_2),
+              MyButton(text: 'Countly.remoteConfigUpdate', color: 'purple', onPressed: remoteConfigUpdate),
+              MyButton(text: 'Countly.updateRemoteConfigForKeysOnly (Legacy)', color: 'purple', onPressed: updateRemoteConfigForKeysOnly),
+              MyButton(text: 'Countly.updateRemoteConfigExceptKeys (Legacy)', color: 'purple', onPressed: updateRemoteConfigExceptKeys),
+              MyButton(text: 'Countly.remoteConfigClearValues (Legacy)', color: 'purple', onPressed: remoteConfigClearValues),
+              MyButton(text: 'Get String Value (Legacy)', color: 'purple', onPressed: getRemoteConfigValueForKeyString),
+              MyButton(text: 'Get Boolean Value (Legacy)', color: 'purple', onPressed: getRemoteConfigValueForKeyBoolean),
+              MyButton(text: 'Get Float Value (Legacy)', color: 'purple', onPressed: getRemoteConfigValueForKeyFloat),
+              MyButton(text: 'Get Integer Value (Legacy)', color: 'purple', onPressed: getRemoteConfigValueForKeyInteger),
               MyButton(text: 'Remote Config Register Download Callback', color: 'purple', onPressed: remoteConfigRegisterDownloadCallback),
               MyButton(text: 'Remote Config Remove Download Callback', color: 'purple', onPressed: remoteConfigRemoveDownloadCallback),
               MyButton(text: 'Remote Config Download Values', color: 'purple', onPressed: remoteConfigDownloadKeys),

@@ -64,6 +64,21 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
     private final boolean BUILDING_WITH_PUSH_DISABLED = false;
 
+    public static class RCDataFake {
+        public RCDataFake(Object value, boolean isCurrentUsersData) {
+            this.value = value;
+            this.isCurrentUsersData = isCurrentUsersData;
+        }
+        Object value;
+        boolean isCurrentUsersData;
+
+        public Map<String, Object> toMap() {
+            Map<String, Object> map = new HashMap<>();
+            map.put("value", value);
+            map.put("isCurrentUsersData", isCurrentUsersData);
+            return map;
+        }
+    }
     /**
      * Plugin registration.
      */
@@ -758,6 +773,34 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 //todo native implementation
 
                 log("remoteConfigDownloadValues TEST, " + requestID, LogLevel.WARNING);
+                Map<String, Map<String, Object>> downloadedValues = new HashMap<>();
+                downloadedValues.put("bool", (new RCDataFake(true, true)).toMap());
+                downloadedValues.put("double", (new RCDataFake(1.2d, true)).toMap());
+                downloadedValues.put("int", (new RCDataFake(123, true)).toMap());
+                downloadedValues.put("float", (new RCDataFake(2.3f, true)).toMap());
+                downloadedValues.put("string", (new RCDataFake("this is a", true)).toMap());
+                downloadedValues.put("long", (new RCDataFake(3L, true)).toMap());
+
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("bool", true);
+                jsonObject.put("string", "application");
+
+                downloadedValues.put("jsonObject", (new RCDataFake(toMap(jsonObject), false)).toMap());
+
+                JSONArray jsonArray = new JSONArray();
+                jsonArray.put(123);
+                jsonArray.put(456.5d);
+                downloadedValues.put("jsonArray", (new RCDataFake(toList(jsonArray), false)).toMap());
+                // downloadedValues.put("test", "PeterObiechina");
+
+                Map<String, Object> data = new HashMap<>();
+                data.put("error", "testing android message");
+                data.put("requestResult", 1);
+                data.put("downloadedValues", downloadedValues);
+                data.put("fullValueUpdate", true);
+                data.put("id", requestID);
+
+                methodChannel.invokeMethod("remoteConfigDownloadCallback", data);
 
                 result.success(null);
             } else if ("remoteConfigDownloadSpecificValue".equals(call.method)) {
@@ -792,8 +835,29 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 log("remoteConfigGetAllValues TEST", LogLevel.WARNING);
 
                 //todo native implementation
+                Map<String, Map<String, Object>> downloadedValues = new HashMap<>();
+                log("123", LogLevel.WARNING);
+                downloadedValues.put("bool", (new RCDataFake(true, true)).toMap());
+                downloadedValues.put("double", (new RCDataFake(1.2d, true)).toMap());
+                downloadedValues.put("int", (new RCDataFake(123, true)).toMap());
+                downloadedValues.put("float", (new RCDataFake(2.3f, true)).toMap());
+                downloadedValues.put("string", (new RCDataFake("this is a", true)).toMap());
+                downloadedValues.put("long", (new RCDataFake(3L, true)).toMap());
 
-                result.success(null);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("bool", true);
+                jsonObject.put("string", "application");
+                log("123", LogLevel.WARNING);
+
+                downloadedValues.put("jsonObject", (new RCDataFake(toMap(jsonObject), false)).toMap());
+
+                JSONArray jsonArray = new JSONArray();
+                jsonArray.put(123);
+                jsonArray.put(456.5d);
+                downloadedValues.put("jsonArray", (new RCDataFake(toList(jsonArray), false)).toMap());
+                
+                log(downloadedValues.toString(), LogLevel.WARNING);
+                result.success(downloadedValues);
             } else if ("remoteConfigGetValue".equals(call.method)) {
                 String key = args.getString(0);
                 log("remoteConfigGetValue TEST, " + key, LogLevel.WARNING);
@@ -824,11 +888,17 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 result.success(null);
             } else if ("remoteConfigGetVariantsForKey".equals(call.method)) {
-                String key = args.getString(0);
-                log("remoteConfigGetVariantsForKey TEST, " + key, LogLevel.WARNING);
+                int requestID = args.getInt(0);
+                log("remoteConfigGetVariantsForKey TEST, " + requestID, LogLevel.WARNING);
 
                 //todo native implementation
 
+                Map<String, Object> data = new HashMap<>();
+                // data.put("error", "testing message");
+                // data.put("requestResult", 2);
+                data.put("id", requestID);
+                
+                methodChannel.invokeMethod("remoteConfigVariantCallback", data);
                 result.success(null); //
             } else if ("remoteConfigTestingGetVariantsForKey".equals(call.method)) {
                 log("remoteConfigTestingGetVariantsForKey", LogLevel.WARNING);

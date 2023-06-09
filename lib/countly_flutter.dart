@@ -132,14 +132,50 @@ class Countly {
         }
         break;
       case 'remoteConfigDownloadCallback':
-        // Map<String, dynamic> argumentsMap = Map<String, dynamic>.from(call.arguments);
-        // RequestResult requestResult = argumentsMap['requestResult'];
-        // String? error = argumentsMap['error'];
-        // bool fullValueUpdate = argumentsMap['fullValueUpdate'];
-        // Map<String, Object> downloadedValues = argumentsMap['downloadedValues'];
-        // int id = argumentsMap['id'];
-        // _remoteConfigDownloadCallbacks.forEach((key, value) => value(requestResult, error,fullValueUpdate, downloadedValues, id));
-        Countly.log('TEST TEST', logLevel: LogLevel.ERROR);
+        try {
+          final Map<String, dynamic> argumentsMap = Map<String, dynamic>.from(call.arguments);
+          final int rResult = argumentsMap['requestResult'];
+          late final RequestResult requestResult;
+          if (rResult == 0) {
+            requestResult = RequestResult.success;
+          } else if (rResult == 1) {
+            requestResult = RequestResult.networkIssue;
+          } else {
+            requestResult = RequestResult.error;
+          }
+          final String? error = argumentsMap['error'];
+          final bool fullValueUpdate = argumentsMap['fullValueUpdate'];
+          final Map<dynamic, dynamic> downloadedValuesObject = argumentsMap['downloadedValues'];
+          final Map<String, RCData> downloadedValues = {};
+          for (final entry in downloadedValuesObject.entries) {
+            downloadedValues[entry.key.toString()] = RCData.fromMap(entry.value);
+          }
+          final int id = argumentsMap['id'];
+
+          Countly.instance._remoteConfigInternal.notifyDownloadCallbacks(requestResult, error, fullValueUpdate, downloadedValues, id);
+        } catch (e) {
+          Countly.log(e.toString(), logLevel: LogLevel.ERROR);
+        }
+        break;
+      case 'remoteConfigVariantCallback':
+        try {
+          final Map<String, dynamic> argumentsMap = Map<String, dynamic>.from(call.arguments);
+          final int rResult = argumentsMap['requestResult'];
+          late final RequestResult requestResult;
+          if (rResult == 0) {
+            requestResult = RequestResult.success;
+          } else if (rResult == 1) {
+            requestResult = RequestResult.networkIssue;
+          } else {
+            requestResult = RequestResult.error;
+          }
+          final String? error = argumentsMap['error'];
+          final int id = argumentsMap['id'];
+
+          Countly.instance._remoteConfigInternal.notifyVariantCallbacks(requestResult, error, id);
+        } catch (e) {
+          Countly.log(e.toString(), logLevel: LogLevel.ERROR);
+        }
         break;
     }
   }
