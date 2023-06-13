@@ -789,7 +789,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     @Override
                     public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, Object> downloadedValues) {
                         downloadedValues = new HashMap<>();
-                        downloadedValues.put("bool", new RCData(true, true);
+                        downloadedValues.put("bool", new RCData(true, true));
                         downloadedValues.put("double", new RCData(1.2d, true));
                         downloadedValues.put("int", new RCData(123, true));
                         downloadedValues.put("float", new RCData(2.3f, true));
@@ -797,15 +797,19 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         downloadedValues.put("long", new RCData(3L, true));
 
                         JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("bool", true);
-                        jsonObject.put("string", "application");
+                        try {
+                            jsonObject.put("bool", true);
+                            jsonObject.put("string", "application");
 
-                        downloadedValues.put("jsonObject", new RCData(jsonObject, false)));
+                            downloadedValues.put("jsonObject", new RCData(jsonObject, false));
 
-                        JSONArray jsonArray = new JSONArray();
-                        jsonArray.put(123);
-                        jsonArray.put(456.5d);
-                        downloadedValues.put("jsonArray", new RCData(jsonArray, false));                    
+                            JSONArray jsonArray = new JSONArray();
+                            jsonArray.put(123);
+                            jsonArray.put(456.5d);
+                            downloadedValues.put("jsonArray", new RCData(jsonArray, false));
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
+                        }
 
 
                         Map<String, Object> data = new HashMap<>();
@@ -818,7 +822,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         methodChannel.invokeMethod("remoteConfigDownloadCallback", data);
                     }
                 });
-            
+
                 result.success(null);
             } else if ("remoteConfigDownloadSpecificValue".equals(call.method)) {
                 int requestID = args.getInt(0);
@@ -879,7 +883,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 Map<String, RCData> rawDownloadedValues = Countly.sharedInstance().remoteConfig().GetAllValues();
 
                 rawDownloadedValues = new HashMap<>();
-                rawDownloadedValues.put("bool", new RCData(true, true);
+                rawDownloadedValues.put("bool", new RCData(true, true));
                 rawDownloadedValues.put("double", new RCData(1.2d, true));
                 rawDownloadedValues.put("int", new RCData(123, true));
                 rawDownloadedValues.put("float", new RCData(2.3f, true));
@@ -890,12 +894,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 jsonObject.put("bool", true);
                 jsonObject.put("string", "application");
 
-                rawDownloadedValues.put("jsonObject", new RCData(jsonObject, false)));
+                rawDownloadedValues.put("jsonObject", new RCData(jsonObject, false));
 
                 JSONArray jsonArray = new JSONArray();
                 jsonArray.put(123);
                 jsonArray.put(456.5d);
-                rawDownloadedValues.put("jsonArray", new RCData(jsonArray, false));    
+                rawDownloadedValues.put("jsonArray", new RCData(jsonArray, false));
 
 
                 Map<String, Map<String, Object>> transformedDownloadedValues = new HashMap<>();
