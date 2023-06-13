@@ -702,7 +702,7 @@ FlutterMethodChannel *_channel;
 
     } else if ([@"remoteConfigClearValues" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          [CountlyRemoteConfig.sharedInstance clearCachedRemoteConfig];
+          [CountlyRemoteConfig.sharedInstance clearAll];
           result(@"Success!");
         });
 
@@ -720,6 +720,102 @@ FlutterMethodChannel *_channel;
               result([value stringValue]);
           }
         });
+    } else if ([@"remoteConfigDownloadValues" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSNumber *callbackID = [command objectAtIndex:0];
+            [Countly.sharedInstance.remoteConfig downloadKeys:^(CLYRequestResult  _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
+                [self remoteConfigDownloadCallback:callbackID response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
+            }];
+            
+            result(@"success");
+        });
+    } else if ([@"remoteConfigDownloadSpecificValue" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSNumber *callbackID = [command objectAtIndex:0];
+            NSArray *keys = [command objectAtIndex:1];
+            [Countly.sharedInstance.remoteConfig downloadSpecificKeys:keys completionHandler:^(CLYRequestResult  _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
+                [self remoteConfigDownloadCallback:callbackID response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
+            }];
+            result(@"Success!");
+        });
+        
+    } else if ([@"remoteConfigDownloadOmittingValues" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSNumber *callbackID = [command objectAtIndex:0];
+            NSArray *omitKeys = [command objectAtIndex:1];
+            
+            [Countly.sharedInstance.remoteConfig downloadOmittingKeys:omitKeys completionHandler:^(CLYRequestResult  _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
+                [self remoteConfigDownloadCallback:callbackID response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
+            }];
+            result(@"Success!");
+        });
+        
+    } else if ([@"remoteConfigGetAllValues" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [CountlyRemoteConfig.sharedInstance clearAll];
+            result(@"Success!");
+        });
+        
+    } else if ([@"remoteConfigGetValue" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [CountlyRemoteConfig.sharedInstance clearAll];
+            result(@"Success!");
+        });
+        
+    } else if ([@"remoteConfigClearAllValues" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [CountlyRemoteConfig.sharedInstance clearAll];
+            result(@"Success!");
+        });
+        
+    } else if ([@"remoteConfigEnrollIntoABTestsForKeys" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [CountlyRemoteConfig.sharedInstance clearAll];
+            result(@"Success!");
+        });
+        
+    } else if ([@"remoteConfigExitABTestsForKeys" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [CountlyRemoteConfig.sharedInstance clearAll];
+            result(@"Success!");
+        });
+        
+    } else if ([@"remoteConfigGetVariantsForKey" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [CountlyRemoteConfig.sharedInstance clearAll];
+            result(@"Success!");
+        });
+        
+    } else if ([@"remoteConfigTestingGetVariantsForKey" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [CountlyRemoteConfig.sharedInstance clearAll];
+            result(@"Success!");
+        });
+        
+    } else if ([@"remoteConfigTestingGetAllVariants" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [CountlyRemoteConfig.sharedInstance clearAll];
+            result(@"Success!");
+        });
+        
+    } else if ([@"remoteConfigTestingDownloadVariantInformation" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [CountlyRemoteConfig.sharedInstance clearAll];
+            result(@"Success!");
+        });
+        
+    } else if ([@"remoteConfigTestingEnrollIntoVariant" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [CountlyRemoteConfig.sharedInstance clearAll];
+            result(@"Success!");
+        });
+        
+    } else if ([@"remoteConfigGetAllVariants" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [CountlyRemoteConfig.sharedInstance clearAll];
+            result(@"Success!");
+        });
+        
     } else if ([@"presentRatingWidgetWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *widgetId = [command objectAtIndex:0];
@@ -973,6 +1069,44 @@ FlutterMethodChannel *_channel;
         feedbackWidgetData[@"error"] = error;
     }
     [_channel invokeMethod:@"feedbackWidgetDataCallback" arguments:feedbackWidgetData];
+}
+
+//CLYRequestResult  _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues
+
+- (void)remoteConfigDownloadCallback:(NSNumber*)callbackID response:(CLYRequestResult _Nonnull)response fullValueUpdate:(BOOL)fullValueUpdate error:(NSError *__nullable)error downloadedValues:(NSDictionary<NSString *,CountlyRCData *> *_Nonnull)downloadedValues {
+    NSMutableDictionary *remoteConfigData = [[NSMutableDictionary alloc] init];
+    
+    remoteConfigData[@"id"] =  callbackID;
+    if(response == CLYResponseSuccess) {
+        remoteConfigData[@"requestResult"] =  [NSNumber numberWithInt:0];
+    }
+    else if(response == CLYResponseNetworkIssue) {
+        remoteConfigData[@"requestResult"] =  [NSNumber numberWithInt:1];
+    }
+    
+    remoteConfigData[@"fullValueUpdate"] = fullValueUpdate ? @YES : @NO;
+    
+    if (downloadedValues) {
+        remoteConfigData[@"downloadedValues"] = [self getRCValues:downloadedValues];
+    }
+    if (error) {
+        remoteConfigData[@"error"] = error.description;
+    }
+    
+    [_channel invokeMethod:@"remoteConfigDownloadCallback" arguments:remoteConfigData];
+}
+
+-(NSDictionary *) getRCValues:(NSDictionary<NSString *,CountlyRCData *> *_Nonnull)downloadedValues{
+    NSMutableDictionary *remoteConfigValues = [[NSMutableDictionary alloc] init];
+    [downloadedValues enumerateKeysAndObjectsUsingBlock:^(NSString * key, CountlyRCData * rcData, BOOL * stop)
+     {
+        NSMutableDictionary *remoteConfigValue = [[NSMutableDictionary alloc] init];
+        remoteConfigValue[@"value"] = rcData.value;
+        remoteConfigValue[@"isCurrentUsersData"] = rcData.isCurrentUsersData ? @YES : @NO;
+        remoteConfigValues[key] = remoteConfigValue;
+        
+    }];
+    return remoteConfigValues;
 }
 
 - (CountlyFeedbackWidget *)getFeedbackWidget:(NSString *)widgetId {
