@@ -958,20 +958,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 //todo native implementation
 
                 result.success(null);
-            } else if ("remoteConfigGetVariantsForKey".equals(call.method)) { //????
-                String key = args.getString(0);
-//                log("remoteConfigGetVariantsForKey TEST, " + requestID, LogLevel.WARNING);
-
-                //todo native implementation
-                String[] variants = Countly.sharedInstance().remoteConfig().testingGetVariantsForKey(key);
-
-//                Map<String, Object> data = new HashMap<>();
-//                // data.put("error", "testing message");
-//                // data.put("requestResult", 2);
-//                data.put("id", requestID);
-//
-//                methodChannel.invokeMethod("remoteConfigVariantCallback", data);
-                result.success(variants); //
             } else if ("remoteConfigTestingGetVariantsForKey".equals(call.method)) {
                 String key = args.getString(0);
                 log("remoteConfigTestingGetVariantsForKey", LogLevel.WARNING);
@@ -1019,13 +1005,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 //todo native implementation
 
                 result.success(null);
-            } else if ("remoteConfigGetAllVariants".equals(call.method)) {////???
-                log("remoteConfigGetAllVariants TEST, ", LogLevel.WARNING);
-
-                Map<String, String[]> variants = Countly.sharedInstance().remoteConfig().testingGetAllVariants();
-                //todo native implementation
-
-                result.success(variants);
             } else if ("presentRatingWidgetWithID".equals(call.method)) {
                 if (activity == null) {
                     log("presentRatingWidgetWithID failed : Activity is null", LogLevel.ERROR);
