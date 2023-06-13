@@ -85,6 +85,41 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
     }
 
+    public void notifyPublicChannelRCDL(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, Object> downloadedValues, Integer requestID) {
+        downloadedValues = new HashMap<>();
+        downloadedValues.put("bool", new RCData(true, true));
+        downloadedValues.put("double", new RCData(1.2d, true));
+        downloadedValues.put("int", new RCData(123, true));
+        downloadedValues.put("float", new RCData(2.3f, true));
+        downloadedValues.put("string", new RCData("this is a", true));
+        downloadedValues.put("long", new RCData(3L, true));
+
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("bool", true);
+            jsonObject.put("string", "application");
+
+            downloadedValues.put("jsonObject", new RCData(jsonObject, false));
+
+            JSONArray jsonArray = new JSONArray();
+            jsonArray.put(123);
+            jsonArray.put(456.5d);
+            downloadedValues.put("jsonArray", new RCData(jsonArray, false));
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("error", error);
+        data.put("requestResult", resultResponder(downloadResult));
+        log("remoteConfigDownloadValues TEST, downloaded values: " + downloadedValues, LogLevel.WARNING);
+        data.put("downloadedValues", downloadedValues); // give correct values
+        data.put("fullValueUpdate", fullValueUpdate);
+        data.put("id", requestID);
+        methodChannel.invokeMethod("remoteConfigDownloadCallback", data);
+    }
+
     public final int resultResponder(RequestResult rResult) {
         int response = 2;
         if (rResult == RequestResult.Success) {
@@ -254,6 +289,13 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 populateConfig(config);
                 Countly.sharedInstance().COUNTLY_SDK_NAME = BUILDING_WITH_PUSH_DISABLED ? COUNTLY_FLUTTER_SDK_NAME_NO_PUSH : COUNTLY_FLUTTER_SDK_NAME;
                 Countly.sharedInstance().COUNTLY_SDK_VERSION_STRING = COUNTLY_FLUTTER_SDK_VERSION_STRING;
+
+                this.config.RemoteConfigRegisterGlobalCallback(new RCDownloadCallback() {
+                    @Override
+                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, Object> downloadedValues) {
+                        notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, null);
+                    }
+                });
 
                 if (activity == null) {
                     log("Activity is 'null' during init, cannot set Application", LogLevel.WARNING);
@@ -788,38 +830,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 Countly.sharedInstance().remoteConfig().DownloadAllKeys(new RCDownloadCallback() {
                     @Override
                     public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, Object> downloadedValues) {
-                        downloadedValues = new HashMap<>();
-                        downloadedValues.put("bool", new RCData(true, true));
-                        downloadedValues.put("double", new RCData(1.2d, true));
-                        downloadedValues.put("int", new RCData(123, true));
-                        downloadedValues.put("float", new RCData(2.3f, true));
-                        downloadedValues.put("string", new RCData("this is a", true));
-                        downloadedValues.put("long", new RCData(3L, true));
-
-                        JSONObject jsonObject = new JSONObject();
-                        try {
-                            jsonObject.put("bool", true);
-                            jsonObject.put("string", "application");
-
-                            downloadedValues.put("jsonObject", new RCData(jsonObject, false));
-
-                            JSONArray jsonArray = new JSONArray();
-                            jsonArray.put(123);
-                            jsonArray.put(456.5d);
-                            downloadedValues.put("jsonArray", new RCData(jsonArray, false));
-                        } catch (JSONException e) {
-                            throw new RuntimeException(e);
-                        }
-
-
-                        Map<String, Object> data = new HashMap<>();
-                        data.put("error", error);
-                        data.put("requestResult", resultResponder(downloadResult));
-                        log("remoteConfigDownloadValues TEST, downloaded values: " + downloadedValues, LogLevel.WARNING);
-                        data.put("downloadedValues", downloadedValues); // give correct values
-                        data.put("fullValueUpdate", fullValueUpdate);
-                        data.put("id", requestID);
-                        methodChannel.invokeMethod("remoteConfigDownloadCallback", data);
+                        notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestID);
                     }
                 });
 
@@ -838,13 +849,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 Countly.sharedInstance().remoteConfig().DownloadSpecificKeys(keysOnly, new RCDownloadCallback() {
                     @Override
                     public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, Object> downloadedValues) {
-                        Map<String, Object> data = new HashMap<>();
-                        data.put("error", error);
-                        data.put("requestResult", resultResponder(downloadResult));
-                        data.put("downloadedValues", downloadedValues); // give correct values
-                        data.put("fullValueUpdate", fullValueUpdate);
-                        data.put("id", requestID);
-                        methodChannel.invokeMethod("remoteConfigDownloadCallback", data);
+                        notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestID);
                     }
                 });
                 //todo native implementation
@@ -864,13 +869,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 Countly.sharedInstance().remoteConfig().DownloadOmittingKeys(omitedKeys, new RCDownloadCallback() {
                     @Override
                     public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, Object> downloadedValues) {
-                        Map<String, Object> data = new HashMap<>();
-                        data.put("error", error);
-                        data.put("requestResult", resultResponder(downloadResult));
-                        data.put("downloadedValues", downloadedValues); // give correct values
-                        data.put("fullValueUpdate", fullValueUpdate);
-                        data.put("id", requestID);
-                        methodChannel.invokeMethod("remoteConfigDownloadCallback", data);
+                        notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestID);
                     }
                 });
                 //todo native implementation
