@@ -138,12 +138,14 @@ class RemoteConfigInternal implements RemoteConfig {
     }
 
     final Map<dynamic, dynamic> allValues = await _countlyState.channel.invokeMethod('remoteConfigGetAllValues');
+    Countly.log('"getAllValues" returned values:$allValues', logLevel: LogLevel.DEBUG);
     Map<String, RCData> returnValue = {};
     for (final item in allValues.entries) {
       returnValue[item.key.toString()] = RCData.fromMap(item.value);
     }
 
     // TODO(AK): validate return value;
+    Countly.log('"getAllValues" transformed values:$returnValue', logLevel: LogLevel.DEBUG);
     return returnValue;
   }
 

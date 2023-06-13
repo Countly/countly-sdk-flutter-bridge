@@ -43,7 +43,11 @@ import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 
+import ly.count.android.sdk.RCData;
+import ly.count.android.sdk.RCDownloadCallback;
+import ly.count.android.sdk.RCVariantCallback;
 import ly.count.android.sdk.RemoteConfigCallback;
+import ly.count.android.sdk.RequestResult;
 import ly.count.android.sdk.StarRatingCallback;
 import ly.count.android.sdk.messaging.CountlyPush;
 
@@ -69,6 +73,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.value = value;
             this.isCurrentUsersData = isCurrentUsersData;
         }
+
         Object value;
         boolean isCurrentUsersData;
 
@@ -79,6 +84,17 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             return map;
         }
     }
+
+    public final int resultResponder(RequestResult rResult) {
+        int response = 2;
+        if (rResult == RequestResult.Success) {
+            response = 0;
+        } else if (rResult == RequestResult.NetworkIssue) {
+            response = 1;
+        }
+        return response;
+    }
+
     /**
      * Plugin registration.
      */
@@ -269,7 +285,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         deviceIDTypeString = "DS";
                         break;
                     case OPEN_UDID:
-                    case ADVERTISING_ID:
+//                    case ADVERTISING_ID:
                     default:
                         deviceIDTypeString = "SG";
                         break;
@@ -769,38 +785,41 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success(remoteConfigValueForKey);
             } else if ("remoteConfigDownloadValues".equals(call.method)) {
                 int requestID = args.getInt(0);
-
+                Countly.sharedInstance().remoteConfig().DownloadAllKeys(new RCDownloadCallback() {
+                    @Override
+                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, Object> downloadedValues) {
+                        Map<String, Object> data = new HashMap<>();
+                        data.put("error", error);
+                        data.put("requestResult", resultResponder(downloadResult));
+                        log("remoteConfigDownloadValues TEST, downloaded values: " + downloadedValues, LogLevel.WARNING);
+                        data.put("downloadedValues", downloadedValues); // give correct values
+                        data.put("fullValueUpdate", fullValueUpdate);
+                        data.put("id", requestID);
+                        methodChannel.invokeMethod("remoteConfigDownloadCallback", data);
+                    }
+                });
                 //todo native implementation
+                // log("remoteConfigDownloadValues TEST, " + requestID, LogLevel.WARNING);
+                // Map<String, Map<String, Object>> downloadedValues = new HashMap<>();
+                // downloadedValues.put("bool", (new RCDataFake(true, true)).toMap());
+                // downloadedValues.put("double", (new RCDataFake(1.2d, true)).toMap());
+                // downloadedValues.put("int", (new RCDataFake(123, true)).toMap());
+                // downloadedValues.put("float", (new RCDataFake(2.3f, true)).toMap());
+                // downloadedValues.put("string", (new RCDataFake("this is a", true)).toMap());
+                // downloadedValues.put("long", (new RCDataFake(3L, true)).toMap());
 
-                log("remoteConfigDownloadValues TEST, " + requestID, LogLevel.WARNING);
-                Map<String, Map<String, Object>> downloadedValues = new HashMap<>();
-                downloadedValues.put("bool", (new RCDataFake(true, true)).toMap());
-                downloadedValues.put("double", (new RCDataFake(1.2d, true)).toMap());
-                downloadedValues.put("int", (new RCDataFake(123, true)).toMap());
-                downloadedValues.put("float", (new RCDataFake(2.3f, true)).toMap());
-                downloadedValues.put("string", (new RCDataFake("this is a", true)).toMap());
-                downloadedValues.put("long", (new RCDataFake(3L, true)).toMap());
+                // JSONObject jsonObject = new JSONObject();
+                // jsonObject.put("bool", true);
+                // jsonObject.put("string", "application");
 
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("bool", true);
-                jsonObject.put("string", "application");
+                // downloadedValues.put("jsonObject", (new RCDataFake(toMap(jsonObject), false)).toMap());
 
-                downloadedValues.put("jsonObject", (new RCDataFake(toMap(jsonObject), false)).toMap());
-
-                JSONArray jsonArray = new JSONArray();
-                jsonArray.put(123);
-                jsonArray.put(456.5d);
-                downloadedValues.put("jsonArray", (new RCDataFake(toList(jsonArray), false)).toMap());
+                // JSONArray jsonArray = new JSONArray();
+                // jsonArray.put(123);
+                // jsonArray.put(456.5d);
+                // downloadedValues.put("jsonArray", (new RCDataFake(toList(jsonArray), false)).toMap());
                 // downloadedValues.put("test", "PeterObiechina");
 
-                Map<String, Object> data = new HashMap<>();
-                data.put("error", "testing android message");
-                data.put("requestResult", 1);
-                data.put("downloadedValues", downloadedValues);
-                data.put("fullValueUpdate", true);
-                data.put("id", requestID);
-
-                methodChannel.invokeMethod("remoteConfigDownloadCallback", data);
 
                 result.success(null);
             } else if ("remoteConfigDownloadSpecificValue".equals(call.method)) {
@@ -814,6 +833,18 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 log("remoteConfigDownloadSpecificValue TEST, " + requestID + " , " + keysOnly, LogLevel.WARNING);
 
+                Countly.sharedInstance().remoteConfig().DownloadSpecificKeys(keysOnly, new RCDownloadCallback() {
+                    @Override
+                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, Object> downloadedValues) {
+                        Map<String, Object> data = new HashMap<>();
+                        data.put("error", error);
+                        data.put("requestResult", resultResponder(downloadResult));
+                        data.put("downloadedValues", downloadedValues); // give correct values
+                        data.put("fullValueUpdate", fullValueUpdate);
+                        data.put("id", requestID);
+                        methodChannel.invokeMethod("remoteConfigDownloadCallback", data);
+                    }
+                });
                 //todo native implementation
 
                 result.success(null);
@@ -828,6 +859,18 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 log("remoteConfigDownloadOmittingValues TEST, " + requestID + " , " + omitedKeys, LogLevel.WARNING);
 
+                Countly.sharedInstance().remoteConfig().DownloadOmittingKeys(omitedKeys, new RCDownloadCallback() {
+                    @Override
+                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, Object> downloadedValues) {
+                        Map<String, Object> data = new HashMap<>();
+                        data.put("error", error);
+                        data.put("requestResult", resultResponder(downloadResult));
+                        data.put("downloadedValues", downloadedValues); // give correct values
+                        data.put("fullValueUpdate", fullValueUpdate);
+                        data.put("id", requestID);
+                        methodChannel.invokeMethod("remoteConfigDownloadCallback", data);
+                    }
+                });
                 //todo native implementation
 
                 result.success(null);
@@ -835,101 +878,154 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 log("remoteConfigGetAllValues TEST", LogLevel.WARNING);
 
                 //todo native implementation
-                Map<String, Map<String, Object>> downloadedValues = new HashMap<>();
-                log("123", LogLevel.WARNING);
-                downloadedValues.put("bool", (new RCDataFake(true, true)).toMap());
-                downloadedValues.put("double", (new RCDataFake(1.2d, true)).toMap());
-                downloadedValues.put("int", (new RCDataFake(123, true)).toMap());
-                downloadedValues.put("float", (new RCDataFake(2.3f, true)).toMap());
-                downloadedValues.put("string", (new RCDataFake("this is a", true)).toMap());
-                downloadedValues.put("long", (new RCDataFake(3L, true)).toMap());
+                Map<String, RCData> rawDownloadedValues = Countly.sharedInstance().remoteConfig().GetAllValues();
+                Map<String, Map<String, Object>> transformedDownloadedValues = new HashMap<>();
+                log("remoteConfigGetValue TEST, raw vals:" + rawDownloadedValues, LogLevel.WARNING);
 
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("bool", true);
-                jsonObject.put("string", "application");
-                log("123", LogLevel.WARNING);
+                for (Map.Entry<String, RCData> entry : rawDownloadedValues.entrySet()) {
+                    String key = entry.getKey();
+                    RCData rcData = entry.getValue();
+                    if (rcData == null) {
+                        continue;
+                    }
 
-                downloadedValues.put("jsonObject", (new RCDataFake(toMap(jsonObject), false)).toMap());
+                    transformedDownloadedValues.put(key, (new RCDataFake(rcData.value, rcData.isCurrentUsersData)).toMap());
+                }
+                log("remoteConfigGetValue TEST, transformed vals: " + transformedDownloadedValues, LogLevel.WARNING);
 
-                JSONArray jsonArray = new JSONArray();
-                jsonArray.put(123);
-                jsonArray.put(456.5d);
-                downloadedValues.put("jsonArray", (new RCDataFake(toList(jsonArray), false)).toMap());
-                
-                log(downloadedValues.toString(), LogLevel.WARNING);
-                result.success(downloadedValues);
+//                log("123", LogLevel.WARNING);
+//                downloadedValues.put("double", (new RCDataFake(1.2d, true)).toMap());
+//                downloadedValues.put("int", (new RCDataFake(123, true)).toMap());
+//                downloadedValues.put("float", (new RCDataFake(2.3f, true)).toMap());
+//                downloadedValues.put("string", (new RCDataFake("this is a", true)).toMap());
+//                downloadedValues.put("long", (new RCDataFake(3L, true)).toMap());
+//
+//                JSONObject jsonObject = new JSONObject();
+//                jsonObject.put("bool", true);
+//                jsonObject.put("string", "application");
+//                log("123", LogLevel.WARNING);
+//
+//                downloadedValues.put("jsonObject", (new RCDataFake(toMap(jsonObject), false)).toMap());
+//
+//                JSONArray jsonArray = new JSONArray();
+//                jsonArray.put(123);
+//                jsonArray.put(456.5d);
+//                downloadedValues.put("jsonArray", (new RCDataFake(toList(jsonArray), false)).toMap());
+//
+//                log(downloadedValues.toString(), LogLevel.WARNING);
+                result.success(transformedDownloadedValues);
             } else if ("remoteConfigGetValue".equals(call.method)) {
                 String key = args.getString(0);
                 log("remoteConfigGetValue TEST, " + key, LogLevel.WARNING);
 
+                RCData data = Countly.sharedInstance().remoteConfig().GetValue(key);
+                Map<String, Object> transData = (new RCDataFake(data.value, data.isCurrentUsersData)).toMap();
                 //todo native implementation
 
-                result.success(null);
+                result.success(transData);
             } else if ("remoteConfigClearAllValues".equals(call.method)) {
                 log("remoteConfigClearAllValues", LogLevel.WARNING);
 
+                Countly.sharedInstance().remoteConfig().clearAll();
                 //todo native implementation
 
                 result.success(null);
             } else if ("remoteConfigEnrollIntoABTestsForKeys".equals(call.method)) {
-                JSONArray keys = args;
+                JSONArray jArr = args.getJSONArray(0);
+
+                String[] keys = new String[jArr.length()];
+                for (int i = 0, il = jArr.length(); i < il; i++) {
+                    keys[i] = jArr.getString(i);
+                }
 
                 log("remoteConfigEnrollIntoABTestsForKeys TEST, " + keys, LogLevel.WARNING);
 
+                Countly.sharedInstance().remoteConfig().enrollIntoABTestsForKeys(keys);
                 //todo native implementation
 
                 result.success(null);
             } else if ("remoteConfigExitABTestsForKeys".equals(call.method)) {
-                JSONArray keys = args;
+                JSONArray jArr = args.getJSONArray(0);
+
+                String[] keys = new String[jArr.length()];
+                for (int i = 0, il = jArr.length(); i < il; i++) {
+                    keys[i] = jArr.getString(i);
+                }
 
                 log("remoteConfigExitABTestsForKeys TEST, " + keys, LogLevel.WARNING);
 
+                Countly.sharedInstance().remoteConfig().exitABTestsForKeys(keys);
                 //todo native implementation
 
                 result.success(null);
-            } else if ("remoteConfigGetVariantsForKey".equals(call.method)) {
-                int requestID = args.getInt(0);
-                log("remoteConfigGetVariantsForKey TEST, " + requestID, LogLevel.WARNING);
+            } else if ("remoteConfigGetVariantsForKey".equals(call.method)) { //????
+                String key = args.getString(0);
+//                log("remoteConfigGetVariantsForKey TEST, " + requestID, LogLevel.WARNING);
 
                 //todo native implementation
+                String[] variants = Countly.sharedInstance().remoteConfig().testingGetVariantsForKey(key);
 
-                Map<String, Object> data = new HashMap<>();
-                // data.put("error", "testing message");
-                // data.put("requestResult", 2);
-                data.put("id", requestID);
-                
-                methodChannel.invokeMethod("remoteConfigVariantCallback", data);
-                result.success(null); //
+//                Map<String, Object> data = new HashMap<>();
+//                // data.put("error", "testing message");
+//                // data.put("requestResult", 2);
+//                data.put("id", requestID);
+//
+//                methodChannel.invokeMethod("remoteConfigVariantCallback", data);
+                result.success(variants); //
             } else if ("remoteConfigTestingGetVariantsForKey".equals(call.method)) {
+                String key = args.getString(0);
                 log("remoteConfigTestingGetVariantsForKey", LogLevel.WARNING);
 
+                String[] variants = Countly.sharedInstance().remoteConfig().testingGetVariantsForKey(key);
+
                 //todo native implementation
 
-                result.success(null);
+                result.success(variants);
             } else if ("remoteConfigTestingGetAllVariants".equals(call.method)) {
                 log("remoteConfigTestingGetAllVariants", LogLevel.WARNING);
 
+                Map<String, String[]> variants = Countly.sharedInstance().remoteConfig().testingGetAllVariants();
                 //todo native implementation
 
-                result.success(null);
+                result.success(variants);
             } else if ("remoteConfigTestingDownloadVariantInformation".equals(call.method)) {
+                int requestID = args.getInt(0);
+
                 log("remoteConfigTestingDownloadVariantInformation", LogLevel.WARNING);
 
+                Countly.sharedInstance().remoteConfig().TestingDownloadVariantInformation((rResult, error) -> {
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("error", error);
+                    data.put("requestResult", resultResponder(rResult));
+                    data.put("id", requestID);
+                    methodChannel.invokeMethod("remoteConfigVariantCallback", data);
+                });
                 //todo native implementation
 
                 result.success(null);
             } else if ("remoteConfigTestingEnrollIntoVariant".equals(call.method)) {
+                int requestID = args.getInt(0);
+                String key = args.getString(1);
+                String variant = args.getString(2);
                 log("remoteConfigTestingEnrollIntoVariant", LogLevel.WARNING);
 
+                Countly.sharedInstance().remoteConfig().testingEnrollIntoVariant(key, variant, (rResult, error) -> {
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("error", error);
+                    data.put("requestResult", resultResponder(rResult));
+                    data.put("id", requestID);
+                    methodChannel.invokeMethod("remoteConfigVariantCallback", data);
+                });
                 //todo native implementation
 
                 result.success(null);
-            } else if ("remoteConfigGetAllVariants".equals(call.method)) {
+            } else if ("remoteConfigGetAllVariants".equals(call.method)) {////???
                 log("remoteConfigGetAllVariants TEST, ", LogLevel.WARNING);
 
+                Map<String, String[]> variants = Countly.sharedInstance().remoteConfig().testingGetAllVariants();
                 //todo native implementation
 
-                result.success(null);
+                result.success(variants);
             } else if ("presentRatingWidgetWithID".equals(call.method)) {
                 if (activity == null) {
                     log("presentRatingWidgetWithID failed : Activity is null", LogLevel.ERROR);
