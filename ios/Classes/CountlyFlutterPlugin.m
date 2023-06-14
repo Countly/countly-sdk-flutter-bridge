@@ -801,7 +801,7 @@ FlutterMethodChannel *_channel;
         NSNumber *callbackID = [command objectAtIndex:0];
         dispatch_async(dispatch_get_main_queue(), ^{
             [Countly.sharedInstance.remoteConfig testingDownloadVariantInformation:^(CLYRequestResult  _Nonnull response, NSError * _Nonnull error) {
-                [self remoteConfigVaraintCallback:callbackID response:response error:error];
+                [self remoteConfigVariantCallback:callbackID response:response error:error];
             }];
             result(@"Success!");
         });
@@ -812,7 +812,7 @@ FlutterMethodChannel *_channel;
         NSString *variantName = [command objectAtIndex:2];
         dispatch_async(dispatch_get_main_queue(), ^{
             [Countly.sharedInstance.remoteConfig testingEnrollIntoVariant:key variantName:variantName completionHandler:^(CLYRequestResult  _Nonnull response, NSError * _Nonnull error) {
-                [self remoteConfigVaraintCallback:callbackID response:response error:error];
+                [self remoteConfigVariantCallback:callbackID response:response error:error];
             }];
             result(@"Success!");
         });
@@ -1072,7 +1072,7 @@ FlutterMethodChannel *_channel;
     [_channel invokeMethod:@"feedbackWidgetDataCallback" arguments:feedbackWidgetData];
 }
 
-- (void)remoteConfigVaraintCallback:(NSNumber*)callbackID response:(CLYRequestResult _Nonnull)response error:(NSError *__nullable)error {
+- (void)remoteConfigVariantCallback:(NSNumber*)callbackID response:(CLYRequestResult _Nonnull)response error:(NSError *__nullable)error {
     NSMutableDictionary *remoteConfigData = [[NSMutableDictionary alloc] init];
     
     remoteConfigData[@"id"] =  callbackID;
