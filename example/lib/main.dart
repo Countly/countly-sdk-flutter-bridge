@@ -163,7 +163,7 @@ class _MyAppState extends State<MyApp> {
         print('key: ${entry.key}: value: ${entry.value.value}');
       }
     };
-    Countly.instance.remoteConfig().downloadSpecificKeys(['testKey'], callback);
+    Countly.instance.remoteConfig().downloadSpecificKeys(['rc_1','ab_1'], callback);
   }
 
   void remoteConfigDownloadOmittingKeys() {
@@ -175,7 +175,7 @@ class _MyAppState extends State<MyApp> {
         print('key: ${entry.key}: value: ${entry.value.value}');
       }
     };
-    Countly.instance.remoteConfig().downloadOmittingKeys(['testKey'], callback);
+    Countly.instance.remoteConfig().downloadOmittingKeys(['rc_1','ab_1'], callback);
   }
 
   Future<void> remoteConfigGetAllValues() async {

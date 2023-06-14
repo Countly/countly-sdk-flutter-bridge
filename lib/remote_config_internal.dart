@@ -111,8 +111,9 @@ class RemoteConfigInternal implements RemoteConfig {
       Countly.log('remoteConfigEnrollIntoABTestsForKeys, keys List is empty', logLevel: LogLevel.WARNING);
     }
     Countly.log(keys.toString());
-
-    return await _countlyState.channel.invokeMethod('remoteConfigEnrollIntoABTestsForKeys', <String, dynamic>{'data': json.encode(keys)});
+    List<dynamic> args = [];
+    args.add(keys);
+    return await _countlyState.channel.invokeMethod('remoteConfigEnrollIntoABTestsForKeys', <String, dynamic>{'data': json.encode(args)});
   }
 
   @override
@@ -126,8 +127,9 @@ class RemoteConfigInternal implements RemoteConfig {
       Countly.log('remoteConfigExitABTestsForKeys, keys List is empty', logLevel: LogLevel.WARNING);
     }
     Countly.log(keys.toString());
-
-    return await _countlyState.channel.invokeMethod('remoteConfigExitABTestsForKeys', <String, dynamic>{'data': json.encode(keys)});
+    List<dynamic> args = [];
+    args.add(keys);
+    return await _countlyState.channel.invokeMethod('remoteConfigExitABTestsForKeys', <String, dynamic>{'data': json.encode(args)});
   }
 
   @override

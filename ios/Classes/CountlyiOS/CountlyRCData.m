@@ -13,13 +13,13 @@
 
 - (void)encodeWithCoder:(NSCoder *)encoder {
     
-    [encoder encodeObject:self.value forKey:NSStringFromSelector(@selector(isCurrentUsersData))];
+    [encoder encodeObject:self.value forKey:NSStringFromSelector(@selector(value))];
     [encoder encodeBool:self.isCurrentUsersData forKey:NSStringFromSelector(@selector(isCurrentUsersData))];
 }
 
 - (id)initWithCoder:(NSCoder *)decoder {
     if((self = [super init])) {
-        self.value = [decoder decodeObjectForKey:NSStringFromSelector(@selector(isCurrentUsersData))];
+        self.value = [decoder decodeObjectForKey:NSStringFromSelector(@selector(value))];
         self.isCurrentUsersData = [decoder decodeBoolForKey:NSStringFromSelector(@selector(isCurrentUsersData))];
     }
     return self;
@@ -43,6 +43,14 @@
     }
     
     return self;
+}
+
+- (NSDictionary*)toMap
+{
+    NSMutableDictionary *rCDataMap = [[NSMutableDictionary alloc] init];
+    rCDataMap[@"value"] = self.value;
+    rCDataMap[@"isCurrentUsersData"] = self.isCurrentUsersData ? @YES : @NO;
+    return rCDataMap;
 }
 
 
