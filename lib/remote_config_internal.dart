@@ -12,6 +12,8 @@ class RemoteConfigInternal implements RemoteConfig {
   static final Map<int, RCVariantInnerCallback> _remoteConfigVariantInnerCallbacks = {};
   final _downloadKeysToRemove = <int>[];
   final _variantKeysToRemove = <int>[];
+  final _requestIDNoCallback = -1;
+  final _requestIDGlobalCallback = -2;
 
   void notifyDownloadCallbacks(RequestResult requestResult, String? error, bool fullValueUpdate, Map<String, RCData> downloadedValues, int id) {
     for (final entry in _remoteConfigDownloadCallbacks.entries) {
@@ -180,6 +182,9 @@ class RemoteConfigInternal implements RemoteConfig {
 
     // ignore: prefer_function_declarations_over_variables
     RCDownloadInnerCallback innerCallback = (rResult, error, fullValueUpdate, downloadedValues, requestID) {
+      if (requestID != _requestIDGlobalCallback) {
+        return;
+      }
       callback(rResult, error, fullValueUpdate, downloadedValues);
     };
 
@@ -283,7 +288,7 @@ class RemoteConfigInternal implements RemoteConfig {
   }
 
   int _wrapDownloadCallback([RCDownloadCallback? callback]) {
-    int requestID = -1;
+    int requestID = _requestIDNoCallback;
     if (callback != null) {
       requestID = callback.hashCode;
 
@@ -308,7 +313,7 @@ class RemoteConfigInternal implements RemoteConfig {
   }
 
   int _wrapVariantCallback([RCVariantCallback? callback]) {
-    int requestID = -1;
+    int requestID = _requestIDNoCallback;
     if (callback != null) {
       requestID = callback.hashCode;
 

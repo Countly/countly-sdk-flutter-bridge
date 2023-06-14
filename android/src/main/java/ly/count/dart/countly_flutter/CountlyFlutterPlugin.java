@@ -68,23 +68,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
     private final boolean BUILDING_WITH_PUSH_DISABLED = false;
 
-    public static class RCDataFake {
-        public RCDataFake(Object value, boolean isCurrentUsersData) {
-            this.value = value;
-            this.isCurrentUsersData = isCurrentUsersData;
-        }
-
-        Object value;
-        boolean isCurrentUsersData;
-
-        public Map<String, Object> toMap() {
-            Map<String, Object> map = new HashMap<>();
-            map.put("value", value);
-            map.put("isCurrentUsersData", isCurrentUsersData);
-            return map;
-        }
-    }
-
     public void notifyPublicChannelRCDL(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues, Integer requestID) {
         downloadedValues = new HashMap<>();
         downloadedValues.put("bool", new RCData(true, true));
@@ -163,6 +146,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private Boolean manualSessionControlEnabled_ = false;
 
     private boolean isOnResumeBeforeInit = false;
+    static final int requestIDNoCallback = -1;
+    static final int requestIDGlobalCallback = -2;
 
     List<CountlyFeedbackWidget> retrievedWidgetList = null;
 
@@ -310,7 +295,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 this.config.RemoteConfigRegisterGlobalCallback(new RCDownloadCallback() {
                     @Override
                     public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
-                        notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, null);
+                        notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestIDGlobalCallback);
                     }
                 });
 
@@ -847,6 +832,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 Countly.sharedInstance().remoteConfig().DownloadAllKeys(new RCDownloadCallback() {
                     @Override
                     public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
+                        if (requestID == requestIDNoCallback) {
+                            return;
+                        }
                         notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestID);
                     }
                 });
@@ -866,10 +854,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 Countly.sharedInstance().remoteConfig().DownloadSpecificKeys(keysOnly, new RCDownloadCallback() {
                     @Override
                     public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
+                        if (requestID == requestIDNoCallback) {
+                            return;
+                        }
                         notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestID);
                     }
                 });
-                //todo native implementation
 
                 result.success(null);
             } else if ("remoteConfigDownloadOmittingValues".equals(call.method)) {
@@ -886,10 +876,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 Countly.sharedInstance().remoteConfig().DownloadOmittingKeys(omitedKeys, new RCDownloadCallback() {
                     @Override
                     public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
+                        if (requestID == requestIDNoCallback) {
+                            return;
+                        }
                         notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestID);
                     }
                 });
-                //todo native implementation
 
                 result.success(null);
             } else if ("remoteConfigGetAllValues".equals(call.method)) {
@@ -932,7 +924,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 log("remoteConfigClearAllValues", LogLevel.WARNING);
 
                 Countly.sharedInstance().remoteConfig().clearAll();
-                //todo native implementation
 
                 result.success(null);
             } else if ("remoteConfigEnrollIntoABTestsForKeys".equals(call.method)) {
@@ -946,7 +937,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 log("remoteConfigEnrollIntoABTestsForKeys TEST, " + keys, LogLevel.WARNING);
 
                 Countly.sharedInstance().remoteConfig().enrollIntoABTestsForKeys(keys);
-                //todo native implementation
 
                 result.success(null);
             } else if ("remoteConfigExitABTestsForKeys".equals(call.method)) {
@@ -960,7 +950,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 log("remoteConfigExitABTestsForKeys TEST, " + keys, LogLevel.WARNING);
 
                 Countly.sharedInstance().remoteConfig().exitABTestsForKeys(keys);
-                //todo native implementation
 
                 result.success(null);
             } else if ("remoteConfigTestingGetVariantsForKey".equals(call.method)) {
@@ -969,14 +958,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 String[] variants = Countly.sharedInstance().remoteConfig().testingGetVariantsForKey(key);
 
-                //todo native implementation
-
                 result.success(variants);
             } else if ("remoteConfigTestingGetAllVariants".equals(call.method)) {
                 log("remoteConfigTestingGetAllVariants", LogLevel.WARNING);
 
                 Map<String, String[]> variants = Countly.sharedInstance().remoteConfig().testingGetAllVariants();
-                //todo native implementation
 
                 result.success(variants);
             } else if ("remoteConfigTestingDownloadVariantInformation".equals(call.method)) {
@@ -985,13 +971,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 log("remoteConfigTestingDownloadVariantInformation", LogLevel.WARNING);
 
                 Countly.sharedInstance().remoteConfig().TestingDownloadVariantInformation((rResult, error) -> {
+                    if (requestID == requestIDNoCallback) {
+                        return;
+                    }
                     Map<String, Object> data = new HashMap<>();
                     data.put("error", error);
                     data.put("requestResult", resultResponder(rResult));
                     data.put("id", requestID);
                     methodChannel.invokeMethod("remoteConfigVariantCallback", data);
                 });
-                //todo native implementation
 
                 result.success(null);
             } else if ("remoteConfigTestingEnrollIntoVariant".equals(call.method)) {
@@ -1001,13 +989,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 log("remoteConfigTestingEnrollIntoVariant", LogLevel.WARNING);
 
                 Countly.sharedInstance().remoteConfig().testingEnrollIntoVariant(key, variant, (rResult, error) -> {
+                    if (requestID == requestIDNoCallback) {
+                        return;
+                    }
                     Map<String, Object> data = new HashMap<>();
                     data.put("error", error);
                     data.put("requestResult", resultResponder(rResult));
                     data.put("id", requestID);
                     methodChannel.invokeMethod("remoteConfigVariantCallback", data);
                 });
-                //todo native implementation
 
                 result.success(null);
             } else if ("presentRatingWidgetWithID".equals(call.method)) {
