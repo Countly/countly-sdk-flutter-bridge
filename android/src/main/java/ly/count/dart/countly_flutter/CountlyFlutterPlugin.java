@@ -85,7 +85,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
     }
 
-    public void notifyPublicChannelRCDL(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, Object> downloadedValues, Integer requestID) {
+    public void notifyPublicChannelRCDL(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues, Integer requestID) {
         downloadedValues = new HashMap<>();
         downloadedValues.put("bool", new RCData(true, true));
         downloadedValues.put("double", new RCData(1.2d, true));
@@ -114,10 +114,27 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         data.put("error", error);
         data.put("requestResult", resultResponder(downloadResult));
         log("remoteConfigDownloadValues TEST, downloaded values: " + downloadedValues, LogLevel.WARNING);
-        data.put("downloadedValues", downloadedValues); // give correct values
+        data.put("downloadedValues", transformMapIntoSendableForm(downloadedValues)); // give correct values
         data.put("fullValueUpdate", fullValueUpdate);
-        data.put("id", requestID);
+        if (requestID != null) {
+            data.put("id", requestID);
+        }
         methodChannel.invokeMethod("remoteConfigDownloadCallback", data);
+    }
+
+    public final String transformMapIntoSendableForm(Map<String, RCData> map) {
+        Map<String, String> newMap = new HashMap<>();
+        for (Map.Entry<String, RCData> entry : map.entrySet()) {
+            newMap.put(entry.getKey(), transformRCDataIntoSendableForm(entry.getValue()));
+        }
+        return newMap.toString();
+    }
+
+    public final String transformRCDataIntoSendableForm(RCData data) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("value", data.value);
+        map.put("isCurrentUsersData", data.isCurrentUsersData);
+        return map.toString();
     }
 
     public final int resultResponder(RequestResult rResult) {
@@ -292,7 +309,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 this.config.RemoteConfigRegisterGlobalCallback(new RCDownloadCallback() {
                     @Override
-                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, Object> downloadedValues) {
+                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
                         notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, null);
                     }
                 });
@@ -829,7 +846,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 int requestID = args.getInt(0);
                 Countly.sharedInstance().remoteConfig().DownloadAllKeys(new RCDownloadCallback() {
                     @Override
-                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, Object> downloadedValues) {
+                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
                         notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestID);
                     }
                 });
@@ -848,7 +865,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 Countly.sharedInstance().remoteConfig().DownloadSpecificKeys(keysOnly, new RCDownloadCallback() {
                     @Override
-                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, Object> downloadedValues) {
+                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
                         notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestID);
                     }
                 });
@@ -868,7 +885,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 Countly.sharedInstance().remoteConfig().DownloadOmittingKeys(omitedKeys, new RCDownloadCallback() {
                     @Override
-                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, Object> downloadedValues) {
+                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
                         notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestID);
                     }
                 });
@@ -900,29 +917,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 jsonArray.put(456.5d);
                 rawDownloadedValues.put("jsonArray", new RCData(jsonArray, false));
 
-
-                Map<String, Map<String, Object>> transformedDownloadedValues = new HashMap<>();
-                log("remoteConfigGetValue TEST, raw vals:" + rawDownloadedValues, LogLevel.WARNING);
-
-                for (Map.Entry<String, RCData> entry : rawDownloadedValues.entrySet()) {
-                    String key = entry.getKey();
-                    RCData rcData = entry.getValue();
-                    if (rcData == null) {
-                        continue;
-                    }
-
-                    transformedDownloadedValues.put(key, (new RCDataFake(rcData.value, rcData.isCurrentUsersData)).toMap());
-                }
-                log("remoteConfigGetValue TEST, transformed vals: " + transformedDownloadedValues, LogLevel.WARNING);
-
+                String transformedDownloadedValues = transformMapIntoSendableForm(rawDownloadedValues);
                 result.success(transformedDownloadedValues);
             } else if ("remoteConfigGetValue".equals(call.method)) {
                 String key = args.getString(0);
                 log("remoteConfigGetValue TEST, " + key, LogLevel.WARNING);
 
                 RCData data = Countly.sharedInstance().remoteConfig().GetValue(key);
-                Map<String, Object> transData = (new RCDataFake(data.value, data.isCurrentUsersData)).toMap();
-                //todo native implementation
+
+                String transData = transformRCDataIntoSendableForm(data);
 
                 result.success(transData);
             } else if ("remoteConfigClearAllValues".equals(call.method)) {
