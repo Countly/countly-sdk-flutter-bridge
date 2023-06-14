@@ -752,67 +752,68 @@ FlutterMethodChannel *_channel;
         
     } else if ([@"remoteConfigGetAllValues" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [CountlyRemoteConfig.sharedInstance clearAll];
-            result(@"Success!");
+            NSDictionary<NSString*, CountlyRCData *> * allRCDataValues = [Countly.sharedInstance.remoteConfig remoteConfigGetAllKeys];
+            NSDictionary* rCValues = [self getRCValues:allRCDataValues];
+            result(rCValues);
         });
         
     } else if ([@"remoteConfigGetValue" isEqualToString:call.method]) {
+        NSString *key = [command objectAtIndex:0];
         dispatch_async(dispatch_get_main_queue(), ^{
-            [CountlyRemoteConfig.sharedInstance clearAll];
-            result(@"Success!");
+            CountlyRCData* rcData = [Countly.sharedInstance.remoteConfig getKey:key];
+            result(rcData.toMap);
         });
         
     } else if ([@"remoteConfigClearAllValues" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [CountlyRemoteConfig.sharedInstance clearAll];
+            [Countly.sharedInstance.remoteConfig clearAll];
             result(@"Success!");
         });
         
     } else if ([@"remoteConfigEnrollIntoABTestsForKeys" isEqualToString:call.method]) {
+        NSArray *keys = [command objectAtIndex:0];
         dispatch_async(dispatch_get_main_queue(), ^{
-            [CountlyRemoteConfig.sharedInstance clearAll];
+            [Countly.sharedInstance.remoteConfig enrollIntoABTestsForKeys:keys];
             result(@"Success!");
         });
         
     } else if ([@"remoteConfigExitABTestsForKeys" isEqualToString:call.method]) {
+        NSArray *keys = [command objectAtIndex:0];
         dispatch_async(dispatch_get_main_queue(), ^{
-            [CountlyRemoteConfig.sharedInstance clearAll];
-            result(@"Success!");
-        });
-        
-    } else if ([@"remoteConfigGetVariantsForKey" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [CountlyRemoteConfig.sharedInstance clearAll];
+            [Countly.sharedInstance.remoteConfig exitABTestsForKeys:keys];
             result(@"Success!");
         });
         
     } else if ([@"remoteConfigTestingGetVariantsForKey" isEqualToString:call.method]) {
+        NSString *key = [command objectAtIndex:0];
         dispatch_async(dispatch_get_main_queue(), ^{
-            [CountlyRemoteConfig.sharedInstance clearAll];
-            result(@"Success!");
+            NSArray* variants = [Countly.sharedInstance.remoteConfig testingGetVariantsForKey:key];
+            result(variants);
         });
         
     } else if ([@"remoteConfigTestingGetAllVariants" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [CountlyRemoteConfig.sharedInstance clearAll];
-            result(@"Success!");
+            NSDictionary* allVariants = [Countly.sharedInstance.remoteConfig testingGetAllVariants];
+            result(allVariants);
         });
         
     } else if ([@"remoteConfigTestingDownloadVariantInformation" isEqualToString:call.method]) {
+        NSNumber *callbackID = [command objectAtIndex:0];
         dispatch_async(dispatch_get_main_queue(), ^{
-            [CountlyRemoteConfig.sharedInstance clearAll];
+            [Countly.sharedInstance.remoteConfig testingDownloadVariantInformation:^(CLYRequestResult  _Nonnull response, NSError * _Nonnull error) {
+                [self remoteConfigVaraintCallback:callbackID response:response error:error];
+            }];
             result(@"Success!");
         });
         
     } else if ([@"remoteConfigTestingEnrollIntoVariant" isEqualToString:call.method]) {
+        NSNumber *callbackID = [command objectAtIndex:0];
+        NSString *key = [command objectAtIndex:1];
+        NSString *variantName = [command objectAtIndex:2];
         dispatch_async(dispatch_get_main_queue(), ^{
-            [CountlyRemoteConfig.sharedInstance clearAll];
-            result(@"Success!");
-        });
-        
-    } else if ([@"remoteConfigGetAllVariants" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [CountlyRemoteConfig.sharedInstance clearAll];
+            [Countly.sharedInstance.remoteConfig testingEnrollIntoVariant:key variantName:variantName completionHandler:^(CLYRequestResult  _Nonnull response, NSError * _Nonnull error) {
+                [self remoteConfigVaraintCallback:callbackID response:response error:error];
+            }];
             result(@"Success!");
         });
         
@@ -1071,7 +1072,23 @@ FlutterMethodChannel *_channel;
     [_channel invokeMethod:@"feedbackWidgetDataCallback" arguments:feedbackWidgetData];
 }
 
-//CLYRequestResult  _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues
+- (void)remoteConfigVaraintCallback:(NSNumber*)callbackID response:(CLYRequestResult _Nonnull)response error:(NSError *__nullable)error {
+    NSMutableDictionary *remoteConfigData = [[NSMutableDictionary alloc] init];
+    
+    remoteConfigData[@"id"] =  callbackID;
+    if(response == CLYResponseSuccess) {
+        remoteConfigData[@"requestResult"] =  [NSNumber numberWithInt:0];
+    }
+    else if(response == CLYResponseNetworkIssue) {
+        remoteConfigData[@"requestResult"] =  [NSNumber numberWithInt:1];
+    }
+    
+    if (error) {
+        remoteConfigData[@"error"] = error.description;
+    }
+    
+    [_channel invokeMethod:@"remoteConfigVariantCallback" arguments:remoteConfigData];
+}
 
 - (void)remoteConfigDownloadCallback:(NSNumber*)callbackID response:(CLYRequestResult _Nonnull)response fullValueUpdate:(BOOL)fullValueUpdate error:(NSError *__nullable)error downloadedValues:(NSDictionary<NSString *,CountlyRCData *> *_Nonnull)downloadedValues {
     NSMutableDictionary *remoteConfigData = [[NSMutableDictionary alloc] init];
@@ -1100,10 +1117,7 @@ FlutterMethodChannel *_channel;
     NSMutableDictionary *remoteConfigValues = [[NSMutableDictionary alloc] init];
     [downloadedValues enumerateKeysAndObjectsUsingBlock:^(NSString * key, CountlyRCData * rcData, BOOL * stop)
      {
-        NSMutableDictionary *remoteConfigValue = [[NSMutableDictionary alloc] init];
-        remoteConfigValue[@"value"] = rcData.value;
-        remoteConfigValue[@"isCurrentUsersData"] = rcData.isCurrentUsersData ? @YES : @NO;
-        remoteConfigValues[key] = remoteConfigValue;
+        remoteConfigValues[key] = rcData.toMap;
         
     }];
     return remoteConfigValues;
