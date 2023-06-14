@@ -45,13 +45,5 @@
     return self;
 }
 
-- (NSDictionary*)toMap
-{
-    NSMutableDictionary *rCDataMap = [[NSMutableDictionary alloc] init];
-    rCDataMap[@"value"] = self.value;
-    rCDataMap[@"isCurrentUsersData"] = self.isCurrentUsersData ? @YES : @NO;
-    return rCDataMap;
-}
-
 
 @end
