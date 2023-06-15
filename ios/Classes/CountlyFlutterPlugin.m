@@ -1148,7 +1148,7 @@ FlutterMethodChannel *_channel;
 }
 - (CLLocationCoordinate2D)getCoordinate:(NSString *)gpsCoordinate {
     CLLocationCoordinate2D locationCoordinate = kCLLocationCoordinate2DInvalid;
-    if (gpsCoordinate) {
+    if (gpsCoordinate && ![[NSNull null] isEqual:gpsCoordinate] && gpsCoordinate.length) {
         if ([gpsCoordinate containsString:@","]) {
             @try {
                 NSArray *locationArray = [gpsCoordinate componentsSeparatedByString:@","];
