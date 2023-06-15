@@ -163,7 +163,7 @@ class _MyAppState extends State<MyApp> {
         print('key: ${entry.key}: value: ${entry.value.value}');
       }
     };
-    Countly.instance.remoteConfig().downloadSpecificKeys(['rc_1','ab_1'], callback);
+    Countly.instance.remoteConfig().downloadSpecificKeys(['rc_1', 'ab_1'], callback);
   }
 
   void remoteConfigDownloadOmittingKeys() {
@@ -175,14 +175,23 @@ class _MyAppState extends State<MyApp> {
         print('key: ${entry.key}: value: ${entry.value.value}');
       }
     };
-    Countly.instance.remoteConfig().downloadOmittingKeys(['rc_1','ab_1'], callback);
+    Countly.instance.remoteConfig().downloadOmittingKeys(['rc_1', 'ab_1'], callback);
   }
 
   Future<void> remoteConfigGetAllValues() async {
     final allValues = await Countly.instance.remoteConfig().getAllValues();
-      for (final entry in allValues.entries) {
-        print('key: ${entry.key}: value: ${entry.value.value}');
+    for (final entry in allValues.entries) {
+      final value = entry.value.value;
+      print('key: ${entry.key}, value: $value, DataType: ${value.runtimeType}');
+      if (value is Map) {
+        print('begin 2nd level iteration');
+        for (final entry1 in value.entries) {
+          final value1 = entry1.value;
+          print('2nd iteration - key: ${entry1.key}, value: $value1, DataType: ${value1.runtimeType}');
+        }
+        print('end 2nd level iteration');
       }
+    }
   }
 
   void remoteConfigGetValue() {

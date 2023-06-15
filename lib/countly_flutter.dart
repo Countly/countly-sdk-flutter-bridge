@@ -146,13 +146,9 @@ class Countly {
           final String? error = argumentsMap['error'];
           final bool fullValueUpdate = argumentsMap['fullValueUpdate'];
           final Map<dynamic, dynamic> downloadedValuesObject = argumentsMap['downloadedValues'];
-          final Map<String, RCData> downloadedValues = {};
-          for (final entry in downloadedValuesObject.entries) {
-            downloadedValues[entry.key.toString()] = RCData.fromMap(entry.value);
-          }
           final int id = argumentsMap['id'];
 
-          Countly.instance._remoteConfigInternal.notifyDownloadCallbacks(requestResult, error, fullValueUpdate, downloadedValues, id);
+          Countly.instance._remoteConfigInternal.notifyDownloadCallbacks(requestResult, error, fullValueUpdate, downloadedValuesObject, id);
         } catch (e) {
           Countly.log(e.toString(), logLevel: LogLevel.ERROR);
         }

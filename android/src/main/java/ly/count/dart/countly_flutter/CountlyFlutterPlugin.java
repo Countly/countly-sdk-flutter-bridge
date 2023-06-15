@@ -105,19 +105,29 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         methodChannel.invokeMethod("remoteConfigDownloadCallback", data);
     }
 
-    public final String transformMapIntoSendableForm(Map<String, RCData> map) {
-        Map<String, String> newMap = new HashMap<>();
+    public final Map<String, Object> transformMapIntoSendableForm(Map<String, RCData> map) {
+        Map<String, Object> newMap = new HashMap<>();
         for (Map.Entry<String, RCData> entry : map.entrySet()) {
             newMap.put(entry.getKey(), transformRCDataIntoSendableForm(entry.getValue()));
         }
-        return newMap.toString();
+        return newMap;
     }
 
-    public final String transformRCDataIntoSendableForm(RCData data) {
+    public final Map<String, Object> transformRCDataIntoSendableForm(RCData data) {
         Map<String, Object> map = new HashMap<>();
-        map.put("value", data.value);
+        try {
+            if (data.value instanceof JSONArray) {
+                map.put("value", toList((JSONArray) data.value));
+            } else if (data.value instanceof JSONObject) {
+                map.put("value", toMap((JSONObject) data.value));
+            } else {
+                map.put("value", data.value);
+            }
+        } catch (Exception e) {
+            log("'transformRCDataIntoSendableForm' failed while transforming data", LogLevel.INFO);
+        }
         map.put("isCurrentUsersData", data.isCurrentUsersData);
-        return map.toString();
+        return map;
     }
 
     public final int resultResponder(RequestResult rResult) {
@@ -902,14 +912,20 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 jsonObject.put("bool", true);
                 jsonObject.put("string", "application");
 
+                JSONObject jsonObject2 = new JSONObject();
+                jsonObject2.put("bool1", false);
+                jsonObject2.put("string1", "application1");
+                jsonObject.put("object-object", jsonObject2);
+
                 rawDownloadedValues.put("jsonObject", new RCData(jsonObject, false));
 
                 JSONArray jsonArray = new JSONArray();
                 jsonArray.put(123);
                 jsonArray.put(456.5d);
+                jsonArray.put(jsonObject2);
                 rawDownloadedValues.put("jsonArray", new RCData(jsonArray, false));
 
-                String transformedDownloadedValues = transformMapIntoSendableForm(rawDownloadedValues);
+                Map<String, Object> transformedDownloadedValues = transformMapIntoSendableForm(rawDownloadedValues);
                 result.success(transformedDownloadedValues);
             } else if ("remoteConfigGetValue".equals(call.method)) {
                 String key = args.getString(0);
@@ -917,7 +933,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 RCData data = Countly.sharedInstance().remoteConfig().GetValue(key);
 
-                String transData = transformRCDataIntoSendableForm(data);
+                Map<String, Object> transData = transformRCDataIntoSendableForm(data);
 
                 result.success(transData);
             } else if ("remoteConfigClearAllValues".equals(call.method)) {
