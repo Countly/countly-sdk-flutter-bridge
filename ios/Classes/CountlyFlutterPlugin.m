@@ -761,7 +761,8 @@ FlutterMethodChannel *_channel;
         NSString *key = [command objectAtIndex:0];
         dispatch_async(dispatch_get_main_queue(), ^{
             CountlyRCData* rcData = [Countly.sharedInstance.remoteConfig getKey:key];
-            result(rcData.toMap);
+            NSDictionary* rcDataMap = [self rcDataToMap:rcData];
+            result(rcDataMap);
         });
         
     } else if ([@"remoteConfigClearAllValues" isEqualToString:call.method]) {
@@ -1091,6 +1092,9 @@ FlutterMethodChannel *_channel;
 }
 
 - (void)remoteConfigDownloadCallback:(NSNumber*)callbackID response:(CLYRequestResult _Nonnull)response fullValueUpdate:(BOOL)fullValueUpdate error:(NSError *__nullable)error downloadedValues:(NSDictionary<NSString *,CountlyRCData *> *_Nonnull)downloadedValues {
+    if([callbackID intValue] == -1) {
+        return;
+    }
     NSMutableDictionary *remoteConfigData = [[NSMutableDictionary alloc] init];
     
     remoteConfigData[@"id"] =  callbackID;
@@ -1117,10 +1121,18 @@ FlutterMethodChannel *_channel;
     NSMutableDictionary *remoteConfigValues = [[NSMutableDictionary alloc] init];
     [downloadedValues enumerateKeysAndObjectsUsingBlock:^(NSString * key, CountlyRCData * rcData, BOOL * stop)
      {
-        remoteConfigValues[key] = rcData.toMap;
+        remoteConfigValues[key] = [self rcDataToMap:rcData];
         
     }];
     return remoteConfigValues;
+}
+
+- (NSDictionary*)rcDataToMap:(CountlyRCData*)rcData
+{
+    NSMutableDictionary *rCDataMap = [[NSMutableDictionary alloc] init];
+    rCDataMap[@"value"] = rcData.value;
+    rCDataMap[@"isCurrentUsersData"] = rcData.isCurrentUsersData ? @YES : @NO;
+    return rCDataMap;
 }
 
 - (CountlyFeedbackWidget *)getFeedbackWidget:(NSString *)widgetId {
@@ -1254,6 +1266,23 @@ FlutterMethodChannel *_channel;
               }
               [_channel invokeMethod:@"remoteConfigCallback" arguments:errorStr];
             };
+        }
+        
+        NSNumber *remoteConfigGlobalCallback = _config[@"remoteConfigGlobalCallback"];
+        if (remoteConfigGlobalCallback) {
+            [config remoteConfigRegisterGlobalCallback:^(CLYRequestResult  _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
+                [self remoteConfigDownloadCallback:[NSNumber numberWithInt:-2] response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
+            }];
+        }
+        
+        NSNumber *remoteConfigAutomaticTriggers = _config[@"remoteConfigAutomaticTriggers"];
+        if (remoteConfigAutomaticTriggers) {
+            config.enableRemoteConfigAutomaticTriggers = [remoteConfigAutomaticTriggers boolValue];
+        }
+        
+        NSNumber *remoteConfigValueCaching = _config[@"remoteConfigValueCaching"];
+        if (remoteConfigValueCaching) {
+            config.enableRemoteConfigValueCaching = [remoteConfigValueCaching boolValue];
         }
 
         NSString *gpsCoordinate = _config[@"locationGpsCoordinates"];
