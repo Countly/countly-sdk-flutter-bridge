@@ -254,7 +254,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         deviceIDTypeString = "DS";
                         break;
                     case OPEN_UDID:
-                    case ADVERTISING_ID:
                     default:
                         deviceIDTypeString = "SG";
                         break;
@@ -360,7 +359,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("sendPushToken".equals(call.method)) {
                 String token = args.getString(0);
                 CountlyPush.onTokenRefresh(token);
-                result.success(" success!");
+                result.success("success!");
             } else if ("askForNotificationPermission".equals(call.method)) {
                 if (activity == null) {
                     log("askForNotificationPermission failed : Activity is null", LogLevel.ERROR);
@@ -396,7 +395,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                                 CountlyPush.onTokenRefresh(token);
                             }
                         });
-                result.success(" askForNotificationPermission!");
+                result.success("askForNotificationPermission!");
             } else if ("pushTokenType".equals(call.method)) {
                 String tokenType = args.getString(0);
                 if ("2".equals(tokenType)) {
