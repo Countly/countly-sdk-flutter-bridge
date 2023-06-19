@@ -51,7 +51,7 @@ class Countly {
 
   final _countlyState = CountlyState();
   late final RemoteConfigInternal _remoteConfigInternal;
-  RemoteConfig remoteConfig() => _remoteConfigInternal;
+  RemoteConfig get remoteConfig => _remoteConfigInternal;
 
   static const bool BUILDING_WITH_PUSH_DISABLED = false;
   static const String _pushDisabledMsg = 'In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled';

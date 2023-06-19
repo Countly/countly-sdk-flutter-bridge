@@ -212,11 +212,6 @@ class RemoteConfigInternal implements RemoteConfig {
       return;
     }
 
-    // ignore: prefer_function_declarations_over_variables
-    RCDownloadInnerCallback innerCallback = (rResult, error, fullValueUpdate, downloadedValues, requestID) {
-      callback(rResult, error, fullValueUpdate, downloadedValues);
-    };
-
     int requestID = callback.hashCode;
     Countly.log('"remoteConfigRemoveDownloadCallback" removing a callback with the hashCode:[$requestID]', logLevel: LogLevel.ERROR);
 
@@ -310,14 +305,12 @@ class RemoteConfigInternal implements RemoteConfig {
           return;
         }
 
-        //remove callback from the inner list if it matches the request.
-        // TODO(AK): create inner request
+        // remove callback from the inner list if it matches the request.
         _downloadKeysToRemove.add(requestID);
         callback(rResult, error, fullValueUpdate, downloadedValues);
       };
 
-      //add new callback to the list
-      // TODO(AK): create inner function
+      // add new callback to the list
       _remoteConfigDownloadCallbacks[requestID] = innerCallback;
     }
 
@@ -335,14 +328,12 @@ class RemoteConfigInternal implements RemoteConfig {
           return;
         }
 
-        //remove callback from the inner list if it matches the request.
-        // TODO(AK): create inner request
+        // remove callback from the inner list if it matches the request.
         _variantKeysToRemove.add(requestID);
         callback(rResult, error);
       };
 
-      //add new callback to the list
-      // TODO(AK): create inner function
+      // add new callback to the list
       _remoteConfigVariantInnerCallbacks[requestID] = innerCallback;
     }
 

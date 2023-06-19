@@ -135,11 +135,11 @@ class _MyAppState extends State<MyApp> {
   }
 
   void remoteConfigRegisterDownloadCallback() {
-    Countly.instance.remoteConfig().registerDownloadCallback(_rcDownloadCallback);
+    Countly.instance.remoteConfig.registerDownloadCallback(_rcDownloadCallback);
   }
 
   void remoteConfigRemoveDownloadCallback() {
-    Countly.instance.remoteConfig().removeDownloadCallback(_rcDownloadCallback);
+    Countly.instance.remoteConfig.removeDownloadCallback(_rcDownloadCallback);
   }
 
   void remoteConfigDownloadKeys() {
@@ -151,7 +151,7 @@ class _MyAppState extends State<MyApp> {
         print('key: ${entry.key}: value: ${entry.value.value}');
       }
     };
-    Countly.instance.remoteConfig().downloadAllKeys(callback);
+    Countly.instance.remoteConfig.downloadAllKeys(callback);
   }
 
   void remoteConfigDownloadSpecificKeys() {
@@ -163,7 +163,7 @@ class _MyAppState extends State<MyApp> {
         print('key: ${entry.key}: value: ${entry.value.value}');
       }
     };
-    Countly.instance.remoteConfig().downloadSpecificKeys(['rc_1', 'ab_1'], callback);
+    Countly.instance.remoteConfig.downloadSpecificKeys(['rc_1', 'ab_1'], callback);
   }
 
   void remoteConfigDownloadOmittingKeys() {
@@ -175,11 +175,11 @@ class _MyAppState extends State<MyApp> {
         print('key: ${entry.key}: value: ${entry.value.value}');
       }
     };
-    Countly.instance.remoteConfig().downloadOmittingKeys(['rc_1', 'ab_1'], callback);
+    Countly.instance.remoteConfig.downloadOmittingKeys(['rc_1', 'ab_1'], callback);
   }
 
   Future<void> remoteConfigGetAllValues() async {
-    final allValues = await Countly.instance.remoteConfig().getAllValues();
+    final allValues = await Countly.instance.remoteConfig.getAllValues();
     for (final entry in allValues.entries) {
       final value = entry.value.value;
       print('key: ${entry.key}, value: $value, DataType: ${value.runtimeType}');
@@ -195,43 +195,43 @@ class _MyAppState extends State<MyApp> {
   }
 
   void remoteConfigGetValue() {
-    Countly.instance.remoteConfig().getValue('testKey');
+    Countly.instance.remoteConfig.getValue('testKey');
   }
 
   void remoteConfigClearAll() {
-    Countly.instance.remoteConfig().clearAll();
+    Countly.instance.remoteConfig.clearAll();
   }
 
   void remoteConfigEnrollIntoABTestsForKeys() {
-    Countly.instance.remoteConfig().enrollIntoABTestsForKeys(['testKey']);
+    Countly.instance.remoteConfig.enrollIntoABTestsForKeys(['testKey']);
   }
 
   void remoteConfigExitABTestsForKeys() {
-    Countly.instance.remoteConfig().exitABTestsForKeys(['testKey']);
+    Countly.instance.remoteConfig.exitABTestsForKeys(['testKey']);
   }
 
   void remoteConfigFetchVariantForKeys() {
-    Countly.instance.remoteConfig().testingGetVariantsForKey('testKey');
+    Countly.instance.remoteConfig.testingGetVariantsForKey('testKey');
   }
 
   void remoteConfigFetchAllVariant() {
-    Countly.instance.remoteConfig().testingGetAllVariants();
+    Countly.instance.remoteConfig.testingGetAllVariants();
   }
 
   void getRemoteConfigValueString() {
-    Countly.instance.remoteConfig().getValue('stringValue');
+    Countly.instance.remoteConfig.getValue('stringValue');
   }
 
   void getRemoteConfigValueBoolean() {
-    Countly.instance.remoteConfig().getValue('booleanValue');
+    Countly.instance.remoteConfig.getValue('booleanValue');
   }
 
   void getRemoteConfigValueFloat() {
-    Countly.instance.remoteConfig().getValue('floatValue');
+    Countly.instance.remoteConfig.getValue('floatValue');
   }
 
   void getRemoteConfigValueInteger() {
-    Countly.instance.remoteConfig().getValue('integerValue');
+    Countly.instance.remoteConfig.getValue('integerValue');
   }
 
   bool isManualSession() {
