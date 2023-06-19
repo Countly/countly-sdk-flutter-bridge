@@ -557,6 +557,118 @@ FlutterMethodChannel *_channel;
           result(@"userData_pullValue!");
         });
 
+    } else if ([@"userProfile_setProperties" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSDictionary *userProperties = [command objectAtIndex:0];
+            
+            [self setUserData:userProperties];
+            NSDictionary *customeProperties = [self removePredefinedUserProperties:userProperties];
+            Countly.user.custom = customeProperties;
+            
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_setProperty" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            NSNumber *value = [command objectAtIndex:1];
+            
+            [Countly.user set:key numberValue:value];
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_increment" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            
+            [Countly.user increment:key];
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_incrementBy" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            NSNumber *value = [command objectAtIndex:1];
+            
+            [Countly.user incrementBy:key value:value];
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_multiply" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            NSNumber *value = [command objectAtIndex:1];
+            
+            [Countly.user multiply:key value:value];
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_saveMax" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            NSNumber *value = [command objectAtIndex:1];
+            
+            [Countly.user max:key value:value];
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_saveMin" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            NSNumber *value = [command objectAtIndex:1];
+            
+            [Countly.user min:key value:value];
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_setOnce" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            NSString *value = [command objectAtIndex:1];
+            
+            [Countly.user setOnce:key value:value];
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_pushUnique" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            NSString *value = [command objectAtIndex:1];
+            
+            [Countly.user pushUnique:key value:value];
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_push" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            NSString *value = [command objectAtIndex:1];
+            
+            [Countly.user push:key value:value];
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_pull" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            NSString *value = [command objectAtIndex:1];
+            
+            [Countly.user push:key value:value];
+            result(nil);
+        });
+        
+    }  else if ([@"userProfile_save" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [Countly.user save];
+            result(nil);
+        });
+        
+    }  else if ([@"userProfile_clear" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [Countly.user clearUserDetails];
+            result(nil);
+        });
+        
         // setRequiresConsent
     } else if ([@"setRequiresConsent" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{

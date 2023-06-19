@@ -4,6 +4,8 @@ import 'dart:io' show Platform;
 
 import 'package:countly_flutter/countly_config.dart';
 import 'package:countly_flutter/countly_state.dart';
+import 'package:countly_flutter/user_profile.dart';
+import 'package:countly_flutter/user_profile_internal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
@@ -38,11 +40,16 @@ abstract class CountlyConsent {
 }
 
 class Countly {
-  Countly._();
+  Countly._() {
+    _userProfileInternal = UserProfileInternal(this, _countlyState);
+  }
   static final instance = _instance;
   static final _instance = Countly._();
 
   final _countlyState = CountlyState();
+  late final UserProfileInternal _userProfileInternal;
+  UserProfile get userProfile => _userProfileInternal;
+
   static const bool BUILDING_WITH_PUSH_DISABLED = false;
   static const String _pushDisabledMsg = 'In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled';
 
@@ -307,6 +314,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use "setUserProperties" of "UserProfile" instead')
   static Future<String?> setUserData(Map<String, Object> options) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "setUserData"';
@@ -813,6 +821,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use "setProperty" of "UserProfile" instead')
   static Future<String?> setProperty(String keyName, String keyValue) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "setProperty"';
@@ -839,6 +848,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use "increment" of "UserProfile" instead')
   static Future<String?> increment(String keyName) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "increment"';
@@ -859,6 +869,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use "incrementBy" of "UserProfile" instead')
   static Future<String?> incrementBy(String keyName, int keyIncrement) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "incrementBy"';
@@ -880,6 +891,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use "multiply" of "UserProfile" instead')
   static Future<String?> multiply(String keyName, int multiplyValue) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "multiply"';
@@ -901,6 +913,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use "saveMax" of "UserProfile" instead')
   static Future<String?> saveMax(String keyName, int saveMax) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "saveMax"';
@@ -922,6 +935,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use "saveMin" of "UserProfile" instead')
   static Future<String?> saveMin(String keyName, int saveMin) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "saveMin"';
@@ -943,6 +957,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use "setOnce" of "UserProfile" instead')
   static Future<String?> setOnce(String keyName, String setOnce) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "setOnce"';
@@ -969,6 +984,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use "pushUnique" of "UserProfile" instead')
   static Future<String?> pushUniqueValue(String type, String pushUniqueValue) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "pushUniqueValue"';
@@ -995,6 +1011,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use "push" of "UserProfile" instead')
   static Future<String?> pushValue(String type, String pushValue) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "pushValue"';
@@ -1021,6 +1038,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use "pull" of "UserProfile" instead')
   static Future<String?> pullValue(String type, String pullValue) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "pullValue"';
