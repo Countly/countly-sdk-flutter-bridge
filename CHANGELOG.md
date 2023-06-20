@@ -1,5 +1,34 @@
-## xx.x.x
+## 23.6.0
+* Reworked the entire remote config feature.
+* Converted Countly class to a Singleton.
+* Created remote config object and added the following methods:
+  * notifyDownloadCallbacks
+  * notifyVariantCallbacks
+  * clearAll
+  * downloadOmittingKeys
+  * downloadSpecificKeys
+  * downloadAllKeys
+  * enrollIntoABTestsForKeys
+  * exitABTestsForKeys
+  * getAllValues
+  * getValue
+  * registerDownloadCallback
+  * removeDownloadCallback
+  * testingDownloadVariantInformation
+  * testingEnrollIntoVariant
+  * testingGetAllVariants
+  * testingGetVariantsForKey
+* Deprecated old remote config methods. You should use the remote config object. Deprecated methods are:
+  * getABTestingValues
+  * remoteConfigUpdate
+  * updateRemoteConfigForKeysOnly
+  * getRemoteConfigValueForKey
+  * updateRemoteConfigExceptKeys
+  * remoteConfigClearValues
+  * getRemoteConfigValueForKey
 * Fixed a bug where the app would crash if `gpsCoordinate` in location was null.
+* Updated Underlying android SDK version to 23.2.0
+* Updated Underlying iOS SDK version to 23.6.0
 
 ## 23.2.3
 * Not reporting battery level in the crash handler to prevent hanging in iOS
