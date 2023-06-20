@@ -51,7 +51,7 @@ class Countly {
 
   final _countlyState = CountlyState();
   late final RemoteConfigInternal _remoteConfigInternal;
-  RemoteConfig remoteConfig() => _remoteConfigInternal;
+  RemoteConfig get remoteConfig => _remoteConfigInternal;
 
   static const bool BUILDING_WITH_PUSH_DISABLED = false;
   static const String _pushDisabledMsg = 'In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled';
@@ -146,13 +146,9 @@ class Countly {
           final String? error = argumentsMap['error'];
           final bool fullValueUpdate = argumentsMap['fullValueUpdate'];
           final Map<dynamic, dynamic> downloadedValuesObject = argumentsMap['downloadedValues'];
-          final Map<String, RCData> downloadedValues = {};
-          for (final entry in downloadedValuesObject.entries) {
-            downloadedValues[entry.key.toString()] = RCData.fromMap(entry.value);
-          }
           final int id = argumentsMap['id'];
 
-          Countly.instance._remoteConfigInternal.notifyDownloadCallbacks(requestResult, error, fullValueUpdate, downloadedValues, id);
+          Countly.instance._remoteConfigInternal.notifyDownloadCallbacks(requestResult, error, fullValueUpdate, downloadedValuesObject, id);
         } catch (e) {
           Countly.log('Method call for remoteConfigDownloadCallback had a problem: $e', logLevel: LogLevel.ERROR);
         }
