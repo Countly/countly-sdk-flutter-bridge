@@ -154,7 +154,7 @@ class Countly {
 
           Countly.instance._remoteConfigInternal.notifyDownloadCallbacks(requestResult, error, fullValueUpdate, downloadedValues, id);
         } catch (e) {
-          Countly.log(e.toString(), logLevel: LogLevel.ERROR);
+          Countly.log('Method call for remoteConfigDownloadCallback had a problem: $e', logLevel: LogLevel.ERROR);
         }
         break;
       case 'remoteConfigVariantCallback':
@@ -1282,7 +1282,7 @@ class Countly {
       log('getRemoteConfigValueForKey, $message', logLevel: LogLevel.ERROR);
       return message;
     }
-    log('Calling "remoteConfigClearValues":[$key]');
+    log('Calling "getRemoteConfigValueForKey" with the key:[$key]');
     if (key.isEmpty) {
       String error = 'getRemoteConfigValueForKey, key cannot be empty';
       log(error);
