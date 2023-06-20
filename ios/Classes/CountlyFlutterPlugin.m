@@ -1033,7 +1033,7 @@ FlutterMethodChannel *_channel;
 
 - (NSDictionary *)removePredefinedUserProperties:(NSDictionary *__nullable)userData {
     NSMutableDictionary *userProperties = [userData mutableCopy];
-    NSArray *nameFields = [[NSArray alloc] initWithObjects:NAME_KEY, USERNAME_KEY, EMAIL_KEY, ORG_KEY, PHONE_KEY, PICTURE_KEY, PICTURE_PATH_KEY, GENDER_KEY, BYEAR_KEY, nil];
+    NSArray *nameFields = [[NSArray alloc] initWithObjects:NAME_KEY, USERNAME_KEY, EMAIL_KEY, ORG_KEY, PHONE_KEY, PICTURE_KEY, PICTURE_PATH_KEY, GENDER_KEY, BYEAR_KEY, nil];//TODO this should be replaced with a global array
 
     for (NSString *nameField in nameFields) {
         [userProperties removeObjectForKey:nameField];
