@@ -69,39 +69,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private final boolean BUILDING_WITH_PUSH_DISABLED = false;
 
     public void notifyPublicChannelRCDL(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues, Integer requestID) {
-        downloadedValues = new HashMap<>();
-        downloadedValues.put("bool", new RCData(true, true));
-        downloadedValues.put("double", new RCData(1.2d, true));
-        downloadedValues.put("int", new RCData(123, true));
-        downloadedValues.put("float", new RCData(2.3f, true));
-        downloadedValues.put("string", new RCData("this is a", true));
-        downloadedValues.put("long", new RCData(3L, true));
-
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("bool", true);
-            jsonObject.put("string", "application");
-
-            downloadedValues.put("jsonObject", new RCData(jsonObject, false));
-
-            JSONArray jsonArray = new JSONArray();
-            jsonArray.put(123);
-            jsonArray.put(456.5d);
-            downloadedValues.put("jsonArray", new RCData(jsonArray, false));
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-
-
         Map<String, Object> data = new HashMap<>();
         data.put("error", error);
         data.put("requestResult", resultResponder(downloadResult));
-        log("remoteConfigDownloadValues TEST, downloaded values: " + downloadedValues, LogLevel.WARNING);
-        data.put("downloadedValues", transformMapIntoSendableForm(downloadedValues)); // give correct values
+        data.put("downloadedValues", transformMapIntoSendableForm(downloadedValues));
         data.put("fullValueUpdate", fullValueUpdate);
         if (requestID != null) {
             data.put("id", requestID);
         }
+        log("notifyPublicChannelRCDL, downloaded values: " + downloadedValues + ", error: " + error + ", fullValueUpdate: " + fullValueUpdate + ", requestID: " + requestID, LogLevel.VERBOSE);
         methodChannel.invokeMethod("remoteConfigDownloadCallback", data);
     }
 
@@ -896,33 +872,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("remoteConfigGetAllValues".equals(call.method)) {
                 log("remoteConfigGetAllValues TEST", LogLevel.WARNING);
 
-                //todo native implementation
                 Map<String, RCData> rawDownloadedValues = Countly.sharedInstance().remoteConfig().GetAllValues();
-
-                rawDownloadedValues = new HashMap<>();
-                rawDownloadedValues.put("bool", new RCData(true, true));
-                rawDownloadedValues.put("double", new RCData(1.2d, true));
-                rawDownloadedValues.put("int", new RCData(123, true));
-                rawDownloadedValues.put("float", new RCData(2.3f, true));
-                rawDownloadedValues.put("string", new RCData("this is a", true));
-                rawDownloadedValues.put("long", new RCData(3L, true));
-
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("bool", true);
-                jsonObject.put("string", "application");
-
-                JSONObject jsonObject2 = new JSONObject();
-                jsonObject2.put("bool1", false);
-                jsonObject2.put("string1", "application1");
-                jsonObject.put("object-object", jsonObject2);
-
-                rawDownloadedValues.put("jsonObject", new RCData(jsonObject, false));
-
-                JSONArray jsonArray = new JSONArray();
-                jsonArray.put(123);
-                jsonArray.put(456.5d);
-                jsonArray.put(jsonObject2);
-                rawDownloadedValues.put("jsonArray", new RCData(jsonArray, false));
 
                 Map<String, Object> transformedDownloadedValues = transformMapIntoSendableForm(rawDownloadedValues);
                 result.success(transformedDownloadedValues);
