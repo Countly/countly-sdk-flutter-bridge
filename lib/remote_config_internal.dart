@@ -179,7 +179,12 @@ class RemoteConfigInternal implements RemoteConfig {
     List<String> args = [];
     args.add(key);
 
-    RCData? returnValue = await _countlyState.channel.invokeMethod('remoteConfigGetValue', <String, dynamic>{'data': json.encode(args)});
+    final valueMap = await _countlyState.channel.invokeMethod('remoteConfigGetValue', <String, dynamic>{'data': json.encode(args)});
+
+    RCData? returnValue;
+    if (valueMap != null) {
+      returnValue = RCData.fromMap(valueMap as Map<dynamic, dynamic>);
+    }
 
     returnValue ??= RCData(null, true);
     return returnValue;

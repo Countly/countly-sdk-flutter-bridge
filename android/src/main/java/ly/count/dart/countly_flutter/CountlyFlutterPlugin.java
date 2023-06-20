@@ -82,6 +82,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     }
 
     public final Map<String, Object> transformMapIntoSendableForm(Map<String, RCData> map) {
+        if (map == null) {
+            return new HashMap<>();
+        }
         Map<String, Object> newMap = new HashMap<>();
         for (Map.Entry<String, RCData> entry : map.entrySet()) {
             newMap.put(entry.getKey(), transformRCDataIntoSendableForm(entry.getValue()));
@@ -870,7 +873,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 result.success(null);
             } else if ("remoteConfigGetAllValues".equals(call.method)) {
-                log("remoteConfigGetAllValues TEST", LogLevel.WARNING);
+                log("remoteConfigGetAllValues", LogLevel.WARNING);
 
                 Map<String, RCData> rawDownloadedValues = Countly.sharedInstance().remoteConfig().getValues();
 
@@ -878,11 +881,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success(transformedDownloadedValues);
             } else if ("remoteConfigGetValue".equals(call.method)) {
                 String key = args.getString(0);
-                log("remoteConfigGetValue TEST, " + key, LogLevel.WARNING);
+                log("remoteConfigGetValue, " + key, LogLevel.WARNING);
 
                 RCData data = Countly.sharedInstance().remoteConfig().getValue(key);
-
-                Map<String, Object> transData = transformRCDataIntoSendableForm(data);
+                Map<String, Object> transData = transformRCDataIntoSendableForm(data1);
 
                 result.success(transData);
             } else if ("remoteConfigClearAllValues".equals(call.method)) {
@@ -899,7 +901,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     keys[i] = jArr.getString(i);
                 }
 
-                log("remoteConfigEnrollIntoABTestsForKeys TEST, " + keys, LogLevel.WARNING);
+                log("remoteConfigEnrollIntoABTestsForKeys, " + keys, LogLevel.WARNING);
 
                 Countly.sharedInstance().remoteConfig().enrollIntoABTestsForKeys(keys);
 
@@ -912,7 +914,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     keys[i] = jArr.getString(i);
                 }
 
-                log("remoteConfigExitABTestsForKeys TEST, " + keys, LogLevel.WARNING);
+                log("remoteConfigExitABTestsForKeys, " + keys, LogLevel.WARNING);
 
                 Countly.sharedInstance().remoteConfig().exitABTestsForKeys(keys);
 
