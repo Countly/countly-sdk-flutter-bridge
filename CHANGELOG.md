@@ -1,25 +1,7 @@
 ## 23.6.0
-* Reworked the entire remote config feature.
-* Converted Countly class to a Singleton.
-* Created remote config object and added the following methods:
-  * notifyDownloadCallbacks
-  * notifyVariantCallbacks
-  * clearAll
-  * downloadOmittingKeys
-  * downloadSpecificKeys
-  * downloadAllKeys
-  * enrollIntoABTestsForKeys
-  * exitABTestsForKeys
-  * getAllValues
-  * getValue
-  * registerDownloadCallback
-  * removeDownloadCallback
-  * testingDownloadVariantInformation
-  * testingEnrollIntoVariant
-  * testingGetAllVariants
-  * testingGetVariantsForKey
-
-* Introduced a new user profile ('userProfile') interface on the SDK instance that supports bulk operations.
+* Introduced a singleton instance of the SDK that will now hold interfaces for features
+* Introduced a new remote config interface ('Countly.instance.remoteConfig') on the SDK instance the exposes the reworked remote config functionality
+* Introduced a new user profile interface ('Countly.instance.userProfile') on the SDK instance that supports bulk operations.
 
 * Deprecated old remote config methods. You should use the remote config object. Deprecated methods are:
   * getABTestingValues
@@ -48,27 +30,9 @@
 * Updated Underlying iOS SDK version to 23.6.0
 
 ## 23.6.0-np
-* Reworked the entire remote config feature.
-* Converted Countly class to a Singleton.
-* Created remote config object and added the following methods:
-  * notifyDownloadCallbacks
-  * notifyVariantCallbacks
-  * clearAll
-  * downloadOmittingKeys
-  * downloadSpecificKeys
-  * downloadAllKeys
-  * enrollIntoABTestsForKeys
-  * exitABTestsForKeys
-  * getAllValues
-  * getValue
-  * registerDownloadCallback
-  * removeDownloadCallback
-  * testingDownloadVariantInformation
-  * testingEnrollIntoVariant
-  * testingGetAllVariants
-  * testingGetVariantsForKey
-
-* Introduced a new user profile ('userProfile') interface on the SDK instance that supports bulk operations.
+* Introduced a singleton instance of the SDK that will now hold interfaces for features
+* Introduced a new remote config interface ('Countly.instance.remoteConfig') on the SDK instance the exposes the reworked remote config functionality
+* Introduced a new user profile interface ('Countly.instance.userProfile') on the SDK instance that supports bulk operations.
 
 * Deprecated old remote config methods. You should use the remote config object. Deprecated methods are:
   * getABTestingValues
