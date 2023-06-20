@@ -60,6 +60,6 @@ abstract class UserProfile {
   /// Send/Save provided values to server
   Future<void> save();
 
-  /// Clear all submitted information
+  /// Clear queued operations / modifications
   Future<void> clear();
 }
