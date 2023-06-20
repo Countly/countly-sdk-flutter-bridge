@@ -946,7 +946,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 log("remoteConfigGetValue, " + key, LogLevel.WARNING);
 
                 RCData data = Countly.sharedInstance().remoteConfig().getValue(key);
-                Map<String, Object> transData = transformRCDataIntoSendableForm(data1);
+                Map<String, Object> transData = transformRCDataIntoSendableForm(data);
 
                 result.success(transData);
             } else if ("remoteConfigClearAllValues".equals(call.method)) {
