@@ -1,5 +1,21 @@
-## xx.x.x
+## 23.6.0
+
+* Introduced a new user profile ('userProfile') interface on the SDK instance that supports bulk operations.
+
 * Fixed a bug where the app would crash if `gpsCoordinate` in location was null.
+
+* Deprecated old user profile methods. You should use the new user profile interface. Deprecated methods are:
+  * 'setUserData'
+  * 'setProperty'
+  * 'increment'
+  * 'incrementBy'
+  * 'multiply'
+  * 'saveMax'
+  * 'saveMin'
+  * 'setOnce'
+  * 'pushUniqueValue'
+  * 'pushValue'
+  * 'pullValue'
 
 ## 23.2.3
 * Not reporting battery level in the crash handler to prevent hanging in iOS
