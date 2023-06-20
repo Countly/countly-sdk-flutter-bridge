@@ -18,6 +18,9 @@
   * testingEnrollIntoVariant
   * testingGetAllVariants
   * testingGetVariantsForKey
+
+* Introduced a new user profile ('userProfile') interface on the SDK instance that supports bulk operations.
+
 * Deprecated old remote config methods. You should use the remote config object. Deprecated methods are:
   * getABTestingValues
   * remoteConfigUpdate
@@ -26,6 +29,20 @@
   * updateRemoteConfigExceptKeys
   * remoteConfigClearValues
   * getRemoteConfigValueForKey
+
+* Deprecated old user profile methods. You should use the new user profile interface. Deprecated methods are:
+  * 'setUserData'
+  * 'setProperty'
+  * 'increment'
+  * 'incrementBy'
+  * 'multiply'
+  * 'saveMax'
+  * 'saveMin'
+  * 'setOnce'
+  * 'pushUniqueValue'
+  * 'pushValue'
+  * 'pullValue'
+
 * Fixed a bug where the app would crash if `gpsCoordinate` in location was null.
 * Updated Underlying android SDK version to 23.2.0
 * Updated Underlying iOS SDK version to 23.6.0
@@ -50,6 +67,9 @@
   * testingEnrollIntoVariant
   * testingGetAllVariants
   * testingGetVariantsForKey
+
+* Introduced a new user profile ('userProfile') interface on the SDK instance that supports bulk operations.
+
 * Deprecated old remote config methods. You should use the remote config object. Deprecated methods are:
   * getABTestingValues
   * remoteConfigUpdate
@@ -58,6 +78,20 @@
   * updateRemoteConfigExceptKeys
   * remoteConfigClearValues
   * getRemoteConfigValueForKey
+
+* Deprecated old user profile methods. You should use the new user profile interface. Deprecated methods are:
+  * 'setUserData'
+  * 'setProperty'
+  * 'increment'
+  * 'incrementBy'
+  * 'multiply'
+  * 'saveMax'
+  * 'saveMin'
+  * 'setOnce'
+  * 'pushUniqueValue'
+  * 'pushValue'
+  * 'pullValue'
+
 * Fixed a bug where the app would crash if `gpsCoordinate` in location was null.
 * Updated Underlying android SDK version to 23.2.0
 * Updated Underlying iOS SDK version to 23.6.0

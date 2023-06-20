@@ -666,6 +666,68 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success("userData_pullValue success!");
             }
 
+            else if ("userProfile_setProperties".equals(call.method)) {
+                JSONObject properties = args.getJSONObject(0);
+                Map<String, Object> propertiesMap = toMap(properties);
+                Countly.sharedInstance().userProfile().setProperties(propertiesMap);
+                result.success(null);
+            } else if ("userProfile_setProperty".equals(call.method)) {
+                String key = args.getString(0);
+                String value = args.getString(1);
+                Countly.sharedInstance().userProfile().setProperty(key, value);
+                result.success(null);
+            } else if ("userProfile_increment".equals(call.method)) {
+                String key = args.getString(0);
+                Countly.sharedInstance().userProfile().increment(key);
+                result.success(null);
+            } else if ("userProfile_incrementBy".equals(call.method)) {
+                String key = args.getString(0);
+                int value = args.getInt(1);
+                Countly.sharedInstance().userProfile().incrementBy(key, value);
+                result.success(null);
+            } else if ("userProfile_multiply".equals(call.method)) {
+                String key = args.getString(0);
+                int value = args.getInt(1);
+                Countly.sharedInstance().userProfile().multiply(key, value);
+                result.success(null);
+            } else if ("userProfile_saveMax".equals(call.method)) {
+                String key = args.getString(0);
+                int value = args.getInt(1);
+                Countly.sharedInstance().userProfile().saveMax(key, value);
+                result.success(null);
+            } else if ("userProfile_saveMin".equals(call.method)) {
+                String key = args.getString(0);
+                int value = args.getInt(1);
+                Countly.sharedInstance().userProfile().saveMin(key, value);
+                result.success(null);
+            } else if ("userProfile_setOnce".equals(call.method)) {
+                String key = args.getString(0);
+                String value = args.getString(1);
+                Countly.sharedInstance().userProfile().setOnce(key, value);
+                result.success(null);
+            } else if ("userProfile_pushUnique".equals(call.method)) {
+                String key = args.getString(0);
+                String value = args.getString(1);
+                Countly.sharedInstance().userProfile().pushUnique(key, value);
+                result.success(null);
+            } else if ("userProfile_push".equals(call.method)) {
+                String key = args.getString(0);
+                String value = args.getString(1);
+                Countly.sharedInstance().userProfile().push(key, value);
+                result.success(null);
+            } else if ("userProfile_pull".equals(call.method)) {
+                String key = args.getString(0);
+                String value = args.getString(1);
+                Countly.sharedInstance().userProfile().pull(key, value);
+                result.success(null);
+            } else if ("userProfile_save".equals(call.method)) {
+                Countly.sharedInstance().userProfile().save();
+                result.success(null);
+            } else if ("userProfile_clear".equals(call.method)) {
+                Countly.sharedInstance().userProfile().clear();
+                result.success(null);
+            }
+
             //setRequiresConsent
             else if ("setRequiresConsent".equals(call.method)) {
                 boolean consentFlag = args.getBoolean(0);
