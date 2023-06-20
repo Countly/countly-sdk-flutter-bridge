@@ -1,4 +1,6 @@
 ## 23.6.0
+* !! Major breaking change !! Automatically downloaded remote config values will no longer be automatically enrolled in their AB tests.
+
 * Introduced a singleton instance of the SDK that will now hold interfaces for features
 * Introduced a new remote config interface ('Countly.instance.remoteConfig') on the SDK instance the exposes the reworked remote config functionality
 * Introduced a new user profile interface ('Countly.instance.userProfile') on the SDK instance that supports bulk operations.
@@ -30,6 +32,8 @@
 * Updated Underlying iOS SDK version to 23.6.0
 
 ## 23.6.0-np
+* !! Major breaking change !! Automatically downloaded remote config values will no longer be automatically enrolled in their AB tests.
+
 * Introduced a singleton instance of the SDK that will now hold interfaces for features
 * Introduced a new remote config interface ('Countly.instance.remoteConfig') on the SDK instance the exposes the reworked remote config functionality
 * Introduced a new user profile interface ('Countly.instance.userProfile') on the SDK instance that supports bulk operations.
