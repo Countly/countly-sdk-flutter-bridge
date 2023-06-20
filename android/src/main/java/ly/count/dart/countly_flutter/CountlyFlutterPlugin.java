@@ -814,7 +814,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success(remoteConfigValueForKey);
             } else if ("remoteConfigDownloadValues".equals(call.method)) {
                 int requestID = args.getInt(0);
-                Countly.sharedInstance().remoteConfig().DownloadAllKeys(new RCDownloadCallback() {
+                Countly.sharedInstance().remoteConfig().downloadAllKeys(new RCDownloadCallback() {
                     @Override
                     public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
                         if (requestID == requestIDNoCallback) {
@@ -836,7 +836,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 log("remoteConfigDownloadSpecificValue TEST, " + requestID + " , " + keysOnly, LogLevel.WARNING);
 
-                Countly.sharedInstance().remoteConfig().DownloadSpecificKeys(keysOnly, new RCDownloadCallback() {
+                Countly.sharedInstance().remoteConfig().downloadSpecificKeys(keysOnly, new RCDownloadCallback() {
                     @Override
                     public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
                         if (requestID == requestIDNoCallback) {
@@ -858,7 +858,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 log("remoteConfigDownloadOmittingValues TEST, " + requestID + " , " + omitedKeys, LogLevel.WARNING);
 
-                Countly.sharedInstance().remoteConfig().DownloadOmittingKeys(omitedKeys, new RCDownloadCallback() {
+                Countly.sharedInstance().remoteConfig().downloadOmittingKeys(omitedKeys, new RCDownloadCallback() {
                     @Override
                     public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
                         if (requestID == requestIDNoCallback) {
@@ -872,7 +872,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("remoteConfigGetAllValues".equals(call.method)) {
                 log("remoteConfigGetAllValues TEST", LogLevel.WARNING);
 
-                Map<String, RCData> rawDownloadedValues = Countly.sharedInstance().remoteConfig().GetAllValues();
+                Map<String, RCData> rawDownloadedValues = Countly.sharedInstance().remoteConfig().getValues();
 
                 Map<String, Object> transformedDownloadedValues = transformMapIntoSendableForm(rawDownloadedValues);
                 result.success(transformedDownloadedValues);
@@ -880,7 +880,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 String key = args.getString(0);
                 log("remoteConfigGetValue TEST, " + key, LogLevel.WARNING);
 
-                RCData data = Countly.sharedInstance().remoteConfig().GetValue(key);
+                RCData data = Countly.sharedInstance().remoteConfig().getValue(key);
 
                 Map<String, Object> transData = transformRCDataIntoSendableForm(data);
 
@@ -935,7 +935,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 log("remoteConfigTestingDownloadVariantInformation", LogLevel.WARNING);
 
-                Countly.sharedInstance().remoteConfig().TestingDownloadVariantInformation((rResult, error) -> {
+                Countly.sharedInstance().remoteConfig().testingDownloadVariantInformation((rResult, error) -> {
                     if (requestID == requestIDNoCallback) {
                         return;
                     }
