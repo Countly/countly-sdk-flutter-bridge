@@ -864,7 +864,7 @@ FlutterMethodChannel *_channel;
         
     } else if ([@"remoteConfigGetAllValues" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSDictionary<NSString*, CountlyRCData *> * allRCDataValues = [Countly.sharedInstance.remoteConfig remoteConfigGetAllKeys];
+            NSDictionary<NSString*, CountlyRCData *> * allRCDataValues = [Countly.sharedInstance.remoteConfig getAllValues];
             NSDictionary* rCValues = [self getRCValues:allRCDataValues];
             result(rCValues);
         });
@@ -872,7 +872,7 @@ FlutterMethodChannel *_channel;
     } else if ([@"remoteConfigGetValue" isEqualToString:call.method]) {
         NSString *key = [command objectAtIndex:0];
         dispatch_async(dispatch_get_main_queue(), ^{
-            CountlyRCData* rcData = [Countly.sharedInstance.remoteConfig getKey:key];
+            CountlyRCData* rcData = [Countly.sharedInstance.remoteConfig getValue:key];
             NSDictionary* rcDataMap = [self rcDataToMap:rcData];
             result(rcDataMap);
         });
