@@ -254,12 +254,12 @@ FlutterMethodChannel *_channel;
           NSString *onServerString = [command objectAtIndex:1];
 
           if ([newDeviceID isEqual:@"TemporaryDeviceID"]) {
-              [Countly.sharedInstance setNewDeviceID:CLYTemporaryDeviceID onServer:NO];
+              [Countly.sharedInstance changeDeviceIDWithoutMerge:CLYTemporaryDeviceID];
           } else {
               if ([onServerString isEqual:@"1"]) {
-                  [Countly.sharedInstance setNewDeviceID:newDeviceID onServer:YES];
+                  [Countly.sharedInstance changeDeviceIDWithMerge:newDeviceID];
               } else {
-                  [Countly.sharedInstance setNewDeviceID:newDeviceID onServer:NO];
+                  [Countly.sharedInstance changeDeviceIDWithoutMerge:newDeviceID];
               }
           }
           result(@"changeDeviceId!");
@@ -402,7 +402,7 @@ FlutterMethodChannel *_channel;
 
           NSException *myException = [NSException exceptionWithName:@"Exception" reason:execption userInfo:dict];
 
-          [Countly.sharedInstance recordHandledException:myException withStackTrace:nsException];
+          [Countly.sharedInstance recordException:myException isFatal:NO stackTrace:nsException segmentation:nil];
           result(@"logException!");
         });
 
