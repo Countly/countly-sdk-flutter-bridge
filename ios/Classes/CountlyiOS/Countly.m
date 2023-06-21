@@ -184,13 +184,13 @@ NSString* previousEventID;
     timer = [NSTimer timerWithTimeInterval:config.updateSessionPeriod target:self selector:@selector(onTimer:) userInfo:nil repeats:YES];
     [NSRunLoop.mainRunLoop addTimer:timer forMode:NSRunLoopCommonModes];
 
-    CountlyRemoteConfigInternal.sharedInstance.isEnabledOnInitialConfig = config.enableRemoteConfigAutomaticTriggers || config.enableRemoteConfig;
-    CountlyRemoteConfigInternal.sharedInstance.isEnabledRemoteConfigValueCaching = config.enableRemoteConfigValueCaching;
+    CountlyRemoteConfigInternal.sharedInstance.isRCAutomaticTriggersEnabled = config.enableRemoteConfigAutomaticTriggers || config.enableRemoteConfig;
+    CountlyRemoteConfigInternal.sharedInstance.isRCValueCachingEnabled = config.enableRemoteConfigValueCaching;
     CountlyRemoteConfigInternal.sharedInstance.remoteConfigCompletionHandler = config.remoteConfigCompletionHandler;
     if(config.getRemoteConfigGlobalCallbacks) {
         CountlyRemoteConfigInternal.sharedInstance.remoteConfigGlobalCallbacks = config.getRemoteConfigGlobalCallbacks;
     }
-    [CountlyRemoteConfigInternal.sharedInstance downloadRemoteConfig];
+    [CountlyRemoteConfigInternal.sharedInstance downloadRemoteConfigAutomatically];
     
     CountlyPerformanceMonitoring.sharedInstance.isEnabledOnInitialConfig = config.enablePerformanceMonitoring;
     [CountlyPerformanceMonitoring.sharedInstance startPerformanceMonitoring];
@@ -487,7 +487,7 @@ NSString* previousEventID;
 
         [CountlyConnectionManager.sharedInstance proceedOnQueue];
 
-        [CountlyRemoteConfigInternal.sharedInstance downloadRemoteConfig];
+        [CountlyRemoteConfigInternal.sharedInstance downloadRemoteConfigAutomatically];
 
         return;
     }
@@ -519,11 +519,11 @@ NSString* previousEventID;
         [CountlyPersistency.sharedInstance clearAllTimedEvents];
     }
 
-    if(onServer || [deviceID isEqualToString:CLYTemporaryDeviceID] )
+    if(!onServer || [deviceID isEqualToString:CLYTemporaryDeviceID] )
     {
         [CountlyRemoteConfigInternal.sharedInstance clearCachedRemoteConfig:NO];
     }
-    [CountlyRemoteConfigInternal.sharedInstance downloadRemoteConfig];
+    [CountlyRemoteConfigInternal.sharedInstance downloadRemoteConfigAutomatically];
 }
 
 - (void)storeCustomDeviceIDState:(NSString *)deviceID

@@ -57,7 +57,7 @@ CLYRequestResult const CLYResponseError         = @"CLYResponseError";
 
 - (void)startRemoteConfig
 {
-    if (!self.isEnabledOnInitialConfig)
+    if (!self.isRCAutomaticTriggersEnabled)
         return;
     
     if (!CountlyConsentManager.sharedInstance.consentForRemoteConfig)
@@ -87,9 +87,9 @@ CLYRequestResult const CLYResponseError         = @"CLYResponseError";
     }];
 }
 
-- (void)downloadRemoteConfig
+- (void)downloadRemoteConfigAutomatically
 {
-    if (!self.isEnabledOnInitialConfig)
+    if (!self.isRCAutomaticTriggersEnabled)
         return;
     
     if (!CountlyConsentManager.sharedInstance.consentForRemoteConfig)
@@ -160,7 +160,7 @@ CLYRequestResult const CLYResponseError         = @"CLYResponseError";
 
 - (void)clearCachedRemoteConfig:(BOOL)force
 {
-    if(force || !self.isEnabledRemoteConfigValueCaching) {
+    if(force || !self.isRCValueCachingEnabled) {
         self.cachedRemoteConfig = nil;
         [CountlyPersistency.sharedInstance storeRemoteConfig:self.cachedRemoteConfig];
     }
