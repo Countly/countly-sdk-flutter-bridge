@@ -1982,6 +1982,10 @@ class Countly {
       if (config.iaAttributionValues != null) {
         countlyConfig['attributionValues'] = config.iaAttributionValues;
       }
+
+      countlyConfig['remoteConfigAutomaticTriggers'] = config.remoteConfigAutomaticTriggers;
+
+      countlyConfig['remoteConfigValueCaching'] = config.remoteConfigValueCaching;
     } catch (e) {
       log('_configToJson, Exception occur during converting config to json: $e');
     }

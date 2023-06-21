@@ -1504,6 +1504,18 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.setIndirectAttribution(toMapString(attributionValues));
         }
 
+        if (_config.has("remoteConfigAutomaticTriggers")) {
+            boolean remoteConfigAutomaticTriggers = _config.getBoolean("remoteConfigAutomaticTriggers");
+            if (remoteConfigAutomaticTriggers) {
+                this.config.enableRemoteConfigAutomaticTriggers();
+            }
+        }
 
+        if (_config.has("remoteConfigValueCaching")) {
+            boolean remoteConfigValueCaching = _config.getBoolean("remoteConfigValueCaching");
+            if (remoteConfigValueCaching) {
+                this.config.enableRemoteConfigValueCaching();
+            }
+        }
     }
 }

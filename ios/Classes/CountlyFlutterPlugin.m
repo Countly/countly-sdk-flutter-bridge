@@ -835,7 +835,7 @@ FlutterMethodChannel *_channel;
     } else if ([@"remoteConfigDownloadValues" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
             NSNumber *callbackID = [command objectAtIndex:0];
-            [Countly.sharedInstance.remoteConfig downloadKeys:^(CLYRequestResult  _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
+            [Countly.sharedInstance.remoteConfig downloadKeys:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
                 [self remoteConfigDownloadCallback:callbackID response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
             }];
             
@@ -845,7 +845,7 @@ FlutterMethodChannel *_channel;
         dispatch_async(dispatch_get_main_queue(), ^{
             NSNumber *callbackID = [command objectAtIndex:0];
             NSArray *keys = [command objectAtIndex:1];
-            [Countly.sharedInstance.remoteConfig downloadSpecificKeys:keys completionHandler:^(CLYRequestResult  _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
+            [Countly.sharedInstance.remoteConfig downloadSpecificKeys:keys completionHandler:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
                 [self remoteConfigDownloadCallback:callbackID response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
             }];
             result(@"Success!");
@@ -856,7 +856,7 @@ FlutterMethodChannel *_channel;
             NSNumber *callbackID = [command objectAtIndex:0];
             NSArray *omitKeys = [command objectAtIndex:1];
             
-            [Countly.sharedInstance.remoteConfig downloadOmittingKeys:omitKeys completionHandler:^(CLYRequestResult  _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
+            [Countly.sharedInstance.remoteConfig downloadOmittingKeys:omitKeys completionHandler:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
                 [self remoteConfigDownloadCallback:callbackID response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
             }];
             result(@"Success!");
@@ -913,7 +913,7 @@ FlutterMethodChannel *_channel;
     } else if ([@"remoteConfigTestingDownloadVariantInformation" isEqualToString:call.method]) {
         NSNumber *callbackID = [command objectAtIndex:0];
         dispatch_async(dispatch_get_main_queue(), ^{
-            [Countly.sharedInstance.remoteConfig testingDownloadVariantInformation:^(CLYRequestResult  _Nonnull response, NSError * _Nonnull error) {
+            [Countly.sharedInstance.remoteConfig testingDownloadVariantInformation:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error) {
                 [self remoteConfigVariantCallback:callbackID response:response error:error];
             }];
             result(@"Success!");
@@ -924,7 +924,7 @@ FlutterMethodChannel *_channel;
         NSString *key = [command objectAtIndex:1];
         NSString *variantName = [command objectAtIndex:2];
         dispatch_async(dispatch_get_main_queue(), ^{
-            [Countly.sharedInstance.remoteConfig testingEnrollIntoVariant:key variantName:variantName completionHandler:^(CLYRequestResult  _Nonnull response, NSError * _Nonnull error) {
+            [Countly.sharedInstance.remoteConfig testingEnrollIntoVariant:key variantName:variantName completionHandler:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error) {
                 [self remoteConfigVariantCallback:callbackID response:response error:error];
             }];
             result(@"Success!");
@@ -1380,12 +1380,9 @@ FlutterMethodChannel *_channel;
             };
         }
         
-        NSNumber *remoteConfigGlobalCallback = _config[@"remoteConfigGlobalCallback"];
-        if (remoteConfigGlobalCallback) {
-            [config remoteConfigRegisterGlobalCallback:^(CLYRequestResult  _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
-                [self remoteConfigDownloadCallback:[NSNumber numberWithInt:-2] response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
-            }];
-        }
+        [config remoteConfigRegisterGlobalCallback:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
+            [self remoteConfigDownloadCallback:[NSNumber numberWithInt:-2] response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
+        }];
         
         NSNumber *remoteConfigAutomaticTriggers = _config[@"remoteConfigAutomaticTriggers"];
         if (remoteConfigAutomaticTriggers) {
