@@ -543,11 +543,6 @@ typedef enum : NSUInteger
  */
 - (NSMutableArray<RCDownloadCallback> *) getRemoteConfigGlobalCallbacks;
 
-@property (nonatomic) BOOL enableRemoteConfigAutomaticTriggers;
-@property (nonatomic) BOOL enableRemoteConfigValueCaching;
-
-@property (nonatomic) NSMutableArray<RCDownloadCallback> *remoteConfigGlobalCallbacks;
-
 - (void)remoteConfigRegisterGlobalCallback:(RCDownloadCallback) callback;
 
 #pragma mark -
