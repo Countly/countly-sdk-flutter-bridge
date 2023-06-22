@@ -270,11 +270,14 @@ class RemoteConfigInternal implements RemoteConfig {
       return {};
     }
 
-    Map<String, List<String>>? returnValue = await _countlyState.channel.invokeMethod('remoteConfigTestingGetAllVariants');
+    Map<dynamic, dynamic>? returnValue = await _countlyState.channel.invokeMethod('remoteConfigTestingGetAllVariants');
 
-    returnValue ??= {};
+    Map<String, List<String>>? varaints;
+    varaints = returnValue?.map((key, value) => MapEntry(key, List<String>.from(value)));
 
-    return returnValue;
+    varaints ??= {};
+
+    return varaints;
   }
 
   @override
@@ -292,11 +295,13 @@ class RemoteConfigInternal implements RemoteConfig {
     List<String> args = [];
     args.add(key);
 
-    List<String>? returnValue = await _countlyState.channel.invokeMethod('remoteConfigTestingGetVariantsForKey', <String, dynamic>{'data': json.encode(args)});
+    List<dynamic>? returnValue = await _countlyState.channel.invokeMethod('remoteConfigTestingGetVariantsForKey', <String, dynamic>{'data': json.encode(args)});
 
     returnValue ??= [];
 
-    return returnValue;
+    List<String> variant = List<String>.from(returnValue);
+
+    return variant;
   }
 
   int _wrapDownloadCallback([RCDownloadCallback? callback]) {
