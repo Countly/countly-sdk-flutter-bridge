@@ -522,6 +522,10 @@ NSString* previousEventID;
     if(!onServer || [deviceID isEqualToString:CLYTemporaryDeviceID] )
     {
         [CountlyRemoteConfigInternal.sharedInstance clearCachedRemoteConfig:NO];
+    }
+    
+    if(![deviceID isEqualToString:CLYTemporaryDeviceID] )
+    {
         [CountlyRemoteConfigInternal.sharedInstance downloadRemoteConfigAutomatically];
     }
 }
