@@ -20,6 +20,7 @@ import ly.count.android.sdk.DeviceIdType;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Arrays;
 
 import android.app.Activity;
 import android.content.Context;
@@ -987,13 +988,20 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 String[] variants = Countly.sharedInstance().remoteConfig().testingGetVariantsForKey(key);
 
-                result.success(variants);
+                List<String> convertedVariants = Arrays.asList(variants); // TODO: Make better
+
+                result.success(convertedVariants);
             } else if ("remoteConfigTestingGetAllVariants".equals(call.method)) {
                 log("remoteConfigTestingGetAllVariants", LogLevel.WARNING);
 
                 Map<String, String[]> variants = Countly.sharedInstance().remoteConfig().testingGetAllVariants();
 
-                result.success(variants);
+                Map<String, List<String>> convertedVariants = new HashMap<>();
+                for (Map.Entry<String, String[]> entry : variants.entrySet()) {
+                    convertedVariants.put(entry.getKey(), Arrays.asList(entry.getValue()));
+                } // TODO: Make better
+            
+                result.success(convertedVariants);
             } else if ("remoteConfigTestingDownloadVariantInformation".equals(call.method)) {
                 int requestID = args.getInt(0);
 
