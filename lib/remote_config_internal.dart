@@ -272,12 +272,12 @@ class RemoteConfigInternal implements RemoteConfig {
 
     Map<dynamic, dynamic>? returnValue = await _countlyState.channel.invokeMethod('remoteConfigTestingGetAllVariants');
 
-    Map<String, List<String>>? varaints;
-    varaints = returnValue?.map((key, value) => MapEntry(key, List<String>.from(value)));
+    Map<String, List<String>>? variants;
+    variants = returnValue?.map((key, value) => MapEntry(key, List<String>.from(value)));
 
-    varaints ??= {};
+    variants ??= {};
 
-    return varaints;
+    return variants;
   }
 
   @override
