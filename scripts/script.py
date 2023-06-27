@@ -51,6 +51,8 @@ FILES_TO_MOVE = [
 modPathAndroid = "../android/src/main/java/ly/count/dart/countly_flutter/CountlyFlutterPlugin.java"
 modPathIos = "../ios/Classes/CountlyFlutterPlugin.m"
 modPathCountly = "../lib/countly_flutter.dart"
+modPathCountlyConfig = "../lib/countly_config.dart"
+modPathCountlyRCInternal = "../lib/remote_config_internal.dart"
 objectOfComModification = {
     modPathAndroid: {
         "modifications": {
@@ -90,9 +92,24 @@ objectOfComModification = {
             "import 'package:countly_flutter/countly_state.dart';": "import 'package:countly_flutter_np/countly_state.dart';",
             "import 'package:countly_flutter/remote_config.dart';": "import 'package:countly_flutter_np/remote_config.dart';",
             "import 'package:countly_flutter/remote_config_internal.dart';": "import 'package:countly_flutter_np/remote_config_internal.dart';",
+            "import 'package:countly_flutter/user_profile.dart';": "import 'package:countly_flutter_np/user_profile.dart';",
+            "import 'package:countly_flutter/user_profile_internal.dart';": "import 'package:countly_flutter_np/user_profile_internal.dart';",
             "export 'package:countly_flutter/countly_config.dart';": "export 'package:countly_flutter_np/countly_config.dart';",
             "export 'package:countly_flutter/remote_config.dart';": "export 'package:countly_flutter_np/remote_config.dart';",
-            "static const bool BUILDING_WITH_PUSH_DISABLED = false;": "  static const bool BUILDING_WITH_PUSH_DISABLED = true;"
+            "static const bool BUILDING_WITH_PUSH_DISABLED = false;": "static const bool BUILDING_WITH_PUSH_DISABLED = true;"
+        },
+        "consecutiveOmits": []
+    },
+    modPathCountlyConfig: {
+        "modifications": {
+            "import 'package:countly_flutter/countly_flutter.dart';": "import 'package:countly_flutter_np/countly_flutter.dart';",
+        },
+        "consecutiveOmits": []
+    },
+    modPathCountlyRCInternal: {
+        "modifications": {
+            "import 'package:countly_flutter/countly_flutter.dart';": "import 'package:countly_flutter_np/countly_flutter.dart';",
+            "import 'package:countly_flutter/countly_state.dart';": "import 'package:countly_flutter_np/countly_state.dart';",
         },
         "consecutiveOmits": []
     }
@@ -184,6 +201,8 @@ def main():
     print(modPathAndroid)
     print(modPathIos)
     print(modPathCountly)
+    print(modPathCountlyConfig)
+    print(modPathCountlyRCInternal)
 
     # ask for permission to run the script
     start = input('Do you want to continue? (y/n)')
@@ -195,6 +214,8 @@ def main():
         modifyFile(modPathAndroid, objectOfComModification, 'bloc')
         modifyFile(modPathIos, objectOfComModification, 'mod')
         modifyFile(modPathCountly, objectOfComModification, 'mod')
+        modifyFile(modPathCountlyConfig, objectOfComModification, 'mod')
+        modifyFile(modPathCountlyRCInternal, objectOfComModification, 'mod')
         print("Done")
     else:
         print("Aborted")
