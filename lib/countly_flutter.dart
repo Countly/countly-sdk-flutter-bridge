@@ -4,11 +4,16 @@ import 'dart:io' show Platform;
 
 import 'package:countly_flutter/countly_config.dart';
 import 'package:countly_flutter/countly_state.dart';
+import 'package:countly_flutter/remote_config.dart';
+import 'package:countly_flutter/remote_config_internal.dart';
 import 'package:countly_flutter/user_profile.dart';
 import 'package:countly_flutter/user_profile_internal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
+
+export 'package:countly_flutter/countly_config.dart';
+export 'package:countly_flutter/remote_config.dart';
 
 /// Attribution Keys to record indirect attribution
 /// IDFA is for iOS and AdvertisingID is for Android
@@ -41,12 +46,17 @@ abstract class CountlyConsent {
 
 class Countly {
   Countly._() {
+    _remoteConfigInternal = RemoteConfigInternal(this, _countlyState);
     _userProfileInternal = UserProfileInternal(this, _countlyState);
   }
   static final instance = _instance;
   static final _instance = Countly._();
 
   final _countlyState = CountlyState();
+  
+  late final RemoteConfigInternal _remoteConfigInternal;
+  RemoteConfig get remoteConfig => _remoteConfigInternal;
+
   late final UserProfileInternal _userProfileInternal;
   UserProfile get userProfile => _userProfileInternal;
 
@@ -85,6 +95,7 @@ class Countly {
   static VoidCallback? _widgetShown;
   static VoidCallback? _widgetClosed;
   static Function(String? error)? _remoteConfigCallback;
+  static int lastUsedRCID = 0;
   static Function(String? error)? _ratingWidgetCallback;
   static Function(Map<String, dynamic> widgetData, String? error)? _feedbackWidgetDataCallback;
 
@@ -127,9 +138,52 @@ class Countly {
           _feedbackWidgetDataCallback = null;
         }
         break;
+      case 'remoteConfigDownloadCallback':
+        try {
+          final Map<String, dynamic> argumentsMap = Map<String, dynamic>.from(call.arguments);
+          final int rResult = argumentsMap['requestResult'];
+          late final RequestResult requestResult;
+          if (rResult == 0) {
+            requestResult = RequestResult.success;
+          } else if (rResult == 1) {
+            requestResult = RequestResult.networkIssue;
+          } else {
+            requestResult = RequestResult.error;
+          }
+          final String? error = argumentsMap['error'];
+          final bool fullValueUpdate = argumentsMap['fullValueUpdate'];
+          final Map<dynamic, dynamic> downloadedValuesObject = argumentsMap['downloadedValues'];
+          final int id = argumentsMap['id'];
+
+          Countly.instance._remoteConfigInternal.notifyDownloadCallbacks(requestResult, error, fullValueUpdate, downloadedValuesObject, id);
+        } catch (e) {
+          Countly.log('Method call for remoteConfigDownloadCallback had a problem: $e', logLevel: LogLevel.ERROR);
+        }
+        break;
+      case 'remoteConfigVariantCallback':
+        try {
+          final Map<String, dynamic> argumentsMap = Map<String, dynamic>.from(call.arguments);
+          final int rResult = argumentsMap['requestResult'];
+          late final RequestResult requestResult;
+          if (rResult == 0) {
+            requestResult = RequestResult.success;
+          } else if (rResult == 1) {
+            requestResult = RequestResult.networkIssue;
+          } else {
+            requestResult = RequestResult.error;
+          }
+          final String? error = argumentsMap['error'];
+          final int id = argumentsMap['id'];
+
+          Countly.instance._remoteConfigInternal.notifyVariantCallbacks(requestResult, error, id);
+        } catch (e) {
+          Countly.log(e.toString(), logLevel: LogLevel.ERROR);
+        }
+        break;
     }
   }
 
+  @Deprecated('Use rcRegisterCallback instead')
   static void setRemoteConfigCallback(Function(String? error) callback) {
     _remoteConfigCallback = callback;
   }
@@ -185,11 +239,7 @@ class Countly {
   static Future<bool> isInitialized() async {
     log('Calling "isInitialized"');
     final String? result = await _channel.invokeMethod('isInitialized');
-    if (result == 'true') {
-      _instance._countlyState.isInitialized = true;
-    } else {
-      _instance._countlyState.isInitialized = false;
-    }
+    _instance._countlyState.isInitialized = result == 'true';
     return _instance._countlyState.isInitialized;
   }
 
@@ -1161,7 +1211,7 @@ class Countly {
 
   /// Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
   /// Should be call before Countly init
-  @Deprecated('Use setRemoteConfigAutomaticDownload of CountlyConfig instead')
+  @Deprecated('Use remoteConfigRegisterDownloadCallback of CountlyConfig instead')
   static Future<String?> setRemoteConfigAutomaticDownload(Function callback) async {
     log('Calling "setRemoteConfigAutomaticDownload"');
     log('setRemoteConfigAutomaticDownload is deprecated, use setRemoteConfigAutomaticDownload of CountlyConfig instead', logLevel: LogLevel.WARNING);
@@ -1171,6 +1221,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use remoteConfigDownloadValues instead')
   static Future<String?> remoteConfigUpdate(Function callback) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "remoteConfigUpdate"';
@@ -1184,6 +1235,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use remoteConfigDownloadSpecificValue instead')
   static Future<String?> updateRemoteConfigForKeysOnly(List<String> keys, Function callback) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "updateRemoteConfigForKeysOnly"';
@@ -1203,6 +1255,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use remoteConfigDownloadOmittingValues instead')
   static Future<String?> updateRemoteConfigExceptKeys(List<String> keys, Function callback) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "updateRemoteConfigExceptKeys"';
@@ -1222,6 +1275,7 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use remoteConfigClearAllValues instead')
   static Future<String?> remoteConfigClearValues(Function callback) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "remoteConfigClearValues"';
@@ -1235,13 +1289,14 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Use remoteConfigGetValue instead')
   static Future<String?> getRemoteConfigValueForKey(String key, Function callback) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "getRemoteConfigValueForKey"';
       log('getRemoteConfigValueForKey, $message', logLevel: LogLevel.ERROR);
       return message;
     }
-    log('Calling "remoteConfigClearValues":[$key]');
+    log('Calling "getRemoteConfigValueForKey" with the key:[$key]');
     if (key.isEmpty) {
       String error = 'getRemoteConfigValueForKey, key cannot be empty';
       log(error);
@@ -1927,6 +1982,10 @@ class Countly {
       if (config.iaAttributionValues != null) {
         countlyConfig['attributionValues'] = config.iaAttributionValues;
       }
+
+      countlyConfig['remoteConfigAutomaticTriggers'] = config.remoteConfigAutomaticTriggers;
+
+      countlyConfig['remoteConfigValueCaching'] = config.remoteConfigValueCaching;
     } catch (e) {
       log('_configToJson, Exception occur during converting config to json: $e');
     }

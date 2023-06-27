@@ -86,12 +86,25 @@ NSString* previousEventID;
     if (!config.host.length || [config.host isEqualToString:@"https://YOUR_COUNTLY_SERVER"])
         [NSException raise:@"CountlyHostNotSetException" format:@"host property on CountlyConfig object is not set"];
 
-    CLY_LOG_I(@"Initializing with %@ SDK v%@ on %@ with %@ %@",
-        CountlyCommon.sharedInstance.SDKName,
-        CountlyCommon.sharedInstance.SDKVersion,
-        CountlyDeviceInfo.device,
-        CountlyDeviceInfo.osName,
-        CountlyDeviceInfo.osVersion);
+    if([CountlyCommon.sharedInstance.SDKName isEqualToString:kCountlySDKName] && [CountlyCommon.sharedInstance.SDKVersion isEqualToString:kCountlySDKVersion])
+    {
+        CLY_LOG_I(@"Initializing with %@ SDK v%@ on %@ with %@ %@",
+                  CountlyCommon.sharedInstance.SDKName,
+                  CountlyCommon.sharedInstance.SDKVersion,
+                  CountlyDeviceInfo.device,
+                  CountlyDeviceInfo.osName,
+                  CountlyDeviceInfo.osVersion);
+    }
+    else {
+        CLY_LOG_I(@"Initializing with %@ SDK v%@ on %@ with %@ %@ default SDK name %@ default SDK version %@",
+                  CountlyCommon.sharedInstance.SDKName,
+                  CountlyCommon.sharedInstance.SDKVersion,
+                  CountlyDeviceInfo.device,
+                  CountlyDeviceInfo.osName,
+                  CountlyDeviceInfo.osVersion,
+                  kCountlySDKName,
+                  kCountlySDKVersion);
+    }
 
     if (!CountlyDeviceInfo.sharedInstance.deviceID || config.resetStoredDeviceID)
     {
@@ -184,9 +197,13 @@ NSString* previousEventID;
     timer = [NSTimer timerWithTimeInterval:config.updateSessionPeriod target:self selector:@selector(onTimer:) userInfo:nil repeats:YES];
     [NSRunLoop.mainRunLoop addTimer:timer forMode:NSRunLoopCommonModes];
 
-    CountlyRemoteConfig.sharedInstance.isEnabledOnInitialConfig = config.enableRemoteConfig;
-    CountlyRemoteConfig.sharedInstance.remoteConfigCompletionHandler = config.remoteConfigCompletionHandler;
-    [CountlyRemoteConfig.sharedInstance startRemoteConfig];
+    CountlyRemoteConfigInternal.sharedInstance.isRCAutomaticTriggersEnabled = config.enableRemoteConfigAutomaticTriggers || config.enableRemoteConfig;
+    CountlyRemoteConfigInternal.sharedInstance.isRCValueCachingEnabled = config.enableRemoteConfigValueCaching;
+    CountlyRemoteConfigInternal.sharedInstance.remoteConfigCompletionHandler = config.remoteConfigCompletionHandler;
+    if(config.getRemoteConfigGlobalCallbacks) {
+        CountlyRemoteConfigInternal.sharedInstance.remoteConfigGlobalCallbacks = config.getRemoteConfigGlobalCallbacks;
+    }
+    [CountlyRemoteConfigInternal.sharedInstance downloadRemoteConfigAutomatically];
     
     CountlyPerformanceMonitoring.sharedInstance.isEnabledOnInitialConfig = config.enablePerformanceMonitoring;
     [CountlyPerformanceMonitoring.sharedInstance startPerformanceMonitoring];
@@ -443,6 +460,14 @@ NSString* previousEventID;
 #endif
 }
 
+- (void)changeDeviceIDWithMerge:(NSString * _Nullable)deviceID {
+    [self setNewDeviceID:deviceID onServer:YES];
+}
+
+- (void)changeDeviceIDWithoutMerge:(NSString * _Nullable)deviceID {
+    [self setNewDeviceID:deviceID onServer:NO];
+}
+
 - (void)setNewDeviceID:(NSString *)deviceID onServer:(BOOL)onServer
 {
     CLY_LOG_I(@"%s %@ %d", __FUNCTION__, deviceID, onServer);
@@ -475,7 +500,7 @@ NSString* previousEventID;
 
         [CountlyConnectionManager.sharedInstance proceedOnQueue];
 
-        [CountlyRemoteConfig.sharedInstance startRemoteConfig];
+        [CountlyRemoteConfigInternal.sharedInstance downloadRemoteConfigAutomatically];
 
         return;
     }
@@ -507,8 +532,15 @@ NSString* previousEventID;
         [CountlyPersistency.sharedInstance clearAllTimedEvents];
     }
 
-    [CountlyRemoteConfig.sharedInstance clearCachedRemoteConfig];
-    [CountlyRemoteConfig.sharedInstance startRemoteConfig];
+    if(!onServer || [deviceID isEqualToString:CLYTemporaryDeviceID] )
+    {
+        [CountlyRemoteConfigInternal.sharedInstance clearCachedRemoteConfig:NO];
+    }
+    
+    if(![deviceID isEqualToString:CLYTemporaryDeviceID] )
+    {
+        [CountlyRemoteConfigInternal.sharedInstance downloadRemoteConfigAutomatically];
+    }
 }
 
 - (void)storeCustomDeviceIDState:(NSString *)deviceID
@@ -1111,31 +1143,33 @@ NSString* previousEventID;
 {
     CLY_LOG_I(@"%s %@", __FUNCTION__, key);
 
-    return [CountlyRemoteConfig.sharedInstance remoteConfigValueForKey:key];
+    return [CountlyRemoteConfigInternal.sharedInstance remoteConfigValueForKey:key];
 }
 
 - (void)updateRemoteConfigWithCompletionHandler:(void (^)(NSError * error))completionHandler
 {
     CLY_LOG_I(@"%s %@", __FUNCTION__, completionHandler);
 
-    [CountlyRemoteConfig.sharedInstance updateRemoteConfigForKeys:nil omitKeys:nil completionHandler:completionHandler];
+    [CountlyRemoteConfigInternal.sharedInstance updateRemoteConfigForKeys:nil omitKeys:nil completionHandler:completionHandler];
 }
 
 - (void)updateRemoteConfigOnlyForKeys:(NSArray *)keys completionHandler:(void (^)(NSError * error))completionHandler
 {
     CLY_LOG_I(@"%s %@ %@", __FUNCTION__, keys, completionHandler);
 
-    [CountlyRemoteConfig.sharedInstance updateRemoteConfigForKeys:keys omitKeys:nil completionHandler:completionHandler];
+    [CountlyRemoteConfigInternal.sharedInstance updateRemoteConfigForKeys:keys omitKeys:nil completionHandler:completionHandler];
 }
 
 - (void)updateRemoteConfigExceptForKeys:(NSArray *)omitKeys completionHandler:(void (^)(NSError * error))completionHandler
 {
     CLY_LOG_I(@"%s %@ %@", __FUNCTION__, omitKeys, completionHandler);
 
-    [CountlyRemoteConfig.sharedInstance updateRemoteConfigForKeys:nil omitKeys:omitKeys completionHandler:completionHandler];
+    [CountlyRemoteConfigInternal.sharedInstance updateRemoteConfigForKeys:nil omitKeys:omitKeys completionHandler:completionHandler];
 }
 
-
+- (CountlyRemoteConfig *) remoteConfig {
+    return CountlyRemoteConfig.sharedInstance;
+}
 
 #pragma mark - Performance Monitoring
 

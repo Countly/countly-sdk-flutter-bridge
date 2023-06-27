@@ -6,6 +6,7 @@
 
 #import <Foundation/Foundation.h>
 #import "Countly.h"
+#import "CountlyServerConfig.h"
 #import "CountlyPersistency.h"
 #import "CountlyConnectionManager.h"
 #import "CountlyEvent.h"
@@ -20,9 +21,10 @@
 #import "CountlyNotificationService.h"
 #import "CountlyConsentManager.h"
 #import "CountlyLocationManager.h"
-#import "CountlyRemoteConfig.h"
+#import "CountlyRemoteConfigInternal.h"
 #import "CountlyPerformanceMonitoring.h"
-#import "CountlyServerConfig.h"
+#import "CountlyRCData.h"
+#import "CountlyRemoteConfig.h"
 
 #define CLY_LOG_E(fmt, ...) CountlyInternalLog(CLYInternalLogLevelError, fmt, ##__VA_ARGS__)
 #define CLY_LOG_W(fmt, ...) CountlyInternalLog(CLYInternalLogLevelWarning, fmt, ##__VA_ARGS__)
@@ -60,6 +62,9 @@ NS_ERROR_ENUM(kCountlyErrorDomain)
     CLYErrorFeedbacksGeneralAPIError = 10012,
     CLYErrorServerConfigGeneralAPIError = 10013,
 };
+
+extern NSString* const kCountlySDKVersion;
+extern NSString* const kCountlySDKName;
 
 @interface CountlyCommon : NSObject
 
