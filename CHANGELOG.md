@@ -1,5 +1,9 @@
 ## 23.6.0
 * !! Major breaking change !! Automatically downloaded remote config values will no longer be automatically enrolled in their AB tests.
+* ! Minor breaking change ! Remote config will now return previously downloaded values when remote-config consent is not given
+
+* Fixed bug in Android where recording views would force send all stored events
+* Fixed bug in Android where exiting temporary ID mode would create unintended requests
 
 * Introduced a singleton instance of the SDK that will now hold interfaces for features
 * Introduced a new remote config interface ('Countly.instance.remoteConfig') on the SDK instance the exposes the reworked remote config functionality
@@ -28,11 +32,15 @@
   * 'pullValue'
 
 * Fixed a bug where the app would crash if `gpsCoordinate` in location was null.
-* Updated Underlying android SDK version to 23.2.0
+* Updated Underlying android SDK version to 23.6.0
 * Updated Underlying iOS SDK version to 23.6.0
 
 ## 23.6.0-np
 * !! Major breaking change !! Automatically downloaded remote config values will no longer be automatically enrolled in their AB tests.
+* ! Minor breaking change ! Remote config will now return previously downloaded values when remote-config consent is not given
+
+* Fixed bug in Android where recording views would force send all stored events
+* Fixed bug in Android where exiting temporary ID mode would create unintended requests
 
 * Introduced a singleton instance of the SDK that will now hold interfaces for features
 * Introduced a new remote config interface ('Countly.instance.remoteConfig') on the SDK instance the exposes the reworked remote config functionality
@@ -61,7 +69,7 @@
   * 'pullValue'
 
 * Fixed a bug where the app would crash if `gpsCoordinate` in location was null.
-* Updated Underlying android SDK version to 23.2.0
+* Updated Underlying android SDK version to 23.6.0
 * Updated Underlying iOS SDK version to 23.6.0
 
 ## 23.2.3
