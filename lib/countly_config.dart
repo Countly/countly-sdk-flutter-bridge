@@ -1,4 +1,4 @@
-import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter_np/countly_flutter.dart';
 
 class CountlyConfig {
   String _appKey;

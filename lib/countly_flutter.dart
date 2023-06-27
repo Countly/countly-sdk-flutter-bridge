@@ -5,18 +5,18 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'dart:io' show Platform;
 
-import 'package:countly_flutter/countly_config.dart';
-import 'package:countly_flutter/countly_state.dart';
-import 'package:countly_flutter/remote_config.dart';
-import 'package:countly_flutter/remote_config_internal.dart';
-import 'package:countly_flutter/user_profile.dart';
-import 'package:countly_flutter/user_profile_internal.dart';
+import 'package:countly_flutter_np/countly_config.dart';
+import 'package:countly_flutter_np/countly_state.dart';
+import 'package:countly_flutter_np/remote_config.dart';
+import 'package:countly_flutter_np/remote_config_internal.dart';
+import 'package:countly_flutter_np/user_profile.dart';
+import 'package:countly_flutter_np/user_profile_internal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
 
-export 'package:countly_flutter/countly_config.dart';
-export 'package:countly_flutter/remote_config.dart';
+export 'package:countly_flutter_np/countly_config.dart';
+export 'package:countly_flutter_np/remote_config.dart';
 
 /// Attribution Keys to record indirect attribution
 /// IDFA is for iOS and AdvertisingID is for Android
@@ -48,7 +48,6 @@ abstract class CountlyConsent {
 }
 
 class Countly {
-  static const bool BUILDING_WITH_PUSH_DISABLED = true;
   Countly._() {
     _remoteConfigInternal = RemoteConfigInternal(this, _countlyState);
     _userProfileInternal = UserProfileInternal(this, _countlyState);
@@ -64,7 +63,7 @@ class Countly {
   late final UserProfileInternal _userProfileInternal;
   UserProfile get userProfile => _userProfileInternal;
 
-  static const bool BUILDING_WITH_PUSH_DISABLED = false;
+  static const bool BUILDING_WITH_PUSH_DISABLED = true;
   static const String _pushDisabledMsg = 'In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled';
 
   static const MethodChannel _channel = MethodChannel('countly_flutter');
