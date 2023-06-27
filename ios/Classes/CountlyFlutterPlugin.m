@@ -23,7 +23,7 @@ BOOL BUILDING_WITH_PUSH_DISABLED = true;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
 
-NSString *const kCountlyFlutterSDKVersion = @"23.2.3";
+NSString *const kCountlyFlutterSDKVersion = @"23.6.0";
 NSString *const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 NSString *const kCountlyFlutterSDKNameNoPush = @"dart-flutterbnp-ios";
 
@@ -254,12 +254,12 @@ FlutterMethodChannel *_channel;
           NSString *onServerString = [command objectAtIndex:1];
 
           if ([newDeviceID isEqual:@"TemporaryDeviceID"]) {
-              [Countly.sharedInstance setNewDeviceID:CLYTemporaryDeviceID onServer:NO];
+              [Countly.sharedInstance changeDeviceIDWithoutMerge:CLYTemporaryDeviceID];
           } else {
               if ([onServerString isEqual:@"1"]) {
-                  [Countly.sharedInstance setNewDeviceID:newDeviceID onServer:YES];
+                  [Countly.sharedInstance changeDeviceIDWithMerge:newDeviceID];
               } else {
-                  [Countly.sharedInstance setNewDeviceID:newDeviceID onServer:NO];
+                  [Countly.sharedInstance changeDeviceIDWithoutMerge:newDeviceID];
               }
           }
           result(@"changeDeviceId!");
@@ -402,7 +402,7 @@ FlutterMethodChannel *_channel;
 
           NSException *myException = [NSException exceptionWithName:@"Exception" reason:execption userInfo:dict];
 
-          [Countly.sharedInstance recordHandledException:myException withStackTrace:nsException];
+          [Countly.sharedInstance recordException:myException isFatal:NO stackTrace:nsException segmentation:nil];
           result(@"logException!");
         });
 
@@ -557,6 +557,118 @@ FlutterMethodChannel *_channel;
           result(@"userData_pullValue!");
         });
 
+    } else if ([@"userProfile_setProperties" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSDictionary *userProperties = [command objectAtIndex:0];
+            
+            [self setUserData:userProperties];
+            NSDictionary *customeProperties = [self removePredefinedUserProperties:userProperties];
+            Countly.user.custom = customeProperties;
+            
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_setProperty" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            NSNumber *value = [command objectAtIndex:1];
+            
+            [Countly.user set:key numberValue:value];
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_increment" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            
+            [Countly.user increment:key];
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_incrementBy" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            NSNumber *value = [command objectAtIndex:1];
+            
+            [Countly.user incrementBy:key value:value];
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_multiply" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            NSNumber *value = [command objectAtIndex:1];
+            
+            [Countly.user multiply:key value:value];
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_saveMax" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            NSNumber *value = [command objectAtIndex:1];
+            
+            [Countly.user max:key value:value];
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_saveMin" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            NSNumber *value = [command objectAtIndex:1];
+            
+            [Countly.user min:key value:value];
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_setOnce" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            NSString *value = [command objectAtIndex:1];
+            
+            [Countly.user setOnce:key value:value];
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_pushUnique" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            NSString *value = [command objectAtIndex:1];
+            
+            [Countly.user pushUnique:key value:value];
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_push" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            NSString *value = [command objectAtIndex:1];
+            
+            [Countly.user push:key value:value];
+            result(nil);
+        });
+        
+    } else if ([@"userProfile_pull" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *key = [command objectAtIndex:0];
+            NSString *value = [command objectAtIndex:1];
+            
+            [Countly.user push:key value:value];
+            result(nil);
+        });
+        
+    }  else if ([@"userProfile_save" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [Countly.user save];
+            result(nil);
+        });
+        
+    }  else if ([@"userProfile_clear" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [Countly.user clearUserDetails];
+            result(nil);
+        });
+        
         // setRequiresConsent
     } else if ([@"setRequiresConsent" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -702,7 +814,7 @@ FlutterMethodChannel *_channel;
 
     } else if ([@"remoteConfigClearValues" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          [CountlyRemoteConfig.sharedInstance clearCachedRemoteConfig];
+          [CountlyRemoteConfig.sharedInstance clearAll];
           result(@"Success!");
         });
 
@@ -720,6 +832,104 @@ FlutterMethodChannel *_channel;
               result([value stringValue]);
           }
         });
+    } else if ([@"remoteConfigDownloadValues" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSNumber *callbackID = [command objectAtIndex:0];
+            [Countly.sharedInstance.remoteConfig downloadKeys:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
+                [self remoteConfigDownloadCallback:callbackID response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
+            }];
+            
+            result(@"success");
+        });
+    } else if ([@"remoteConfigDownloadSpecificValue" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSNumber *callbackID = [command objectAtIndex:0];
+            NSArray *keys = [command objectAtIndex:1];
+            [Countly.sharedInstance.remoteConfig downloadSpecificKeys:keys completionHandler:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
+                [self remoteConfigDownloadCallback:callbackID response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
+            }];
+            result(@"Success!");
+        });
+        
+    } else if ([@"remoteConfigDownloadOmittingValues" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSNumber *callbackID = [command objectAtIndex:0];
+            NSArray *omitKeys = [command objectAtIndex:1];
+            
+            [Countly.sharedInstance.remoteConfig downloadOmittingKeys:omitKeys completionHandler:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
+                [self remoteConfigDownloadCallback:callbackID response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
+            }];
+            result(@"Success!");
+        });
+        
+    } else if ([@"remoteConfigGetAllValues" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSDictionary<NSString*, CountlyRCData *> * allRCDataValues = [Countly.sharedInstance.remoteConfig getAllValues];
+            NSDictionary* rCValues = [self getRCValues:allRCDataValues];
+            result(rCValues);
+        });
+        
+    } else if ([@"remoteConfigGetValue" isEqualToString:call.method]) {
+        NSString *key = [command objectAtIndex:0];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            CountlyRCData* rcData = [Countly.sharedInstance.remoteConfig getValue:key];
+            NSDictionary* rcDataMap = [self rcDataToMap:rcData];
+            result(rcDataMap);
+        });
+        
+    } else if ([@"remoteConfigClearAllValues" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [Countly.sharedInstance.remoteConfig clearAll];
+            result(@"Success!");
+        });
+        
+    } else if ([@"remoteConfigEnrollIntoABTestsForKeys" isEqualToString:call.method]) {
+        NSArray *keys = [command objectAtIndex:0];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [Countly.sharedInstance.remoteConfig enrollIntoABTestsForKeys:keys];
+            result(@"Success!");
+        });
+        
+    } else if ([@"remoteConfigExitABTestsForKeys" isEqualToString:call.method]) {
+        NSArray *keys = [command objectAtIndex:0];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [Countly.sharedInstance.remoteConfig exitABTestsForKeys:keys];
+            result(@"Success!");
+        });
+        
+    } else if ([@"remoteConfigTestingGetVariantsForKey" isEqualToString:call.method]) {
+        NSString *key = [command objectAtIndex:0];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSArray* variants = [Countly.sharedInstance.remoteConfig testingGetVariantsForKey:key];
+            result(variants);
+        });
+        
+    } else if ([@"remoteConfigTestingGetAllVariants" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSDictionary* allVariants = [Countly.sharedInstance.remoteConfig testingGetAllVariants];
+            result(allVariants);
+        });
+        
+    } else if ([@"remoteConfigTestingDownloadVariantInformation" isEqualToString:call.method]) {
+        NSNumber *callbackID = [command objectAtIndex:0];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [Countly.sharedInstance.remoteConfig testingDownloadVariantInformation:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error) {
+                [self remoteConfigVariantCallback:callbackID response:response error:error];
+            }];
+            result(@"Success!");
+        });
+        
+    } else if ([@"remoteConfigTestingEnrollIntoVariant" isEqualToString:call.method]) {
+        NSNumber *callbackID = [command objectAtIndex:0];
+        NSString *key = [command objectAtIndex:1];
+        NSString *variantName = [command objectAtIndex:2];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [Countly.sharedInstance.remoteConfig testingEnrollIntoVariant:key variantName:variantName completionHandler:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error) {
+                [self remoteConfigVariantCallback:callbackID response:response error:error];
+            }];
+            result(@"Success!");
+        });
+        
     } else if ([@"presentRatingWidgetWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *widgetId = [command objectAtIndex:0];
@@ -921,7 +1131,7 @@ FlutterMethodChannel *_channel;
 
 - (NSDictionary *)removePredefinedUserProperties:(NSDictionary *__nullable)userData {
     NSMutableDictionary *userProperties = [userData mutableCopy];
-    NSArray *nameFields = [[NSArray alloc] initWithObjects:NAME_KEY, USERNAME_KEY, EMAIL_KEY, ORG_KEY, PHONE_KEY, PICTURE_KEY, PICTURE_PATH_KEY, GENDER_KEY, BYEAR_KEY, nil];
+    NSArray *nameFields = [[NSArray alloc] initWithObjects:NAME_KEY, USERNAME_KEY, EMAIL_KEY, ORG_KEY, PHONE_KEY, PICTURE_KEY, PICTURE_PATH_KEY, GENDER_KEY, BYEAR_KEY, nil];//TODO this should be replaced with a global array
 
     for (NSString *nameField in nameFields) {
         [userProperties removeObjectForKey:nameField];
@@ -975,6 +1185,68 @@ FlutterMethodChannel *_channel;
     [_channel invokeMethod:@"feedbackWidgetDataCallback" arguments:feedbackWidgetData];
 }
 
+- (void)remoteConfigVariantCallback:(NSNumber*)callbackID response:(CLYRequestResult _Nonnull)response error:(NSError *__nullable)error {
+    NSMutableDictionary *remoteConfigData = [[NSMutableDictionary alloc] init];
+    
+    remoteConfigData[@"id"] =  callbackID;
+    if(response == CLYResponseSuccess) {
+        remoteConfigData[@"requestResult"] =  [NSNumber numberWithInt:0];
+    }
+    else if(response == CLYResponseNetworkIssue) {
+        remoteConfigData[@"requestResult"] =  [NSNumber numberWithInt:1];
+    }
+    
+    if (error) {
+        remoteConfigData[@"error"] = error.description;
+    }
+    
+    [_channel invokeMethod:@"remoteConfigVariantCallback" arguments:remoteConfigData];
+}
+
+- (void)remoteConfigDownloadCallback:(NSNumber*)callbackID response:(CLYRequestResult _Nonnull)response fullValueUpdate:(BOOL)fullValueUpdate error:(NSError *__nullable)error downloadedValues:(NSDictionary<NSString *,CountlyRCData *> *_Nonnull)downloadedValues {
+    if([callbackID intValue] == -1) {
+        return;
+    }
+    NSMutableDictionary *remoteConfigData = [[NSMutableDictionary alloc] init];
+    
+    remoteConfigData[@"id"] =  callbackID;
+    if(response == CLYResponseSuccess) {
+        remoteConfigData[@"requestResult"] =  [NSNumber numberWithInt:0];
+    }
+    else if(response == CLYResponseNetworkIssue) {
+        remoteConfigData[@"requestResult"] =  [NSNumber numberWithInt:1];
+    }
+    
+    remoteConfigData[@"fullValueUpdate"] = fullValueUpdate ? @YES : @NO;
+    
+    if (downloadedValues) {
+        remoteConfigData[@"downloadedValues"] = [self getRCValues:downloadedValues];
+    }
+    if (error) {
+        remoteConfigData[@"error"] = error.description;
+    }
+    
+    [_channel invokeMethod:@"remoteConfigDownloadCallback" arguments:remoteConfigData];
+}
+
+-(NSDictionary *) getRCValues:(NSDictionary<NSString *,CountlyRCData *> *_Nonnull)downloadedValues{
+    NSMutableDictionary *remoteConfigValues = [[NSMutableDictionary alloc] init];
+    [downloadedValues enumerateKeysAndObjectsUsingBlock:^(NSString * key, CountlyRCData * rcData, BOOL * stop)
+     {
+        remoteConfigValues[key] = [self rcDataToMap:rcData];
+        
+    }];
+    return remoteConfigValues;
+}
+
+- (NSDictionary*)rcDataToMap:(CountlyRCData*)rcData
+{
+    NSMutableDictionary *rCDataMap = [[NSMutableDictionary alloc] init];
+    rCDataMap[@"value"] = rcData.value;
+    rCDataMap[@"isCurrentUsersData"] = rcData.isCurrentUsersData ? @YES : @NO;
+    return rCDataMap;
+}
+
 - (CountlyFeedbackWidget *)getFeedbackWidget:(NSString *)widgetId {
     if (feedbackWidgetList == nil) {
         return nil;
@@ -988,7 +1260,7 @@ FlutterMethodChannel *_channel;
 }
 - (CLLocationCoordinate2D)getCoordinate:(NSString *)gpsCoordinate {
     CLLocationCoordinate2D locationCoordinate = kCLLocationCoordinate2DInvalid;
-    if (gpsCoordinate) {
+    if (gpsCoordinate && ![[NSNull null] isEqual:gpsCoordinate] && gpsCoordinate.length) {
         if ([gpsCoordinate containsString:@","]) {
             @try {
                 NSArray *locationArray = [gpsCoordinate componentsSeparatedByString:@","];
@@ -1106,6 +1378,20 @@ FlutterMethodChannel *_channel;
               }
               [_channel invokeMethod:@"remoteConfigCallback" arguments:errorStr];
             };
+        }
+        
+        [config remoteConfigRegisterGlobalCallback:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
+            [self remoteConfigDownloadCallback:[NSNumber numberWithInt:-2] response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
+        }];
+        
+        NSNumber *remoteConfigAutomaticTriggers = _config[@"remoteConfigAutomaticTriggers"];
+        if (remoteConfigAutomaticTriggers) {
+            config.enableRemoteConfigAutomaticTriggers = [remoteConfigAutomaticTriggers boolValue];
+        }
+        
+        NSNumber *remoteConfigValueCaching = _config[@"remoteConfigValueCaching"];
+        if (remoteConfigValueCaching) {
+            config.enableRemoteConfigValueCaching = [remoteConfigValueCaching boolValue];
         }
 
         NSString *gpsCoordinate = _config[@"locationGpsCoordinates"];

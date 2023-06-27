@@ -20,6 +20,7 @@ import ly.count.android.sdk.DeviceIdType;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Arrays;
 
 import android.app.Activity;
 import android.content.Context;
@@ -43,7 +44,11 @@ import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 
+import ly.count.android.sdk.RCData;
+import ly.count.android.sdk.RCDownloadCallback;
+import ly.count.android.sdk.RCVariantCallback;
 import ly.count.android.sdk.RemoteConfigCallback;
+import ly.count.android.sdk.RequestResult;
 import ly.count.android.sdk.StarRatingCallback;
 import ly.count.android.sdk.messaging.CountlyPush;
 
@@ -58,11 +63,62 @@ import ly.count.android.sdk.messaging.CountlyPush;
  */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
     private static final String TAG = "CountlyFlutterPlugin";
-    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "23.2.3";
+    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "23.6.0";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterbnp-android";
 
     private final boolean BUILDING_WITH_PUSH_DISABLED = true;
+
+    public void notifyPublicChannelRCDL(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues, Integer requestID) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("error", error);
+        data.put("requestResult", resultResponder(downloadResult));
+        data.put("downloadedValues", transformMapIntoSendableForm(downloadedValues));
+        data.put("fullValueUpdate", fullValueUpdate);
+        if (requestID != null) {
+            data.put("id", requestID);
+        }
+        log("notifyPublicChannelRCDL, downloaded values: " + downloadedValues + ", error: " + error + ", fullValueUpdate: " + fullValueUpdate + ", requestID: " + requestID, LogLevel.VERBOSE);
+        methodChannel.invokeMethod("remoteConfigDownloadCallback", data);
+    }
+
+    public final Map<String, Object> transformMapIntoSendableForm(Map<String, RCData> map) {
+        if (map == null) {
+            return new HashMap<>();
+        }
+        Map<String, Object> newMap = new HashMap<>();
+        for (Map.Entry<String, RCData> entry : map.entrySet()) {
+            newMap.put(entry.getKey(), transformRCDataIntoSendableForm(entry.getValue()));
+        }
+        return newMap;
+    }
+
+    public final Map<String, Object> transformRCDataIntoSendableForm(RCData data) {
+        Map<String, Object> map = new HashMap<>();
+        try {
+            if (data.value instanceof JSONArray) {
+                map.put("value", toList((JSONArray) data.value));
+            } else if (data.value instanceof JSONObject) {
+                map.put("value", toMap((JSONObject) data.value));
+            } else {
+                map.put("value", data.value);
+            }
+        } catch (Exception e) {
+            log("'transformRCDataIntoSendableForm' failed while transforming data", LogLevel.INFO);
+        }
+        map.put("isCurrentUsersData", data.isCurrentUsersData);
+        return map;
+    }
+
+    public final int resultResponder(RequestResult rResult) {
+        int response = 2;
+        if (rResult == RequestResult.Success) {
+            response = 0;
+        } else if (rResult == RequestResult.NetworkIssue) {
+            response = 1;
+        }
+        return response;
+    }
 
     /**
      * Plugin registration.
@@ -80,6 +136,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private Boolean manualSessionControlEnabled_ = false;
 
     private boolean isOnResumeBeforeInit = false;
+    static final int requestIDNoCallback = -1;
+    static final int requestIDGlobalCallback = -2;
 
     List<CountlyFeedbackWidget> retrievedWidgetList = null;
 
@@ -224,6 +282,13 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 Countly.sharedInstance().COUNTLY_SDK_NAME = BUILDING_WITH_PUSH_DISABLED ? COUNTLY_FLUTTER_SDK_NAME_NO_PUSH : COUNTLY_FLUTTER_SDK_NAME;
                 Countly.sharedInstance().COUNTLY_SDK_VERSION_STRING = COUNTLY_FLUTTER_SDK_VERSION_STRING;
 
+                this.config.RemoteConfigRegisterGlobalCallback(new RCDownloadCallback() {
+                    @Override
+                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
+                        notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestIDGlobalCallback);
+                    }
+                });
+
                 if (activity == null) {
                     log("Activity is 'null' during init, cannot set Application", LogLevel.WARNING);
                 } else {
@@ -254,7 +319,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         deviceIDTypeString = "DS";
                         break;
                     case OPEN_UDID:
-                    case ADVERTISING_ID:
                     default:
                         deviceIDTypeString = "SG";
                         break;
@@ -360,7 +424,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("sendPushToken".equals(call.method)) {
                 String token = args.getString(0);
                 CountlyPush.onTokenRefresh(token);
-                result.success(" success!");
+                result.success("success!");
             } else if ("askForNotificationPermission".equals(call.method)) {
                 if (activity == null) {
                     log("askForNotificationPermission failed : Activity is null", LogLevel.ERROR);
@@ -593,6 +657,68 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success("userData_pullValue success!");
             }
 
+            else if ("userProfile_setProperties".equals(call.method)) {
+                JSONObject properties = args.getJSONObject(0);
+                Map<String, Object> propertiesMap = toMap(properties);
+                Countly.sharedInstance().userProfile().setProperties(propertiesMap);
+                result.success(null);
+            } else if ("userProfile_setProperty".equals(call.method)) {
+                String key = args.getString(0);
+                String value = args.getString(1);
+                Countly.sharedInstance().userProfile().setProperty(key, value);
+                result.success(null);
+            } else if ("userProfile_increment".equals(call.method)) {
+                String key = args.getString(0);
+                Countly.sharedInstance().userProfile().increment(key);
+                result.success(null);
+            } else if ("userProfile_incrementBy".equals(call.method)) {
+                String key = args.getString(0);
+                int value = args.getInt(1);
+                Countly.sharedInstance().userProfile().incrementBy(key, value);
+                result.success(null);
+            } else if ("userProfile_multiply".equals(call.method)) {
+                String key = args.getString(0);
+                int value = args.getInt(1);
+                Countly.sharedInstance().userProfile().multiply(key, value);
+                result.success(null);
+            } else if ("userProfile_saveMax".equals(call.method)) {
+                String key = args.getString(0);
+                int value = args.getInt(1);
+                Countly.sharedInstance().userProfile().saveMax(key, value);
+                result.success(null);
+            } else if ("userProfile_saveMin".equals(call.method)) {
+                String key = args.getString(0);
+                int value = args.getInt(1);
+                Countly.sharedInstance().userProfile().saveMin(key, value);
+                result.success(null);
+            } else if ("userProfile_setOnce".equals(call.method)) {
+                String key = args.getString(0);
+                String value = args.getString(1);
+                Countly.sharedInstance().userProfile().setOnce(key, value);
+                result.success(null);
+            } else if ("userProfile_pushUnique".equals(call.method)) {
+                String key = args.getString(0);
+                String value = args.getString(1);
+                Countly.sharedInstance().userProfile().pushUnique(key, value);
+                result.success(null);
+            } else if ("userProfile_push".equals(call.method)) {
+                String key = args.getString(0);
+                String value = args.getString(1);
+                Countly.sharedInstance().userProfile().push(key, value);
+                result.success(null);
+            } else if ("userProfile_pull".equals(call.method)) {
+                String key = args.getString(0);
+                String value = args.getString(1);
+                Countly.sharedInstance().userProfile().pull(key, value);
+                result.success(null);
+            } else if ("userProfile_save".equals(call.method)) {
+                Countly.sharedInstance().userProfile().save();
+                result.success(null);
+            } else if ("userProfile_clear".equals(call.method)) {
+                Countly.sharedInstance().userProfile().clear();
+                result.success(null);
+            }
+
             //setRequiresConsent
             else if ("setRequiresConsent".equals(call.method)) {
                 boolean consentFlag = args.getBoolean(0);
@@ -739,6 +865,165 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 if (getRemoteConfigValueForKeyResult != null)
                     remoteConfigValueForKey = getRemoteConfigValueForKeyResult.toString();
                 result.success(remoteConfigValueForKey);
+            } else if ("remoteConfigDownloadValues".equals(call.method)) {
+                int requestID = args.getInt(0);
+                Countly.sharedInstance().remoteConfig().downloadAllKeys(new RCDownloadCallback() {
+                    @Override
+                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
+                        if (requestID == requestIDNoCallback) {
+                            return;
+                        }
+                        notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestID);
+                    }
+                });
+
+                result.success(null);
+            } else if ("remoteConfigDownloadSpecificValue".equals(call.method)) {
+                int requestID = args.getInt(0);
+                JSONArray jArr = args.getJSONArray(1);
+
+                String[] keysOnly = new String[jArr.length()];
+                for (int i = 0, il = jArr.length(); i < il; i++) {
+                    keysOnly[i] = jArr.getString(i);
+                }
+
+                log("remoteConfigDownloadSpecificValue TEST, " + requestID + " , " + keysOnly, LogLevel.WARNING);
+
+                Countly.sharedInstance().remoteConfig().downloadSpecificKeys(keysOnly, new RCDownloadCallback() {
+                    @Override
+                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
+                        if (requestID == requestIDNoCallback) {
+                            return;
+                        }
+                        notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestID);
+                    }
+                });
+
+                result.success(null);
+            } else if ("remoteConfigDownloadOmittingValues".equals(call.method)) {
+                int requestID = args.getInt(0);
+                JSONArray jArr = args.getJSONArray(1);
+
+                String[] omitedKeys = new String[jArr.length()];
+                for (int i = 0, il = jArr.length(); i < il; i++) {
+                    omitedKeys[i] = jArr.getString(i);
+                }
+
+                log("remoteConfigDownloadOmittingValues TEST, " + requestID + " , " + omitedKeys, LogLevel.WARNING);
+
+                Countly.sharedInstance().remoteConfig().downloadOmittingKeys(omitedKeys, new RCDownloadCallback() {
+                    @Override
+                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
+                        if (requestID == requestIDNoCallback) {
+                            return;
+                        }
+                        notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestID);
+                    }
+                });
+
+                result.success(null);
+            } else if ("remoteConfigGetAllValues".equals(call.method)) {
+                log("remoteConfigGetAllValues", LogLevel.WARNING);
+
+                Map<String, RCData> rawDownloadedValues = Countly.sharedInstance().remoteConfig().getValues();
+
+                Map<String, Object> transformedDownloadedValues = transformMapIntoSendableForm(rawDownloadedValues);
+                result.success(transformedDownloadedValues);
+            } else if ("remoteConfigGetValue".equals(call.method)) {
+                String key = args.getString(0);
+                log("remoteConfigGetValue, " + key, LogLevel.WARNING);
+
+                RCData data = Countly.sharedInstance().remoteConfig().getValue(key);
+                Map<String, Object> transData = transformRCDataIntoSendableForm(data);
+
+                result.success(transData);
+            } else if ("remoteConfigClearAllValues".equals(call.method)) {
+                log("remoteConfigClearAllValues", LogLevel.WARNING);
+
+                Countly.sharedInstance().remoteConfig().clearAll();
+
+                result.success(null);
+            } else if ("remoteConfigEnrollIntoABTestsForKeys".equals(call.method)) {
+                JSONArray jArr = args.getJSONArray(0);
+
+                String[] keys = new String[jArr.length()];
+                for (int i = 0, il = jArr.length(); i < il; i++) {
+                    keys[i] = jArr.getString(i);
+                }
+
+                log("remoteConfigEnrollIntoABTestsForKeys, " + keys, LogLevel.WARNING);
+
+                Countly.sharedInstance().remoteConfig().enrollIntoABTestsForKeys(keys);
+
+                result.success(null);
+            } else if ("remoteConfigExitABTestsForKeys".equals(call.method)) {
+                JSONArray jArr = args.getJSONArray(0);
+
+                String[] keys = new String[jArr.length()];
+                for (int i = 0, il = jArr.length(); i < il; i++) {
+                    keys[i] = jArr.getString(i);
+                }
+
+                log("remoteConfigExitABTestsForKeys, " + keys, LogLevel.WARNING);
+
+                Countly.sharedInstance().remoteConfig().exitABTestsForKeys(keys);
+
+                result.success(null);
+            } else if ("remoteConfigTestingGetVariantsForKey".equals(call.method)) {
+                String key = args.getString(0);
+                log("remoteConfigTestingGetVariantsForKey", LogLevel.WARNING);
+
+                String[] variants = Countly.sharedInstance().remoteConfig().testingGetVariantsForKey(key);
+
+                List<String> convertedVariants = Arrays.asList(variants); // TODO: Make better
+
+                result.success(convertedVariants);
+            } else if ("remoteConfigTestingGetAllVariants".equals(call.method)) {
+                log("remoteConfigTestingGetAllVariants", LogLevel.WARNING);
+
+                Map<String, String[]> variants = Countly.sharedInstance().remoteConfig().testingGetAllVariants();
+
+                Map<String, List<String>> convertedVariants = new HashMap<>();
+                for (Map.Entry<String, String[]> entry : variants.entrySet()) {
+                    convertedVariants.put(entry.getKey(), Arrays.asList(entry.getValue()));
+                } // TODO: Make better
+            
+                result.success(convertedVariants);
+            } else if ("remoteConfigTestingDownloadVariantInformation".equals(call.method)) {
+                int requestID = args.getInt(0);
+
+                log("remoteConfigTestingDownloadVariantInformation", LogLevel.WARNING);
+
+                Countly.sharedInstance().remoteConfig().testingDownloadVariantInformation((rResult, error) -> {
+                    if (requestID == requestIDNoCallback) {
+                        return;
+                    }
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("error", error);
+                    data.put("requestResult", resultResponder(rResult));
+                    data.put("id", requestID);
+                    methodChannel.invokeMethod("remoteConfigVariantCallback", data);
+                });
+
+                result.success(null);
+            } else if ("remoteConfigTestingEnrollIntoVariant".equals(call.method)) {
+                int requestID = args.getInt(0);
+                String key = args.getString(1);
+                String variant = args.getString(2);
+                log("remoteConfigTestingEnrollIntoVariant", LogLevel.WARNING);
+
+                Countly.sharedInstance().remoteConfig().testingEnrollIntoVariant(key, variant, (rResult, error) -> {
+                    if (requestID == requestIDNoCallback) {
+                        return;
+                    }
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("error", error);
+                    data.put("requestResult", resultResponder(rResult));
+                    data.put("id", requestID);
+                    methodChannel.invokeMethod("remoteConfigVariantCallback", data);
+                });
+
+                result.success(null);
             } else if ("presentRatingWidgetWithID".equals(call.method)) {
                 if (activity == null) {
                     log("presentRatingWidgetWithID failed : Activity is null", LogLevel.ERROR);
@@ -1141,7 +1426,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
         if (_config.has("providedUserProperties")) {
             Map<String, Object> providedUserProperties = toMap(_config.getJSONObject("providedUserProperties"));
-                this.config.setUserProperties(providedUserProperties);
+            this.config.setUserProperties(providedUserProperties);
         }
 
         if (_config.has("consents")) {
@@ -1214,6 +1499,18 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.setIndirectAttribution(toMapString(attributionValues));
         }
 
+        if (_config.has("remoteConfigAutomaticTriggers")) {
+            boolean remoteConfigAutomaticTriggers = _config.getBoolean("remoteConfigAutomaticTriggers");
+            if (remoteConfigAutomaticTriggers) {
+                this.config.enableRemoteConfigAutomaticTriggers();
+            }
+        }
 
+        if (_config.has("remoteConfigValueCaching")) {
+            boolean remoteConfigValueCaching = _config.getBoolean("remoteConfigValueCaching");
+            if (remoteConfigValueCaching) {
+                this.config.enableRemoteConfigValueCaching();
+            }
+        }
     }
 }

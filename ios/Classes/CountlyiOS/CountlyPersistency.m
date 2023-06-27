@@ -22,7 +22,7 @@ NSString* const kCountlyWatchParentDeviceIDKey = @"kCountlyWatchParentDeviceIDKe
 NSString* const kCountlyStarRatingStatusKey = @"kCountlyStarRatingStatusKey";
 NSString* const kCountlyNotificationPermissionKey = @"kCountlyNotificationPermissionKey";
 NSString* const kCountlyIsCustomDeviceIDKey = @"kCountlyIsCustomDeviceIDKey";
-NSString* const kCountlyRemoteConfigPersistencyKey = @"kCountlyRemoteConfigPersistencyKey";
+NSString* const kCountlyRemoteConfigKey = @"kCountlyRemoteConfigKey";
 NSString* const kCountlyServerConfigPersistencyKey = @"kCountlyServerConfigPersistencyKey";
 
 
@@ -495,16 +495,17 @@ NSString* const kCountlyCustomCrashLogFileName = @"CountlyCustomCrash.log";
 
 - (NSDictionary *)retrieveRemoteConfig
 {
-    NSDictionary* remoteConfig = [NSUserDefaults.standardUserDefaults objectForKey:kCountlyRemoteConfigPersistencyKey];
+    NSData* data = [NSUserDefaults.standardUserDefaults objectForKey:kCountlyRemoteConfigKey];
+    NSDictionary* remoteConfig = [NSKeyedUnarchiver unarchiveObjectWithData:data];
     if (!remoteConfig)
         remoteConfig = NSDictionary.new;
-
+    
     return remoteConfig;
 }
 
 - (void)storeRemoteConfig:(NSDictionary *)remoteConfig
 {
-    [NSUserDefaults.standardUserDefaults setObject:remoteConfig forKey:kCountlyRemoteConfigPersistencyKey];
+    [NSUserDefaults.standardUserDefaults setObject:[NSKeyedArchiver archivedDataWithRootObject:remoteConfig] forKey:kCountlyRemoteConfigKey];
     [NSUserDefaults.standardUserDefaults synchronize];
 }
 

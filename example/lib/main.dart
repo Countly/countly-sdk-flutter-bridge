@@ -3,9 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-// ignore: depend_on_referenced_packages
-import 'package:countly_flutter/countly_config.dart';
-// ignore: depend_on_referenced_packages
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter/material.dart';
 
@@ -39,10 +36,15 @@ class _MyAppState extends State<MyApp> {
   /// To Show the device id type in UI, when user tap on 'Get Device Id Type' button
   String _deviceIdType = '';
   final bool _enableManualSession = false;
+  static late final RCDownloadCallback _rcDownloadCallback;
 
   @override
   void initState() {
     super.initState();
+
+    _rcDownloadCallback = (rResult, error, fullValueUpdate, downloadedValues) {
+      print(rResult);
+    };
     ratingIdController.addListener(() {
       setState(() {});
     });
@@ -88,6 +90,11 @@ class _MyAppState extends State<MyApp> {
             if (error != null) {
               print(error);
             }
+          })
+          ..remoteConfigRegisterGlobalCallback((rResult, error, fullValueUpdate, downloadedValues) {
+            if (error != null) {
+              print(error);
+            }
           }) // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
           ..setRecordAppStartTime(true) // Enable APM features, which includes the recording of app start time.
           ..setStarRatingTextMessage('Message for start rating dialog')
@@ -109,8 +116,7 @@ class _MyAppState extends State<MyApp> {
           }); // Set callback to receive push notifications
           Countly.askForNotificationPermission(); // This method will ask for permission, enables push notification and send push token to countly server.;
 
-          Countly.giveAllConsent(); // give consent for all features, should be call after init
-//        Countly.giveConsent(['events', 'views']); // give consent for some specific features, should be call after init.
+          Countly.giveAllConsent(); // give consent for all features, should be call after init Countly.giveConsent(['events', 'views']); // give consent for some specific features, should be call after init.
         }); // Initialize the countly SDK.
       } else {
         print('Countly: Already initialized.');
@@ -126,6 +132,106 @@ class _MyAppState extends State<MyApp> {
 
   void enableTemporaryIdMode() {
     Countly.changeDeviceId(Countly.deviceIDType['TemporaryDeviceID']!, false);
+  }
+
+  void remoteConfigRegisterDownloadCallback() {
+    Countly.instance.remoteConfig.registerDownloadCallback(_rcDownloadCallback);
+  }
+
+  void remoteConfigRemoveDownloadCallback() {
+    Countly.instance.remoteConfig.removeDownloadCallback(_rcDownloadCallback);
+  }
+
+  void remoteConfigDownloadKeys() {
+    final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
+      print(rResult);
+      print(error);
+      print(fullValueUpdate);
+      for (final entry in downloadedValues.entries) {
+        print('key: ${entry.key}: value: ${entry.value.value}');
+      }
+    };
+    Countly.instance.remoteConfig.downloadAllKeys(callback);
+  }
+
+  void remoteConfigDownloadSpecificKeys() {
+    final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
+      print(rResult);
+      print(error);
+      print(fullValueUpdate);
+      for (final entry in downloadedValues.entries) {
+        print('key: ${entry.key}: value: ${entry.value.value}');
+      }
+    };
+    Countly.instance.remoteConfig.downloadSpecificKeys(['rc_1', 'ab_1'], callback);
+  }
+
+  void remoteConfigDownloadOmittingKeys() {
+    final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
+      print(rResult);
+      print(error);
+      print(fullValueUpdate);
+      for (final entry in downloadedValues.entries) {
+        print('key: ${entry.key}: value: ${entry.value.value}');
+      }
+    };
+    Countly.instance.remoteConfig.downloadOmittingKeys(['rc_1', 'ab_1'], callback);
+  }
+
+  Future<void> remoteConfigGetAllValues() async {
+    final allValues = await Countly.instance.remoteConfig.getAllValues();
+    for (final entry in allValues.entries) {
+      final value = entry.value.value;
+      print('key: ${entry.key}, value: $value, DataType: ${value.runtimeType}');
+      if (value is Map) {
+        print('begin 2nd level iteration');
+        for (final entry1 in value.entries) {
+          final value1 = entry1.value;
+          print('2nd iteration - key: ${entry1.key}, value: $value1, DataType: ${value1.runtimeType}');
+        }
+        print('end 2nd level iteration');
+      }
+    }
+  }
+
+  void remoteConfigGetValue() {
+    Countly.instance.remoteConfig.getValue('testKey');
+  }
+
+  void remoteConfigClearAll() {
+    Countly.instance.remoteConfig.clearAll();
+  }
+
+  void remoteConfigEnrollIntoABTestsForKeys() {
+    Countly.instance.remoteConfig.enrollIntoABTestsForKeys(['testKey']);
+  }
+
+  void remoteConfigExitABTestsForKeys() {
+    Countly.instance.remoteConfig.exitABTestsForKeys(['testKey']);
+  }
+
+  void remoteConfigFetchVariantForKeys() {
+    Countly.instance.remoteConfig.testingGetVariantsForKey('testKey');
+  }
+
+  void remoteConfigFetchAllVariant() {
+    Countly.instance.remoteConfig.testingGetAllVariants();
+  }
+
+  void getRemoteConfigValueString() {
+    Countly.instance.remoteConfig.getValue('stringValue');
+  }
+
+  void getRemoteConfigValueBoolean() {
+    Countly.instance.remoteConfig.getValue('booleanValue');
+  }
+
+  void getRemoteConfigValueFloat() {
+    Countly.instance.remoteConfig.getValue('floatValue');
+  }
+
+  void getRemoteConfigValueInteger() {
+    Countly.instance.remoteConfig.getValue('integerValue');
   }
 
   bool isManualSession() {
@@ -265,47 +371,75 @@ class _MyAppState extends State<MyApp> {
       'gender': 'User Gender',
       'byear': '1989',
     };
-    Countly.setUserData(options);
+    Countly.instance.userProfile.setUserProperties(options);
+  }
+
+  void setProperties() {
+    Map<String, Object> userProperties = {
+      'name': 'Name of User',
+      'username': 'Username',
+      'email': 'User Email',
+      'organization': 'User Organization',
+      'phone': 123456789,
+      'picture': 'https://count.ly/images/logos/countly-logo.png',
+      'picturePath': '',
+      'gender': 'User Gender',
+      'byear': '1989',
+      'Custom Integer': 123,
+      'Custom String': "Some String",
+      'Custom Array': ['array value 1', 'array value 2'],
+      'Custom Map': {'key 1' : 'value 1', 'key 2' : 'value 2'},
+    };
+
+    Countly.instance.userProfile.setUserProperties(userProperties);
   }
 
   void setProperty() {
-    Countly.setProperty('setProperty', 'My Property');
+    Countly.instance.userProfile.setProperty('setProperty', 'My Property');
   }
 
   void increment() {
-    Countly.increment('increment');
+    Countly.instance.userProfile.increment('increment');
   }
 
   void incrementBy() {
-    Countly.incrementBy('incrementBy', 10);
+    Countly.instance.userProfile.incrementBy('incrementBy', 10);
   }
 
   void multiply() {
-    Countly.multiply('multiply', 20);
+    Countly.instance.userProfile.multiply('multiply', 20);
   }
 
   void saveMax() {
-    Countly.saveMax('saveMax', 100);
+    Countly.instance.userProfile.saveMax('saveMax', 100);
   }
 
   void saveMin() {
-    Countly.saveMin('saveMin', 50);
+    Countly.instance.userProfile.saveMin('saveMin', 50);
   }
 
   void setOnce() {
-    Countly.setOnce('setOnce', '200');
+    Countly.instance.userProfile.setOnce('setOnce', '200');
   }
 
   void pushUniqueValue() {
-    Countly.pushUniqueValue('pushUniqueValue', 'morning');
+    Countly.instance.userProfile.pushUnique('pushUniqueValue', 'morning');
   }
 
   void pushValue() {
-    Countly.pushValue('pushValue', 'morning');
+    Countly.instance.userProfile.push('pushValue', 'morning');
   }
 
   void pullValue() {
-    Countly.pullValue('pushValue', 'morning');
+    Countly.instance.userProfile.pull('pushValue', 'morning');
+  }
+
+  void save() {
+    Countly.instance.userProfile.save();
+  }
+
+  void clear() {
+    Countly.instance.userProfile.clear();
   }
 
   //
@@ -429,6 +563,7 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
+  @deprecated
   void getABTestingValues() {
     Countly.remoteConfigUpdate((result) {
       Countly.getRemoteConfigValueForKey('baloon', (result) {
@@ -449,54 +584,63 @@ class _MyAppState extends State<MyApp> {
     Countly.recordEvent(event);
   }
 
+  @deprecated
   void remoteConfigUpdate() {
     Countly.remoteConfigUpdate((result) {
       print(result);
     });
   }
 
+  @deprecated
   void updateRemoteConfigForKeysOnly() {
     Countly.updateRemoteConfigForKeysOnly(['name'], (result) {
       print(result);
     });
   }
 
+  @deprecated
   void getRemoteConfigValueForKeyString() {
     Countly.getRemoteConfigValueForKey('stringValue', (result) {
       print(result);
     });
   }
 
+  @deprecated
   void getRemoteConfigValueForKeyBoolean() {
     Countly.getRemoteConfigValueForKey('booleanValue', (result) {
       print(result);
     });
   }
 
+  @deprecated
   void getRemoteConfigValueForKeyFloat() {
     Countly.getRemoteConfigValueForKey('floatValue', (result) {
       print(result);
     });
   }
 
+  @deprecated
   void getRemoteConfigValueForKeyInteger() {
     Countly.getRemoteConfigValueForKey('integerValue', (result) {
       print(result);
     });
   }
 
+  @deprecated
   void updateRemoteConfigExceptKeys() {
     Countly.updateRemoteConfigExceptKeys(['url'], (result) {
       print(result);
     });
   }
 
+  @deprecated
   void remoteConfigClearValues() {
     Countly.remoteConfigClearValues((result) {
       print(result);
     });
   }
 
+  @deprecated
   void getRemoteConfigValueForKey() {
     Countly.getRemoteConfigValueForKey('name', (result) {
       print(result);
@@ -831,17 +975,23 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Record View: 'Dashboard'", color: 'olive', onPressed: recordViewDashboard),
               MyButton(text: 'Record Direct Attribution', color: 'olive', onPressed: recordDirectAttribution),
               MyButton(text: 'Record Indirect Attribution', color: 'olive', onPressed: recordIndirectAttribution),
+
+              const Text('Section for User Profile:', style: TextStyle(color: Colors.green), textAlign: TextAlign.center),
               MyButton(text: 'Send Users Data', color: 'teal', onPressed: setUserData),
-              MyButton(text: 'UserData.setProperty', color: 'teal', onPressed: setProperty),
-              MyButton(text: 'UserData.increment', color: 'teal', onPressed: increment),
-              MyButton(text: 'UserData.incrementBy', color: 'teal', onPressed: incrementBy),
-              MyButton(text: 'UserData.multiply', color: 'teal', onPressed: multiply),
-              MyButton(text: 'UserData.saveMax', color: 'teal', onPressed: saveMax),
-              MyButton(text: 'UserData.saveMin', color: 'teal', onPressed: saveMin),
-              MyButton(text: 'UserData.setOnce', color: 'teal', onPressed: setOnce),
-              MyButton(text: 'UserData.pushUniqueValue', color: 'teal', onPressed: pushUniqueValue),
-              MyButton(text: 'UserData.pushValue', color: 'teal', onPressed: pushValue),
-              MyButton(text: 'UserData.pullValue', color: 'teal', onPressed: pullValue),
+              MyButton(text: 'UserProfile.setProperties', color: 'teal', onPressed: setProperties),
+              MyButton(text: 'UserProfile.setProperty', color: 'teal', onPressed: setProperty),
+              MyButton(text: 'UserProfile.increment', color: 'teal', onPressed: increment),
+              MyButton(text: 'UserProfile.incrementBy', color: 'teal', onPressed: incrementBy),
+              MyButton(text: 'UserProfile.multiply', color: 'teal', onPressed: multiply),
+              MyButton(text: 'UserProfile.saveMax', color: 'teal', onPressed: saveMax),
+              MyButton(text: 'UserProfile.saveMin', color: 'teal', onPressed: saveMin),
+              MyButton(text: 'UserProfile.setOnce', color: 'teal', onPressed: setOnce),
+              MyButton(text: 'UserProfile.pushUniqueValue', color: 'teal', onPressed: pushUniqueValue),
+              MyButton(text: 'UserProfile.pushValue', color: 'teal', onPressed: pushValue),
+              MyButton(text: 'UserProfile.pullValue', color: 'teal', onPressed: pullValue),
+              MyButton(text: 'UserProfile.save', color: 'teal', onPressed: save),
+              MyButton(text: 'UserProfile.clear', color: 'teal', onPressed: clear),
+
               MyButton(text: 'Give multiple consent', color: 'blue', onPressed: giveMultipleConsent),
               MyButton(text: 'Remove multiple consent', color: 'blue', onPressed: removeMultipleConsent),
               MyButton(text: 'Give all Consent', color: 'blue', onPressed: giveAllConsent),
@@ -867,17 +1017,33 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'Remove Consent starRating', color: 'blue', onPressed: removeConsentstarRating),
               MyButton(text: 'Remove Consent Performance', color: 'blue', onPressed: removeConsentAPM),
               const Text('Section for A/B testing:', style: TextStyle(color: Colors.green), textAlign: TextAlign.center),
-              MyButton(text: 'Get AB testing values', color: 'green', onPressed: getABTestingValues),
+              MyButton(text: 'Get AB testing values (Legacy)', color: 'green', onPressed: getABTestingValues),
               MyButton(text: 'Record event for goal #1', color: 'green', onPressed: eventForGoal_1),
               MyButton(text: 'Record event for goal #2', color: 'green', onPressed: eventForGoal_2),
-              MyButton(text: 'Countly.remoteConfigUpdate', color: 'purple', onPressed: remoteConfigUpdate),
-              MyButton(text: 'Countly.updateRemoteConfigForKeysOnly', color: 'purple', onPressed: updateRemoteConfigForKeysOnly),
-              MyButton(text: 'Countly.updateRemoteConfigExceptKeys', color: 'purple', onPressed: updateRemoteConfigExceptKeys),
-              MyButton(text: 'Countly.remoteConfigClearValues', color: 'purple', onPressed: remoteConfigClearValues),
-              MyButton(text: 'Get String Value', color: 'purple', onPressed: getRemoteConfigValueForKeyString),
-              MyButton(text: 'Get Boolean Value', color: 'purple', onPressed: getRemoteConfigValueForKeyBoolean),
-              MyButton(text: 'Get Float Value', color: 'purple', onPressed: getRemoteConfigValueForKeyFloat),
-              MyButton(text: 'Get Integer Value', color: 'purple', onPressed: getRemoteConfigValueForKeyInteger),
+              MyButton(text: 'Remote Config Register Download Callback', color: 'purple', onPressed: remoteConfigRegisterDownloadCallback),
+              MyButton(text: 'Remote Config Remove Download Callback', color: 'purple', onPressed: remoteConfigRemoveDownloadCallback),
+              MyButton(text: 'Remote Config Download Values', color: 'purple', onPressed: remoteConfigDownloadKeys),
+              MyButton(text: 'Remote Config Download Specific Value', color: 'purple', onPressed: remoteConfigDownloadSpecificKeys),
+              MyButton(text: 'Remote Config Download Omitting Values', color: 'purple', onPressed: remoteConfigDownloadOmittingKeys),
+              MyButton(text: 'Remote Config Get All Values', color: 'purple', onPressed: remoteConfigGetAllValues),
+              MyButton(text: 'Remote Config Get Value', color: 'purple', onPressed: remoteConfigGetValue),
+              MyButton(text: 'Remote Config Clear All Values', color: 'purple', onPressed: remoteConfigClearAll),
+              MyButton(text: 'Remote Config Enroll Into AB Tests For Keys', color: 'purple', onPressed: remoteConfigEnrollIntoABTestsForKeys),
+              MyButton(text: 'Remote Config Exit AB Tests For Keys', color: 'purple', onPressed: remoteConfigExitABTestsForKeys),
+              MyButton(text: 'Remote Config FetchVariantForKeys', color: 'purple', onPressed: remoteConfigFetchVariantForKeys),
+              MyButton(text: 'Remote Config Fetch All Variant', color: 'purple', onPressed: remoteConfigFetchAllVariant),
+              MyButton(text: 'Get String Value', color: 'purple', onPressed: getRemoteConfigValueString),
+              MyButton(text: 'Get Boolean Value', color: 'purple', onPressed: getRemoteConfigValueBoolean),
+              MyButton(text: 'Get Float Value', color: 'purple', onPressed: getRemoteConfigValueFloat),
+              MyButton(text: 'Get Integer Value', color: 'purple', onPressed: getRemoteConfigValueInteger),
+              MyButton(text: 'Countly.remoteConfigUpdate (Legacy)', color: 'purple', onPressed: remoteConfigUpdate),
+              MyButton(text: 'Countly.updateRemoteConfigForKeysOnly (Legacy)', color: 'purple', onPressed: updateRemoteConfigForKeysOnly),
+              MyButton(text: 'Countly.updateRemoteConfigExceptKeys (Legacy)', color: 'purple', onPressed: updateRemoteConfigExceptKeys),
+              MyButton(text: 'Countly.remoteConfigClearValues (Legacy)', color: 'purple', onPressed: remoteConfigClearValues),
+              MyButton(text: 'Get String Value (Legacy)', color: 'purple', onPressed: getRemoteConfigValueForKeyString),
+              MyButton(text: 'Get Boolean Value (Legacy)', color: 'purple', onPressed: getRemoteConfigValueForKeyBoolean),
+              MyButton(text: 'Get Float Value (Legacy)', color: 'purple', onPressed: getRemoteConfigValueForKeyFloat),
+              MyButton(text: 'Get Integer Value (Legacy)', color: 'purple', onPressed: getRemoteConfigValueForKeyInteger),
               MyButton(text: 'Push Notification', color: 'primary', onPressed: askForNotificationPermission),
               MyButton(text: 'Enable Temporary ID Mode', color: 'violet', onPressed: enableTemporaryIdMode),
               MyButton(text: 'Change Device ID With Merge', color: 'violet', onPressed: changeDeviceIdWithMerge),

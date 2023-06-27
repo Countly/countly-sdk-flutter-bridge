@@ -8,6 +8,8 @@
 #import <CoreLocation/CoreLocation.h>
 #import "CountlyUserDetails.h"
 #import "CountlyConfig.h"
+#import "CountlyRCData.h"
+#import "CountlyRemoteConfig.h"
 #import "CountlyFeedbackWidget.h"
 #if (TARGET_OS_IOS || TARGET_OS_OSX)
 #import <UserNotifications/UserNotifications.h>
@@ -162,8 +164,25 @@ NS_ASSUME_NONNULL_BEGIN
  * @param deviceID New device ID
  * @param onServer If set, data on Countly Server will be merged automatically, otherwise device will be counted as a new device
  */
-- (void)setNewDeviceID:(NSString * _Nullable)deviceID onServer:(BOOL)onServer;
+- (void)setNewDeviceID:(NSString * _Nullable)deviceID onServer:(BOOL)onServer DEPRECATED_MSG_ATTRIBUTE("Use 'changeDeviceIDWithMerge: or changeDeviceIDWithoutMerge:' method instead!");
 
+/**
+ * Sets new device ID to be persistently stored and used in following requests.
+ * @discussion Value passed for @c deviceID parameter has to be a non-zero length valid string, otherwise default device ID will be used instead.
+ * @discussion If value passed for @c deviceID parameter is exactly same to the current device ID, method call is ignored.
+ * @discussion When passing @c CLYTemporaryDeviceID for @c deviceID parameter, argument for @c onServer parameter does not matter.
+ * @param deviceID New device ID
+ */
+- (void)changeDeviceIDWithMerge:(NSString * _Nullable)deviceID;
+
+/**
+ * Sets new device ID to be persistently stored and used in following requests.
+ * @discussion Value passed for @c deviceID parameter has to be a non-zero length valid string, otherwise default device ID will be used instead.
+ * @discussion If value passed for @c deviceID parameter is exactly same to the current device ID, method call is ignored.
+ * @discussion When passing @c CLYTemporaryDeviceID for @c deviceID parameter, argument for @c onServer parameter does not matter.
+ * @param deviceID New device ID
+ */
+- (void)changeDeviceIDWithoutMerge:(NSString * _Nullable)deviceID;
 
 
 #pragma mark - Consents
@@ -634,7 +653,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @discussion - Consent for @c CLYConsentAttribution is not given, while @c requiresConsent flag is set on initial configuration.
  * @param attributionID Attribution ID (IDFA)
  */
-- (void)recordAttributionID:(NSString *)attributionID;
+- (void)recordAttributionID:(NSString *)attributionID DEPRECATED_MSG_ATTRIBUTE("Use 'recordDirectAttributionWithCampaignType:' or  'recordIndirectAttribution' method instead!");
 
 /**
  * Records direct attribution with campaign type and data.
@@ -666,7 +685,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @discussion If Countly Server is not reachable, this method will return the last retrieved value which is stored on device.
  * @param key Remote config key specified on Countly Server
  */
-- (id)remoteConfigValueForKey:(NSString *)key;
+- (id)remoteConfigValueForKey:(NSString *)key DEPRECATED_MSG_ATTRIBUTE("Use '[remoteConfig getValue:]' method instead!");
 
 /**
  * Manually updates all locally stored remote config values by fetching latest values from Countly Server, and executes completion handler.
@@ -676,7 +695,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @discussion - Current device ID is @c CLYTemporaryDeviceID.
  * @param completionHandler A completion handler block to be executed when updating of remote config is completed, either with success or failure.
  */
-- (void)updateRemoteConfigWithCompletionHandler:(void (^)(NSError * __nullable error))completionHandler;
+- (void)updateRemoteConfigWithCompletionHandler:(void (^)(NSError * __nullable error))completionHandler DEPRECATED_MSG_ATTRIBUTE("Use '[remoteConfig downloadKeys:]' method instead!");
 
 /**
  * Manually updates locally stored remote config values only for specified keys, by fetching latest values from Countly Server, and executes completion handler.
@@ -687,7 +706,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @param keys An array of remote config keys to update
  * @param completionHandler A completion handler block to be executed when updating of remote config is completed, either with success or failure
  */
-- (void)updateRemoteConfigOnlyForKeys:(NSArray *)keys completionHandler:(void (^)(NSError * __nullable error))completionHandler;
+- (void)updateRemoteConfigOnlyForKeys:(NSArray *)keys completionHandler:(void (^)(NSError * __nullable error))completionHandler DEPRECATED_MSG_ATTRIBUTE("Use '[remoteConfig downloadSpecificKeys:]' method instead!");
 
 /**
  * Manually updates locally stored remote config values except for specified keys, by fetching latest values from Countly Server, and executes completion handler.
@@ -698,9 +717,9 @@ NS_ASSUME_NONNULL_BEGIN
  * @param omitKeys An array of remote config keys to omit from updating
  * @param completionHandler A completion handler block to be executed when updating of remote config is completed, either with success or failure
  */
-- (void)updateRemoteConfigExceptForKeys:(NSArray *)omitKeys completionHandler:(void (^)(NSError * __nullable error))completionHandler;
+- (void)updateRemoteConfigExceptForKeys:(NSArray *)omitKeys completionHandler:(void (^)(NSError * __nullable error))completionHandler DEPRECATED_MSG_ATTRIBUTE("Use '[remoteConfig downloadOmittingKeys:]' method instead!");
 
-
+- (CountlyRemoteConfig *) remoteConfig;
 
 #pragma mark - Performance Monitoring
 

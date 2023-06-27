@@ -1,3 +1,40 @@
+## 23.6.0
+- !! Major breaking change !! Automatically downloaded remote config values will no longer be automatically enrolled in their AB tests.
+- Added `CountlyRemoteConfig:` interface with new remote config methods:
+    - `getValue:`
+    - `getAllValues:`
+    - `registerDownloadCallback:`
+    - `removeDownloadCallback:`
+    - `downloadKeys:`
+    - `downloadSpecificKeys:completionHandler`
+    - `downloadOmittingKeys:completionHandler`
+    - `enrollIntoABTestsForKeys:`
+    - `exitABTestsForKeys:`
+    - `testingGetAllVariants:`
+    - `testingGetVariantsForKey:`
+    - `testingDownloadVariantInformation:variantName:completionHandler`
+    - `testingEnrollIntoVariant:`
+    - `clearAll:`
+- Added `enableRemoteConfigAutomaticTriggers` config for automatic remote config download
+- Added `enableRemoteConfigValueCaching` config for caching of remote config
+- Added `remoteConfigRegisterGlobalCallback` config to register remote config global callbacks during init.
+- Added `getRemoteConfigGlobalCallbacks` config to get a list of remote config global callbacks.
+- Deprecated `enableRemoteConfig` initial config flag
+- Deprecated `remoteConfigCompletionHandler` in config
+- Deprecated existing remote config methods: 
+    - `remoteConfigValueForKey:`
+    - `updateRemoteConfigWithCompletionHandler:`
+    - `updateRemoteConfigOnlyForKeys:completionHandler`
+    - `updateRemoteConfigExceptForKeys:completionHandler`
+
+## 23.02.3
+- Added back battery level reporting to crash reporting. Battery level is only reported if battery was enabled before.
+- Added new methods for changing the device id: `changeDeviceIDWithMerge:`, `changeDeviceIDWithoutMerge:`.
+- Fixed a bug where the app would crash if `city`, `countryCode` or `IP` in location was null.
+- Deprecated existing method to change the device id: `setNewDeviceID:`
+- Deprecated `attributionID` initial config flag
+- Deprecated `recordAttributionID` method
+
 ## 23.02.2
 - Added server configuration functionality. This is an experimental feature.
 - Not reporting battery level in the crash handler to prevent hanging
