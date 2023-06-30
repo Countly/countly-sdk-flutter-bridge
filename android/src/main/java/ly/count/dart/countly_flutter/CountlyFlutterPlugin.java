@@ -120,9 +120,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         return response;
     }
 
-    /**
-     * Plugin registration.
-     */
     private Countly.CountlyMessagingMode pushTokenType = Countly.CountlyMessagingMode.PRODUCTION;
     private Context context;
     private Activity activity;
@@ -141,6 +138,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
     List<CountlyFeedbackWidget> retrievedWidgetList = null;
 
+    //----------PLUGIN REGISTRATION (FlutterPlugin)-------------------
+    
+    // Required for pre Flutter 1.12 projects
     public static void registerWith(Registrar registrar) {
         final CountlyFlutterPlugin instance = new CountlyFlutterPlugin();
         instance.activity = registrar.activity();
@@ -149,12 +149,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         log("registerWith", LogLevel.INFO);
     }
 
+    // Called from Android embedding v2
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
         onAttachedToEngineInternal(binding.getApplicationContext(), binding.getBinaryMessenger());
         log("onAttachedToEngine", LogLevel.INFO);
     }
 
+    // the plugin is being removed from the Flutter experience and should cleanup
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
         context = null;
@@ -163,6 +165,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         log("onDetachedFromEngine", LogLevel.INFO);
     }
 
+    // Internal common plugin initialization function that would be shared with the old and new plugin flow
     private void onAttachedToEngineInternal(Context context, BinaryMessenger messenger) {
         this.context = context;
         methodChannel = new MethodChannel(messenger, "countly_flutter");
@@ -174,7 +177,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         log("onAttachedToEngineInternal", LogLevel.INFO);
     }
 
+    //----------PLUGIN REGISTRATION OVER-------------
 
+    //----------ACTIVITY AWARE STUFF-----------------
     @Override
     public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
         this.activity = binding.getActivity();
@@ -205,7 +210,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         log("onDetachedFromActivity : Activity is no more valid", LogLevel.INFO);
     }
 
-    // DefaultLifecycleObserver callbacks
+    //----------ACTIVITY AWARE STUFF OVER-----------------
+
+    //----------DefaultLifecycleObserver------------------
 
     @Override
     public void onCreate(@NonNull LifecycleOwner owner) {
@@ -252,10 +259,13 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         log("onDestroy", LogLevel.INFO);
     }
 
+    //----------DefaultLifecycleObserver over------------------
+
     public CountlyFlutterPlugin() {
         log("CountlyFlutterPlugin", LogLevel.INFO);
     }
 
+    //-------------METHOD CALL HANDLER------------------
     @Override
     public void onMethodCall(MethodCall call, final Result result) {
         String argsString = (String) call.argument("data");
