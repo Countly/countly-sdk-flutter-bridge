@@ -899,6 +899,9 @@ class _MyAppState extends State<MyApp> {
   }
 
   void setLocation() {
+    Countly.setUserLocation(countryCode: 'TR', city: 'Istanbul');
+    Countly.setUserLocation(gpsCoordinates: '41.0082,28.9784');
+    Countly.setUserLocation(ipAddress: '10.2.33.12');
     Countly.setUserLocation(countryCode: 'TR', city: 'Istanbul', gpsCoordinates: '41.0082,28.9784', ipAddress: '10.2.33.12');
   }
 
