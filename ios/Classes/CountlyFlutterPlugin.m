@@ -363,25 +363,24 @@ FlutterMethodChannel *_channel;
 
     } else if ([@"setUserLocation" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-
           NSDictionary *location = [command objectAtIndex:0];
           NSString *gpsCoordinate = location[@"gpsCoordinates"];
           CLLocationCoordinate2D locationCoordinate = [self getCoordinate:gpsCoordinate];
 
           NSString *city = location[@"city"];
-            if (!city || [[NSNull null] isEqual:city] || !city.length) {
-                city = nil;
-            }
+          if (!city || [[NSNull null] isEqual:city] || !city.length) {
+            city = nil;
+          }
 
-            NSString *countryCode = location[@"countryCode"];
-            if (!countryCode || [[NSNull null] isEqual:countryCode] || !countryCode.length) {
-                countryCode = nil;
-            }
+          NSString *countryCode = location[@"countryCode"];
+          if (!countryCode || [[NSNull null] isEqual:countryCode] || !countryCode.length) {
+            countryCode = nil;
+          }
 
-            NSString *ipAddress = location[@"ipAddress"];
-            if (!ipAddress || [[NSNull null] isEqual:ipAddress] || !ipAddress.length) {
-                ipAddress = nil;
-            }
+          NSString *ipAddress = location[@"ipAddress"];
+          if (!ipAddress || [[NSNull null] isEqual:ipAddress] || !ipAddress.length) {
+            ipAddress = nil;
+          }
 
           [Countly.sharedInstance recordLocation:locationCoordinate city:city ISOCountryCode:countryCode IP:ipAddress];
           result(@"setUserLocation!");
