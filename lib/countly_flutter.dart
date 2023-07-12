@@ -53,7 +53,7 @@ class Countly {
   static final _instance = Countly._();
 
   final _countlyState = CountlyState();
-  
+
   late final RemoteConfigInternal _remoteConfigInternal;
   RemoteConfig get remoteConfig => _remoteConfigInternal;
 
@@ -229,6 +229,8 @@ class Countly {
 
     List<dynamic> args = [];
     args.add(_configToJson(config));
+
+    _instance._remoteConfigInternal.registerGlobalDownloadCallback(config.remoteConfigGlobalCallback);
 
     final String? result = await _channel.invokeMethod('init', <String, dynamic>{'data': json.encode(args)});
     _instance._countlyState.isInitialized = true;

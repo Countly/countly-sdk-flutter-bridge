@@ -191,6 +191,19 @@ class RemoteConfigInternal implements RemoteConfig {
   }
 
   @override
+  void registerGlobalDownloadCallback(List<RCDownloadCallback> callbacks) {
+    // ignore: prefer_function_declarations_over_variables
+    RCDownloadInnerCallback innerCallback = (rResult, error, fullValueUpdate, downloadedValues, requestID) { 
+      for (final callback in callbacks) {
+        callback(rResult, error, fullValueUpdate, downloadedValues);
+      }
+    };
+
+    Countly.log('"remoteConfigRegisterGlobalDownloadCallback" registering a global callback', logLevel: LogLevel.ERROR);
+    _remoteConfigDownloadCallbacks[_requestIDGlobalCallback] = innerCallback;
+  }
+
+  @override
   void registerDownloadCallback(RCDownloadCallback callback) {
     if (!_countlyState.isInitialized) {
       Countly.log('"initWithConfig" must be called before "remoteConfigRegisterDownloadCallback"', logLevel: LogLevel.ERROR);
@@ -199,9 +212,6 @@ class RemoteConfigInternal implements RemoteConfig {
 
     // ignore: prefer_function_declarations_over_variables
     RCDownloadInnerCallback innerCallback = (rResult, error, fullValueUpdate, downloadedValues, requestID) {
-      if (requestID != _requestIDGlobalCallback) {
-        return;
-      }
       callback(rResult, error, fullValueUpdate, downloadedValues);
     };
 

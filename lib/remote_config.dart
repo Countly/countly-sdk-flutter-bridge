@@ -25,6 +25,8 @@ typedef RCVariantInnerCallback = void Function(RequestResult rResult, String? er
 typedef RCVariantCallback = void Function(RequestResult rResult, String? error);
 
 abstract class RemoteConfig {
+  void registerGlobalDownloadCallback(List<RCDownloadCallback> callback);
+
   void registerDownloadCallback(RCDownloadCallback callback);
 
   void removeDownloadCallback(RCDownloadCallback callback);
