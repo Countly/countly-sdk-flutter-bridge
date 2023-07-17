@@ -53,7 +53,7 @@ class Countly {
   static final _instance = Countly._();
 
   final _countlyState = CountlyState();
-  
+
   late final RemoteConfigInternal _remoteConfigInternal;
   RemoteConfig get remoteConfig => _remoteConfigInternal;
 
@@ -101,6 +101,7 @@ class Countly {
 
   /// Callback handler to handle function calls from native iOS/Android to Dart.
   static Future<void> _methodCallHandler(MethodCall call) async {
+    log('[_methodCall] ${call.method}', logLevel: LogLevel.VERBOSE);
     switch (call.method) {
       case 'widgetShown':
         if (_widgetShown != null) {
@@ -232,6 +233,13 @@ class Countly {
 
     final String? result = await _channel.invokeMethod('init', <String, dynamic>{'data': json.encode(args)});
     _instance._countlyState.isInitialized = true;
+
+    if (config.remoteConfigGlobalCallbacks.isNotEmpty) {
+      log('[initWithConfig] About to register ${config.remoteConfigGlobalCallbacks.length} callbacks');
+    }
+    for (final callback in config.remoteConfigGlobalCallbacks) {
+      Countly.instance._remoteConfigInternal.registerDownloadCallback(callback);
+    }
 
     return result;
   }
