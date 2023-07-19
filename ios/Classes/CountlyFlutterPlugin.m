@@ -1217,7 +1217,6 @@ FlutterMethodChannel *_channel;
 }
 
 - (void)remoteConfigDownloadCallback:(NSNumber*)callbackID response:(CLYRequestResult _Nonnull)response fullValueUpdate:(BOOL)fullValueUpdate error:(NSError *__nullable)error downloadedValues:(NSDictionary<NSString *,CountlyRCData *> *_Nonnull)downloadedValues {
-
     COUNTLY_FLUTTER_LOG(@"[RemoteConfigDownloadIOS], about to notify flutter side callback", callbackID);
     if([callbackID intValue] == -1) {
         return;

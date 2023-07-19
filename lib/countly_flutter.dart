@@ -101,7 +101,7 @@ class Countly {
 
   /// Callback handler to handle function calls from native iOS/Android to Dart.
   static Future<void> _methodCallHandler(MethodCall call) async {
-    log('[_methodCall] ${call.method}', logLevel: LogLevel.VERBOSE);
+    log('[FMethodCallH] ${call.method}', logLevel: LogLevel.VERBOSE);
     switch (call.method) {
       case 'widgetShown':
         if (_widgetShown != null) {
@@ -235,7 +235,7 @@ class Countly {
     _instance._countlyState.isInitialized = true;
 
     if (config.remoteConfigGlobalCallbacks.isNotEmpty) {
-      log('[initWithConfig] About to register ${config.remoteConfigGlobalCallbacks.length} callbacks');
+      log('[initWithConfig] About to register ${config.remoteConfigGlobalCallbacks.length} callbacks', logLevel: LogLevel.VERBOSE);
     }
     for (final callback in config.remoteConfigGlobalCallbacks) {
       Countly.instance._remoteConfigInternal.registerDownloadCallback(callback);

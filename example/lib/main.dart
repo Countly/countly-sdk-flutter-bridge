@@ -88,19 +88,19 @@ class _MyAppState extends State<MyApp> {
           ..recordIndirectAttribution(attributionValues)
           ..recordDirectAttribution('countly', campaignData)
           ..setRemoteConfigAutomaticDownload(true, (error) {
-            print('global callback 0');
+            print('Global RC download callback 0');
             if (error != null) {
               print(error);
             }
           })
           ..remoteConfigRegisterGlobalCallback((rResult, error, fullValueUpdate, downloadedValues) {
-            print('global callback 1');
+            print('Global RC download callback 1');
             if (error != null) {
               print(error);
             }
           }) // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
           ..remoteConfigRegisterGlobalCallback((rResult, error, fullValueUpdate, downloadedValues) {
-            print('global callback 2');
+            print('Global RC download callback 2');
             if (error != null) {
               print(error);
             }
@@ -137,10 +137,10 @@ class _MyAppState extends State<MyApp> {
   }
 
   // ignore: non_constant_identifier_names
-  static String SERVER_URL = 'https://master.count.ly';
+  static String SERVER_URL = 'https://try.count.ly';
 
   // ignore: non_constant_identifier_names
-  static String APP_KEY = '5b77e4c785410351f32d8aa286d2383195d13b93';
+  static String APP_KEY = 'YOUR_API_KEY';
 
   void enableTemporaryIdMode() {
     Countly.changeDeviceId(Countly.deviceIDType['TemporaryDeviceID']!, false);
