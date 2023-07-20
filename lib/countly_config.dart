@@ -33,7 +33,6 @@ class CountlyConfig {
   bool _remoteConfigAutomaticTriggers = false;
   final List<RCDownloadCallback> _remoteConfigGlobalCallback = [];
   bool _remoteConfigValueCaching = false;
-  bool _automaticViewTracking = false;
   bool _globalViewSegmentation = false;
   bool _useMultipleViewFlow = false;
   bool _autoPauseViewOnMinimization = false;
@@ -102,8 +101,6 @@ class CountlyConfig {
   List<RCDownloadCallback> get remoteConfigGlobalCallback => _remoteConfigGlobalCallback;
 
   bool get remoteConfigValueCaching => _remoteConfigValueCaching;
-
-  bool get automaticViewTracking => _automaticViewTracking;
 
   bool get globalViewSegmentation => _globalViewSegmentation;
 
@@ -291,14 +288,8 @@ class CountlyConfig {
     return this;
   }
 
-  /// Used to enable automatic view tracking
-  CountlyConfig enableAutomaticViewTracking() {
-    _automaticViewTracking = true;
-    return this;
-  }
-
   /// Used to enable global view segmentation
-  CountlyConfig enableGlobalViewSegmentation() {
+  CountlyConfig setGlobalViewSegmentation() {
     _globalViewSegmentation = true;
     return this;
   }
