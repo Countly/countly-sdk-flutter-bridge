@@ -1407,6 +1407,16 @@ FlutterMethodChannel *_channel;
             config.enableRemoteConfigValueCaching = [remoteConfigValueCaching boolValue];
         }
 
+        NSNumber *useMultipleViewFlow = _config[@"useMultipleViewFlow"];
+        if (useMultipleViewFlow) {
+            config.useMultipleViewFlow = [useMultipleViewFlow boolValue];
+        }
+
+        NSDictionary *globalViewSegmentation = _config[@"globalViewSegmentation"];
+        if (globalViewSegmentation) {
+            config.setGlobalViewSegmentation = globalViewSegmentation;
+        }
+
         NSString *gpsCoordinate = _config[@"locationGpsCoordinates"];
         CLLocationCoordinate2D coordinate = [self getCoordinate:gpsCoordinate];
         if (CLLocationCoordinate2DIsValid(coordinate)) {

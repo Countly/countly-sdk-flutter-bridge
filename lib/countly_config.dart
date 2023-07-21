@@ -33,9 +33,8 @@ class CountlyConfig {
   bool _remoteConfigAutomaticTriggers = false;
   final List<RCDownloadCallback> _remoteConfigGlobalCallback = [];
   bool _remoteConfigValueCaching = false;
-  bool _globalViewSegmentation = false;
+  Map<String, Object>? _globalViewSegmentation;
   bool _useMultipleViewFlow = false;
-  bool _autoPauseViewOnMinimization = false;
 
   CountlyConfig(this._serverURL, this._appKey);
 
@@ -102,11 +101,9 @@ class CountlyConfig {
 
   bool get remoteConfigValueCaching => _remoteConfigValueCaching;
 
-  bool get globalViewSegmentation => _globalViewSegmentation;
+  Map<String, Object>? get globalViewSegmentation => _globalViewSegmentation;
 
   bool get useMultipleViewFlow => _useMultipleViewFlow;
-
-  bool get autoPauseViewOnMinimization => _autoPauseViewOnMinimization;
 
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
@@ -289,8 +286,8 @@ class CountlyConfig {
   }
 
   /// Used to enable global view segmentation
-  CountlyConfig setGlobalViewSegmentation() {
-    _globalViewSegmentation = true;
+  CountlyConfig setGlobalViewSegmentation(Map<String, Object> segmentation) {
+    _globalViewSegmentation = segmentation;
     return this;
   }
 }

@@ -1535,5 +1535,17 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 this.config.enableRemoteConfigValueCaching();
             }
         }
+
+        if (_config.has("useMultipleViewFlow")) {
+            boolean useMultipleViewFlow = _config.getBoolean("useMultipleViewFlow");
+            if (useMultipleViewFlow) {
+                this.config.useMultipleViewFlow();
+            }
+        }
+
+        if (_config.has("globalViewSegmentation")) {
+            JSONObject globalViewSegmentation = _config.getJSONObject("globalViewSegmentation");
+            this.config.setGlobalViewSegmentation(toMapString(globalViewSegmentation));
+        }
     }
 }
