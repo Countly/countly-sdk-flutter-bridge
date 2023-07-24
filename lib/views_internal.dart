@@ -8,10 +8,10 @@ class ViewsInternal implements Views {
   final CountlyState _countlyState;
 
   @override
-  void stopViewById(String viewID, [Map<String, Object>? segmentation]) {}
+  void stopViewWithId(String viewID, [Map<String, Object>? segmentation]) {}
 
   @override
-  void stopViewByName(String viewName, [Map<String, Object>? segmentation]) {}
+  void stopViewWithName(String viewName, [Map<String, Object>? segmentation]) {}
 
   @override
   String startView(String viewName, [Map<String, Object>? segmentation]) {
