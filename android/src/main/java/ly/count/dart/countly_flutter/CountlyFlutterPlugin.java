@@ -1253,6 +1253,35 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 Countly.sharedInstance().attribution().recordDirectAttribution(campaignType, campaignData);
                 result.success("recordIndirectAttribution: success");
+            } else if ("stopViewWithId".equals(call.method)) {
+                String viewId = args.getString(0);
+                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+                // Countly.sharedInstance().views().stopViewWithId(viewId, segmentation);
+                result.success("stopViewWithId: success");
+            } else if ("stopViewWithName".equals(call.method)) {
+                String viewName = args.getString(0);
+                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+                // Countly.sharedInstance().views().stopViewWithName(viewName, segmentation);
+                result.success("stopViewWithName: success");
+            } else if ("startView".equals(call.method)) {
+                String viewName = args.getString(0);
+                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+                // String viewId = Countly.sharedInstance().views().startView(viewName, segmentation);
+                // result.success(viewId);
+                result.success("startView: success");
+            } else if ("setGlobalViewSegmentation".equals(call.method)) {
+                Map<String, Object> segmentation = toMap(args.getJSONObject(0));
+
+                // Countly.sharedInstance().views().setGlobalViewSegmentation(segmentation);
+                result.success("setGlobalViewSegmentation: success");
+            } else if ("updateGlobalViewSegmentation".equals(call.method)) {
+                Map<String, Object> segmentation = toMap(args.getJSONObject(0));
+
+                // Countly.sharedInstance().views().updateGlobalViewSegmentation(segmentation);
+                result.success("updateGlobalViewSegmentation: success");
             } else if ("appLoadingFinished".equals(call.method)) {
                 Countly.sharedInstance().apm().setAppIsLoaded();
                 result.success("appLoadingFinished: success");

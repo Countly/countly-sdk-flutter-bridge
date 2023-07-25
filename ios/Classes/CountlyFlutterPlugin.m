@@ -1132,6 +1132,36 @@ FlutterMethodChannel *_channel;
               config.indirectAttribution = attributionValues;
           }
         });
+    } else if ([@"stopViewWithId" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSString *viewId = [command objectAtIndex:0];
+          NSDictionary* segmentation = [command objectAtIndex:1];
+          //   [Countly.sharedInstance stopViewWithId:viewId segmentation:segmentation];
+        });
+    } else if ([@"stopViewWithName" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSString *viewName = [command objectAtIndex:0];
+          NSDictionary* segmentation = [command objectAtIndex:1];
+          //   [Countly.sharedInstance stopViewWithName:viewName segmentation:segmentation];
+        });
+    } else if ([@"startView" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSString *viewName = [command objectAtIndex:0];
+          NSDictionary* segmentation = [command objectAtIndex:1];
+          //   NSString *viewId = [Countly.sharedInstance startView:viewName segmentation:segmentation];
+          //   result(viewId);
+          result('viewId');
+        });
+    } else if ([@"setGlobalViewSegmentation" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSDictionary* segmentation = [command objectAtIndex:0];
+          //   [Countly.sharedInstance setGlobalViewSegmentation:segmentation];
+        });
+    } else if ([@"updateGlobalViewSegmentation" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSDictionary* segmentation = [command objectAtIndex:0];
+          //   [Countly.sharedInstance updateGlobalViewSegmentation:segmentation];
+        });
     } else if ([@"appLoadingFinished" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           [Countly.sharedInstance appLoadingFinished];
