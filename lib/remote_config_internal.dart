@@ -199,6 +199,7 @@ class RemoteConfigInternal implements RemoteConfig {
 
     // ignore: prefer_function_declarations_over_variables
     RCDownloadInnerCallback innerCallback = (rResult, error, fullValueUpdate, downloadedValues, requestID) {
+      Countly.log('receiving inner callback notification: $requestID', logLevel: LogLevel.VERBOSE);
       if (requestID != _requestIDGlobalCallback) {
         return;
       }
