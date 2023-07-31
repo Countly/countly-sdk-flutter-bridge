@@ -1,3 +1,11 @@
+## 23.6.2
+- Fixed bug where init time provided global Remote config download callbacks were ignored
+- Remote config values are now not erased anymore when removing remote config consent
+- Added remaining request count 'rr' parameter when sending queued request.
+
+## 23.6.1
+- Fixed SPM public header issues of `CountlyRCData.h` and `CountlyRemoteConfig.h` 
+
 ## 23.6.0
 - !! Major breaking change !! Automatically downloaded remote config values will no longer be automatically enrolled in their AB tests.
 - Added `CountlyRemoteConfig:` interface with new remote config methods:

@@ -11,6 +11,7 @@
 #import "CountlyRCData.h"
 #import "CountlyRemoteConfig.h"
 #import "CountlyFeedbackWidget.h"
+#import "CountlyViewTracking.h"
 #if (TARGET_OS_IOS || TARGET_OS_OSX)
 #import <UserNotifications/UserNotifications.h>
 #endif
@@ -555,10 +556,9 @@ NS_ASSUME_NONNULL_BEGIN
  * @discussion If AutoViewTracking feature is not enabled on initial configuration, this property has no effect.
  */
 @property (nonatomic) BOOL isAutoViewTrackingActive;
-
 #endif
 
-
+- (CountlyViewTracking *) views;
 
 #pragma mark - User Details
 
