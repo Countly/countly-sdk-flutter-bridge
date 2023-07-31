@@ -1440,7 +1440,7 @@ FlutterMethodChannel *_channel;
 
         NSNumber *useMultipleViewFlow = _config[@"useMultipleViewFlow"];
         if (useMultipleViewFlow) {
-            config.useMultipleViewFlow = [useMultipleViewFlow boolValue];
+            config.enableMultipleViewFlow = [useMultipleViewFlow boolValue];
         }
 
         NSDictionary *globalViewSegmentation = _config[@"globalViewSegmentation"];
