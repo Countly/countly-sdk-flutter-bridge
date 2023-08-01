@@ -1150,7 +1150,7 @@ FlutterMethodChannel *_channel;
           NSDictionary* segmentation = [command objectAtIndex:1];
           //   NSString *viewId = [Countly.sharedInstance startView:viewName segmentation:segmentation];
           //   result(viewId);
-          result('viewId');
+          result(@"viewId");
         });
     } else if ([@"setGlobalViewSegmentation" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -1440,12 +1440,12 @@ FlutterMethodChannel *_channel;
 
         NSNumber *useMultipleViewFlow = _config[@"useMultipleViewFlow"];
         if (useMultipleViewFlow) {
-            config.enableMultipleViewFlow = [useMultipleViewFlow boolValue];
+            config.useMultipleViewFlow = [useMultipleViewFlow boolValue];
         }
 
         NSDictionary *globalViewSegmentation = _config[@"globalViewSegmentation"];
         if (globalViewSegmentation) {
-            config.setGlobalViewSegmentation = globalViewSegmentation;
+            config.globalViewSegmentation = globalViewSegmentation;
         }
 
         NSString *gpsCoordinate = _config[@"locationGpsCoordinates"];
