@@ -1132,35 +1132,46 @@ FlutterMethodChannel *_channel;
               config.indirectAttribution = attributionValues;
           }
         });
-    } else if ([@"stopViewWithId" isEqualToString:call.method]) {
+    } else if ([@"stopViewWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *viewId = [command objectAtIndex:0];
           NSDictionary* segmentation = [command objectAtIndex:1];
-          //   [Countly.sharedInstance stopViewWithId:viewId segmentation:segmentation];
+          [Countly.sharedInstance.views stopViewWithID:viewId segmentation:segmentation];
         });
     } else if ([@"stopViewWithName" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *viewName = [command objectAtIndex:0];
           NSDictionary* segmentation = [command objectAtIndex:1];
-          //   [Countly.sharedInstance stopViewWithName:viewName segmentation:segmentation];
+          [Countly.sharedInstance.views stopViewWithName:viewName segmentation:segmentation];
+        });
+    } else if ([@"pauseViewWithID" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSString *viewId = [command objectAtIndex:0];
+          NSDictionary* segmentation = [command objectAtIndex:1];
+          [Countly.sharedInstance.views pauseViewWithID:viewId];
+        });
+    } else if ([@"resumeViewWithID" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSString *viewId = [command objectAtIndex:0];
+          NSDictionary* segmentation = [command objectAtIndex:1];
+          [Countly.sharedInstance.views resumeViewWithID:viewId];
         });
     } else if ([@"startView" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *viewName = [command objectAtIndex:0];
           NSDictionary* segmentation = [command objectAtIndex:1];
-          //   NSString *viewId = [Countly.sharedInstance startView:viewName segmentation:segmentation];
-          //   result(viewId);
-          result('viewId');
+          NSString *viewId = [Countly.sharedInstance.views startView:viewName segmentation:segmentation];
+          result(viewId);
         });
     } else if ([@"setGlobalViewSegmentation" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSDictionary* segmentation = [command objectAtIndex:0];
-          //   [Countly.sharedInstance setGlobalViewSegmentation:segmentation];
+          [Countly.sharedInstance.views setGlobalViewSegmentation:segmentation];
         });
     } else if ([@"updateGlobalViewSegmentation" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSDictionary* segmentation = [command objectAtIndex:0];
-          //   [Countly.sharedInstance updateGlobalViewSegmentation:segmentation];
+          [Countly.sharedInstance.views updateGlobalViewSegmentation:segmentation];
         });
     } else if ([@"appLoadingFinished" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -1440,12 +1451,12 @@ FlutterMethodChannel *_channel;
 
         NSNumber *useMultipleViewFlow = _config[@"useMultipleViewFlow"];
         if (useMultipleViewFlow) {
-            config.enableMultipleViewFlow = [useMultipleViewFlow boolValue];
+            config.useMultipleViewFlow = [useMultipleViewFlow boolValue];
         }
 
         NSDictionary *globalViewSegmentation = _config[@"globalViewSegmentation"];
         if (globalViewSegmentation) {
-            config.setGlobalViewSegmentation = globalViewSegmentation;
+            config.globalViewSegmentation = globalViewSegmentation;
         }
 
         NSString *gpsCoordinate = _config[@"locationGpsCoordinates"];

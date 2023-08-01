@@ -9,16 +9,16 @@ class ViewsInternal implements Views {
   final CountlyState _countlyState;
 
   @override
-  Future<void> stopViewWithId(String viewID, [Map<String, Object> segmentation = const {}]) async {
+  Future<void> stopViewWithID(String viewID, [Map<String, Object> segmentation = const {}]) async {
     if (!_countlyState.isInitialized) {
-      Countly.log('views_stopViewWithId, "initWithConfig" must be called before "views_stopViewWithId"', logLevel: LogLevel.ERROR);
+      Countly.log('views_stopViewWithID, "initWithConfig" must be called before "views_stopViewWithID"', logLevel: LogLevel.ERROR);
       return;
     }
-    Countly.log('Calling "views_stopViewWithId"');
+    Countly.log('Calling "views_stopViewWithID"');
     final List<Object> args = [];
     args.add(viewID);
     args.add(segmentation);
-    await _countlyState.channel.invokeMethod('stopViewWithId', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('stopViewWithID', <String, dynamic>{'data': json.encode(args)});
   }
 
   @override
@@ -32,6 +32,32 @@ class ViewsInternal implements Views {
     args.add(viewName);
     args.add(segmentation);
     await _countlyState.channel.invokeMethod('stopViewWithName', <String, dynamic>{'data': json.encode(args)});
+  }
+
+  @override
+  Future<void> pauseViewWithID(String viewID, [Map<String, Object> segmentation = const {}]) async {
+    if (!_countlyState.isInitialized) {
+      Countly.log('views_pauseViewWithID, "initWithConfig" must be called before "views_pauseViewWithID"', logLevel: LogLevel.ERROR);
+      return;
+    }
+    Countly.log('Calling "views_pauseViewWithID"');
+    final List<Object> args = [];
+    args.add(viewID);
+    args.add(segmentation);
+    await _countlyState.channel.invokeMethod('pauseViewWithID', <String, dynamic>{'data': json.encode(args)});
+  }
+
+  @override
+  Future<void> resumeViewWithID(String viewID, [Map<String, Object> segmentation = const {}]) async {
+    if (!_countlyState.isInitialized) {
+      Countly.log('views_resumeViewWithID, "initWithConfig" must be called before "views_resumeViewWithID"', logLevel: LogLevel.ERROR);
+      return;
+    }
+    Countly.log('Calling "views_resumeViewWithID"');
+    final List<Object> args = [];
+    args.add(viewID);
+    args.add(segmentation);
+    await _countlyState.channel.invokeMethod('resumeViewWithID', <String, dynamic>{'data': json.encode(args)});
   }
 
   @override

@@ -25,7 +25,7 @@ android {
     compileSdkVersion 31
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 17
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     lintOptions {
@@ -34,6 +34,6 @@ android {
 }
 
 dependencies {
-    implementation 'ly.count.android:sdk:23.8.0-RC1'
+    implementation 'ly.count.android:sdk:23.8.0-RC2'
     implementation 'com.google.firebase:firebase-messaging:20.2.1'
 }
