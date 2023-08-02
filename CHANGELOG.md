@@ -1,3 +1,11 @@
+## 23.8.0
+* Fixed a bug that prevented global callbacks from being called.
+* Introduced a new views interface ('Countly.instance.views') on the SDK instance the exposes the reworked views functionality
+* Deprecated old view methods. You should use the views object. Deprecated methods are:
+  * recordView
+* Updated Underlying android SDK version to 23.8.0
+* Updated Underlying iOS SDK version to 23.6.2
+
 ## 23.6.0
 * !! Major breaking change !! Automatically downloaded remote config values will no longer be automatically enrolled in their AB tests.
 * ! Minor breaking change ! Remote config will now return previously downloaded values when remote-config consent is not given

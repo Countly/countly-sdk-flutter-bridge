@@ -1258,25 +1258,25 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 Map<String, Object> segmentation = toMap(args.getJSONObject(1));
 
                 Countly.sharedInstance().views().stopViewWithID(viewId, segmentation);
-                result.success("stopViewWithID: success");
+                result.success(null);
             } else if ("stopViewWithName".equals(call.method)) {
                 String viewName = args.getString(0);
                 Map<String, Object> segmentation = toMap(args.getJSONObject(1));
 
                 Countly.sharedInstance().views().stopViewWithName(viewName, segmentation);
-                result.success("stopViewWithName: success");
+                result.success(null);
             } else if ("pauseViewWithID".equals(call.method)) {
                 String viewId = args.getString(0);
                 Map<String, Object> segmentation = toMap(args.getJSONObject(1));
 
                 Countly.sharedInstance().views().pauseViewWithID(viewId);
-                result.success("pauseViewWithID: success");
+                result.success(null);
             } else if ("resumeViewWithID".equals(call.method)) {
                 String viewId = args.getString(0);
                 Map<String, Object> segmentation = toMap(args.getJSONObject(1));
 
                 Countly.sharedInstance().views().resumeViewWithID(viewId);
-                result.success("resumeViewWithID: success");
+                result.success(null);
             } else if ("startView".equals(call.method)) {
                 String viewName = args.getString(0);
                 Map<String, Object> segmentation = toMap(args.getJSONObject(1));
@@ -1287,12 +1287,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 Map<String, Object> segmentation = toMap(args.getJSONObject(0));
 
                 Countly.sharedInstance().views().setGlobalViewSegmentation(segmentation);
-                result.success("setGlobalViewSegmentation: success");
+                result.success(null);
             } else if ("updateGlobalViewSegmentation".equals(call.method)) {
                 Map<String, Object> segmentation = toMap(args.getJSONObject(0));
 
                 Countly.sharedInstance().views().updateGlobalViewSegmentation(segmentation);
-                result.success("updateGlobalViewSegmentation: success");
+                result.success(null);
             } else if ("appLoadingFinished".equals(call.method)) {
                 Countly.sharedInstance().apm().setAppIsLoaded();
                 result.success("appLoadingFinished: success");

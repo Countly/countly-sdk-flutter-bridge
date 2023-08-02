@@ -551,6 +551,39 @@ class _MyAppState extends State<MyApp> {
     Countly.removeConsent(['apm']);
   }
 
+  void stopViewWithID() {
+    Countly.instance.views.stopViewWithID('viewID');
+  }
+
+  void stopViewWithName() {
+    Countly.instance.views.stopViewWithName('viewName');
+  }
+
+  void pauseViewWithID() {
+    Countly.instance.views.pauseViewWithID('viewID');
+  }
+
+  void resumeViewWithID() {
+    Countly.instance.views.resumeViewWithID('viewID');
+  }
+
+  Future<void> startView() async {
+    final viewID = await Countly.instance.views.startView('viewName');
+    print(viewID);
+  }
+
+  void startViewSegmentation() {
+    Countly.instance.views.startView('viewID', {'abcd': '123'});
+  }
+
+  void setGlobalViewSegmentation() {
+    Countly.instance.views.setGlobalViewSegmentation({'abcd': '123'});
+  }
+
+  void updateGlobalViewSegmentation() {
+    Countly.instance.views.updateGlobalViewSegmentation({'abcd': '123'});
+  }
+
   void askForNotificationPermission() {
     Countly.askForNotificationPermission();
   }
@@ -1029,6 +1062,14 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'Remove Consent Push', color: 'blue', onPressed: removeConsentpush),
               MyButton(text: 'Remove Consent starRating', color: 'blue', onPressed: removeConsentstarRating),
               MyButton(text: 'Remove Consent Performance', color: 'blue', onPressed: removeConsentAPM),
+              const Text('Section for Views:', style: TextStyle(color: Colors.yellow), textAlign: TextAlign.center),
+              MyButton(text: 'Start View', color: 'yellow', onPressed: startView),
+              MyButton(text: 'Stop View with ID', color: 'yellow', onPressed: stopViewWithID),
+              MyButton(text: 'Stop View with Name', color: 'yellow', onPressed: stopViewWithName),
+              MyButton(text: 'Pause View with ID', color: 'yellow', onPressed: pauseViewWithID),
+              MyButton(text: 'Resume View with ID', color: 'yellow', onPressed: resumeViewWithID),
+              MyButton(text: 'Set Global View Segmentation', color: 'yellow', onPressed: setGlobalViewSegmentation),
+              MyButton(text: 'Update Global View Segmentation', color: 'yellow', onPressed: updateGlobalViewSegmentation),
               const Text('Section for A/B testing:', style: TextStyle(color: Colors.green), textAlign: TextAlign.center),
               MyButton(text: 'Get AB testing values (Legacy)', color: 'green', onPressed: getABTestingValues),
               MyButton(text: 'Record event for goal #1', color: 'green', onPressed: eventForGoal_1),
