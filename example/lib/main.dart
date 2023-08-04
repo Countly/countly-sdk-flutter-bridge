@@ -37,10 +37,8 @@ class _MyAppState extends State<MyApp> {
   String _deviceIdType = '';
   final bool _enableManualSession = false;
   static late final RCDownloadCallback _rcDownloadCallback;
-  String viewID = '';
-  String viewName = 'viewName';
-  String viewID1 = '';
-  String viewName1 = 'viewName1';
+  final List<String> viewNames = ['viewName', 'viewName1'];
+  final List<String> viewIDs = [];
 
   @override
   void initState() {
@@ -141,10 +139,10 @@ class _MyAppState extends State<MyApp> {
   }
 
   // ignore: non_constant_identifier_names
-  static String SERVER_URL = 'https://master.count.ly';
+  static String SERVER_URL = 'https://xxx.count.ly';
 
   // ignore: non_constant_identifier_names
-  static String APP_KEY = 'e14e913a4b451bc8a5c413acd1d2219a9b30b055';
+  static String APP_KEY = 'YOUR_APP_KEY';
 
   void enableTemporaryIdMode() {
     Countly.changeDeviceId(Countly.deviceIDType['TemporaryDeviceID']!, false);
@@ -556,29 +554,29 @@ class _MyAppState extends State<MyApp> {
   }
 
   void stopViewWithID() {
-    Countly.instance.views.stopViewWithID(viewID);
+    Countly.instance.views.stopViewWithID(viewIDs[0]);
   }
 
   void stopViewWithName() {
-    Countly.instance.views.stopViewWithName(viewName);
+    Countly.instance.views.stopViewWithName(viewNames[0]);
   }
 
   void pauseViewWithID() {
-    Countly.instance.views.pauseViewWithID(viewID);
+    Countly.instance.views.pauseViewWithID(viewIDs[0]);
   }
 
   void resumeViewWithID() {
-    Countly.instance.views.resumeViewWithID(viewID);
+    Countly.instance.views.resumeViewWithID(viewIDs[0]);
   }
 
   Future<void> startViewWithSegmentation() async {
-    viewID = await Countly.instance.views.startView(viewName, {'abcd': '123'}) ?? '';
-    print(viewID);
+    viewIDs[0] = await Countly.instance.views.startView(viewNames[0], {'abcd': '123'}) ?? '';
+    print(viewIDs[0]);
   }
 
   Future<void> startView() async {
-    viewID1 = await Countly.instance.views.startView(viewName1) ?? '';
-    print(viewID1);
+    viewIDs[1] = await Countly.instance.views.startView(viewNames[1]) ?? '';
+    print(viewIDs[1]);
   }
 
   void setGlobalViewSegmentation() {
