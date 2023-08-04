@@ -37,6 +37,10 @@ class _MyAppState extends State<MyApp> {
   String _deviceIdType = '';
   final bool _enableManualSession = false;
   static late final RCDownloadCallback _rcDownloadCallback;
+  String viewID = '';
+  String viewName = 'viewName';
+  String viewID1 = '';
+  String viewName1 = 'viewName1';
 
   @override
   void initState() {
@@ -137,10 +141,10 @@ class _MyAppState extends State<MyApp> {
   }
 
   // ignore: non_constant_identifier_names
-  static String SERVER_URL = 'https://xxx.count.ly';
+  static String SERVER_URL = 'https://master.count.ly';
 
   // ignore: non_constant_identifier_names
-  static String APP_KEY = 'YOUR_APP_KEY';
+  static String APP_KEY = 'e14e913a4b451bc8a5c413acd1d2219a9b30b055';
 
   void enableTemporaryIdMode() {
     Countly.changeDeviceId(Countly.deviceIDType['TemporaryDeviceID']!, false);
@@ -552,28 +556,29 @@ class _MyAppState extends State<MyApp> {
   }
 
   void stopViewWithID() {
-    Countly.instance.views.stopViewWithID('viewID');
+    Countly.instance.views.stopViewWithID(viewID);
   }
 
   void stopViewWithName() {
-    Countly.instance.views.stopViewWithName('viewName');
+    Countly.instance.views.stopViewWithName(viewName);
   }
 
   void pauseViewWithID() {
-    Countly.instance.views.pauseViewWithID('viewID');
+    Countly.instance.views.pauseViewWithID(viewID);
   }
 
   void resumeViewWithID() {
-    Countly.instance.views.resumeViewWithID('viewID');
+    Countly.instance.views.resumeViewWithID(viewID);
   }
 
-  Future<void> startView() async {
-    final viewID = await Countly.instance.views.startView('viewName');
+  Future<void> startViewWithSegmentation() async {
+    viewID = await Countly.instance.views.startView(viewName, {'abcd': '123'}) ?? '';
     print(viewID);
   }
 
-  void startViewSegmentation() {
-    Countly.instance.views.startView('viewID', {'abcd': '123'});
+  Future<void> startView() async {
+    viewID1 = await Countly.instance.views.startView(viewName1) ?? '';
+    print(viewID1);
   }
 
   void setGlobalViewSegmentation() {
@@ -1064,6 +1069,7 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'Remove Consent Performance', color: 'blue', onPressed: removeConsentAPM),
               const Text('Section for Views:', style: TextStyle(color: Colors.yellow), textAlign: TextAlign.center),
               MyButton(text: 'Start View', color: 'yellow', onPressed: startView),
+              MyButton(text: 'Start View With Segmentation', color: 'yellow', onPressed: startViewWithSegmentation),
               MyButton(text: 'Stop View with ID', color: 'yellow', onPressed: stopViewWithID),
               MyButton(text: 'Stop View with Name', color: 'yellow', onPressed: stopViewWithName),
               MyButton(text: 'Pause View with ID', color: 'yellow', onPressed: pauseViewWithID),

@@ -1,4 +1,9 @@
 ## 23.8.0
+* ! Minor breaking change ! Manual view recording calls are now ignored when in automatic view recording mode.
+* Adding remaining request queue size information to every request
+* Adding SDK health check requests after init
+* Added protection for updating the push token. The same value can't be sent within 10 minutes it was sent last time. For Android only.
+* Added support for recording multiple views at the same time
 * Fixed a bug that prevented global callbacks from being called.
 * Introduced a new views interface ('Countly.instance.views') on the SDK instance the exposes the reworked views functionality
 * Deprecated old view methods. You should use the views object. Deprecated methods are:

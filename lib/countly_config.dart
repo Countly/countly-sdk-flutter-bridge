@@ -290,4 +290,10 @@ class CountlyConfig {
     _globalViewSegmentation = segmentation;
     return this;
   }
+
+  /// If true, it allows for more than one view
+  CountlyConfig enableMultipleViewFlow() {
+    _useMultipleViewFlow = true;
+    return this;
+  }
 }

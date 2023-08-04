@@ -11,10 +11,10 @@ class ViewsInternal implements Views {
   @override
   Future<void> stopViewWithID(String viewID, [Map<String, Object> segmentation = const {}]) async {
     if (!_countlyState.isInitialized) {
-      Countly.log('views_stopViewWithID, "initWithConfig" must be called before "views_stopViewWithID"', logLevel: LogLevel.ERROR);
+      Countly.log('[Views] stopViewWithID, "initWithConfig" must be called before "[Views] stopViewWithID"', logLevel: LogLevel.ERROR);
       return;
     }
-    Countly.log('Calling "views_stopViewWithID"');
+    Countly.log('Calling "[Views] stopViewWithID"');
     final List<Object> args = [];
     args.add(viewID);
     args.add(segmentation);
@@ -24,10 +24,10 @@ class ViewsInternal implements Views {
   @override
   Future<void> stopViewWithName(String viewName, [Map<String, Object> segmentation = const {}]) async {
     if (!_countlyState.isInitialized) {
-      Countly.log('views_stopViewWithName, "initWithConfig" must be called before "views_stopViewWithName"', logLevel: LogLevel.ERROR);
+      Countly.log('[Views] stopViewWithName, "initWithConfig" must be called before "[Views] stopViewWithName"', logLevel: LogLevel.ERROR);
       return;
     }
-    Countly.log('Calling "views_stopViewWithName"');
+    Countly.log('Calling "[Views] stopViewWithName"');
     final List<Object> args = [];
     args.add(viewName);
     args.add(segmentation);
@@ -37,10 +37,10 @@ class ViewsInternal implements Views {
   @override
   Future<void> pauseViewWithID(String viewID, [Map<String, Object> segmentation = const {}]) async {
     if (!_countlyState.isInitialized) {
-      Countly.log('views_pauseViewWithID, "initWithConfig" must be called before "views_pauseViewWithID"', logLevel: LogLevel.ERROR);
+      Countly.log('[Views] pauseViewWithID, "initWithConfig" must be called before "[Views] pauseViewWithID"', logLevel: LogLevel.ERROR);
       return;
     }
-    Countly.log('Calling "views_pauseViewWithID"');
+    Countly.log('Calling "[Views] pauseViewWithID"');
     final List<Object> args = [];
     args.add(viewID);
     args.add(segmentation);
@@ -50,10 +50,10 @@ class ViewsInternal implements Views {
   @override
   Future<void> resumeViewWithID(String viewID, [Map<String, Object> segmentation = const {}]) async {
     if (!_countlyState.isInitialized) {
-      Countly.log('views_resumeViewWithID, "initWithConfig" must be called before "views_resumeViewWithID"', logLevel: LogLevel.ERROR);
+      Countly.log('[Views] resumeViewWithID, "initWithConfig" must be called before "[Views] resumeViewWithID"', logLevel: LogLevel.ERROR);
       return;
     }
-    Countly.log('Calling "views_resumeViewWithID"');
+    Countly.log('Calling "[Views] resumeViewWithID"');
     final List<Object> args = [];
     args.add(viewID);
     args.add(segmentation);
@@ -63,10 +63,10 @@ class ViewsInternal implements Views {
   @override
   Future<String?> startView(String viewName, [Map<String, Object> segmentation = const {}]) async {
     if (!_countlyState.isInitialized) {
-      Countly.log('views_startView, "initWithConfig" must be called before "views_startView"', logLevel: LogLevel.ERROR);
+      Countly.log('[Views] startView, "initWithConfig" must be called before "[Views] startView"', logLevel: LogLevel.ERROR);
       return null;
     }
-    Countly.log('Calling "views_startView"');
+    Countly.log('Calling "[Views] startView"');
     final List<Object> args = [];
     args.add(viewName);
     args.add(segmentation);
@@ -77,10 +77,10 @@ class ViewsInternal implements Views {
   @override
   Future<void> setGlobalViewSegmentation(Map<String, Object> segmentation) async {
     if (!_countlyState.isInitialized) {
-      Countly.log('views_setGlobalViewSegmentation, "initWithConfig" must be called before "views_setGlobalViewSegmentation"', logLevel: LogLevel.ERROR);
+      Countly.log('[Views] setGlobalViewSegmentation, "initWithConfig" must be called before "[Views] setGlobalViewSegmentation"', logLevel: LogLevel.ERROR);
       return;
     }
-    Countly.log('Calling "views_setGlobalViewSegmentation"');
+    Countly.log('Calling "[Views] setGlobalViewSegmentation"');
     final List<Object> args = [];
     args.add(segmentation);
     await _countlyState.channel.invokeMethod('setGlobalViewSegmentation', <String, dynamic>{'data': json.encode(args)});
@@ -89,10 +89,10 @@ class ViewsInternal implements Views {
   @override
   Future<void> updateGlobalViewSegmentation(Map<String, Object> segmentation) async {
     if (!_countlyState.isInitialized) {
-      Countly.log('views_updateGlobalViewSegmentation, "initWithConfig" must be called before "views_updateGlobalViewSegmentation"', logLevel: LogLevel.ERROR);
+      Countly.log('[Views] updateGlobalViewSegmentation, "initWithConfig" must be called before "[Views] updateGlobalViewSegmentation"', logLevel: LogLevel.ERROR);
       return;
     }
-    Countly.log('Calling "views_updateGlobalViewSegmentation"');
+    Countly.log('Calling "[Views] updateGlobalViewSegmentation"');
     final List<Object> args = [];
     args.add(segmentation);
     await _countlyState.channel.invokeMethod('updateGlobalViewSegmentation', <String, dynamic>{'data': json.encode(args)});
