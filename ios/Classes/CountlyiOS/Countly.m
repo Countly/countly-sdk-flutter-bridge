@@ -197,7 +197,6 @@ NSString* previousEventID;
         [CountlyViewTrackingInternal.sharedInstance addAutoViewTrackingExclutionList:config.automaticViewTrackingExclusionList];
     }
 #endif
-    CountlyViewTrackingInternal.sharedInstance.useMultipleViewFlow = config.useMultipleViewFlow;
     if(config.globalViewSegmentation) {
         [CountlyViewTrackingInternal.sharedInstance setGlobalViewSegmentation:config.globalViewSegmentation];
     }
@@ -264,7 +263,7 @@ NSString* previousEventID;
     if (!CountlyCommon.sharedInstance.manualSessionHandling)
         [CountlyConnectionManager.sharedInstance endSession];
 
-    [CountlyViewTrackingInternal.sharedInstance pauseView];
+    [CountlyViewTrackingInternal.sharedInstance applicationDidEnterBackground];
 
     [CountlyPersistency.sharedInstance saveToFile];
 }
@@ -292,7 +291,7 @@ NSString* previousEventID;
     if (!CountlyCommon.sharedInstance.manualSessionHandling)
         [CountlyConnectionManager.sharedInstance beginSession];
 
-    [CountlyViewTrackingInternal.sharedInstance resumeView];
+    [CountlyViewTrackingInternal.sharedInstance applicationWillEnterForeground];
 
     isSuspended = NO;
 }
@@ -315,7 +314,7 @@ NSString* previousEventID;
 
     CountlyConnectionManager.sharedInstance.isTerminating = YES;
 
-    [CountlyViewTrackingInternal.sharedInstance endView];
+    [CountlyViewTrackingInternal.sharedInstance applicationWillTerminate];
 
     [CountlyConnectionManager.sharedInstance sendEvents];
 
