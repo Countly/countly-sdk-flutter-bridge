@@ -1576,13 +1576,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             }
         }
 
-        if (_config.has("useMultipleViewFlow")) {
-            boolean useMultipleViewFlow = _config.getBoolean("useMultipleViewFlow");
-            if (useMultipleViewFlow) {
-                this.config.enableMultipleViewFlow();
-            }
-        }
-
         if (_config.has("globalViewSegmentation")) {
             JSONObject globalViewSegmentation = _config.getJSONObject("globalViewSegmentation");
             this.config.setGlobalViewSegmentation(toMap(globalViewSegmentation));
