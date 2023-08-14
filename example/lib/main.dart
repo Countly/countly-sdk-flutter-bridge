@@ -11,11 +11,13 @@ final navigatorKey = GlobalKey<NavigatorState>();
 /// This or a similar call needs to added to catch and report Dart Errors to Countly,
 /// You need to run the app inside a Zone
 /// and provide the [Countly.recordDartError] callback for [onError()]
-void main() {
+void main(List<String> appKey) {
   runZonedGuarded<Future<void>>(() async {
     runApp(
       MaterialApp(
-        home: const MyApp(),
+        home: MyApp(
+          appKey: appKey[0],
+        ),
         navigatorKey: navigatorKey, // Setting a global key for navigator
       ),
     );
@@ -23,7 +25,8 @@ void main() {
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({required this.appKey, Key? key}) : super(key: key);
+  final String appKey;
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -65,7 +68,8 @@ class _MyAppState extends State<MyApp> {
 
         String campaignData = '{"cid":"PROVIDED_CAMPAIGN_ID", "cuid":"PROVIDED_CAMPAIGN_USER_ID"}';
 
-        CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
+        print('configkey: ${widget.appKey}');
+        CountlyConfig config = CountlyConfig(SERVER_URL, widget.appKey)
           ..enableCrashReporting() // Enable crash reporting to report unhandled crashes to Countly
           ..setRequiresConsent(true) // Set that consent should be required for features to work.
           ..setConsentEnabled([
@@ -137,7 +141,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   // ignore: non_constant_identifier_names
-  static String SERVER_URL = 'https://xxx.count.ly';
+  static String SERVER_URL = 'https://master.count.ly';
 
   // ignore: non_constant_identifier_names
   static String APP_KEY = 'YOUR_APP_KEY';
