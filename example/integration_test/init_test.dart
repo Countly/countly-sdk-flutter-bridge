@@ -14,4 +14,13 @@ void main() {
     await tester.pumpAndSettle(Duration(seconds: 10));
     await tester.pumpAndSettle();
   });
+  // await Future.delayed(Duration(seconds: 10));
+  testWidgets('Countly TEST 1', (tester) async {
+    print('hello');
+    app.main(['6c8f7f21ba9c4a4c0b20b6c020f8de86667345c8']);
+    await tester.takeException();
+    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(Duration(seconds: 10));
+    await tester.pumpAndSettle();
+  });
 }
