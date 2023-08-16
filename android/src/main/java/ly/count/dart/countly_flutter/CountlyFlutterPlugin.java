@@ -130,6 +130,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private MethodChannel methodChannel;
     private Lifecycle lifecycle;
     private Boolean isSessionStarted_ = false;
+    private Boolean startMethodCalled = false; // used to check if start was called at background
     private Boolean manualSessionControlEnabled_ = false;
 
     private boolean isOnResumeBeforeInit = false;
@@ -224,6 +225,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     public void onStart(@NonNull LifecycleOwner owner) {
         log("onStart", LogLevel.INFO);
         if (Countly.sharedInstance().isInitialized()) {
+            if(startMethodCalled){ // if onStart is called after start, then it means that the app was in the background and is now in the foreground
+                startMethodCalled = false;
+                return;
+            }
             if (isSessionStarted_ || manualSessionControlEnabled_) {
                 Countly.sharedInstance().onStart(activity);
             }
@@ -249,6 +254,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     @Override
     public void onStop(@NonNull LifecycleOwner owner) {
         log("onStop", LogLevel.INFO);
+            if(startMethodCalled){ // we expect onStop to come after 'start' method and reset this flag
+                startMethodCalled = false;
+            }
         if (isSessionStarted_ || manualSessionControlEnabled_) {
             Countly.sharedInstance().onStop();
         }
@@ -516,6 +524,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     result.error("Start Failed", "Activity is null", null);
                     return;
                 }
+                startMethodCalled = true;
                 Countly.sharedInstance().onStart(activity);
                 isSessionStarted_ = true;
                 result.success("started!");
