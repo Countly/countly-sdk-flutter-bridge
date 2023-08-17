@@ -97,4 +97,30 @@ class ViewsInternal implements Views {
     args.add(segmentation);
     await _countlyState.channel.invokeMethod('updateGlobalViewSegmentation', <String, dynamic>{'data': json.encode(args)});
   }
+
+  @override
+  Future<String?> startAutoStoppedView(String viewName, [Map<String, Object> segmentation = const {}]) async {
+    if (!_countlyState.isInitialized) {
+      Countly.log('[Views] startAutoStoppedView, "initWithConfig" must be called before "[Views] startAutoStoppedView"', logLevel: LogLevel.ERROR);
+      return null;
+    }
+    Countly.log('Calling "[Views] startAutoStoppedView"');
+    final List<Object> args = [];
+    args.add(viewName);
+    args.add(segmentation);
+    final String viewId = await _countlyState.channel.invokeMethod('startAutoStoppedView', <String, dynamic>{'data': json.encode(args)});
+    return viewId;
+  }
+
+  @override
+  Future<void> stopAllViews([Map<String, Object> segmentation = const {}]) async {
+    if (!_countlyState.isInitialized) {
+      Countly.log('[Views] stopAllViews, "initWithConfig" must be called before "[Views] stopAllViews"', logLevel: LogLevel.ERROR);
+      return null;
+    }
+    Countly.log('Calling "[Views] stopAllViews"');
+    final List<Object> args = [];
+    args.add(segmentation);
+    await _countlyState.channel.invokeMethod('stopAllViews', <String, dynamic>{'data': json.encode(args)});
+  }
 }

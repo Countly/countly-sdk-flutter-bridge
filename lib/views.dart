@@ -1,4 +1,9 @@
 abstract class Views {
+
+  Future<String?> startAutoStoppedView(String viewName, [Map<String, Object> segmentation]);
+
+  Future<String?> startView(String viewName, [Map<String, Object> segmentation]);
+
   void stopViewWithID(String viewID, [Map<String, Object> segmentation]);
 
   void stopViewWithName(String viewName, [Map<String, Object> segmentation]);
@@ -7,9 +12,9 @@ abstract class Views {
 
   void resumeViewWithID(String viewID);
 
-  Future<String?> startView(String viewName, [Map<String, Object> segmentation]);
-
   void setGlobalViewSegmentation(Map<String, Object> segmentation);
 
   void updateGlobalViewSegmentation(Map<String, Object> segmentation);
+
+  void stopAllViews([Map<String, Object> segmentation]);
 }

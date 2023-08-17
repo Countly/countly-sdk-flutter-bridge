@@ -1132,6 +1132,25 @@ FlutterMethodChannel *_channel;
               config.indirectAttribution = attributionValues;
           }
         });
+    } else if ([@"startView" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *viewName = [command objectAtIndex:0];
+            NSDictionary* segmentation = [command objectAtIndex:1];
+            NSString *viewId = [Countly.sharedInstance.views startView:viewName segmentation:segmentation];
+            result(viewId);
+        });
+    } else if ([@"startAutoStoppedView" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *viewName = [command objectAtIndex:0];
+            NSDictionary* segmentation = [command objectAtIndex:1];
+            NSString *viewId = [Countly.sharedInstance.views startAutoStoppedView:viewName segmentation:segmentation];
+            result(viewId);
+        });
+    } else if ([@"stopAllViews" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSDictionary* segmentation = [command objectAtIndex:0];
+            [Countly.sharedInstance.views stopAllViews:segmentation];
+        });
     } else if ([@"stopViewWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *viewId = [command objectAtIndex:0];
@@ -1155,13 +1174,6 @@ FlutterMethodChannel *_channel;
           NSString *viewId = [command objectAtIndex:0];
           NSDictionary* segmentation = [command objectAtIndex:1];
           [Countly.sharedInstance.views resumeViewWithID:viewId];
-        });
-    } else if ([@"startView" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          NSString *viewName = [command objectAtIndex:0];
-          NSDictionary* segmentation = [command objectAtIndex:1];
-          NSString *viewId = [Countly.sharedInstance.views startView:viewName segmentation:segmentation];
-          result(viewId);
         });
     } else if ([@"setGlobalViewSegmentation" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
