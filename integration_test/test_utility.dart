@@ -1,0 +1,24 @@
+import 'package:countly_flutter/countly_config.dart';
+
+// Countly Flutter SDK Test Structure
+// Test Should grouped according to modules
+// Each module would have a separate folder under integration_test
+// In each folder would have a separate file for each test case
+// Each test case file would have a SINGLE!! test case
+// Tests should start by initializing the SDK
+// Then wait for 1 second (or enough)
+// Then tests should follow accordingly
+
+// Constants
+const String SERVER_URL = 'https://xxx.count.ly';
+const String APP_KEY = 'YOUR_APP_KEY';
+const String DEVICE_ID = 'DEVICE_ID';
+
+/// Creates a base CountlyConfig object for testing.
+CountlyConfig createBaseConfig() {
+  CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
+    ..setRequiresConsent(false)
+    ..setDeviceId(DEVICE_ID)
+    ..setLoggingEnabled(true);
+  return config;
+}
