@@ -70,7 +70,7 @@ class ViewsInternal implements Views {
     final List<Object> args = [];
     args.add(viewName);
     args.add(segmentation);
-    final String viewId = await _countlyState.channel.invokeMethod('startView', <String, dynamic>{'data': json.encode(args)});
+    final String? viewId = await _countlyState.channel.invokeMethod('startView', <String, dynamic>{'data': json.encode(args)});
     return viewId;
   }
 
@@ -108,7 +108,7 @@ class ViewsInternal implements Views {
     final List<Object> args = [];
     args.add(viewName);
     args.add(segmentation);
-    final String viewId = await _countlyState.channel.invokeMethod('startAutoStoppedView', <String, dynamic>{'data': json.encode(args)});
+    final String? viewId = await _countlyState.channel.invokeMethod('startAutoStoppedView', <String, dynamic>{'data': json.encode(args)});
     return viewId;
   }
 
