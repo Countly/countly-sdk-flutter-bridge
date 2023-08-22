@@ -70,7 +70,7 @@ class ViewsInternal implements Views {
     final List<Object> args = [];
     args.add(viewName);
     args.add(segmentation);
-    final String viewId = await _countlyState.channel.invokeMethod('startView', <String, dynamic>{'data': json.encode(args)});
+    final String? viewId = await _countlyState.channel.invokeMethod('startView', <String, dynamic>{'data': json.encode(args)});
     return viewId;
   }
 
@@ -108,7 +108,7 @@ class ViewsInternal implements Views {
     final List<Object> args = [];
     args.add(viewName);
     args.add(segmentation);
-    final String viewId = await _countlyState.channel.invokeMethod('startAutoStoppedView', <String, dynamic>{'data': json.encode(args)});
+    final String? viewId = await _countlyState.channel.invokeMethod('startAutoStoppedView', <String, dynamic>{'data': json.encode(args)});
     return viewId;
   }
 
@@ -116,7 +116,7 @@ class ViewsInternal implements Views {
   Future<void> stopAllViews([Map<String, Object> segmentation = const {}]) async {
     if (!_countlyState.isInitialized) {
       Countly.log('[Views] stopAllViews, "initWithConfig" must be called before "[Views] stopAllViews"', logLevel: LogLevel.ERROR);
-      return null;
+      return;
     }
     Countly.log('Calling "[Views] stopAllViews"');
     final List<Object> args = [];

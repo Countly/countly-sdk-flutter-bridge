@@ -1999,6 +1999,10 @@ class Countly {
         countlyConfig['attributionValues'] = config.iaAttributionValues;
       }
 
+      if (config.globalViewSegmentation != null) {
+        countlyConfig['globalViewSegmentation'] = config.globalViewSegmentation;
+      }
+
       countlyConfig['remoteConfigAutomaticTriggers'] = config.remoteConfigAutomaticTriggers;
 
       countlyConfig['remoteConfigValueCaching'] = config.remoteConfigValueCaching;

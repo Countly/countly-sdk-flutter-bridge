@@ -1293,6 +1293,17 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 Countly.sharedInstance().views().updateGlobalViewSegmentation(segmentation);
                 result.success(null);
+            } else if ("stopAllViews".equals(call.method)) {
+                Map<String, Object> segmentation = toMap(args.getJSONObject(0));
+
+                Countly.sharedInstance().views().stopAllViews(segmentation);
+                result.success(null);
+            } else if ("startAutoStoppedView".equals(call.method)) {
+                String viewName = args.getString(0);
+                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+                String viewId = Countly.sharedInstance().views().startAutoStoppedView(viewName, segmentation);
+                result.success(viewId);
             } else if ("appLoadingFinished".equals(call.method)) {
                 Countly.sharedInstance().apm().setAppIsLoaded();
                 result.success("appLoadingFinished: success");
