@@ -129,11 +129,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private static String lastStoredNotification = null;
     private MethodChannel methodChannel;
     private Lifecycle lifecycle;
-    private Boolean isSessionStarted_ = false;
-    private Boolean startMethodCalled = false; // used to check if start was called at background
+    private Boolean isAutomaticSessionsEnabled_ = false;
+    private Boolean isAppOnFocus = false; // to check if app is on focus/onStart called
     private Boolean manualSessionControlEnabled_ = false;
 
-    private boolean isOnResumeBeforeInit = false;
+    private boolean didAppStartBeforeInit = false; // for checking apm background/foreground calculations
     static final int requestIDNoCallback = -1;
     static final int requestIDGlobalCallback = -2;
 
@@ -224,17 +224,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     @Override
     public void onStart(@NonNull LifecycleOwner owner) {
         log("onStart", LogLevel.INFO);
+        isAppOnFocus = true; // App visible
         if (Countly.sharedInstance().isInitialized()) {
-            if(startMethodCalled){ // if onStart is called after start, then it means that the app was in the background and is now in the foreground
-                startMethodCalled = false;
-                return;
-            }
-            if (isSessionStarted_ || manualSessionControlEnabled_) {
+            if (isAutomaticSessionsEnabled_) {
                 Countly.sharedInstance().onStart(activity);
             }
             Countly.sharedInstance().apm().triggerForeground();
         } else {
-            isOnResumeBeforeInit = true;
+            didAppStartBeforeInit = true;
         }
     }
 
@@ -254,10 +251,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     @Override
     public void onStop(@NonNull LifecycleOwner owner) {
         log("onStop", LogLevel.INFO);
-            if(startMethodCalled){ // we expect onStop to come after 'start' method and reset this flag
-                startMethodCalled = false;
-            }
-        if (isSessionStarted_ || manualSessionControlEnabled_) {
+        isAppOnFocus = false; // App not visible
+        if (isAutomaticSessionsEnabled_) {
             Countly.sharedInstance().onStop();
         }
     }
@@ -313,8 +308,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     this.config.setApplication(activity.getApplication());
                 }
                 Countly.sharedInstance().init(this.config);
-                if (isOnResumeBeforeInit) {
-                    isOnResumeBeforeInit = false;
+                if (didAppStartBeforeInit) {
+                    didAppStartBeforeInit = false;
                     Countly.sharedInstance().apm().triggerForeground();
                 }
                 result.success("initialized!");
@@ -501,6 +496,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         }
                     }
                 });
+            // ******************************************************************************************    
+            // Manual Session Calls
+            // ******************************************************************************************    
             } else if ("beginSession".equals(call.method)) {
                 Countly.sharedInstance().sessions().beginSession();
                 result.success("beginSession!");
@@ -512,9 +510,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("endSession".equals(call.method)) {
                 Countly.sharedInstance().sessions().endSession();
                 result.success("endSession!");
-
+            // ******************************************************************************************
+            // Automatic Session Calls
+            // ******************************************************************************************    
             } else if ("start".equals(call.method)) {
-                if (isSessionStarted_) {
+                if (isAutomaticSessionsEnabled_) {
                     log("session already started", LogLevel.INFO);
                     result.error("Start Failed", "session already started", null);
                     return;
@@ -524,21 +524,28 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     result.error("Start Failed", "Activity is null", null);
                     return;
                 }
-                startMethodCalled = true;
-                Countly.sharedInstance().onStart(activity);
-                isSessionStarted_ = true;
+                if(isAppOnFocus){ // if app is in focus, start session. If app is in background, session will start when app comes to foreground
+                    Countly.sharedInstance().onStart(activity);
+                } else {
+                    log("'Start' was called while the app was at background. Will start the session when it comes to foreground.", LogLevel.WARNING);
+                }
+                isAutomaticSessionsEnabled_ = true;
                 result.success("started!");
-            } else if ("manualSessionHandling".equals(call.method)) {
+            } else if ("manualSessionHandling".equals(call.method)) { // not used currently
                 result.success("deafult!");
 
             } else if ("stop".equals(call.method)) {
-                if (!isSessionStarted_) {
+                if (!isAutomaticSessionsEnabled_) {
                     log("must call Start before Stop", LogLevel.INFO);
                     result.error("Stop Failed", "must call Start before Stop", null);
                     return;
                 }
-                Countly.sharedInstance().onStop();
-                isSessionStarted_ = false;
+                if(isAppOnFocus){ // if app is in focus, stop session. If app is in background, session was already stopped
+                    Countly.sharedInstance().onStop();
+                } else {
+                    log("'Stop' was called while the app was at background. Will stop the automatic sessions.", LogLevel.INFO);
+                }
+                isAutomaticSessionsEnabled_ = false;
                 result.success("stoped!");
 
             } else if ("updateSessionPeriod".equals(call.method)) {
