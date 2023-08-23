@@ -131,7 +131,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private Lifecycle lifecycle;
     private Boolean isAutomaticSessionsEnabled_ = false;
     private Boolean isAppOnFocus = false; // to check if app is on focus/onStart called
-    private Boolean manualSessionControlEnabled_ = false;
 
     private boolean didAppStartBeforeInit = false; // for checking apm background/foreground calculations
     static final int requestIDNoCallback = -1;
@@ -498,7 +497,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 });
             // ******************************************************************************************    
             // Manual Session Calls
-            // ******************************************************************************************    
+            // ******************************************************************************************
+            // manual session enabled checks are already done in the countly_flutter.dart side    
             } else if ("beginSession".equals(call.method)) {
                 Countly.sharedInstance().sessions().beginSession();
                 result.success("beginSession!");
@@ -513,6 +513,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             // ******************************************************************************************
             // Automatic Session Calls
             // ******************************************************************************************    
+            // manual session enabled checks are already done in the countly_flutter.dart side    
             } else if ("start".equals(call.method)) {
                 if (isAutomaticSessionsEnabled_) {
                     log("session already started", LogLevel.INFO);
@@ -1420,7 +1421,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     }
 
     private void enableManualSessionControl() {
-        manualSessionControlEnabled_ = true;
         this.config.enableManualSessionControl();
     }
 
