@@ -15,6 +15,7 @@
 #endif
 @property (nonatomic) NSMutableDictionary<NSString*, CountlyViewData *> * viewDataDictionary;
 @property (nonatomic) NSMutableDictionary* viewSegmentation;
+@property (nonatomic) BOOL isFirstView;
 @end
 
 NSString* const kCountlyReservedEventView = @"[CLY]_view";
@@ -100,6 +101,7 @@ NSString* const kCountlyVTKeyDur      = @"dur";
         
         self.viewDataDictionary = NSMutableDictionary.new;
         self.viewSegmentation = nil;
+        self.isFirstView = true;
     }
     
     return self;
@@ -131,7 +133,7 @@ NSString* const kCountlyVTKeyDur      = @"dur";
     NSMutableDictionary *mutableSegmentation = segmentation.mutableCopy;
     [mutableSegmentation removeObjectsForKeys:self.reservedViewTrackingSegmentationKeys];
     self.viewSegmentation = mutableSegmentation;
-
+    
 }
 
 - (void)updateGlobalViewSegmentation:(NSDictionary *)segmentation
@@ -264,7 +266,7 @@ NSString* const kCountlyVTKeyDur      = @"dur";
     self.isAutoViewTrackingActive = NO;
     
     //    self.currentView = nil;
-    self.currentViewID = nil;
+    //    self.currentViewID = nil;
 }
 
 - (void)setIsAutoViewTrackingActive:(BOOL)isAutoViewTrackingActive
@@ -286,11 +288,6 @@ NSString* const kCountlyVTKeyDur      = @"dur";
 
 
 #pragma mark - Public methods Deprecated
-
-- (void)startView:(NSString *)viewName customSegmentation:(NSDictionary *)customSegmentation
-{
-    [self startAutoStoppedView:viewName segmentation:customSegmentation];
-}
 
 - (void)addExceptionForAutoViewTracking:(NSString *)exception
 {
@@ -338,6 +335,10 @@ NSString* const kCountlyVTKeyDur      = @"dur";
 
 - (void)stopViewWithIDInternal:(NSString *) viewKey customSegmentation:(NSDictionary *)customSegmentation
 {
+    [self stopViewWithIDInternal:viewKey customSegmentation:customSegmentation autoPaused:false];
+}
+
+- (void)stopViewWithIDInternal:(NSString *) viewKey customSegmentation:(NSDictionary *)customSegmentation autoPaused:(BOOL) autoPaused{
     if (!viewKey || !viewKey.length)
     {
         CLY_LOG_D(@"%s View ID should not be null or empty", __FUNCTION__);
@@ -366,11 +367,12 @@ NSString* const kCountlyVTKeyDur      = @"dur";
         }
         
         NSTimeInterval duration = viewData.duration;
-        viewData.viewAccumulatedTime = 0;
         [Countly.sharedInstance recordReservedEvent:kCountlyReservedEventView segmentation:segmentation count:1 sum:0 duration:duration ID:viewData.viewID timestamp:CountlyCommon.sharedInstance.uniqueTimestamp];
         
         CLY_LOG_D(@"%s View tracking ended: %@ duration: %.17g", __FUNCTION__, viewData.viewName, duration);
-        [self.viewDataDictionary removeObjectForKey:viewKey];
+        if(!autoPaused) {
+            [self.viewDataDictionary removeObjectForKey:viewKey];
+        }
     }
     else {
         CLY_LOG_D(@"%s No View exist with ID: %@", __FUNCTION__, viewKey);
@@ -406,8 +408,11 @@ NSString* const kCountlyVTKeyDur      = @"dur";
     segmentation[kCountlyVTKeySegment] = CountlyDeviceInfo.osName;
     segmentation[kCountlyVTKeyVisit] = @1;
     
-    if (self.viewDataDictionary.count == 0)
+    if (self.isFirstView)
+    {
+        self.isFirstView = false;
         segmentation[kCountlyVTKeyStart] = @1;
+    }
     
     if (self.viewSegmentation)
     {
@@ -449,7 +454,7 @@ NSString* const kCountlyVTKeyDur      = @"dur";
     CountlyViewData* viewData = self.viewDataDictionary[viewID];
     if (viewData)
     {
-        [viewData pauseView];
+        [self pauseViewInternal:viewData];
     }
     else {
         CLY_LOG_D(@"%s No View exist with ID: %@", __FUNCTION__, viewID);
@@ -506,7 +511,7 @@ NSString* const kCountlyVTKeyDur      = @"dur";
 {
     if (self.currentView)
     {
-        [self.currentView pauseView];
+        [self pauseViewInternal:self.currentView];
     }
 }
 
@@ -518,19 +523,40 @@ NSString* const kCountlyVTKeyDur      = @"dur";
 - (void)pauseAllViewsInternal
 {
     [self.viewDataDictionary enumerateKeysAndObjectsUsingBlock:^(NSString * _Nonnull key, CountlyViewData * _Nonnull viewData, BOOL * _Nonnull stop) {
-        [viewData pauseView];
+        [self pauseViewInternal:viewData autoPaused:true];
     }];
+}
+
+- (void)pauseViewInternal:(CountlyViewData*) viewData
+{
+    [self pauseViewInternal:viewData];
+}
+
+- (void)pauseViewInternal:(CountlyViewData*) viewData autoPaused:(BOOL) autoPaused
+{
+    if(autoPaused) {
+        [viewData autoPauseView];
+    }
+    else {
+        [viewData pauseView];
+    }
+    [self stopViewWithIDInternal:viewData.viewID customSegmentation:nil autoPaused:true];
 }
 
 - (void)resumeAllViewsInternal
 {
     [self.viewDataDictionary enumerateKeysAndObjectsUsingBlock:^(NSString * _Nonnull key, CountlyViewData * _Nonnull viewData, BOOL * _Nonnull stop) {
-        [viewData resumeView];
+        if(viewData.isAutoPaused)
+        {
+            [viewData resumeView];
+        }
     }];
 }
 
 - (void)stopAllViewsInternal:(NSDictionary *)segmentation
 {
+    if (!CountlyConsentManager.sharedInstance.consentForViewTracking)
+        return;
     [self.viewDataDictionary enumerateKeysAndObjectsUsingBlock:^(NSString * _Nonnull key, CountlyViewData * _Nonnull viewData, BOOL * _Nonnull stop) {
         [self stopViewWithIDInternal:key customSegmentation:segmentation];
     }];
@@ -622,7 +648,7 @@ NSString* const kCountlyVTKeyDur      = @"dur";
 
 #pragma mark - Public function for application state
 
-- (void)applicationDidEnterBackground {
+- (void)applicationWillEnterForeground {
 #if (TARGET_OS_IOS || TARGET_OS_TV)
     if(self.isAutoViewTrackingActive) {
         
@@ -631,10 +657,10 @@ NSString* const kCountlyVTKeyDur      = @"dur";
         [self resumeAllViewsInternal];
     }
 #else
-    [self resumeAllViews];
+    [self resumeAllViewsInternal];
 #endif
 }
-- (void)applicationWillEnterForeground {
+- (void)applicationDidEnterBackground {
 #if (TARGET_OS_IOS || TARGET_OS_TV)
     if(self.isAutoViewTrackingActive) {
         [self stopCurrentView];
@@ -643,11 +669,18 @@ NSString* const kCountlyVTKeyDur      = @"dur";
         [self pauseAllViewsInternal];
     }
 #else
-    [self pauseAllViews];
+    [self pauseAllViewsInternal];
 #endif
 }
+
 - (void)applicationWillTerminate {
     [self stopAllViewsInternal:nil];
+}
+
+
+- (void)resetFirstView
+{
+    self.isFirstView = false;
 }
 
 
