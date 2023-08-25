@@ -70,6 +70,7 @@ class _MyAppState extends State<MyApp> {
         CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
           ..enableCrashReporting() // Enable crash reporting to report unhandled crashes to Countly
           ..setRequiresConsent(true) // Set that consent should be required for features to work.
+          ..giveAllConsents() // Either use giveAllConsents or setConsentEnabled
           ..setConsentEnabled([
             CountlyConsent.sessions,
             CountlyConsent.events,

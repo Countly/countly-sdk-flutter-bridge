@@ -34,6 +34,7 @@ class CountlyConfig {
   final List<RCDownloadCallback> _remoteConfigGlobalCallbacks = [];
   bool _remoteConfigValueCaching = false;
   Map<String, Object>? _globalViewSegmentation;
+  bool _allConsentGiven = false;
 
   CountlyConfig(this._serverURL, this._appKey);
 
@@ -101,6 +102,8 @@ class CountlyConfig {
   bool get remoteConfigValueCaching => _remoteConfigValueCaching;
 
   Map<String, Object>? get globalViewSegmentation => _globalViewSegmentation;
+
+  bool get allConsentGiven => _allConsentGiven;
 
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
@@ -285,6 +288,12 @@ class CountlyConfig {
   /// Used to enable global view segmentation
   CountlyConfig setGlobalViewSegmentation(Map<String, Object> segmentation) {
     _globalViewSegmentation = segmentation;
+    return this;
+  }
+
+  /// Used to enable give all consent at init time
+  CountlyConfig giveAllConsents() {
+    _allConsentGiven = true;
     return this;
   }
 }
