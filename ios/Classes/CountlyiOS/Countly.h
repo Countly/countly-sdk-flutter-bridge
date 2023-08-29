@@ -211,7 +211,13 @@ NS_ASSUME_NONNULL_BEGIN
  * @discussion This is a convenience method for grating consent for all features at once.
  * @discussion Inner workings of @c giveConsentForFeature: method applies for this method as well.
  */
-- (void)giveConsentForAllFeatures;
+- (void)giveConsentForAllFeatures DEPRECATED_MSG_ATTRIBUTE("Use 'giveAllConsents:' method instead!");
+
+/**
+ * Grants consent to all features and starts them.
+ * @discussion This is a convenience method for grating consent for all features at once.
+ */
+- (void)giveAllConsents;
 
 /**
  * Cancels consent to given feature and stops it.
@@ -558,6 +564,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) BOOL isAutoViewTrackingActive DEPRECATED_MSG_ATTRIBUTE("Don't use this variable, it will be remove in future release");
 #endif
 
+/**
+ * Interface variable to access views tracking functionalities.
+ * @discussion Views tracking interface for developer to interact with SDK.
+ */
 - (CountlyViewTracking *) views;
 
 #pragma mark - User Details
