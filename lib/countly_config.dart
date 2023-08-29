@@ -291,7 +291,7 @@ class CountlyConfig {
     return this;
   }
 
-  /// Used to enable give all consent at init time
+  /// Used to give all consent at init time
   CountlyConfig giveAllConsents() {
     _enableAllConsents = true;
     return this;

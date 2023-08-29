@@ -1592,8 +1592,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.setGlobalViewSegmentation(toMap(globalViewSegmentation));
         }
 
-        if (_config.has("allConsentGiven")) {
-            // this.config.giveAllConsents();
+        if (_config.has("enableAllConsents")) {
+             this.config.giveAllConsents();
         }
     }
 }

@@ -2003,6 +2003,10 @@ class Countly {
         countlyConfig['globalViewSegmentation'] = config.globalViewSegmentation;
       }
 
+      if (config.enableAllConsents != null) {
+        countlyConfig['enableAllConsents'] = config.enableAllConsents;
+      }
+
       countlyConfig['remoteConfigAutomaticTriggers'] = config.remoteConfigAutomaticTriggers;
 
       countlyConfig['remoteConfigValueCaching'] = config.remoteConfigValueCaching;

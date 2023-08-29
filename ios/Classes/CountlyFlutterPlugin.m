@@ -710,8 +710,7 @@ FlutterMethodChannel *_channel;
 
     } else if ([@"giveAllConsent" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          [Countly.sharedInstance giveConsentForFeature:CLYConsentLocation];
-          [Countly.sharedInstance giveConsentForAllFeatures];
+          [Countly.sharedInstance giveAllConsents];
           result(@"giveAllConsent!");
         });
     } else if ([@"removeAllConsent" isEqualToString:call.method]) {
@@ -1383,6 +1382,14 @@ FlutterMethodChannel *_channel;
         if (shouldRequireConsent) {
             config.requiresConsent = [shouldRequireConsent boolValue];
         }
+        NSArray *consents = _config[@"consents"];
+        NSNumber *enableAllConsents = _config[@"enableAllConsents"];
+        if (enableAllConsents) {
+            config.enableAllConsents = [enableAllConsents boolValue];
+        }
+        else if (consents) {
+            config.consents = consents;
+        }
 
         NSNumber *eventQueueSizeThreshold = _config[@"eventQueueSizeThreshold"];
         if (eventQueueSizeThreshold) {
@@ -1409,10 +1416,6 @@ FlutterMethodChannel *_channel;
             Countly.user.custom = customeProperties;
         }
 
-        NSArray *consents = _config[@"consents"];
-        if (consents) {
-            config.consents = consents;
-        }
         NSString *starRatingTextMessage = _config[@"starRatingTextMessage"];
         if (starRatingTextMessage) {
             config.starRatingMessage = starRatingTextMessage;
