@@ -22,12 +22,12 @@ typedef NSString* CLYFeature NS_EXTENSIBLE_STRING_ENUM;
 extern CLYFeature const CLYPushNotifications;
 #endif
 extern CLYFeature const CLYCrashReporting;
-extern CLYFeature const CLYAutoViewTracking;
+extern CLYFeature const CLYAutoViewTracking DEPRECATED_MSG_ATTRIBUTE("Use 'config.enableAutomaticViewTracking' instead");
 #elif (TARGET_OS_WATCH)
 extern CLYFeature const CLYCrashReporting;
 #elif (TARGET_OS_TV)
 extern CLYFeature const CLYCrashReporting;
-extern CLYFeature const CLYAutoViewTracking;
+extern CLYFeature const CLYAutoViewTracking  DEPRECATED_MSG_ATTRIBUTE("Use 'config.enableAutomaticViewTracking' instead");
 #elif (TARGET_OS_OSX)
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
 extern CLYFeature const CLYPushNotifications;
@@ -132,6 +132,8 @@ typedef enum : NSUInteger
 @end
 
 
+
+
 @interface CountlyConfig : NSObject
 
 /**
@@ -207,6 +209,29 @@ typedef enum : NSUInteger
 
 #pragma mark -
 
+#if (TARGET_OS_IOS || TARGET_OS_TV)
+/**
+ * For enabling automatic view tacking.
+ * @discussion If set, views will automatically track.
+ */
+@property (nonatomic) BOOL enableAutomaticViewTracking;
+
+/**
+ * Automatic view exclusion list .
+ * @discussion These views will exclude from automatic tracking.
+ */
+@property (nonatomic, copy) NSArray* automaticViewTrackingExclusionList;
+#endif
+/**
+ * Global view segmentation.
+ * @discussion If set, It will send with every view.
+ */
+
+@property (nonatomic, copy) NSDictionary* globalViewSegmentation;
+
+
+#pragma mark -
+
 /**
  * For limiting features based on user consent.
  * @discussion If set, SDK will wait for explicit consent to be given for features to work.
@@ -219,6 +244,13 @@ typedef enum : NSUInteger
  * @discussion Just like in @c giveConsentForFeatures: method.
  */
 @property (nonatomic, copy) NSArray<CLYConsent>* consents;
+
+/**
+ * For giving all consents during init.
+ * @discussion If set, it will give all feature consents.
+ */
+@property (nonatomic) BOOL enableAllConsents;
+
 #pragma mark -
 
 /**

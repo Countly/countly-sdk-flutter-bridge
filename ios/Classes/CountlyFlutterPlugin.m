@@ -710,8 +710,7 @@ FlutterMethodChannel *_channel;
 
     } else if ([@"giveAllConsent" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          [Countly.sharedInstance giveConsentForFeature:CLYConsentLocation];
-          [Countly.sharedInstance giveConsentForAllFeatures];
+          [Countly.sharedInstance giveAllConsents];
           result(@"giveAllConsent!");
         });
     } else if ([@"removeAllConsent" isEqualToString:call.method]) {
@@ -1132,6 +1131,59 @@ FlutterMethodChannel *_channel;
               config.indirectAttribution = attributionValues;
           }
         });
+    } else if ([@"startView" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *viewName = [command objectAtIndex:0];
+            NSDictionary* segmentation = [command objectAtIndex:1];
+            NSString *viewId = [Countly.sharedInstance.views startView:viewName segmentation:segmentation];
+            result(viewId);
+        });
+    } else if ([@"startAutoStoppedView" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *viewName = [command objectAtIndex:0];
+            NSDictionary* segmentation = [command objectAtIndex:1];
+            NSString *viewId = [Countly.sharedInstance.views startAutoStoppedView:viewName segmentation:segmentation];
+            result(viewId);
+        });
+    } else if ([@"stopAllViews" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSDictionary* segmentation = [command objectAtIndex:0];
+            [Countly.sharedInstance.views stopAllViews:segmentation];
+        });
+    } else if ([@"stopViewWithID" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSString *viewId = [command objectAtIndex:0];
+          NSDictionary* segmentation = [command objectAtIndex:1];
+          [Countly.sharedInstance.views stopViewWithID:viewId segmentation:segmentation];
+        });
+    } else if ([@"stopViewWithName" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSString *viewName = [command objectAtIndex:0];
+          NSDictionary* segmentation = [command objectAtIndex:1];
+          [Countly.sharedInstance.views stopViewWithName:viewName segmentation:segmentation];
+        });
+    } else if ([@"pauseViewWithID" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSString *viewId = [command objectAtIndex:0];
+          NSDictionary* segmentation = [command objectAtIndex:1];
+          [Countly.sharedInstance.views pauseViewWithID:viewId];
+        });
+    } else if ([@"resumeViewWithID" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSString *viewId = [command objectAtIndex:0];
+          NSDictionary* segmentation = [command objectAtIndex:1];
+          [Countly.sharedInstance.views resumeViewWithID:viewId];
+        });
+    } else if ([@"setGlobalViewSegmentation" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSDictionary* segmentation = [command objectAtIndex:0];
+          [Countly.sharedInstance.views setGlobalViewSegmentation:segmentation];
+        });
+    } else if ([@"updateGlobalViewSegmentation" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSDictionary* segmentation = [command objectAtIndex:0];
+          [Countly.sharedInstance.views updateGlobalViewSegmentation:segmentation];
+        });
     } else if ([@"appLoadingFinished" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           [Countly.sharedInstance appLoadingFinished];
@@ -1330,6 +1382,14 @@ FlutterMethodChannel *_channel;
         if (shouldRequireConsent) {
             config.requiresConsent = [shouldRequireConsent boolValue];
         }
+        NSArray *consents = _config[@"consents"];
+        NSNumber *enableAllConsents = _config[@"enableAllConsents"];
+        if (enableAllConsents) {
+            config.enableAllConsents = [enableAllConsents boolValue];
+        }
+        else if (consents) {
+            config.consents = consents;
+        }
 
         NSNumber *eventQueueSizeThreshold = _config[@"eventQueueSizeThreshold"];
         if (eventQueueSizeThreshold) {
@@ -1356,10 +1416,6 @@ FlutterMethodChannel *_channel;
             Countly.user.custom = customeProperties;
         }
 
-        NSArray *consents = _config[@"consents"];
-        if (consents) {
-            config.consents = consents;
-        }
         NSString *starRatingTextMessage = _config[@"starRatingTextMessage"];
         if (starRatingTextMessage) {
             config.starRatingMessage = starRatingTextMessage;
@@ -1406,6 +1462,11 @@ FlutterMethodChannel *_channel;
         NSNumber *remoteConfigValueCaching = _config[@"remoteConfigValueCaching"];
         if (remoteConfigValueCaching) {
             config.enableRemoteConfigValueCaching = [remoteConfigValueCaching boolValue];
+        }
+
+        NSDictionary *globalViewSegmentation = _config[@"globalViewSegmentation"];
+        if (globalViewSegmentation) {
+            config.globalViewSegmentation = globalViewSegmentation;
         }
 
         NSString *gpsCoordinate = _config[@"locationGpsCoordinates"];

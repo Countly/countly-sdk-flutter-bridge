@@ -1253,6 +1253,57 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 Countly.sharedInstance().attribution().recordDirectAttribution(campaignType, campaignData);
                 result.success("recordIndirectAttribution: success");
+            } else if ("stopViewWithID".equals(call.method)) {
+                String viewId = args.getString(0);
+                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+                Countly.sharedInstance().views().stopViewWithID(viewId, segmentation);
+                result.success(null);
+            } else if ("stopViewWithName".equals(call.method)) {
+                String viewName = args.getString(0);
+                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+                Countly.sharedInstance().views().stopViewWithName(viewName, segmentation);
+                result.success(null);
+            } else if ("pauseViewWithID".equals(call.method)) {
+                String viewId = args.getString(0);
+                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+                Countly.sharedInstance().views().pauseViewWithID(viewId);
+                result.success(null);
+            } else if ("resumeViewWithID".equals(call.method)) {
+                String viewId = args.getString(0);
+                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+                Countly.sharedInstance().views().resumeViewWithID(viewId);
+                result.success(null);
+            } else if ("startView".equals(call.method)) {
+                String viewName = args.getString(0);
+                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+                String viewId = Countly.sharedInstance().views().startView(viewName, segmentation);
+                result.success(viewId);
+            } else if ("setGlobalViewSegmentation".equals(call.method)) {
+                Map<String, Object> segmentation = toMap(args.getJSONObject(0));
+
+                Countly.sharedInstance().views().setGlobalViewSegmentation(segmentation);
+                result.success(null);
+            } else if ("updateGlobalViewSegmentation".equals(call.method)) {
+                Map<String, Object> segmentation = toMap(args.getJSONObject(0));
+
+                Countly.sharedInstance().views().updateGlobalViewSegmentation(segmentation);
+                result.success(null);
+            } else if ("stopAllViews".equals(call.method)) {
+                Map<String, Object> segmentation = toMap(args.getJSONObject(0));
+
+                Countly.sharedInstance().views().stopAllViews(segmentation);
+                result.success(null);
+            } else if ("startAutoStoppedView".equals(call.method)) {
+                String viewName = args.getString(0);
+                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+                String viewId = Countly.sharedInstance().views().startAutoStoppedView(viewName, segmentation);
+                result.success(viewId);
             } else if ("appLoadingFinished".equals(call.method)) {
                 Countly.sharedInstance().apm().setAppIsLoaded();
                 result.success("appLoadingFinished: success");
@@ -1534,6 +1585,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             if (remoteConfigValueCaching) {
                 this.config.enableRemoteConfigValueCaching();
             }
+        }
+
+        if (_config.has("globalViewSegmentation")) {
+            JSONObject globalViewSegmentation = _config.getJSONObject("globalViewSegmentation");
+            this.config.setGlobalViewSegmentation(toMap(globalViewSegmentation));
+        }
+
+        if (_config.has("enableAllConsents")) {
+             this.config.giveAllConsents();
         }
     }
 }

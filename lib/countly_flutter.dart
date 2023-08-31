@@ -8,12 +8,15 @@ import 'package:countly_flutter/remote_config.dart';
 import 'package:countly_flutter/remote_config_internal.dart';
 import 'package:countly_flutter/user_profile.dart';
 import 'package:countly_flutter/user_profile_internal.dart';
+import 'package:countly_flutter/views.dart';
+import 'package:countly_flutter/views_internal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
 
 export 'package:countly_flutter/countly_config.dart';
 export 'package:countly_flutter/remote_config.dart';
+export 'package:countly_flutter/views.dart';
 
 /// Attribution Keys to record indirect attribution
 /// IDFA is for iOS and AdvertisingID is for Android
@@ -48,6 +51,7 @@ class Countly {
   Countly._() {
     _remoteConfigInternal = RemoteConfigInternal(this, _countlyState);
     _userProfileInternal = UserProfileInternal(this, _countlyState);
+    _viewsInternal = ViewsInternal(this, _countlyState);
   }
   static final instance = _instance;
   static final _instance = Countly._();
@@ -60,6 +64,9 @@ class Countly {
   late final UserProfileInternal _userProfileInternal;
   UserProfile get userProfile => _userProfileInternal;
 
+  late final ViewsInternal _viewsInternal;
+  Views get views => _viewsInternal;
+
   static const bool BUILDING_WITH_PUSH_DISABLED = false;
   static const String _pushDisabledMsg = 'In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled';
 
@@ -69,7 +76,7 @@ class Countly {
   /// its value should be updated from [setLoggingEnabled(bool flag)].
   static bool _isDebug = false;
 
-  static final String tag = 'CountlyFlutter';
+  static const String tag = 'CountlyFlutter';
 
   /// Flag to determine if crash logging functionality should be enabled
   /// If false the intercepted crashes will be ignored
@@ -341,6 +348,7 @@ class Countly {
   /// [String view] - name of the view
   /// [Map<String, Object> segmentation] - allows to add optional segmentation,
   /// Supported data type for segmentation values are String, int, double and bool
+  @Deprecated('Use Countly.instance.views.startView instead')
   static Future<String?> recordView(String view, [Map<String, Object>? segmentation]) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "recordView"';
@@ -1989,6 +1997,14 @@ class Countly {
 
       if (config.iaAttributionValues != null) {
         countlyConfig['attributionValues'] = config.iaAttributionValues;
+      }
+
+      if (config.globalViewSegmentation != null) {
+        countlyConfig['globalViewSegmentation'] = config.globalViewSegmentation;
+      }
+
+      if (config.enableAllConsents != null) {
+        countlyConfig['enableAllConsents'] = config.enableAllConsents;
       }
 
       countlyConfig['remoteConfigAutomaticTriggers'] = config.remoteConfigAutomaticTriggers;

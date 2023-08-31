@@ -37,6 +37,8 @@ class _MyAppState extends State<MyApp> {
   String _deviceIdType = '';
   final bool _enableManualSession = false;
   static late final RCDownloadCallback _rcDownloadCallback;
+  final List<String> viewNames = ['viewName', 'viewName1'];
+  final List<String> viewIDs = [];
 
   @override
   void initState() {
@@ -68,6 +70,7 @@ class _MyAppState extends State<MyApp> {
         CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
           ..enableCrashReporting() // Enable crash reporting to report unhandled crashes to Countly
           ..setRequiresConsent(true) // Set that consent should be required for features to work.
+          ..giveAllConsents() // Either use giveAllConsents or setConsentEnabled
           ..setConsentEnabled([
             CountlyConsent.sessions,
             CountlyConsent.events,
@@ -551,6 +554,40 @@ class _MyAppState extends State<MyApp> {
     Countly.removeConsent(['apm']);
   }
 
+  void stopViewWithID() {
+    Countly.instance.views.stopViewWithID(viewIDs[0]);
+  }
+
+  void stopViewWithName() {
+    Countly.instance.views.stopViewWithName(viewNames[0]);
+  }
+
+  void pauseViewWithID() {
+    Countly.instance.views.pauseViewWithID(viewIDs[0]);
+  }
+
+  void resumeViewWithID() {
+    Countly.instance.views.resumeViewWithID(viewIDs[0]);
+  }
+
+  Future<void> startViewWithSegmentation() async {
+    viewIDs[0] = await Countly.instance.views.startView(viewNames[0], {'abcd': '123'}) ?? '';
+    print(viewIDs[0]);
+  }
+
+  Future<void> startView() async {
+    viewIDs[1] = await Countly.instance.views.startView(viewNames[1]) ?? '';
+    print(viewIDs[1]);
+  }
+
+  void setGlobalViewSegmentation() {
+    Countly.instance.views.setGlobalViewSegmentation({'abcd': '123'});
+  }
+
+  void updateGlobalViewSegmentation() {
+    Countly.instance.views.updateGlobalViewSegmentation({'abcd': '123'});
+  }
+
   void askForNotificationPermission() {
     Countly.askForNotificationPermission();
   }
@@ -1029,6 +1066,15 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'Remove Consent Push', color: 'blue', onPressed: removeConsentpush),
               MyButton(text: 'Remove Consent starRating', color: 'blue', onPressed: removeConsentstarRating),
               MyButton(text: 'Remove Consent Performance', color: 'blue', onPressed: removeConsentAPM),
+              const Text('Section for Views:', style: TextStyle(color: Colors.yellow), textAlign: TextAlign.center),
+              MyButton(text: 'Start View', color: 'yellow', onPressed: startView),
+              MyButton(text: 'Start View With Segmentation', color: 'yellow', onPressed: startViewWithSegmentation),
+              MyButton(text: 'Stop View with ID', color: 'yellow', onPressed: stopViewWithID),
+              MyButton(text: 'Stop View with Name', color: 'yellow', onPressed: stopViewWithName),
+              MyButton(text: 'Pause View with ID', color: 'yellow', onPressed: pauseViewWithID),
+              MyButton(text: 'Resume View with ID', color: 'yellow', onPressed: resumeViewWithID),
+              MyButton(text: 'Set Global View Segmentation', color: 'yellow', onPressed: setGlobalViewSegmentation),
+              MyButton(text: 'Update Global View Segmentation', color: 'yellow', onPressed: updateGlobalViewSegmentation),
               const Text('Section for A/B testing:', style: TextStyle(color: Colors.green), textAlign: TextAlign.center),
               MyButton(text: 'Get AB testing values (Legacy)', color: 'green', onPressed: getABTestingValues),
               MyButton(text: 'Record event for goal #1', color: 'green', onPressed: eventForGoal_1),
