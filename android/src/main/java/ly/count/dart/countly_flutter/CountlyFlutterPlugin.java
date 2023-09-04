@@ -129,10 +129,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private static String lastStoredNotification = null;
     private MethodChannel methodChannel;
     private Lifecycle lifecycle;
-    private Boolean isSessionStarted_ = false;
-    private Boolean manualSessionControlEnabled_ = false;
-
-    private boolean isOnResumeBeforeInit = false;
     static final int requestIDNoCallback = -1;
     static final int requestIDGlobalCallback = -2;
 
@@ -170,9 +166,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         this.context = context;
         methodChannel = new MethodChannel(messenger, "countly_flutter");
         methodChannel.setMethodCallHandler(this);
-
         this.config.enableManualAppLoadedTrigger();
-        this.config.enableManualForegroundBackgroundTriggerAPM();
 
         log("onAttachedToEngineInternal", LogLevel.INFO);
     }
@@ -223,14 +217,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     @Override
     public void onStart(@NonNull LifecycleOwner owner) {
         log("onStart", LogLevel.INFO);
-        if (Countly.sharedInstance().isInitialized()) {
-            if (isSessionStarted_ || manualSessionControlEnabled_) {
-                Countly.sharedInstance().onStart(activity);
-            }
-            Countly.sharedInstance().apm().triggerForeground();
-        } else {
-            isOnResumeBeforeInit = true;
-        }
     }
 
     @Override
@@ -241,17 +227,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     @Override
     public void onPause(@NonNull LifecycleOwner owner) {
         log("onPause", LogLevel.INFO);
-        if (Countly.sharedInstance().isInitialized()) {
-            Countly.sharedInstance().apm().triggerBackground();
-        }
     }
 
     @Override
     public void onStop(@NonNull LifecycleOwner owner) {
         log("onStop", LogLevel.INFO);
-        if (isSessionStarted_ || manualSessionControlEnabled_) {
-            Countly.sharedInstance().onStop();
-        }
     }
 
     @Override
@@ -305,10 +285,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     this.config.setApplication(activity.getApplication());
                 }
                 Countly.sharedInstance().init(this.config);
-                if (isOnResumeBeforeInit) {
-                    isOnResumeBeforeInit = false;
-                    Countly.sharedInstance().apm().triggerForeground();
-                }
                 result.success("initialized!");
             } else if ("isInitialized".equals(call.method)) {
                 boolean isInitialized = Countly.sharedInstance().isInitialized();
@@ -506,30 +482,18 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success("endSession!");
 
             } else if ("start".equals(call.method)) {
-                if (isSessionStarted_) {
-                    log("session already started", LogLevel.INFO);
-                    result.error("Start Failed", "session already started", null);
-                    return;
-                }
                 if (activity == null) {
                     log("start failed : Activity is null", LogLevel.ERROR);
                     result.error("Start Failed", "Activity is null", null);
                     return;
                 }
                 Countly.sharedInstance().onStart(activity);
-                isSessionStarted_ = true;
                 result.success("started!");
             } else if ("manualSessionHandling".equals(call.method)) {
                 result.success("deafult!");
 
             } else if ("stop".equals(call.method)) {
-                if (!isSessionStarted_) {
-                    log("must call Start before Stop", LogLevel.INFO);
-                    result.error("Stop Failed", "must call Start before Stop", null);
-                    return;
-                }
                 Countly.sharedInstance().onStop();
-                isSessionStarted_ = false;
                 result.success("stoped!");
 
             } else if ("updateSessionPeriod".equals(call.method)) {
@@ -1455,7 +1419,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     }
 
     private void enableManualSessionControl() {
-        manualSessionControlEnabled_ = true;
         this.config.enableManualSessionControl();
     }
 
