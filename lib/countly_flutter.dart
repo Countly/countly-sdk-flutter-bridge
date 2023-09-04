@@ -6,6 +6,8 @@ import 'package:countly_flutter/countly_config.dart';
 import 'package:countly_flutter/countly_state.dart';
 import 'package:countly_flutter/remote_config.dart';
 import 'package:countly_flutter/remote_config_internal.dart';
+import 'package:countly_flutter/sessions.dart';
+import 'package:countly_flutter/sessions_internal.dart';
 import 'package:countly_flutter/user_profile.dart';
 import 'package:countly_flutter/user_profile_internal.dart';
 import 'package:countly_flutter/views.dart';
@@ -52,6 +54,8 @@ class Countly {
     _remoteConfigInternal = RemoteConfigInternal(this, _countlyState);
     _userProfileInternal = UserProfileInternal(this, _countlyState);
     _viewsInternal = ViewsInternal(this, _countlyState);
+    _sessionsInternal = SessionsInternal(this, _countlyState);
+
   }
   static final instance = _instance;
   static final _instance = Countly._();
@@ -66,6 +70,9 @@ class Countly {
 
   late final ViewsInternal _viewsInternal;
   Views get views => _viewsInternal;
+
+  late final SessionsInternal _sessionsInternal;
+  Sessions get sessions => _sessionsInternal;
 
   static const bool BUILDING_WITH_PUSH_DISABLED = false;
   static const String _pushDisabledMsg = 'In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled';
@@ -229,6 +236,9 @@ class Countly {
     }
     if (config.manualSessionEnabled != null) {
       _manualSessionControlEnabled = config.manualSessionEnabled!;
+      if(config.manualSessionEnabled!) {
+        _instance._sessionsInternal.enableManualSession();
+      }
     }
     if (config.enableUnhandledCrashReporting != null) {
       _enableCrashReportingFlag = config.enableUnhandledCrashReporting!;
@@ -503,6 +513,8 @@ class Countly {
 
   /// Starts session for manual session handling.
   /// This method needs to be called for starting a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
+
+  @Deprecated('Use Countly.instance.sessions.beginSession instead')
   static Future<String?> beginSession() async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "beginSession"';
@@ -523,6 +535,8 @@ class Countly {
 
   /// Update session for manual session handling.
   /// This method needs to be called for updating a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
+
+  @Deprecated('Use Countly.instance.sessions.updateSession instead')
   static Future<String?> updateSession() async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "updateSession"';
@@ -543,6 +557,8 @@ class Countly {
 
   /// End session for manual session handling.
   /// This method needs to be called for ending a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
+
+  @Deprecated('Use Countly.instance.sessions.endSession instead')
   static Future<String?> endSession() async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "endSession"';
@@ -561,21 +577,12 @@ class Countly {
     return result;
   }
 
-  static Future<String?> start() async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "start"';
-      log('start, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "start"');
-    if (_manualSessionControlEnabled) {
-      String error = '"start" will be ignored since manual session control is enabled';
-      log(error);
-      return error;
-    }
-    final String? result = await _channel.invokeMethod('start');
 
-    return result;
+  @Deprecated('Automatic sessions are handled by underlying SDK, this function will do nothing')
+  static Future<String?> start() async {
+    String msg = 'Automatic sessions are handled by underlying SDK, this function will do nothing';
+    log(msg, logLevel: LogLevel.WARNING);
+    return msg;
   }
 
   @Deprecated('Use enableManualSessionHandling of CountlyConfig instead')
@@ -587,21 +594,11 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Automatic sessions are handled by underlying SDK, this function will do nothing')
   static Future<String?> stop() async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "stop"';
-      log('stop, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "stop"');
-    if (_manualSessionControlEnabled) {
-      String error = '"stop" will be ignored since manual session control is enabled';
-      log(error);
-      return error;
-    }
-    final String? result = await _channel.invokeMethod('stop');
-
-    return result;
+    String msg = 'Automatic sessions are handled by underlying SDK, this function will do nothing';
+    log(msg, logLevel: LogLevel.WARNING);
+    return msg;
   }
 
   @Deprecated('Use setUpdateSessionTimerDelay of CountlyConfig instead')
@@ -1960,7 +1957,7 @@ class Countly {
       }
 
       if (config.manualSessionEnabled != null) {
-        countlyConfig['manualSessionEnabled'] = _manualSessionControlEnabled;
+        countlyConfig['manualSessionEnabled'] = config.manualSessionEnabled;
       }
 
       if (config.maxRequestQueueSize != null) {

@@ -22,7 +22,7 @@ rootProject.allprojects {
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 31
+    compileSdk 31
 
     defaultConfig {
         minSdkVersion 17
@@ -34,6 +34,6 @@ android {
 }
 
 dependencies {
-    implementation 'ly.count.android:sdk:23.8.0-RC10'
+    implementation 'ly.count.android:sdk:23.8.0-RC11'
     implementation 'com.google.firebase:firebase-messaging:20.2.1'
 }

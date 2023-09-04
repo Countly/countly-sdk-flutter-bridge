@@ -180,22 +180,10 @@ FlutterMethodChannel *_channel;
           result(@"endSession!");
         });
 
-    } else if ([@"start" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          [Countly.sharedInstance beginSession];
-          result(@"start!");
-        });
-
     } else if ([@"manualSessionHandling" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           config.manualSessionHandling = YES;
           result(@"manualSessionHandling!");
-        });
-
-    } else if ([@"stop" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          [Countly.sharedInstance endSession];
-          result(@"stop!");
         });
 
     } else if ([@"updateSessionPeriod" isEqualToString:call.method]) {
