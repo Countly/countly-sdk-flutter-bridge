@@ -481,20 +481,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 Countly.sharedInstance().sessions().endSession();
                 result.success("endSession!");
 
-            } else if ("start".equals(call.method)) {
-                if (activity == null) {
-                    log("start failed : Activity is null", LogLevel.ERROR);
-                    result.error("Start Failed", "Activity is null", null);
-                    return;
-                }
-                Countly.sharedInstance().onStart(activity);
-                result.success("started!");
             } else if ("manualSessionHandling".equals(call.method)) {
                 result.success("deafult!");
-
-            } else if ("stop".equals(call.method)) {
-                Countly.sharedInstance().onStop();
-                result.success("stoped!");
 
             } else if ("updateSessionPeriod".equals(call.method)) {
                 result.success("default!");

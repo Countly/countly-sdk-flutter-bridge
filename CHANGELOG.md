@@ -6,9 +6,16 @@
 * Added support for recording multiple views at the same time
 * Added `enableAllConsents` initial config property to give all consents at init time
 * Fixed a bug that prevented global callbacks from being called.
-* Introduced a new views interface ('Countly.instance.views') on the SDK instance the exposes the reworked views functionality
-* Deprecated old view methods. You should use the views object. Deprecated methods are:
+* Introduced a new sessions interface `Countly.instance.sessions` on the SDK instance the exposes the manual sessions functionality
+* Introduced a new views interface `Countly.instance.views` on the SDK instance the exposes the reworked views functionality
+* Deprecated old view methods. You should use the `views` object. Deprecated methods are:
   * recordView
+* Deprecated old session methods. You should use the `sessions` object. Deprecated methods are:
+    * beginSession
+    * updateSession
+    * endSession
+    * start
+    * stop
 * Updated Underlying android SDK version to 23.8.0
 * Updated Underlying iOS SDK version to 23.8.0
 

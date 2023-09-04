@@ -14,15 +14,13 @@ class SessionsInternal implements Sessions {
   @override
   Future<void> beginSession() async {
     if (!_countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "beginSession"';
-      Countly.log('beginSession, $message', logLevel: LogLevel.ERROR);
+      Countly.log('"initWithConfig" must be called before "beginSession"', logLevel: LogLevel.ERROR);
       return;
     }
     Countly.log('Calling "beginSession", manual session control enabled:[$_manualSessionEnabled]');
 
     if (!_manualSessionEnabled) {
-      String error = '"beginSession" will be ignored since manual session control is not enabled';
-      Countly.log(error);
+      Countly.log('"beginSession" will be ignored since manual session control is not enabled');
       return;
     }
     await _countlyState.channel.invokeMethod('beginSession');
@@ -31,15 +29,13 @@ class SessionsInternal implements Sessions {
   @override
   Future<void> endSession() async {
     if (!_countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "endSession"';
-      Countly.log('endSession, $message', logLevel: LogLevel.ERROR);
+      Countly.log('"initWithConfig" must be called before "endSession"', logLevel: LogLevel.ERROR);
       return;
     }
     Countly.log('Calling "endSession", manual session control enabled:[$_manualSessionEnabled]');
 
     if (!_manualSessionEnabled) {
-      String error = '"endSession" will be ignored since manual session control is not enabled';
-      Countly.log(error);
+      Countly.log('"endSession" will be ignored since manual session control is not enabled');
       return;
     }
     await _countlyState.channel.invokeMethod('endSession');
@@ -48,15 +44,13 @@ class SessionsInternal implements Sessions {
   @override
   Future<void> updateSession() async {
     if (!_countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "updateSession"';
-      Countly.log('updateSession, $message', logLevel: LogLevel.ERROR);
+      Countly.log('"initWithConfig" must be called before "updateSession"', logLevel: LogLevel.ERROR);
       return;
     }
     Countly.log('Calling "updateSession", manual session control enabled:[$_manualSessionEnabled]');
 
     if (!_manualSessionEnabled) {
-      String error = '"updateSession" will be ignored since manual session control is not enabled';
-      Countly.log(error);
+      Countly.log('"updateSession" will be ignored since manual session control is not enabled');
       return;
     }
     await _countlyState.channel.invokeMethod('updateSession');
