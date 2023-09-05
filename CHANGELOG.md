@@ -1,23 +1,29 @@
 ## 23.8.0
-* ! Minor breaking change ! Manual view recording calls are now ignored when in automatic view recording mode.
+* ! Minor breaking change ! Manual view recording calls are now ignored if automatic view recording mode is enabled.
+
 * Adding remaining request queue size information to every request
 * Adding SDK health check requests after init
-* Added protection for updating the push token. The same value can't be sent within 10 minutes it was sent last time. For Android only.
+* Added protection for updating the push token. The same value can't be sent within 10 minutes again (Android only!)
 * Added support for recording multiple views at the same time
-* Added `enableAllConsents` initial config property to give all consents at init time
-* Fixed a bug that prevented global callbacks from being called.
-* Introduced a new sessions interface `Countly.instance.sessions` on the SDK instance the exposes the manual sessions functionality
-* Introduced a new views interface `Countly.instance.views` on the SDK instance the exposes the reworked views functionality
-* Deprecated old view methods. You should use the `views` object. Deprecated methods are:
+* Added `enableAllConsents` config method to give all consents at init time
+
+* Fixed a bug that prevented global callbacks from being called
+
+* Introduced a new sessions interface (`Countly.instance.sessions`) on the SDK instance that exposes the manual sessions functionality
+* Introduced a new views interface (`Countly.instance.views`) on the SDK instance that exposes the reworked views functionality
+
+* Deprecated the old view methods. You should now use the `views` object. Deprecated methods are:
   * recordView
-* Deprecated old session methods. You should use the `sessions` object. Deprecated methods are:
+
+* Deprecated the old session methods. You should now use the `sessions` object. Deprecated methods are:
     * beginSession
     * updateSession
     * endSession
     * start
     * stop
-* Updated Underlying android SDK version to 23.8.0
-* Updated Underlying iOS SDK version to 23.8.0
+
+* Updated underlying Android SDK version to 23.8.0
+* Updated underlying iOS SDK version to 23.8.0
 
 ## 23.6.0
 * !! Major breaking change !! Automatically downloaded remote config values will no longer be automatically enrolled in their AB tests.
@@ -53,7 +59,7 @@
   * 'pullValue'
 
 * Fixed a bug where the app would crash if `gpsCoordinate` in location was null.
-* Updated Underlying android SDK version to 23.6.0
+* Updated Underlying Android SDK version to 23.6.0
 * Updated Underlying iOS SDK version to 23.6.0
 
 ## 23.6.0-np
@@ -90,47 +96,47 @@
   * 'pullValue'
 
 * Fixed a bug where the app would crash if `gpsCoordinate` in location was null.
-* Updated Underlying android SDK version to 23.6.0
-* Updated Underlying iOS SDK version to 23.6.0
+* Updated underlying Android SDK version to 23.6.0
+* Updated underlying iOS SDK version to 23.6.0
 
 ## 23.2.3
 * Not reporting battery level in the crash handler to prevent hanging in iOS
 * Fixing bug that prevented device ID to be changed when there is no consent given in Android
-* Updated Underlying android SDK version to 22.09.4
-* Updated Underlying iOS SDK version to 23.02.2
+* Updated underlying Android SDK version to 22.09.4
+* Updated underlying iOS SDK version to 23.02.2
 
 ## 23.2.3-np
 * Not reporting battery level in the crash handler to prevent hanging in iOS
 * Fixing bug that prevented device ID to be changed when there is no consent given in Android
-* Updated Underlying android SDK version to 22.09.4
-* Updated Underlying iOS SDK version to 23.02.2
+* Updated underlying Android SDK version to 22.09.4
+* Updated underlying iOS SDK version to 23.02.2
 
 ## 23.2.2
 * Added "previous event ID" logic for non-internal events
 * Session update interval upper limit (10 minutes) has been lifted in Android
 * Updated default maxSegmentationValues from 30 to 100 for iOS
-* Updated Underlying android SDK version to 22.09.3
-* Updated Underlying iOS SDK version to 23.02.1
+* Updated underlying Android SDK version to 22.09.3
+* Updated underlying iOS SDK version to 23.02.1
 
 ## 23.2.2-np
 * Added "previous event ID" logic for non-internal events
 * Session update interval upper limit (10 minutes) has been lifted in Android
 * Updated default maxSegmentationValues from 30 to 100 for iOS
-* Updated Underlying android SDK version to 22.09.3
-* Updated Underlying iOS SDK version to 23.02.1
+* Updated underlying Android SDK version to 22.09.3
+* Updated underlying iOS SDK version to 23.02.1
 
 ## 23.2.1
 * Fixed a bug in Android where metric override values were not applying to crash metrics Fixed a bug where crash metrics sent the "manufacturer" value under the wrong key
 * Fixed a bug in Android where orientation events would have the same view ID as the previous view event
 * Fixed a bug in Android where view ID's were being reported incorrectly
-* Updated Underlying android SDK version to 22.09.1
+* Updated underlying Android SDK version to 22.09.1
 * Underlying iOS SDK version is 23.02.0
 
 ## 23.2.1-np
 * Fixed a bug in Android where metric override values were not applying to crash metrics Fixed a bug where crash metrics sent the "manufacturer" value under the wrong key
 * Fixed a bug in Android where orientation events would have the same view ID as the previous view event
 * Fixed a bug in Android where view ID's were being reported incorrectly
-* Updated Underlying android SDK version to 22.09.1
+* Updated underlying Android SDK version to 22.09.1
 * Underlying iOS SDK version is 23.02.0
 
 ## 23.2.0
@@ -140,56 +146,56 @@
     https://support.count.ly/hc/en-us/articles/360037944212-Flutter#handling-push-callbacks.
 * Fixed a race condition bug in Android where a recorded event would have the wrong user properties in the drill database on the server. Now event queue is emptied (formed into a request) before recording any user profile changes.
 * Events are now recorded with an internal ID in Android.
-* Updated Underlying android SDK version to 22.09.0
-* Updated Underlying iOS SDK version to 23.02.0
+* Updated underlying Android SDK version to 22.09.0
+* Updated underlying iOS SDK version to 23.02.0
 
 ## 23.2.0-np
 * Fixed a race condition bug in Android where a recorded event would have the wrong user properties in the drill database on the server. Now event queue is emptied (formed into a request) before recording any user profile changes.
 * Events are now recorded with an internal ID in Android.
-* Updated Underlying android SDK version to 22.09.0
-* Updated Underlying iOS SDK version to 23.02.0
+* Updated underlying Android SDK version to 22.09.0
+* Updated underlying iOS SDK version to 23.02.0
 
 ## 22.09.0
 * Fixed "isInitialized" variable reset on hot reload.
-* Updated underlying android SDK version to 22.06.2
+* Updated underlying Android SDK version to 22.06.2
 * Updated underlying iOS SDK version to 22.09.0
 
 ## 22.09.0-np
 * Fixed "isInitialized" variable reset on hot reload.
-* Updated underlying android SDK version is 22.06.2
+* Updated underlying Android SDK version is 22.06.2
 * Updated underlying iOS SDK version is 22.09.0
 
 ## 22.02.1
 * SDK has been internally slightly reworked to support a "no push notification" variant.
 * Fixed incorrect iOS push token type when passing "Countly.messagingMode.PRODUCTION" as token type.
-* Underlying android SDK version is 22.02.1
+* Underlying Android SDK version is 22.02.1
 * Underlying iOS SDK version is 22.06.0
 
 ## 22.02.1-np
 * This flavor is a "no push notification" variant of the Countly SDK.
-* Underlying android SDK version is 22.02.1
+* Underlying Android SDK version is 22.02.1
 * Underlying iOS SDK version is 22.06.0
 
 ## 22.02.0
 * Fixed notification trampoline restrictions in Android 12 using reverse activity trampolining implementation.
 * Adding a call to provide user properties during initialization.
-* Updated underlying android SDK version to 22.02.1
+* Updated underlying Android SDK version to 22.02.1
 * Updated underlying iOS SDK version to 22.06.0
 
 ## 21.11.2
 * Making logs more verbose on iOS by printing network related logs.
-* Underlying android SDK is 21.11.2
+* Underlying Android SDK is 21.11.2
 * Underlying iOS SDK version is 21.11.2
 
 ## 21.11.1
 * Fixed bug that caused crashes when migrating from older versions on Android devices.
-* Updated underlying android SDK to 21.11.2
+* Updated underlying Android SDK to 21.11.2
 * Underlying iOS SDK version is 21.11.2
 
 ## 21.11.0
 * !! Major breaking change !! Changing device ID without merging will now clear all consent. It has to be given again after this operation.
 * !! Major breaking change !! Entering temporary ID mode will now clear all consent. It has to be given again after this operation.
-* Added mitigations for potential push notification issue where some apps might be unable to display push notifications in their kill state.
+* Added mitigation for potential push notification issue where some apps might be unable to display push notifications in their kill state.
 * Added 'CountlyConfig' class for init time configurations.
 * Added a way to retrieve feedback widget data and manually report them for iOS also
 * Added Appear and dismiss callback for nps/survey widgets
@@ -201,7 +207,7 @@
 * Added platform information to push actioned events
 * Fixed potential deadlock issue in Android.
 * Fixed possible SecTrustCopyExceptions leak in iOS
-* Fixed bug that occured when recording user profile values. Parameters not provided would be deleted from the server.
+* Fixed bug that occurred when recording user profile values. Parameters not provided would be deleted from the server.
 * Deprecated old init config methods. You should use the config object now. Those methods are:
   * init
   * manualSessionHandling
@@ -230,12 +236,12 @@
 * When recording internal events with 'recordEvent', the respective feature consent will now be checked instead of the 'events' consent.
 * Consent changes will now send the whole consent state and not just the "delta"
 * Updated minimum supported iOS versions to 10.0
-* Updated underlying android SDK to 21.11.0
+* Updated underlying Android SDK to 21.11.0
 * Updated underlying iOS SDK to 21.11.2
 
 ## 20.11.4
 * Moving a push related broadcast receiver declaration to the manifest to comply with 'PendingIntent' checks
-* Updated underlying android SDK to 20.11.9
+* Updated underlying Android SDK to 20.11.9
 * Underlying iOS SDK version is 20.11.1
 
 ## 20.11.3
@@ -243,26 +249,26 @@
 * Updated Flutter SDK constraint to >= 2.0.0.
 * Updated lower bound of dart dependency to 2.12.0.
 * Lint suggestion are added in flutter for better code quality.
-* Updated underlying android SDK to 20.11.8
+* Updated underlying Android SDK to 20.11.8
 * Underlying iOS SDK version is 20.11.1
 
 ## 20.11.2
 * Added COUNTLY_EXCLUDE_PUSHNOTIFICATIONS flag to disable push notifications altogether in order to avoid App Store Connect warnings.
 * Add "updateSessionInterval" method to sets the interval for the automatic session update calls
-* flutter_plugin_android_lifecycle updated to latest version (2.0.1)
+* flutter_plugin_Android_lifecycle updated to latest version (2.0.1)
 * Updated the minimum flutter environment version to 1.10.0
-* Updated underlying android SDK to 20.11.8
+* Updated underlying Android SDK to 20.11.8
 * Underlying iOS SDK version is 20.11.1
 
 ## 20.11.1
 * Added a way to retrieve feedback widget data and manually report them
-* Updated underlying android SDK to 20.11.4
+* Updated underlying Android SDK to 20.11.4
 
 ## 20.11.0
 * !! Due to cocoapods issue with Xcode 12, we have added the iOS SDK as source code instead of Pod. Due to that change,
  if you have already added the reference of files "CountlyNotificationService.h/m" then you need to update these files references by adding the files from "Pods/Development Pods/countly_flutter" and remove the old reference files
 * !! Consent change !! To use remote config, you now need to give "remote-config" consent
-* !! Push breaking changes !! Google play vulnerability issue fixed due to broadcast receiver for android push notification
+* !! Push breaking changes !! Google play vulnerability issue fixed due to broadcast receiver for Android push notification
 * Added Surveys and NPS feedback widgets
 * Added "replaceAllAppKeysInQueueWithCurrentAppKey" method to replace all app keys in a queue with the current app key
 * Added "removeDifferentAppKeysFromQueue" method to remove all different app keys from the queue
@@ -276,8 +282,8 @@
 * Fixed issues related to location tracking
 * Session stop and start safety checks added
 * Fixed issues related to sessions
-* Updated underlying android SDK to 20.11.3
-* Updated underlying ios SDK to 20.11.1
+* Updated underlying Android SDK to 20.11.3
+* Updated underlying iOS SDK to 20.11.1
 
 ## 20.04.1
 * Adding APM calls
@@ -286,20 +292,20 @@
 * Adding functionality to enable attribution
 * Adding push notification callbacks
 * Improved handling of push notifications when the application was soft killed
-* Reworked the android side to support the new Android plugins APIs (V2)
+* Reworked the Android side to support the new Android plugins APIs (V2)
 * Fixed a few issues related to location tracking
-* Fixed issues with android session handling
+* Fixed issues with Android session handling
 * Improved internal error/issue handling
 * Improved internal logging
 * fixed SDK version and SDK name metrics to show not the bridged SDK values but the ones from the flutter SDK
-* Updated underlying android SDK to 20.04.5
-* Updated underlying ios SDK to 20.04.2
+* Updated underlying Android SDK to 20.04.5
+* Updated underlying iOS SDK to 20.04.2
 
 ## 20.04.0
-* Updating bridged ios and android Countly SDK versions
+* Updating bridged iOS and Android Countly SDK versions
 * Added uncaught crash handler for flutter
 * Added temporary device ID
-* Fixed event duration bug with ios
+* Fixed event duration bug with iOS
 * Fixed issue with default user profile values
 
 ## 19.03.0
