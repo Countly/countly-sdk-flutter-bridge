@@ -16,11 +16,11 @@
   * recordView
 
 * Deprecated the old session methods. You should now use the `sessions` object. Deprecated methods are:
-    * beginSession
-    * updateSession
-    * endSession
-    * start
-    * stop
+  * beginSession
+  * updateSession
+  * endSession
+  * start
+  * stop
 
 * Updated underlying Android SDK version to 23.8.0
 * Updated underlying iOS SDK version to 23.8.0
