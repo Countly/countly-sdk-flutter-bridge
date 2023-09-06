@@ -124,6 +124,7 @@ NSString* previousEventID;
     CountlyPersistency.sharedInstance.storedRequestsLimit = MAX(1, config.storedRequestsLimit);
 
     CountlyCommon.sharedInstance.manualSessionHandling = config.manualSessionHandling;
+    CountlyCommon.sharedInstance.enableManualSessionControlHybridMode = config.enableManualSessionControlHybridMode;
 
     CountlyCommon.sharedInstance.attributionID = config.attributionID;
 
@@ -209,6 +210,9 @@ NSString* previousEventID;
     if(config.getRemoteConfigGlobalCallbacks) {
         CountlyRemoteConfigInternal.sharedInstance.remoteConfigGlobalCallbacks = config.getRemoteConfigGlobalCallbacks;
     }
+    if(config.enrollABOnRCDownload) {
+        CountlyRemoteConfigInternal.sharedInstance.enrollABOnRCDownload = config.enrollABOnRCDownload;
+    }
     [CountlyRemoteConfigInternal.sharedInstance downloadRemoteConfigAutomatically];
     
     CountlyPerformanceMonitoring.sharedInstance.isEnabledOnInitialConfig = config.enablePerformanceMonitoring;
@@ -240,7 +244,14 @@ NSString* previousEventID;
         return;
 
     if (!CountlyCommon.sharedInstance.manualSessionHandling)
+    {
         [CountlyConnectionManager.sharedInstance updateSession];
+    }
+    // this condtion is called only when both manual session handling and hybrid mode is enabled.
+    else if(CountlyCommon.sharedInstance.enableManualSessionControlHybridMode)
+    {
+        [CountlyConnectionManager.sharedInstance updateSession];
+    }
 
     [CountlyConnectionManager.sharedInstance sendEvents];
 }
@@ -1037,15 +1048,23 @@ NSString* previousEventID;
 - (void)presentFeedbackWidgetWithID:(NSString *)widgetID completionHandler:(void (^)(NSError * error))completionHandler
 {
     CLY_LOG_I(@"%s %@ %@", __FUNCTION__, widgetID, completionHandler);
-
-    [CountlyFeedbacks.sharedInstance checkFeedbackWidgetWithID:widgetID completionHandler:completionHandler];
+    
+    [self presentRatingWidgetWithID:widgetID closeButtonText:nil completionHandler:completionHandler];
 }
 
 - (void)presentRatingWidgetWithID:(NSString *)widgetID completionHandler:(void (^)(NSError * error))completionHandler
 {
     CLY_LOG_I(@"%s %@ %@", __FUNCTION__, widgetID, completionHandler);
+    
+    [self presentRatingWidgetWithID:widgetID closeButtonText:nil completionHandler:completionHandler];
+}
 
-    [CountlyFeedbacks.sharedInstance checkFeedbackWidgetWithID:widgetID completionHandler:completionHandler];
+- (void)presentRatingWidgetWithID:(NSString *)widgetID closeButtonText:(NSString * _Nullable)closeButtonText  completionHandler:(void (^)(NSError * __nullable error))completionHandler
+{
+    
+    CLY_LOG_I(@"%s %@ %@ %@", __FUNCTION__, widgetID, closeButtonText, completionHandler);
+    
+    [CountlyFeedbacks.sharedInstance presentRatingWidgetWithID:widgetID closeButtonText:closeButtonText completionHandler:completionHandler];
 }
 
 - (void)recordRatingWidgetWithID:(NSString *)widgetID rating:(NSInteger)rating email:(NSString * _Nullable)email comment:(NSString * _Nullable)comment userCanBeContacted:(BOOL)userCanBeContacted
