@@ -22,12 +22,12 @@ typedef NSString* CLYFeature NS_EXTENSIBLE_STRING_ENUM;
 extern CLYFeature const CLYPushNotifications;
 #endif
 extern CLYFeature const CLYCrashReporting;
-extern CLYFeature const CLYAutoViewTracking;
+extern CLYFeature const CLYAutoViewTracking DEPRECATED_MSG_ATTRIBUTE("Use 'config.enableAutomaticViewTracking' instead");
 #elif (TARGET_OS_WATCH)
 extern CLYFeature const CLYCrashReporting;
 #elif (TARGET_OS_TV)
 extern CLYFeature const CLYCrashReporting;
-extern CLYFeature const CLYAutoViewTracking;
+extern CLYFeature const CLYAutoViewTracking  DEPRECATED_MSG_ATTRIBUTE("Use 'config.enableAutomaticViewTracking' instead");
 #elif (TARGET_OS_OSX)
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
 extern CLYFeature const CLYPushNotifications;
@@ -105,9 +105,9 @@ extern CLYRequestResult const CLYResponseNetworkIssue;
 extern CLYRequestResult const CLYResponseSuccess;
 extern CLYRequestResult const CLYResponseError;
 
-typedef void (^RCVariantCallback)(CLYRequestResult response, NSError * error);
+typedef void (^RCVariantCallback)(CLYRequestResult response, NSError *_Nullable error);
 
-typedef void (^RCDownloadCallback)(CLYRequestResult response, NSError * error, BOOL fullValueUpdate, NSDictionary<NSString *, CountlyRCData *>* downloadedValues);
+typedef void (^RCDownloadCallback)(CLYRequestResult response, NSError *_Nullable error, BOOL fullValueUpdate, NSDictionary<NSString *, CountlyRCData *>* downloadedValues);
 
 //NOTE: Internal log levels
 typedef enum : NSUInteger
@@ -130,6 +130,8 @@ typedef enum : NSUInteger
 @optional
 - (NSString *)countlyAutoViewTrackingName;
 @end
+
+
 
 
 @interface CountlyConfig : NSObject
@@ -207,6 +209,29 @@ typedef enum : NSUInteger
 
 #pragma mark -
 
+#if (TARGET_OS_IOS || TARGET_OS_TV)
+/**
+ * For enabling automatic view tacking.
+ * @discussion If set, views will automatically track.
+ */
+@property (nonatomic) BOOL enableAutomaticViewTracking;
+
+/**
+ * Automatic view exclusion list .
+ * @discussion These views will exclude from automatic tracking.
+ */
+@property (nonatomic, copy) NSArray* automaticViewTrackingExclusionList;
+#endif
+/**
+ * Global view segmentation.
+ * @discussion If set, It will send with every view.
+ */
+
+@property (nonatomic, copy) NSDictionary* globalViewSegmentation;
+
+
+#pragma mark -
+
 /**
  * For limiting features based on user consent.
  * @discussion If set, SDK will wait for explicit consent to be given for features to work.
@@ -219,6 +244,13 @@ typedef enum : NSUInteger
  * @discussion Just like in @c giveConsentForFeatures: method.
  */
 @property (nonatomic, copy) NSArray<CLYConsent>* consents;
+
+/**
+ * For giving all consents during init.
+ * @discussion If set, it will give all feature consents.
+ */
+@property (nonatomic) BOOL enableAllConsents;
+
 #pragma mark -
 
 /**
@@ -370,6 +402,14 @@ typedef enum : NSUInteger
  * @discussion If set, SDK does not handle beginning, updating and ending sessions automatically. Methods @c beginSession, @c updateSession and @c endSession need to be called manually.
  */
 @property (nonatomic) BOOL manualSessionHandling;
+
+/**
+ * For handling start and stop sessions manually.
+ * @discussion If set, SDK does not handle beginning and ending sessions automatically. Methods @c beginSession and @c endSession need to be called manually.
+ * update session will handle auto automatically, no need to call @c updateSession when hybrid mode is enabled.
+ * NOTE: It will work only when manualSessionHandling is enabled.
+ */
+@property (nonatomic) BOOL enableManualSessionControlHybridMode;
 
 #pragma mark -
 
@@ -542,6 +582,13 @@ typedef enum : NSUInteger
  * Get a list of registered global completion blocks.
  */
 - (NSMutableArray<RCDownloadCallback> *) getRemoteConfigGlobalCallbacks;
+
+/**
+ * For enabling automatic AB enrolling on download.
+ * @discussion If set, user will will automatically be enrolled in relevant AB tests when downloading RC values.
+ */
+@property (nonatomic) BOOL enrollABOnRCDownload;
+
 
 #pragma mark -
 

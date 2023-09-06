@@ -11,6 +11,7 @@
 #import "CountlyRCData.h"
 #import "CountlyRemoteConfig.h"
 #import "CountlyFeedbackWidget.h"
+#import "CountlyViewTracking.h"
 #if (TARGET_OS_IOS || TARGET_OS_OSX)
 #import <UserNotifications/UserNotifications.h>
 #endif
@@ -210,7 +211,13 @@ NS_ASSUME_NONNULL_BEGIN
  * @discussion This is a convenience method for grating consent for all features at once.
  * @discussion Inner workings of @c giveConsentForFeature: method applies for this method as well.
  */
-- (void)giveConsentForAllFeatures;
+- (void)giveConsentForAllFeatures DEPRECATED_MSG_ATTRIBUTE("Use 'giveAllConsents:' method instead!");
+
+/**
+ * Grants consent to all features and starts them.
+ * @discussion This is a convenience method for grating consent for all features at once.
+ */
+- (void)giveAllConsents;
 
 /**
  * Cancels consent to given feature and stops it.
@@ -519,7 +526,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @discussion If AutoViewTracking feature is enabled on initial configuration, this method does not need to be called manually.
  * @param viewName Name of the view visited, a non-zero length valid string
  */
-- (void)recordView:(NSString *)viewName;
+- (void)recordView:(NSString *)viewName DEPRECATED_MSG_ATTRIBUTE("Use '[views startView/startAutoStoppedView:]' method instead!");
 
 /**
  * Records a visited view with given name and custom segmentation.
@@ -532,7 +539,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @param viewName Name of the view visited, a non-zero length valid string
  * @param segmentation Custom segmentation key-value pairs
  */
-- (void)recordView:(NSString *)viewName segmentation:(NSDictionary<NSString *, NSString *> *)segmentation;
+- (void)recordView:(NSString *)viewName segmentation:(NSDictionary<NSString *, NSString *> *)segmentation DEPRECATED_MSG_ATTRIBUTE("Use '[views startView/startAutoStoppedView:]' method instead!");
 
 #if (TARGET_OS_IOS || TARGET_OS_TV)
 /**
@@ -541,24 +548,27 @@ NS_ASSUME_NONNULL_BEGIN
  * @discussion Adding an already added @c UIViewController title or subclass name again will have no effect.
  * @param exception @c UIViewController title or subclass name to be added as exception
  */
-- (void)addExceptionForAutoViewTracking:(NSString *)exception;
+- (void)addExceptionForAutoViewTracking:(NSString *)exception DEPRECATED_MSG_ATTRIBUTE("Use '[views setGlobalViewSegmentation:]' method or 'globalViewSegmentation' of config instead!");
 
 /**
  * Removes exception for AutoViewTracking.
  * @discussion Removing an already removed (or not yet added) @c UIViewController title or subclass name will have no effect.
  * @param exception @c UIViewController title or subclass name to be removed
  */
-- (void)removeExceptionForAutoViewTracking:(NSString *)exception;
+- (void)removeExceptionForAutoViewTracking:(NSString *)exception DEPRECATED_MSG_ATTRIBUTE("Don't use this method, it will be remove in future release");
 
 /**
  * Temporarily activates or deactivates AutoViewTracking, if AutoViewTracking feature is enabled on initial configuration.
  * @discussion If AutoViewTracking feature is not enabled on initial configuration, this property has no effect.
  */
-@property (nonatomic) BOOL isAutoViewTrackingActive;
-
+@property (nonatomic) BOOL isAutoViewTrackingActive DEPRECATED_MSG_ATTRIBUTE("Don't use this variable, it will be remove in future release");
 #endif
 
-
+/**
+ * Interface variable to access views tracking functionalities.
+ * @discussion Views tracking interface for developer to interact with SDK.
+ */
+- (CountlyViewTracking *) views;
 
 #pragma mark - User Details
 
@@ -614,6 +624,24 @@ NS_ASSUME_NONNULL_BEGIN
  * @param completionHandler A completion handler block to be executed when the rating widget is dismissed by user or there is an error.
  */
 - (void)presentRatingWidgetWithID:(NSString *)widgetID completionHandler:(void (^)(NSError * __nullable error))completionHandler;
+
+/**
+ * Presents rating widget with given ID in a WKWebView placed in a UIViewController.
+ * @discussion First, the availability of the rating widget will be checked asynchronously.
+ * @discussion If the rating widget with given ID is available, it will be modally presented.
+ * @discussion Otherwise, @c completionHandler will be executed with an @c NSError.
+ * @discussion @c completionHandler will also be executed with @c nil when the rating widget is dismissed by user.
+ * @discussion Calls to this method will be ignored and @c completionHandler will not be executed if:
+ * @discussion - Consent for @c CLYConsentFeedback is not given, while @c requiresConsent flag is set on initial configuration.
+ * @discussion - Current device ID is @c CLYTemporaryDeviceID.
+ * @discussion - @c widgetID is not a non-zero length valid string.
+ * @discussion This is a legacy method for presenting Rating type feedback widgets only.
+ * @discussion Passing widget ID's of Survey or NPS type feedback widgets will not work.
+ * @param widgetID ID of the rating widget created on Countly Server.
+ * @param closeButtonText text for close button
+ * @param completionHandler A completion handler block to be executed when the rating widget is dismissed by user or there is an error.
+ */
+//- (void)presentRatingWidgetWithID:(NSString *)widgetID closeButtonText:(NSString * _Nullable)closeButtonText  completionHandler:(void (^)(NSError * __nullable error))completionHandler;
 
 /**
  * Manually records rating widget result with given ID and other info.

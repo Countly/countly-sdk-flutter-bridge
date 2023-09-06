@@ -124,6 +124,7 @@ NSString* previousEventID;
     CountlyPersistency.sharedInstance.storedRequestsLimit = MAX(1, config.storedRequestsLimit);
 
     CountlyCommon.sharedInstance.manualSessionHandling = config.manualSessionHandling;
+    CountlyCommon.sharedInstance.enableManualSessionControlHybridMode = config.enableManualSessionControlHybridMode;
 
     CountlyCommon.sharedInstance.attributionID = config.attributionID;
 
@@ -187,13 +188,19 @@ NSString* previousEventID;
     }
 
 #if (TARGET_OS_IOS || TARGET_OS_TV)
-    if ([config.features containsObject:CLYAutoViewTracking])
+    if (config.enableAutomaticViewTracking || [config.features containsObject:CLYAutoViewTracking])
     {
-        CountlyViewTracking.sharedInstance.isEnabledOnInitialConfig = YES;
-        [CountlyViewTracking.sharedInstance startAutoViewTracking];
+        // Print deprecation flag for feature
+        CountlyViewTrackingInternal.sharedInstance.isEnabledOnInitialConfig = YES;
+        [CountlyViewTrackingInternal.sharedInstance startAutoViewTracking];
+    }
+    if(config.automaticViewTrackingExclusionList) {
+        [CountlyViewTrackingInternal.sharedInstance addAutoViewTrackingExclutionList:config.automaticViewTrackingExclusionList];
     }
 #endif
-
+    if(config.globalViewSegmentation) {
+        [CountlyViewTrackingInternal.sharedInstance setGlobalViewSegmentation:config.globalViewSegmentation];
+    }
     timer = [NSTimer timerWithTimeInterval:config.updateSessionPeriod target:self selector:@selector(onTimer:) userInfo:nil repeats:YES];
     [NSRunLoop.mainRunLoop addTimer:timer forMode:NSRunLoopCommonModes];
 
@@ -202,6 +209,9 @@ NSString* previousEventID;
     CountlyRemoteConfigInternal.sharedInstance.remoteConfigCompletionHandler = config.remoteConfigCompletionHandler;
     if(config.getRemoteConfigGlobalCallbacks) {
         CountlyRemoteConfigInternal.sharedInstance.remoteConfigGlobalCallbacks = config.getRemoteConfigGlobalCallbacks;
+    }
+    if(config.enrollABOnRCDownload) {
+        CountlyRemoteConfigInternal.sharedInstance.enrollABOnRCDownload = config.enrollABOnRCDownload;
     }
     [CountlyRemoteConfigInternal.sharedInstance downloadRemoteConfigAutomatically];
     
@@ -213,7 +223,10 @@ NSString* previousEventID;
 
     [CountlyConnectionManager.sharedInstance proceedOnQueue];
 
-    if (config.consents)
+    //TODO: Should move at the top after checking the the edge cases of current implementation
+    if(config.enableAllConsents)
+        [self giveAllConsents];
+    else if (config.consents)
         [self giveConsentForFeatures:config.consents];
 
     if (config.campaignType && config.campaignData)
@@ -231,7 +244,14 @@ NSString* previousEventID;
         return;
 
     if (!CountlyCommon.sharedInstance.manualSessionHandling)
+    {
         [CountlyConnectionManager.sharedInstance updateSession];
+    }
+    // this condtion is called only when both manual session handling and hybrid mode is enabled.
+    else if(CountlyCommon.sharedInstance.enableManualSessionControlHybridMode)
+    {
+        [CountlyConnectionManager.sharedInstance updateSession];
+    }
 
     [CountlyConnectionManager.sharedInstance sendEvents];
 }
@@ -257,7 +277,7 @@ NSString* previousEventID;
     if (!CountlyCommon.sharedInstance.manualSessionHandling)
         [CountlyConnectionManager.sharedInstance endSession];
 
-    [CountlyViewTracking.sharedInstance pauseView];
+    [CountlyViewTrackingInternal.sharedInstance applicationDidEnterBackground];
 
     [CountlyPersistency.sharedInstance saveToFile];
 }
@@ -285,7 +305,7 @@ NSString* previousEventID;
     if (!CountlyCommon.sharedInstance.manualSessionHandling)
         [CountlyConnectionManager.sharedInstance beginSession];
 
-    [CountlyViewTracking.sharedInstance resumeView];
+    [CountlyViewTrackingInternal.sharedInstance applicationWillEnterForeground];
 
     isSuspended = NO;
 }
@@ -308,7 +328,7 @@ NSString* previousEventID;
 
     CountlyConnectionManager.sharedInstance.isTerminating = YES;
 
-    [CountlyViewTracking.sharedInstance endView];
+    [CountlyViewTrackingInternal.sharedInstance applicationWillTerminate];
 
     [CountlyConnectionManager.sharedInstance sendEvents];
 
@@ -532,10 +552,8 @@ NSString* previousEventID;
         [CountlyPersistency.sharedInstance clearAllTimedEvents];
     }
 
-    if(!onServer || [deviceID isEqualToString:CLYTemporaryDeviceID] )
-    {
-        [CountlyRemoteConfigInternal.sharedInstance clearCachedRemoteConfig:NO];
-    }
+    
+    [CountlyRemoteConfigInternal.sharedInstance clearCachedRemoteConfig];
     
     if(![deviceID isEqualToString:CLYTemporaryDeviceID] )
     {
@@ -571,7 +589,14 @@ NSString* previousEventID;
 {
     CLY_LOG_I(@"%s", __FUNCTION__);
 
-    [CountlyConsentManager.sharedInstance giveConsentForAllFeatures];
+    [CountlyConsentManager.sharedInstance giveAllConsents];
+}
+
+- (void)giveAllConsents
+{
+    CLY_LOG_I(@"%s", __FUNCTION__);
+    
+    [CountlyConsentManager.sharedInstance giveAllConsents];
 }
 
 - (void)cancelConsentForFeature:(NSString *)featureName
@@ -702,11 +727,11 @@ NSString* previousEventID;
 
     if ([key isEqualToString:kCountlyReservedEventView])
     {
-        event.PVID = CountlyViewTracking.sharedInstance.previousViewID ?: @"";
+        event.PVID = CountlyViewTrackingInternal.sharedInstance.previousViewID ?: @"";
     }
     else
     {
-        event.CVID = CountlyViewTracking.sharedInstance.currentViewID ?: @"";
+        event.CVID = CountlyViewTrackingInternal.sharedInstance.currentViewID ?: @"";
     }
 
     // Check if the event is a reserved event
@@ -955,14 +980,14 @@ NSString* previousEventID;
 {
     CLY_LOG_I(@"%s %@", __FUNCTION__, viewName);
 
-    [CountlyViewTracking.sharedInstance startView:viewName customSegmentation:nil];
+    [CountlyViewTrackingInternal.sharedInstance startAutoStoppedView:viewName segmentation:nil];
 }
 
 - (void)recordView:(NSString *)viewName segmentation:(NSDictionary *)segmentation
 {
     CLY_LOG_I(@"%s %@ %@", __FUNCTION__, viewName, segmentation);
 
-    [CountlyViewTracking.sharedInstance startView:viewName customSegmentation:segmentation];
+    [CountlyViewTrackingInternal.sharedInstance startAutoStoppedView:viewName segmentation:segmentation];
 }
 
 #if (TARGET_OS_IOS || TARGET_OS_TV)
@@ -970,31 +995,35 @@ NSString* previousEventID;
 {
     CLY_LOG_I(@"%s %@", __FUNCTION__, exception);
 
-    [CountlyViewTracking.sharedInstance addExceptionForAutoViewTracking:exception.copy];
+    [CountlyViewTrackingInternal.sharedInstance addExceptionForAutoViewTracking:exception.copy];
 }
 
 - (void)removeExceptionForAutoViewTracking:(NSString *)exception
 {
     CLY_LOG_I(@"%s %@", __FUNCTION__, exception);
 
-    [CountlyViewTracking.sharedInstance removeExceptionForAutoViewTracking:exception.copy];
+    [CountlyViewTrackingInternal.sharedInstance removeExceptionForAutoViewTracking:exception.copy];
 }
 
 - (void)setIsAutoViewTrackingActive:(BOOL)isAutoViewTrackingActive
 {
     CLY_LOG_I(@"%s %d", __FUNCTION__, isAutoViewTrackingActive);
 
-    CountlyViewTracking.sharedInstance.isAutoViewTrackingActive = isAutoViewTrackingActive;
+    CountlyViewTrackingInternal.sharedInstance.isAutoViewTrackingActive = isAutoViewTrackingActive;
 }
 
 - (BOOL)isAutoViewTrackingActive
 {
     CLY_LOG_I(@"%s", __FUNCTION__);
 
-    return CountlyViewTracking.sharedInstance.isAutoViewTrackingActive;
+    return CountlyViewTrackingInternal.sharedInstance.isAutoViewTrackingActive;
 }
 #endif
 
+- (CountlyViewTracking *) views
+{
+    return CountlyViewTracking.sharedInstance;
+}
 
 
 #pragma mark - User Details
@@ -1019,15 +1048,23 @@ NSString* previousEventID;
 - (void)presentFeedbackWidgetWithID:(NSString *)widgetID completionHandler:(void (^)(NSError * error))completionHandler
 {
     CLY_LOG_I(@"%s %@ %@", __FUNCTION__, widgetID, completionHandler);
-
-    [CountlyFeedbacks.sharedInstance checkFeedbackWidgetWithID:widgetID completionHandler:completionHandler];
+    
+    [self presentRatingWidgetWithID:widgetID closeButtonText:nil completionHandler:completionHandler];
 }
 
 - (void)presentRatingWidgetWithID:(NSString *)widgetID completionHandler:(void (^)(NSError * error))completionHandler
 {
     CLY_LOG_I(@"%s %@ %@", __FUNCTION__, widgetID, completionHandler);
+    
+    [self presentRatingWidgetWithID:widgetID closeButtonText:nil completionHandler:completionHandler];
+}
 
-    [CountlyFeedbacks.sharedInstance checkFeedbackWidgetWithID:widgetID completionHandler:completionHandler];
+- (void)presentRatingWidgetWithID:(NSString *)widgetID closeButtonText:(NSString * _Nullable)closeButtonText  completionHandler:(void (^)(NSError * __nullable error))completionHandler
+{
+    
+    CLY_LOG_I(@"%s %@ %@ %@", __FUNCTION__, widgetID, closeButtonText, completionHandler);
+    
+    [CountlyFeedbacks.sharedInstance presentRatingWidgetWithID:widgetID closeButtonText:closeButtonText completionHandler:completionHandler];
 }
 
 - (void)recordRatingWidgetWithID:(NSString *)widgetID rating:(NSInteger)rating email:(NSString * _Nullable)email comment:(NSString * _Nullable)comment userCanBeContacted:(BOOL)userCanBeContacted

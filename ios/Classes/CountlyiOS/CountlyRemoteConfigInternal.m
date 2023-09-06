@@ -17,6 +17,7 @@ NSString* const kCountlyRCKeyOmitKeys           = @"omit_keys";
 NSString* const kCountlyRCKeyRC                 = @"rc";
 NSString* const kCountlyRCKeyABOptIn            = @"ab";
 NSString* const kCountlyRCKeyABOptOut           = @"ab_opt_out";
+NSString* const kCountlyRCKeyAutoOptIn          = @"oi";
 
 
 CLYRequestResult const CLYResponseNetworkIssue  = @"CLYResponseNetworkIssue";
@@ -158,15 +159,22 @@ CLYRequestResult const CLYResponseError         = @"CLYResponseError";
     return nil;
 }
 
-- (void)clearCachedRemoteConfig:(BOOL)force
+- (void)clearCachedRemoteConfig
 {
-    if(force || !self.isRCValueCachingEnabled) {
-        self.cachedRemoteConfig = nil;
-        [CountlyPersistency.sharedInstance storeRemoteConfig:self.cachedRemoteConfig];
+    if(!self.isRCValueCachingEnabled)
+    {
+        [self clearAll];
     }
-    else {
+    else
+    {
         [self updateMetaStateToCache];
     }
+}
+
+-(void)clearAll
+{
+    self.cachedRemoteConfig = nil;
+    [CountlyPersistency.sharedInstance storeRemoteConfig:self.cachedRemoteConfig];
 }
 
 #pragma mark ---
@@ -247,6 +255,10 @@ CLYRequestResult const CLYResponseError         = @"CLYResponseError";
         queryString = [queryString stringByAppendingFormat:@"&%@=%@", kCountlyQSKeyMetrics, [CountlyDeviceInfo metrics]];
     }
     
+    if(self.enrollABOnRCDownload) {
+        queryString = [queryString stringByAppendingFormat:@"&%@=%@", kCountlyRCKeyAutoOptIn, @"1"];
+    }
+    
     queryString = [CountlyConnectionManager.sharedInstance appendChecksum:queryString];
     
     NSString* serverOutputSDKEndpoint = [CountlyConnectionManager.sharedInstance.host stringByAppendingFormat:@"%@%@",
@@ -315,15 +327,16 @@ CLYRequestResult const CLYResponseError         = @"CLYResponseError";
     if (CountlyDeviceInfo.sharedInstance.isDeviceIDTemporary)
         return;
     
-    CLY_LOG_D(@"Fetching remote config manually...");
+    CLY_LOG_D(@"Fetching remote config...");
     
     [self fetchRemoteConfigForKeys:keys omitKeys:omitKeys isLegacy:NO completionHandler:^(NSDictionary *remoteConfig, NSError *error)
      {
         BOOL fullValueUpdate = false;
         NSDictionary* remoteConfigMeta = remoteConfig ? [self createRCMeta:remoteConfig] : @{};
+        CLYRequestResult requestResult = CLYResponseSuccess;
         if (!error)
         {
-            CLY_LOG_D(@"Fetching remote config manually is successful. \n%@", remoteConfig);
+            CLY_LOG_D(@"Fetching remote config is successful. \n%@", remoteConfig);
 //            NSDictionary* remoteConfigMeta = [self createRCMeta:remoteConfig];
             if (!keys && !omitKeys)
             {
@@ -343,16 +356,17 @@ CLYRequestResult const CLYResponseError         = @"CLYResponseError";
         }
         else
         {
-            CLY_LOG_W(@"Fetching remote config manually failed: %@", error);
+            requestResult = CLYResponseError;
+            CLY_LOG_W(@"Fetching remote config failed: %@", error);
         }
         
         if (completionHandler)
-            completionHandler(CLYResponseSuccess, error, fullValueUpdate, remoteConfigMeta);
+            completionHandler(requestResult, error, fullValueUpdate, remoteConfigMeta);
         
         
         [self.remoteConfigGlobalCallbacks enumerateObjectsUsingBlock:^(RCDownloadCallback callback, NSUInteger idx, BOOL * stop)
          {
-            callback(CLYResponseSuccess, error, fullValueUpdate, remoteConfigMeta);
+            callback(requestResult, error, fullValueUpdate, remoteConfigMeta);
         }];
         
         
@@ -465,7 +479,6 @@ CLYRequestResult const CLYResponseError         = @"CLYResponseError";
                     else {
                         [valuesArray addObject:arrayValue];
                     }
-                    printf("%s", valueType);
                 }];
                 variants[key] = valuesArray;
             }];

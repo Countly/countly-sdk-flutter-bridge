@@ -37,12 +37,15 @@ class _MyAppState extends State<MyApp> {
   String _deviceIdType = '';
   final bool _enableManualSession = false;
   static late final RCDownloadCallback _rcDownloadCallback;
+  final List<String> viewNames = ['viewName', 'viewName1'];
+  final List<String> viewIDs = [];
 
   @override
   void initState() {
     super.initState();
 
     _rcDownloadCallback = (rResult, error, fullValueUpdate, downloadedValues) {
+      print('registered callback');
       print(rResult);
     };
     ratingIdController.addListener(() {
@@ -62,11 +65,12 @@ class _MyAppState extends State<MyApp> {
           attributionValues[AttributionKey.AdvertisingID] = 'AdvertisingID';
         }
 
-        String campaignData = '{cid:"[PROVIDED_CAMPAIGN_ID]", cuid:"[PROVIDED_CAMPAIGN_USER_ID]"}';
+        String campaignData = '{"cid":"PROVIDED_CAMPAIGN_ID", "cuid":"PROVIDED_CAMPAIGN_USER_ID"}';
 
         CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
           ..enableCrashReporting() // Enable crash reporting to report unhandled crashes to Countly
           ..setRequiresConsent(true) // Set that consent should be required for features to work.
+          ..giveAllConsents() // Either use giveAllConsents or setConsentEnabled
           ..setConsentEnabled([
             CountlyConsent.sessions,
             CountlyConsent.events,
@@ -87,11 +91,19 @@ class _MyAppState extends State<MyApp> {
           ..recordIndirectAttribution(attributionValues)
           ..recordDirectAttribution('countly', campaignData)
           ..setRemoteConfigAutomaticDownload(true, (error) {
+            print('Global RC download callback 0');
             if (error != null) {
               print(error);
             }
           })
           ..remoteConfigRegisterGlobalCallback((rResult, error, fullValueUpdate, downloadedValues) {
+            print('Global RC download callback 1');
+            if (error != null) {
+              print(error);
+            }
+          }) // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
+          ..remoteConfigRegisterGlobalCallback((rResult, error, fullValueUpdate, downloadedValues) {
+            print('Global RC download callback 2');
             if (error != null) {
               print(error);
             }
@@ -116,7 +128,10 @@ class _MyAppState extends State<MyApp> {
           }); // Set callback to receive push notifications
           Countly.askForNotificationPermission(); // This method will ask for permission, enables push notification and send push token to countly server.;
 
-          Countly.giveAllConsent(); // give consent for all features, should be call after init Countly.giveConsent(['events', 'views']); // give consent for some specific features, should be call after init.
+          print('remoteConfigRegisterDownloadCallback');
+          Countly.instance.remoteConfig.registerDownloadCallback((rResult, error, fullValueUpdate, downloadedValues) {
+            print('download callback after init 3');
+          });
         }); // Initialize the countly SDK.
       } else {
         print('Countly: Already initialized.');
@@ -125,10 +140,10 @@ class _MyAppState extends State<MyApp> {
   }
 
   // ignore: non_constant_identifier_names
-  static String SERVER_URL = 'https://try.count.ly';
+  static String SERVER_URL = 'https://xxx.count.ly';
 
   // ignore: non_constant_identifier_names
-  static String APP_KEY = 'YOUR_API_KEY';
+  static String APP_KEY = 'YOUR_APP_KEY';
 
   void enableTemporaryIdMode() {
     Countly.changeDeviceId(Countly.deviceIDType['TemporaryDeviceID']!, false);
@@ -388,7 +403,7 @@ class _MyAppState extends State<MyApp> {
       'Custom Integer': 123,
       'Custom String': "Some String",
       'Custom Array': ['array value 1', 'array value 2'],
-      'Custom Map': {'key 1' : 'value 1', 'key 2' : 'value 2'},
+      'Custom Map': {'key 1': 'value 1', 'key 2': 'value 2'},
     };
 
     Countly.instance.userProfile.setUserProperties(userProperties);
@@ -537,6 +552,40 @@ class _MyAppState extends State<MyApp> {
 
   void removeConsentAPM() {
     Countly.removeConsent(['apm']);
+  }
+
+  void stopViewWithID() {
+    Countly.instance.views.stopViewWithID(viewIDs[0]);
+  }
+
+  void stopViewWithName() {
+    Countly.instance.views.stopViewWithName(viewNames[0]);
+  }
+
+  void pauseViewWithID() {
+    Countly.instance.views.pauseViewWithID(viewIDs[0]);
+  }
+
+  void resumeViewWithID() {
+    Countly.instance.views.resumeViewWithID(viewIDs[0]);
+  }
+
+  Future<void> startViewWithSegmentation() async {
+    viewIDs[0] = await Countly.instance.views.startView(viewNames[0], {'abcd': '123'}) ?? '';
+    print(viewIDs[0]);
+  }
+
+  Future<void> startView() async {
+    viewIDs[1] = await Countly.instance.views.startView(viewNames[1]) ?? '';
+    print(viewIDs[1]);
+  }
+
+  void setGlobalViewSegmentation() {
+    Countly.instance.views.setGlobalViewSegmentation({'abcd': '123'});
+  }
+
+  void updateGlobalViewSegmentation() {
+    Countly.instance.views.updateGlobalViewSegmentation({'abcd': '123'});
   }
 
   void askForNotificationPermission() {
@@ -899,6 +948,9 @@ class _MyAppState extends State<MyApp> {
   }
 
   void setLocation() {
+    Countly.setUserLocation(countryCode: 'TR', city: 'Istanbul');
+    Countly.setUserLocation(gpsCoordinates: '41.0082,28.9784');
+    Countly.setUserLocation(ipAddress: '10.2.33.12');
     Countly.setUserLocation(countryCode: 'TR', city: 'Istanbul', gpsCoordinates: '41.0082,28.9784', ipAddress: '10.2.33.12');
   }
 
@@ -975,7 +1027,6 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: "Record View: 'Dashboard'", color: 'olive', onPressed: recordViewDashboard),
               MyButton(text: 'Record Direct Attribution', color: 'olive', onPressed: recordDirectAttribution),
               MyButton(text: 'Record Indirect Attribution', color: 'olive', onPressed: recordIndirectAttribution),
-
               const Text('Section for User Profile:', style: TextStyle(color: Colors.green), textAlign: TextAlign.center),
               MyButton(text: 'Send Users Data', color: 'teal', onPressed: setUserData),
               MyButton(text: 'UserProfile.setProperties', color: 'teal', onPressed: setProperties),
@@ -991,7 +1042,6 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'UserProfile.pullValue', color: 'teal', onPressed: pullValue),
               MyButton(text: 'UserProfile.save', color: 'teal', onPressed: save),
               MyButton(text: 'UserProfile.clear', color: 'teal', onPressed: clear),
-
               MyButton(text: 'Give multiple consent', color: 'blue', onPressed: giveMultipleConsent),
               MyButton(text: 'Remove multiple consent', color: 'blue', onPressed: removeMultipleConsent),
               MyButton(text: 'Give all Consent', color: 'blue', onPressed: giveAllConsent),
@@ -1016,6 +1066,15 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'Remove Consent Push', color: 'blue', onPressed: removeConsentpush),
               MyButton(text: 'Remove Consent starRating', color: 'blue', onPressed: removeConsentstarRating),
               MyButton(text: 'Remove Consent Performance', color: 'blue', onPressed: removeConsentAPM),
+              const Text('Section for Views:', style: TextStyle(color: Colors.yellow), textAlign: TextAlign.center),
+              MyButton(text: 'Start View', color: 'yellow', onPressed: startView),
+              MyButton(text: 'Start View With Segmentation', color: 'yellow', onPressed: startViewWithSegmentation),
+              MyButton(text: 'Stop View with ID', color: 'yellow', onPressed: stopViewWithID),
+              MyButton(text: 'Stop View with Name', color: 'yellow', onPressed: stopViewWithName),
+              MyButton(text: 'Pause View with ID', color: 'yellow', onPressed: pauseViewWithID),
+              MyButton(text: 'Resume View with ID', color: 'yellow', onPressed: resumeViewWithID),
+              MyButton(text: 'Set Global View Segmentation', color: 'yellow', onPressed: setGlobalViewSegmentation),
+              MyButton(text: 'Update Global View Segmentation', color: 'yellow', onPressed: updateGlobalViewSegmentation),
               const Text('Section for A/B testing:', style: TextStyle(color: Colors.green), textAlign: TextAlign.center),
               MyButton(text: 'Get AB testing values (Legacy)', color: 'green', onPressed: getABTestingValues),
               MyButton(text: 'Record event for goal #1', color: 'green', onPressed: eventForGoal_1),

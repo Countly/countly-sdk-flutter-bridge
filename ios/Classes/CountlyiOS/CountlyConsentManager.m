@@ -60,8 +60,7 @@ CLYConsent const CLYConsentRemoteConfig         = @"remote-config";
 
 #pragma mark -
 
-
-- (void)giveConsentForAllFeatures
+- (void)giveAllConsents
 {
     [self giveConsentForFeatures:[self allFeatures]];
 }
@@ -358,13 +357,13 @@ CLYConsent const CLYConsentRemoteConfig         = @"remote-config";
     {
         CLY_LOG_D(@"Consent for ViewTracking is given.");
 
-        [CountlyViewTracking.sharedInstance startAutoViewTracking];
+        [CountlyViewTrackingInternal.sharedInstance startAutoViewTracking];
     }
     else
     {
         CLY_LOG_D(@"Consent for ViewTracking is cancelled.");
 
-        [CountlyViewTracking.sharedInstance stopAutoViewTracking];
+        [CountlyViewTrackingInternal.sharedInstance stopAutoViewTracking];
     }
 #endif
 }
@@ -438,7 +437,6 @@ CLYConsent const CLYConsentRemoteConfig         = @"remote-config";
     else
     {
         CLY_LOG_D(@"Consent for RemoteConfig is cancelled.");
-        [CountlyRemoteConfigInternal.sharedInstance clearCachedRemoteConfig:YES];
     }
 }
 

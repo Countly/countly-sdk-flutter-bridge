@@ -9,14 +9,19 @@ import 'package:countly_flutter_np/countly_config.dart';
 import 'package:countly_flutter_np/countly_state.dart';
 import 'package:countly_flutter_np/remote_config.dart';
 import 'package:countly_flutter_np/remote_config_internal.dart';
+import 'package:countly_flutter_np/sessions.dart';
+import 'package:countly_flutter_np/sessions_internal.dart';
 import 'package:countly_flutter_np/user_profile.dart';
 import 'package:countly_flutter_np/user_profile_internal.dart';
+import 'package:countly_flutter_np/views.dart';
+import 'package:countly_flutter_np/views_internal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
 
 export 'package:countly_flutter_np/countly_config.dart';
 export 'package:countly_flutter_np/remote_config.dart';
+export 'package:countly_flutter_np/views.dart';
 
 /// Attribution Keys to record indirect attribution
 /// IDFA is for iOS and AdvertisingID is for Android
@@ -51,17 +56,26 @@ class Countly {
   Countly._() {
     _remoteConfigInternal = RemoteConfigInternal(this, _countlyState);
     _userProfileInternal = UserProfileInternal(this, _countlyState);
+    _viewsInternal = ViewsInternal(this, _countlyState);
+    _sessionsInternal = SessionsInternal(this, _countlyState);
+
   }
   static final instance = _instance;
   static final _instance = Countly._();
 
   final _countlyState = CountlyState();
-  
+
   late final RemoteConfigInternal _remoteConfigInternal;
   RemoteConfig get remoteConfig => _remoteConfigInternal;
 
   late final UserProfileInternal _userProfileInternal;
   UserProfile get userProfile => _userProfileInternal;
+
+  late final ViewsInternal _viewsInternal;
+  Views get views => _viewsInternal;
+
+  late final SessionsInternal _sessionsInternal;
+  Sessions get sessions => _sessionsInternal;
 
   static const bool BUILDING_WITH_PUSH_DISABLED = true;
   static const String _pushDisabledMsg = 'In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled';
@@ -72,7 +86,7 @@ class Countly {
   /// its value should be updated from [setLoggingEnabled(bool flag)].
   static bool _isDebug = false;
 
-  static final String tag = 'CountlyFlutter';
+  static const String tag = 'CountlyFlutter';
 
   /// Flag to determine if crash logging functionality should be enabled
   /// If false the intercepted crashes will be ignored
@@ -104,6 +118,7 @@ class Countly {
 
   /// Callback handler to handle function calls from native iOS/Android to Dart.
   static Future<void> _methodCallHandler(MethodCall call) async {
+    log('[FMethodCallH] ${call.method}', logLevel: LogLevel.VERBOSE);
     switch (call.method) {
       case 'widgetShown':
         if (_widgetShown != null) {
@@ -224,6 +239,9 @@ class Countly {
     }
     if (config.manualSessionEnabled != null) {
       _manualSessionControlEnabled = config.manualSessionEnabled!;
+      if(config.manualSessionEnabled!) {
+        _instance._sessionsInternal.enableManualSession();
+      }
     }
     if (config.enableUnhandledCrashReporting != null) {
       _enableCrashReportingFlag = config.enableUnhandledCrashReporting!;
@@ -235,6 +253,13 @@ class Countly {
 
     final String? result = await _channel.invokeMethod('init', <String, dynamic>{'data': json.encode(args)});
     _instance._countlyState.isInitialized = true;
+
+    if (config.remoteConfigGlobalCallbacks.isNotEmpty) {
+      log('[initWithConfig] About to register ${config.remoteConfigGlobalCallbacks.length} callbacks', logLevel: LogLevel.VERBOSE);
+    }
+    for (final callback in config.remoteConfigGlobalCallbacks) {
+      Countly.instance._remoteConfigInternal.registerDownloadCallback(callback);
+    }
 
     return result;
   }
@@ -336,6 +361,7 @@ class Countly {
   /// [String view] - name of the view
   /// [Map<String, Object> segmentation] - allows to add optional segmentation,
   /// Supported data type for segmentation values are String, int, double and bool
+  @Deprecated('Use Countly.instance.views.startView instead')
   static Future<String?> recordView(String view, [Map<String, Object>? segmentation]) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "recordView"';
@@ -490,6 +516,8 @@ class Countly {
 
   /// Starts session for manual session handling.
   /// This method needs to be called for starting a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
+
+  @Deprecated('Use Countly.instance.sessions.beginSession instead')
   static Future<String?> beginSession() async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "beginSession"';
@@ -510,6 +538,8 @@ class Countly {
 
   /// Update session for manual session handling.
   /// This method needs to be called for updating a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
+
+  @Deprecated('Use Countly.instance.sessions.updateSession instead')
   static Future<String?> updateSession() async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "updateSession"';
@@ -530,6 +560,8 @@ class Countly {
 
   /// End session for manual session handling.
   /// This method needs to be called for ending a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
+
+  @Deprecated('Use Countly.instance.sessions.endSession instead')
   static Future<String?> endSession() async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "endSession"';
@@ -548,21 +580,12 @@ class Countly {
     return result;
   }
 
-  static Future<String?> start() async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "start"';
-      log('start, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "start"');
-    if (_manualSessionControlEnabled) {
-      String error = '"start" will be ignored since manual session control is enabled';
-      log(error);
-      return error;
-    }
-    final String? result = await _channel.invokeMethod('start');
 
-    return result;
+  @Deprecated('Automatic sessions are handled by underlying SDK, this function will do nothing')
+  static Future<String?> start() async {
+    String msg = 'Automatic sessions are handled by underlying SDK, this function will do nothing';
+    log(msg, logLevel: LogLevel.WARNING);
+    return msg;
   }
 
   @Deprecated('Use enableManualSessionHandling of CountlyConfig instead')
@@ -574,21 +597,11 @@ class Countly {
     return result;
   }
 
+  @Deprecated('Automatic sessions are handled by underlying SDK, this function will do nothing')
   static Future<String?> stop() async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "stop"';
-      log('stop, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "stop"');
-    if (_manualSessionControlEnabled) {
-      String error = '"stop" will be ignored since manual session control is enabled';
-      log(error);
-      return error;
-    }
-    final String? result = await _channel.invokeMethod('stop');
-
-    return result;
+    String msg = 'Automatic sessions are handled by underlying SDK, this function will do nothing';
+    log(msg, logLevel: LogLevel.WARNING);
+    return msg;
   }
 
   @Deprecated('Use setUpdateSessionTimerDelay of CountlyConfig instead')
@@ -1947,7 +1960,7 @@ class Countly {
       }
 
       if (config.manualSessionEnabled != null) {
-        countlyConfig['manualSessionEnabled'] = _manualSessionControlEnabled;
+        countlyConfig['manualSessionEnabled'] = config.manualSessionEnabled;
       }
 
       if (config.maxRequestQueueSize != null) {
@@ -1984,6 +1997,14 @@ class Countly {
 
       if (config.iaAttributionValues != null) {
         countlyConfig['attributionValues'] = config.iaAttributionValues;
+      }
+
+      if (config.globalViewSegmentation != null) {
+        countlyConfig['globalViewSegmentation'] = config.globalViewSegmentation;
+      }
+
+      if (config.enableAllConsents != null) {
+        countlyConfig['enableAllConsents'] = config.enableAllConsents;
       }
 
       countlyConfig['remoteConfigAutomaticTriggers'] = config.remoteConfigAutomaticTriggers;

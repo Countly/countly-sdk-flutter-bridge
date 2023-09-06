@@ -120,9 +120,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         return response;
     }
 
-    /**
-     * Plugin registration.
-     */
     private Countly.CountlyMessagingMode pushTokenType = Countly.CountlyMessagingMode.PRODUCTION;
     private Context context;
     private Activity activity;
@@ -132,15 +129,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private static String lastStoredNotification = null;
     private MethodChannel methodChannel;
     private Lifecycle lifecycle;
-    private Boolean isSessionStarted_ = false;
-    private Boolean manualSessionControlEnabled_ = false;
-
-    private boolean isOnResumeBeforeInit = false;
     static final int requestIDNoCallback = -1;
     static final int requestIDGlobalCallback = -2;
 
     List<CountlyFeedbackWidget> retrievedWidgetList = null;
 
+    //----------PLUGIN REGISTRATION (FlutterPlugin)-------------------
+    
+    // Required for pre Flutter 1.12 projects
     public static void registerWith(Registrar registrar) {
         final CountlyFlutterPlugin instance = new CountlyFlutterPlugin();
         instance.activity = registrar.activity();
@@ -149,12 +145,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         log("registerWith", LogLevel.INFO);
     }
 
+    // Called from Android embedding v2
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
         onAttachedToEngineInternal(binding.getApplicationContext(), binding.getBinaryMessenger());
         log("onAttachedToEngine", LogLevel.INFO);
     }
 
+    // the plugin is being removed from the Flutter experience and should cleanup
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
         context = null;
@@ -163,18 +161,19 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         log("onDetachedFromEngine", LogLevel.INFO);
     }
 
+    // Internal common plugin initialization function that would be shared with the old and new plugin flow
     private void onAttachedToEngineInternal(Context context, BinaryMessenger messenger) {
         this.context = context;
         methodChannel = new MethodChannel(messenger, "countly_flutter");
         methodChannel.setMethodCallHandler(this);
-
         this.config.enableManualAppLoadedTrigger();
-        this.config.enableManualForegroundBackgroundTriggerAPM();
 
         log("onAttachedToEngineInternal", LogLevel.INFO);
     }
 
+    //----------PLUGIN REGISTRATION OVER-------------
 
+    //----------ACTIVITY AWARE STUFF-----------------
     @Override
     public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
         this.activity = binding.getActivity();
@@ -205,7 +204,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         log("onDetachedFromActivity : Activity is no more valid", LogLevel.INFO);
     }
 
-    // DefaultLifecycleObserver callbacks
+    //----------ACTIVITY AWARE STUFF OVER-----------------
+
+    //----------DefaultLifecycleObserver------------------
 
     @Override
     public void onCreate(@NonNull LifecycleOwner owner) {
@@ -216,14 +217,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     @Override
     public void onStart(@NonNull LifecycleOwner owner) {
         log("onStart", LogLevel.INFO);
-        if (Countly.sharedInstance().isInitialized()) {
-            if (isSessionStarted_ || manualSessionControlEnabled_) {
-                Countly.sharedInstance().onStart(activity);
-            }
-            Countly.sharedInstance().apm().triggerForeground();
-        } else {
-            isOnResumeBeforeInit = true;
-        }
     }
 
     @Override
@@ -234,17 +227,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     @Override
     public void onPause(@NonNull LifecycleOwner owner) {
         log("onPause", LogLevel.INFO);
-        if (Countly.sharedInstance().isInitialized()) {
-            Countly.sharedInstance().apm().triggerBackground();
-        }
     }
 
     @Override
     public void onStop(@NonNull LifecycleOwner owner) {
         log("onStop", LogLevel.INFO);
-        if (isSessionStarted_ || manualSessionControlEnabled_) {
-            Countly.sharedInstance().onStop();
-        }
     }
 
     @Override
@@ -252,10 +239,13 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         log("onDestroy", LogLevel.INFO);
     }
 
+    //----------DefaultLifecycleObserver over------------------
+
     public CountlyFlutterPlugin() {
         log("CountlyFlutterPlugin", LogLevel.INFO);
     }
 
+    //-------------METHOD CALL HANDLER------------------
     @Override
     public void onMethodCall(MethodCall call, final Result result) {
         String argsString = (String) call.argument("data");
@@ -295,10 +285,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     this.config.setApplication(activity.getApplication());
                 }
                 Countly.sharedInstance().init(this.config);
-                if (isOnResumeBeforeInit) {
-                    isOnResumeBeforeInit = false;
-                    Countly.sharedInstance().apm().triggerForeground();
-                }
                 result.success("initialized!");
             } else if ("isInitialized".equals(call.method)) {
                 boolean isInitialized = Countly.sharedInstance().isInitialized();
@@ -482,32 +468,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 Countly.sharedInstance().sessions().endSession();
                 result.success("endSession!");
 
-            } else if ("start".equals(call.method)) {
-                if (isSessionStarted_) {
-                    log("session already started", LogLevel.INFO);
-                    result.error("Start Failed", "session already started", null);
-                    return;
-                }
-                if (activity == null) {
-                    log("start failed : Activity is null", LogLevel.ERROR);
-                    result.error("Start Failed", "Activity is null", null);
-                    return;
-                }
-                Countly.sharedInstance().onStart(activity);
-                isSessionStarted_ = true;
-                result.success("started!");
             } else if ("manualSessionHandling".equals(call.method)) {
                 result.success("deafult!");
-
-            } else if ("stop".equals(call.method)) {
-                if (!isSessionStarted_) {
-                    log("must call Start before Stop", LogLevel.INFO);
-                    result.error("Stop Failed", "must call Start before Stop", null);
-                    return;
-                }
-                Countly.sharedInstance().onStop();
-                isSessionStarted_ = false;
-                result.success("stoped!");
 
             } else if ("updateSessionPeriod".equals(call.method)) {
                 result.success("default!");
@@ -1230,6 +1192,57 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 Countly.sharedInstance().attribution().recordDirectAttribution(campaignType, campaignData);
                 result.success("recordIndirectAttribution: success");
+            } else if ("stopViewWithID".equals(call.method)) {
+                String viewId = args.getString(0);
+                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+                Countly.sharedInstance().views().stopViewWithID(viewId, segmentation);
+                result.success(null);
+            } else if ("stopViewWithName".equals(call.method)) {
+                String viewName = args.getString(0);
+                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+                Countly.sharedInstance().views().stopViewWithName(viewName, segmentation);
+                result.success(null);
+            } else if ("pauseViewWithID".equals(call.method)) {
+                String viewId = args.getString(0);
+                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+                Countly.sharedInstance().views().pauseViewWithID(viewId);
+                result.success(null);
+            } else if ("resumeViewWithID".equals(call.method)) {
+                String viewId = args.getString(0);
+                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+                Countly.sharedInstance().views().resumeViewWithID(viewId);
+                result.success(null);
+            } else if ("startView".equals(call.method)) {
+                String viewName = args.getString(0);
+                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+                String viewId = Countly.sharedInstance().views().startView(viewName, segmentation);
+                result.success(viewId);
+            } else if ("setGlobalViewSegmentation".equals(call.method)) {
+                Map<String, Object> segmentation = toMap(args.getJSONObject(0));
+
+                Countly.sharedInstance().views().setGlobalViewSegmentation(segmentation);
+                result.success(null);
+            } else if ("updateGlobalViewSegmentation".equals(call.method)) {
+                Map<String, Object> segmentation = toMap(args.getJSONObject(0));
+
+                Countly.sharedInstance().views().updateGlobalViewSegmentation(segmentation);
+                result.success(null);
+            } else if ("stopAllViews".equals(call.method)) {
+                Map<String, Object> segmentation = toMap(args.getJSONObject(0));
+
+                Countly.sharedInstance().views().stopAllViews(segmentation);
+                result.success(null);
+            } else if ("startAutoStoppedView".equals(call.method)) {
+                String viewName = args.getString(0);
+                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+                String viewId = Countly.sharedInstance().views().startAutoStoppedView(viewName, segmentation);
+                result.success(viewId);
             } else if ("appLoadingFinished".equals(call.method)) {
                 Countly.sharedInstance().apm().setAppIsLoaded();
                 result.success("appLoadingFinished: success");
@@ -1381,7 +1394,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     }
 
     private void enableManualSessionControl() {
-        manualSessionControlEnabled_ = true;
         this.config.enableManualSessionControl();
     }
 
@@ -1511,6 +1523,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             if (remoteConfigValueCaching) {
                 this.config.enableRemoteConfigValueCaching();
             }
+        }
+
+        if (_config.has("globalViewSegmentation")) {
+            JSONObject globalViewSegmentation = _config.getJSONObject("globalViewSegmentation");
+            this.config.setGlobalViewSegmentation(toMap(globalViewSegmentation));
+        }
+
+        if (_config.has("enableAllConsents")) {
+             this.config.giveAllConsents();
         }
     }
 }

@@ -14,7 +14,7 @@
 #import "CountlyDeviceInfo.h"
 #import "CountlyCrashReporter.h"
 #import "CountlyConfig.h"
-#import "CountlyViewTracking.h"
+#import "CountlyViewTrackingInternal.h"
 #import "CountlyFeedbacks.h"
 #import "CountlyFeedbackWidget.h"
 #import "CountlyPushNotifications.h"
@@ -24,7 +24,9 @@
 #import "CountlyRemoteConfigInternal.h"
 #import "CountlyPerformanceMonitoring.h"
 #import "CountlyRCData.h"
+#import "CountlyViewData.h"
 #import "CountlyRemoteConfig.h"
+#import "CountlyViewTracking.h"
 
 #define CLY_LOG_E(fmt, ...) CountlyInternalLog(CLYInternalLogLevelError, fmt, ##__VA_ARGS__)
 #define CLY_LOG_W(fmt, ...) CountlyInternalLog(CLYInternalLogLevelWarning, fmt, ##__VA_ARGS__)
@@ -78,6 +80,7 @@ extern NSString* const kCountlySDKName;
 @property (nonatomic) CLYInternalLogLevel internalLogLevel;
 @property (nonatomic, copy) NSString* attributionID;
 @property (nonatomic) BOOL manualSessionHandling;
+@property (nonatomic) BOOL enableManualSessionControlHybridMode;
 @property (nonatomic) BOOL enableOrientationTracking;
 @property (nonatomic) BOOL enableServerConfiguration;
 
@@ -120,6 +123,7 @@ void CountlyPrint(NSString *stringToPrint);
 @interface CLYButton : UIButton
 @property (nonatomic, copy) void (^onClick)(id sender);
 + (CLYButton *)dismissAlertButton;
++ (CLYButton *)dismissAlertButton:(NSString * _Nullable)closeButtonText;
 - (void)positionToTopRight;
 - (void)positionToTopRightConsideringStatusBar;
 @end
