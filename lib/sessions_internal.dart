@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:countly_flutter/countly_flutter.dart';
-import 'package:countly_flutter/countly_state.dart';
-import 'package:countly_flutter/sessions.dart';
+import 'package:countly_flutter_np/countly_flutter.dart';
+import 'package:countly_flutter_np/countly_state.dart';
+import 'package:countly_flutter_np/sessions.dart';
 
 class SessionsInternal implements Sessions {
   SessionsInternal(this._cly, this._countlyState);

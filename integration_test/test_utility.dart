@@ -1,4 +1,4 @@
-import 'package:countly_flutter/countly_config.dart';
+import 'package:countly_flutter_np/countly_config.dart';
 
 /*
 Countly Flutter SDK Test Structure
