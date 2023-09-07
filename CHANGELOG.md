@@ -25,6 +25,33 @@
 * Updated underlying Android SDK version to 23.8.0
 * Updated underlying iOS SDK version to 23.8.0
 
+# 23.8.0-np
+* ! Minor breaking change ! Manual view recording calls are now ignored if automatic view recording mode is enabled.
+
+* Adding remaining request queue size information to every request
+* Adding SDK health check requests after init
+* Added protection for updating the push token. The same value can't be sent within 10 minutes again (Android only!)
+* Added support for recording multiple views at the same time
+* Added `enableAllConsents` config method to give all consents at init time
+
+* Fixed a bug that prevented global callbacks from being called
+
+* Introduced a new sessions interface (`Countly.instance.sessions`) on the SDK instance that exposes the manual sessions functionality
+* Introduced a new views interface (`Countly.instance.views`) on the SDK instance that exposes the reworked views functionality
+
+* Deprecated the old view methods. You should now use the `views` object. Deprecated methods are:
+  * recordView
+
+* Deprecated the old session methods. You should now use the `sessions` object. Deprecated methods are:
+  * beginSession
+  * updateSession
+  * endSession
+  * start
+  * stop
+
+* Updated underlying Android SDK version to 23.8.0
+* Updated underlying iOS SDK version to 23.8.0
+
 ## 23.6.0
 * !! Major breaking change !! Automatically downloaded remote config values will no longer be automatically enrolled in their AB tests.
 * ! Minor breaking change ! Remote config will now return previously downloaded values when remote-config consent is not given
