@@ -35,6 +35,7 @@ class CountlyConfig {
   bool _remoteConfigValueCaching = false;
   Map<String, Object>? _globalViewSegmentation;
   bool _enableAllConsents = false;
+  bool _autoEnroll = false;
 
   CountlyConfig(this._serverURL, this._appKey);
 
@@ -104,6 +105,8 @@ class CountlyConfig {
   Map<String, Object>? get globalViewSegmentation => _globalViewSegmentation;
 
   bool get enableAllConsents => _enableAllConsents;
+
+  bool get autoEnroll => _autoEnroll;
 
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
@@ -294,6 +297,12 @@ class CountlyConfig {
   /// Used to give all consent at init time
   CountlyConfig giveAllConsents() {
     _enableAllConsents = true;
+    return this;
+  }
+
+  /// This is used for enrolling user to AB testing on RC download
+  CountlyConfig enrollABOnRCDownload() {
+    _autoEnroll = true;
     return this;
   }
 }
