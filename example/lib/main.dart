@@ -111,7 +111,7 @@ class _MyAppState extends State<MyApp> {
           ..setRecordAppStartTime(true) // Enable APM features, which includes the recording of app start time.
           ..setStarRatingTextMessage('Message for start rating dialog')
           ..setLoggingEnabled(true) // Enable countly internal debugging logs
-          //..enrollABOnRCDownload() // This is for special circumstances only
+          //..enrollABOnRCDownload() // This is for specific circumstances only
           ..setParameterTamperingProtectionSalt('salt') // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
           ..setHttpPostForced(false); // Set to 'true' if you want HTTP POST to be used for all requests
         if (_enableManualSession) {
