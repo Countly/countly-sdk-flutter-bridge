@@ -2002,8 +2002,8 @@ class Countly {
         countlyConfig['enableAllConsents'] = config.enableAllConsents;
       }
 
-      if (config.autoEnroll) {
-        countlyConfig['autoEnroll'] = config.autoEnroll;
+      if (config.autoEnrollABOnDownload) {
+        countlyConfig['autoEnrollABOnDownload'] = config.autoEnrollABOnDownload;
       }
 
       countlyConfig['remoteConfigAutomaticTriggers'] = config.remoteConfigAutomaticTriggers;

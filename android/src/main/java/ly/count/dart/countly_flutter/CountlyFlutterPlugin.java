@@ -1547,7 +1547,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
              this.config.giveAllConsents();
         }
 
-        if (_config.has("autoEnroll")) {
+        if (_config.has("autoEnrollABOnDownload")) {
              this.config.enrollABOnRCDownload();
         }
     }
