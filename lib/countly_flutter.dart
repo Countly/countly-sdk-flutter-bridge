@@ -55,7 +55,6 @@ class Countly {
     _userProfileInternal = UserProfileInternal(this, _countlyState);
     _viewsInternal = ViewsInternal(this, _countlyState);
     _sessionsInternal = SessionsInternal(this, _countlyState);
-
   }
   static final instance = _instance;
   static final _instance = Countly._();
@@ -236,7 +235,7 @@ class Countly {
     }
     if (config.manualSessionEnabled != null) {
       _manualSessionControlEnabled = config.manualSessionEnabled!;
-      if(config.manualSessionEnabled!) {
+      if (config.manualSessionEnabled!) {
         _instance._sessionsInternal.enableManualSession();
       }
     }
@@ -576,7 +575,6 @@ class Countly {
 
     return result;
   }
-
 
   @Deprecated('Automatic sessions are handled by underlying SDK, this function will do nothing')
   static Future<String?> start() async {
@@ -2000,8 +1998,12 @@ class Countly {
         countlyConfig['globalViewSegmentation'] = config.globalViewSegmentation;
       }
 
-      if (config.enableAllConsents != null) {
+      if (config.enableAllConsents) {
         countlyConfig['enableAllConsents'] = config.enableAllConsents;
+      }
+
+      if (config.autoEnrollABOnDownload) {
+        countlyConfig['autoEnrollABOnDownload'] = config.autoEnrollABOnDownload;
       }
 
       countlyConfig['remoteConfigAutomaticTriggers'] = config.remoteConfigAutomaticTriggers;

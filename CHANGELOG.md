@@ -1,3 +1,7 @@
+## 23.8.1
+* Added `enrollABOnRCDownload` config method to enroll users to AB tests when downloading Remote Config values
+* Fixed a bug where enabling consent requirements would enable consents for all features for Android
+
 ## 23.8.0
 * ! Minor breaking change ! Manual view recording calls are now ignored if automatic view recording mode is enabled.
 
