@@ -1,4 +1,4 @@
-import 'package:countly_flutter/experiment_info.dart';
+import 'package:countly_flutter/experiment_information.dart';
 
 /// REMOTE CONFIG / AB TESTING
 class RCData {
@@ -59,5 +59,5 @@ abstract class RemoteConfig {
 
   Future<void> testingDownloadExperimentInformation(RCVariantCallback rcVariantCallback);
 
-  Future<Map<String, CountlyExperimentInfo>> testingGetAllExperimentInfo();
+  Future<Map<String, ExperimentInformation>> testingGetAllExperimentInfo();
 }

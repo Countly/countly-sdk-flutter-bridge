@@ -4,7 +4,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:countly_flutter/countly_flutter.dart';
-import 'package:countly_flutter/experiment_info.dart';
+import 'package:countly_flutter/experiment_information.dart';
 import 'package:flutter/material.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
@@ -154,7 +154,7 @@ class _MyAppState extends State<MyApp> {
   void remoteConfigDownloadExperimentInfo() {
     Countly.instance.remoteConfig.testingDownloadExperimentInformation((rResult, error) async {
       if(rResult == RequestResult.success) {
-        Map<String, CountlyExperimentInfo> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
+        Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
         print(experimentInfoMap);
       }
     });

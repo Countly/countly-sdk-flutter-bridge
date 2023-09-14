@@ -1,5 +1,5 @@
-class CountlyExperimentInfo {
-  CountlyExperimentInfo(this.experimentID, this.experimentName, this.experimentDescription, this.currentVariant, this.variants);
+class ExperimentInformation {
+  ExperimentInformation(this.experimentID, this.experimentName, this.experimentDescription, this.currentVariant, this.variants);
 
   final String experimentID;
   final String experimentName;
@@ -7,7 +7,7 @@ class CountlyExperimentInfo {
   final String currentVariant;
   final Map<String, Map<String, dynamic>> variants;
 
-  static CountlyExperimentInfo fromJson(dynamic json) {
+  static ExperimentInformation fromJson(dynamic json) {
     Map<String, Map<String, dynamic>> variantsMap = {};
     Map<Object?, Object?> variants = json['variants'] ?? {};
     for (var item in variants.keys)
@@ -20,6 +20,6 @@ class CountlyExperimentInfo {
       }
       variantsMap[item.toString()] = valueMap;
     }
-    return CountlyExperimentInfo(json['experimentID'] ?? "", json['experimentName'] ?? "", json['experimentDescription'] ?? "", json['currentVariant'] ?? "", variantsMap);
+    return ExperimentInformation(json['experimentID'] ?? "", json['experimentName'] ?? "", json['experimentDescription'] ?? "", json['currentVariant'] ?? "", variantsMap);
   }
 }
