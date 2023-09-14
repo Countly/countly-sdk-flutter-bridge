@@ -1,3 +1,5 @@
+import 'package:countly_flutter/experiment_info.dart';
+
 /// REMOTE CONFIG / AB TESTING
 class RCData {
   Object? value; // stores the RC value
@@ -54,4 +56,8 @@ abstract class RemoteConfig {
   Future<void> testingDownloadVariantInformation(RCVariantCallback rcVariantCallback);
 
   Future<void> testingEnrollIntoVariant(String keyName, String variantName, RCVariantCallback? rcVariantCallback);
+
+  Future<void> testingDownloadExperimentInformation(RCVariantCallback rcVariantCallback);
+
+  Future<Map<String, CountlyExperimentInfo>> testingGetAllExperimentInfo();
 }
