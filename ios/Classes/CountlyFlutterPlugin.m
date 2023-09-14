@@ -941,9 +941,9 @@ FlutterMethodChannel *_channel;
         
     } else if ([@"testingGetAllExperimentInfo" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSDictionary<NSString*, CountlyExperimentInfo*> * experiments = [Countly.sharedInstance.remoteConfig testingGetAllExperimentInfo];
+            NSDictionary<NSString*, CountlyExperimentInformation*> * experiments = [Countly.sharedInstance.remoteConfig testingGetAllExperimentInfo];
             NSMutableArray *experimentInfoArray = [NSMutableArray arrayWithCapacity:experiments.count];
-            [experiments enumerateKeysAndObjectsUsingBlock:^(NSString * key, CountlyExperimentInfo* experimentID, BOOL * stop)
+            [experiments enumerateKeysAndObjectsUsingBlock:^(NSString * key, CountlyExperimentInformation* experimentID, BOOL * stop)
              {
                 NSMutableDictionary *experimentInfoValue = [NSMutableDictionary dictionaryWithCapacity:5];
                 experimentInfoValue[@"experimentID"] = experimentID.experimentID;
