@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:countly_flutter_np/countly_flutter.dart';
 import 'package:countly_flutter_np/countly_state.dart';
-import 'package:countly_flutter_np/experiment_information.dart'
+import 'package:countly_flutter_np/experiment_information.dart';
 
 class RemoteConfigInternal implements RemoteConfig {
   RemoteConfigInternal(this._cly, this._countlyState);
