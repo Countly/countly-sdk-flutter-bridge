@@ -13,6 +13,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 import ly.count.android.sdk.Countly;
 import ly.count.android.sdk.CountlyConfig;
+import ly.count.android.sdk.ExperimentInformation;
 import ly.count.android.sdk.FeedbackRatingCallback;
 import ly.count.android.sdk.ModuleFeedback.*;
 import ly.count.android.sdk.DeviceIdType;
@@ -63,7 +64,7 @@ import ly.count.android.sdk.messaging.CountlyPush;
  */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
     private static final String TAG = "CountlyFlutterPlugin";
-    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "23.8.0";
+    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "23.8.1";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterbnp-android";
 
@@ -968,7 +969,41 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 });
 
                 result.success(null);
-            } else if ("remoteConfigTestingEnrollIntoVariant".equals(call.method)) {
+            }
+            else if ("testingDownloadExperimentInformation".equals(call.method)) {
+                int requestID = args.getInt(0);
+
+                log("testingDownloadExperimentInformation", LogLevel.WARNING);
+
+                Countly.sharedInstance().remoteConfig().testingDownloadExperimentInformation((rResult, error) -> {
+                    if (requestID == requestIDNoCallback) {
+                        return;
+                    }
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("error", error);
+                    data.put("requestResult", resultResponder(rResult));
+                    data.put("id", requestID);
+                    methodChannel.invokeMethod("remoteConfigVariantCallback", data);
+                });
+
+                result.success(null);
+            }
+            else if ("testingGetAllExperimentInfo".equals(call.method)) {
+                Map<String, ExperimentInformation> experimentInfoMap = Countly.sharedInstance().remoteConfig().testingGetAllExperimentInfo();
+                List<Map<String, Object>> experimentInfoArray = new ArrayList<>();
+                for (Map.Entry<String, ExperimentInformation> entry : experimentInfoMap.entrySet()) {
+                    ExperimentInformation experimentInfo = entry.getValue();
+                    Map<String, Object> experimentInfoValue = new HashMap<>();
+                    experimentInfoValue.put("experimentID", experimentInfo.experimentName);
+                    experimentInfoValue.put("experimentName", experimentInfo.experimentName);
+                    experimentInfoValue.put("experimentDescription", experimentInfo.experimentDescription);
+                    experimentInfoValue.put("currentVariant", experimentInfo.currentVariant);
+                    experimentInfoValue.put("variants", experimentInfo.variants);
+                    experimentInfoArray.add(experimentInfoValue);
+                }
+                result.success(experimentInfoArray);
+            }
+            else if ("remoteConfigTestingEnrollIntoVariant".equals(call.method)) {
                 int requestID = args.getInt(0);
                 String key = args.getString(1);
                 String variant = args.getString(2);
@@ -1530,8 +1565,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.setGlobalViewSegmentation(toMap(globalViewSegmentation));
         }
 
-        if (_config.has("enableAllConsents")) {
+        if (_config.has("enableAllConsents") && _config.getBoolean("enableAllConsents")) {
              this.config.giveAllConsents();
+        }
+
+        if (_config.has("autoEnrollABOnDownload") && _config.getBoolean("autoEnrollABOnDownload")) {
+             this.config.enrollABOnRCDownload();
         }
     }
 }

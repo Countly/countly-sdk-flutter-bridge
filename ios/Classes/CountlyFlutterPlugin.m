@@ -23,7 +23,7 @@ BOOL BUILDING_WITH_PUSH_DISABLED = true;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
 
-NSString *const kCountlyFlutterSDKVersion = @"23.8.0";
+NSString *const kCountlyFlutterSDKVersion = @"23.8.1";
 NSString *const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 NSString *const kCountlyFlutterSDKNameNoPush = @"dart-flutterbnp-ios";
 
@@ -930,7 +930,38 @@ FlutterMethodChannel *_channel;
             result(@"Success!");
         });
         
-    } else if ([@"presentRatingWidgetWithID" isEqualToString:call.method]) {
+    } else if ([@"testingDownloadExperimentInformation" isEqualToString:call.method]) {
+        NSNumber *callbackID = [command objectAtIndex:0];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [Countly.sharedInstance.remoteConfig testingDownloadExperimentInformation:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error) {
+                [self remoteConfigVariantCallback:callbackID response:response error:error];
+            }];
+            result(@"Success!");
+        });
+        
+    } else if ([@"testingGetAllExperimentInfo" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSDictionary<NSString*, CountlyExperimentInformation*> * experiments = [Countly.sharedInstance.remoteConfig testingGetAllExperimentInfo];
+            NSMutableArray *experimentInfoArray = [NSMutableArray arrayWithCapacity:experiments.count];
+            [experiments enumerateKeysAndObjectsUsingBlock:^(NSString * key, CountlyExperimentInformation* experimentID, BOOL * stop)
+             {
+                NSMutableDictionary *experimentInfoValue = [NSMutableDictionary dictionaryWithCapacity:5];
+                experimentInfoValue[@"experimentID"] = experimentID.experimentID;
+                experimentInfoValue[@"experimentName"] = experimentID.experimentName;
+                experimentInfoValue[@"experimentDescription"] = experimentID.experimentDescription;
+                if(experimentID.currentVariant) {
+                    experimentInfoValue[@"currentVariant"] =  experimentID.currentVariant;
+                }
+                else
+                {
+                    experimentInfoValue[@"currentVariant"] = @"null";
+                }
+                experimentInfoValue[@"variants"] = experimentID.variants;
+                [experimentInfoArray addObject:experimentInfoValue];
+            }];
+            result(experimentInfoArray);
+        });
+    }  else if ([@"presentRatingWidgetWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *widgetId = [command objectAtIndex:0];
           [Countly.sharedInstance presentRatingWidgetWithID:widgetId

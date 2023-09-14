@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter/experiment_information.dart';
 import 'package:flutter/material.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
@@ -111,6 +112,7 @@ class _MyAppState extends State<MyApp> {
           ..setRecordAppStartTime(true) // Enable APM features, which includes the recording of app start time.
           ..setStarRatingTextMessage('Message for start rating dialog')
           ..setLoggingEnabled(true) // Enable countly internal debugging logs
+          //..enrollABOnRCDownload() // This is for specific circumstances only
           ..setParameterTamperingProtectionSalt('salt') // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
           ..setHttpPostForced(false); // Set to 'true' if you want HTTP POST to be used for all requests
         if (_enableManualSession) {
@@ -147,6 +149,15 @@ class _MyAppState extends State<MyApp> {
 
   void enableTemporaryIdMode() {
     Countly.changeDeviceId(Countly.deviceIDType['TemporaryDeviceID']!, false);
+  }
+
+  void remoteConfigDownloadExperimentInfo() {
+    Countly.instance.remoteConfig.testingDownloadExperimentInformation((rResult, error) async {
+      if(rResult == RequestResult.success) {
+        Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
+        print(experimentInfoMap);
+      }
+    });
   }
 
   void remoteConfigRegisterDownloadCallback() {
@@ -1079,6 +1090,7 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'Get AB testing values (Legacy)', color: 'green', onPressed: getABTestingValues),
               MyButton(text: 'Record event for goal #1', color: 'green', onPressed: eventForGoal_1),
               MyButton(text: 'Record event for goal #2', color: 'green', onPressed: eventForGoal_2),
+              MyButton(text: 'Remote Config Download Experiment Info', color: 'purple', onPressed: remoteConfigDownloadExperimentInfo),
               MyButton(text: 'Remote Config Register Download Callback', color: 'purple', onPressed: remoteConfigRegisterDownloadCallback),
               MyButton(text: 'Remote Config Remove Download Callback', color: 'purple', onPressed: remoteConfigRemoveDownloadCallback),
               MyButton(text: 'Remote Config Download Values', color: 'purple', onPressed: remoteConfigDownloadKeys),
