@@ -15,6 +15,7 @@
 * Updated underlying iOS SDK version to 23.8.2
 
 ## 23.8.0
+* !! Major breaking change !! 'start' and 'stop' calls have been deprecated. They will do nothing. The SDK will now automatically track sessions based on the app's time in the foreground.
 * ! Minor breaking change ! Manual view recording calls are now ignored if automatic view recording mode is enabled.
 
 * Adding remaining request queue size information to every request
@@ -42,6 +43,7 @@
 * Updated underlying iOS SDK version to 23.8.0
 
 # 23.8.0-np
+* !! Major breaking change !! 'start' and 'stop' calls have been deprecated. They will do nothing. The SDK will now automatically track sessions based on the app's time in the foreground.
 * ! Minor breaking change ! Manual view recording calls are now ignored if automatic view recording mode is enabled.
 
 * Adding remaining request queue size information to every request
