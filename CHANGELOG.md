@@ -6,7 +6,44 @@
 * Updated underlying Android SDK version to 23.8.1 
 * Updated underlying iOS SDK version to 23.8.2
 
+## 23.8.1-np
+* Added `enrollABOnRCDownload` config method to enroll users to AB tests when downloading Remote Config values
+* Fixed a bug where enabling consent requirements would enable consents for all features for Android
+* Added `testingDownloadExperimentInformation:` in remote config interface
+* Added `testingGetAllExperimentInfo:` in remote config interface
+* Updated underlying Android SDK version to 23.8.1
+* Updated underlying iOS SDK version to 23.8.2
+
 ## 23.8.0
+* !! Major breaking change !! 'start' and 'stop' calls have been deprecated. They will do nothing. The SDK will now automatically track sessions based on the app's time in the foreground.
+* ! Minor breaking change ! Manual view recording calls are now ignored if automatic view recording mode is enabled.
+
+* Adding remaining request queue size information to every request
+* Adding SDK health check requests after init
+* Added protection for updating the push token. The same value can't be sent within 10 minutes again (Android only!)
+* Added support for recording multiple views at the same time
+* Added `enableAllConsents` config method to give all consents at init time
+
+* Fixed a bug that prevented global callbacks from being called
+
+* Introduced a new sessions interface (`Countly.instance.sessions`) on the SDK instance that exposes the manual sessions functionality
+* Introduced a new views interface (`Countly.instance.views`) on the SDK instance that exposes the reworked views functionality
+
+* Deprecated the old view methods. You should now use the `views` object. Deprecated methods are:
+  * recordView
+
+* Deprecated the old session methods. You should now use the `sessions` object. Deprecated methods are:
+  * beginSession
+  * updateSession
+  * endSession
+  * start
+  * stop
+
+* Updated underlying Android SDK version to 23.8.0
+* Updated underlying iOS SDK version to 23.8.0
+
+# 23.8.0-np
+* !! Major breaking change !! 'start' and 'stop' calls have been deprecated. They will do nothing. The SDK will now automatically track sessions based on the app's time in the foreground.
 * ! Minor breaking change ! Manual view recording calls are now ignored if automatic view recording mode is enabled.
 
 * Adding remaining request queue size information to every request
