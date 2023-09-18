@@ -1,9 +1,19 @@
+## 23.8.2
+* Fixed Android APM bug where automatic foreground, background tracking would track wrong if the SDK was not initialized while the app was not in the foreground
+* Updated underlying Android SDK version to 23.8.2
+* Underlying iOS SDK version is 23.8.2
+
+## 23.8.2-np
+* Fixed Android APM bug where automatic foreground, background tracking would track wrong if the SDK was not initialized while the app was not in the foreground
+* Updated underlying Android SDK version to 23.8.2
+* Underlying iOS SDK version is 23.8.2
+
 ## 23.8.1
 * Added `enrollABOnRCDownload` config method to enroll users to AB tests when downloading Remote Config values
 * Fixed a bug where enabling consent requirements would enable consents for all features for Android 
 * Added `testingDownloadExperimentInformation:` in remote config interface 
 * Added `testingGetAllExperimentInfo:` in remote config interface 
-* Updated underlying Android SDK version to 23.8.2
+* Updated underlying Android SDK version to 23.8.1 
 * Updated underlying iOS SDK version to 23.8.2
 
 ## 23.8.1-np
