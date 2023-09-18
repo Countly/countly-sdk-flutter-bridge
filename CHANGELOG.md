@@ -3,7 +3,7 @@
 * Fixed a bug where enabling consent requirements would enable consents for all features for Android 
 * Added `testingDownloadExperimentInformation:` in remote config interface 
 * Added `testingGetAllExperimentInfo:` in remote config interface 
-* Updated underlying Android SDK version to 23.8.1 
+* Updated underlying Android SDK version to 23.8.2
 * Updated underlying iOS SDK version to 23.8.2
 
 ## 23.8.1-np
