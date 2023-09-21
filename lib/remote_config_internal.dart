@@ -192,6 +192,46 @@ class RemoteConfigInternal implements RemoteConfig {
   }
 
   @override
+  Future<RCData> getValueAndEnroll(String key) async {
+    if (!_countlyState.isInitialized) {
+      Countly.log('"initWithConfig" must be called before "getValueAndEnroll"', logLevel: LogLevel.ERROR);
+      return RCData(null, true);
+    }
+    Countly.log('Calling "getValueAndEnroll":[$key]');
+    if (key.isEmpty) {
+      Countly.log('getValueAndEnroll, key cannot be empty');
+      return RCData(null, true);
+    }
+    List<String> args = [];
+    args.add(key);
+
+    final valueMap = await _countlyState.channel.invokeMethod('remoteConfigGetValueAndEnroll', <String, dynamic>{'data': json.encode(args)});
+
+    RCData? returnValue;
+    if (valueMap != null) {
+      returnValue = RCData.fromMap(valueMap as Map<dynamic, dynamic>);
+    }
+
+    returnValue ??= RCData(null, true);
+    return returnValue;
+  }
+
+  @override
+  Future<Map<String, RCData>> getAllValuesAndEnroll()  async {
+    if (!_countlyState.isInitialized) {
+      Countly.log('"initWithConfig" must be called before "getAllValuesAndEnroll"', logLevel: LogLevel.ERROR);
+      return {};
+    }
+
+    final Map<dynamic, dynamic> allValues = await _countlyState.channel.invokeMethod('remoteConfigGetAllValuesAndEroll');
+    Countly.log('"getAllValuesAndEnroll" returned values:$allValues', logLevel: LogLevel.DEBUG);
+    Map<String, RCData> returnValue = _parseDownloadedValues(allValues, 'getAllValues');
+
+    Countly.log('"getAllValuesAndEnroll" transformed values:$returnValue', logLevel: LogLevel.DEBUG);
+    return returnValue;
+  }
+
+  @override
   void registerDownloadCallback(RCDownloadCallback callback) {
     if (!_countlyState.isInitialized) {
       Countly.log('"initWithConfig" must be called before "remoteConfigRegisterDownloadCallback"', logLevel: LogLevel.ERROR);

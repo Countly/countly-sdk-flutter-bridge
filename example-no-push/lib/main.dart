@@ -8,6 +8,7 @@ import 'package:countly_flutter_np/countly_config.dart';
 // ignore: depend_on_referenced_packages
 import 'package:countly_flutter_np/countly_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:countly_flutter_np/experiment_information.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -119,10 +120,10 @@ class _MyAppState extends State<MyApp> {
   }
 
   // ignore: non_constant_identifier_names
-  static String SERVER_URL = 'https://master.count.ly';
+  static String SERVER_URL = 'https://next.count.ly';
 
   // ignore: non_constant_identifier_names
-  static String APP_KEY = 'YOUR_API_KEY';
+  static String APP_KEY = 'rc_test';
 
   void enableTemporaryIdMode() {
     Countly.changeDeviceId(Countly.deviceIDType['TemporaryDeviceID']!, false);
@@ -447,6 +448,15 @@ class _MyAppState extends State<MyApp> {
   void eventForGoal_2() {
     var event = {'key': 'eventForGoal_2', 'count': 1};
     Countly.recordEvent(event);
+  }
+
+  void remoteConfigDownloadExperimentInfo() {
+    Countly.instance.remoteConfig.testingDownloadExperimentInformation((rResult, error) async {
+      if(rResult == RequestResult.success) {
+        Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
+        print(experimentInfoMap);
+      }
+    });
   }
 
   void remoteConfigUpdate() {
@@ -870,6 +880,7 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'Get AB testing values', color: 'green', onPressed: getABTestingValues),
               MyButton(text: 'Record event for goal #1', color: 'green', onPressed: eventForGoal_1),
               MyButton(text: 'Record event for goal #2', color: 'green', onPressed: eventForGoal_2),
+              MyButton(text: 'Remote Config Download Experiments', color: 'purple', onPressed: remoteConfigDownloadExperimentInfo),
               MyButton(text: 'Countly.remoteConfigUpdate', color: 'purple', onPressed: remoteConfigUpdate),
               MyButton(text: 'Countly.updateRemoteConfigForKeysOnly', color: 'purple', onPressed: updateRemoteConfigForKeysOnly),
               MyButton(text: 'Countly.updateRemoteConfigExceptKeys', color: 'purple', onPressed: updateRemoteConfigExceptKeys),
