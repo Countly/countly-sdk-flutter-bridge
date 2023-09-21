@@ -223,7 +223,7 @@ class RemoteConfigInternal implements RemoteConfig {
       return {};
     }
 
-    final Map<dynamic, dynamic> allValues = await _countlyState.channel.invokeMethod('remoteConfigGetAllValuesAndEroll');
+    final Map<dynamic, dynamic> allValues = await _countlyState.channel.invokeMethod('remoteConfigGetAllValuesAndEnroll');
     Countly.log('"getAllValuesAndEnroll" returned values:$allValues', logLevel: LogLevel.DEBUG);
     Map<String, RCData> returnValue = _parseDownloadedValues(allValues, 'getAllValues');
 
