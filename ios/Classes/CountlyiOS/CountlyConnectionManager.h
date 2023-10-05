@@ -54,6 +54,9 @@ extern const NSInteger kCountlyGETRequestMaxLength;
 - (void)sendConsents:(NSString *)consents;
 - (void)sendPerformanceMonitoringTrace:(NSString *)trace;
 
+- (void)sendEnrollABRequestForKeys:(NSArray*)keys;
+- (void)sendExitABRequestForKeys:(NSArray*)keys;
+
 - (void)addDirectRequest:(NSDictionary<NSString *, NSString *> *)requestParameters;
 
 - (void)proceedOnQueue;
