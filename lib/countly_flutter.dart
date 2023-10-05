@@ -2006,6 +2006,10 @@ class Countly {
         countlyConfig['autoEnrollABOnDownload'] = config.autoEnrollABOnDownload;
       }
 
+      if (config.requestDropAgeHours != null) {
+        countlyConfig['requestDropAgeHours'] = config.requestDropAgeHours;
+      }
+
       countlyConfig['remoteConfigAutomaticTriggers'] = config.remoteConfigAutomaticTriggers;
 
       countlyConfig['remoteConfigValueCaching'] = config.remoteConfigValueCaching;

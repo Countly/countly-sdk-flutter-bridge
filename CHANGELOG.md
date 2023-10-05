@@ -1,3 +1,13 @@
+## 23.8.3
+* Added a config method to set a time limit after which the requests would be removed if not sent to the server: 'setRequestDropAgeHours'
+* Updated underlying Android SDK version to 23.8.3
+* Updated underlying iOS SDK version to 23.8.3
+
+## 23.8.3-np
+* Added a config method to set a time limit after which the requests would be removed if not sent to the server: 'setRequestDropAgeHours'
+* Updated underlying Android SDK version to 23.8.3
+* Updated underlying iOS SDK version to 23.8.3
+
 ## 23.8.2
 * Fixed Android APM bug where automatic foreground, background tracking would track wrong if the SDK was not initialized while the app was not in the foreground
 * Updated underlying Android SDK version to 23.8.2
