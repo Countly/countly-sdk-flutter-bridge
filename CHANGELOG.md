@@ -1,3 +1,15 @@
+## 23.8.3
+* Added a call to enroll users to A/B tests when getting a remote config value: 'getValueAndEnroll'
+* Added a call to enroll users to A/B tests when getting all remote config values: 'getAllValuesAndEnroll'
+* Updated underlying Android SDK version to 23.8.3
+* Updated underlying iOS SDK version to 23.8.3
+
+## 23.8.3-np
+* Added a call to enroll users to A/B tests when getting a remote config value: 'getValueAndEnroll'
+* Added a call to enroll users to A/B tests when getting all remote config values: 'getAllValuesAndEnroll'
+* Updated underlying Android SDK version to 23.8.3
+* Updated underlying iOS SDK version to 23.8.3
+
 ## 23.8.2
 * Fixed Android APM bug where automatic foreground, background tracking would track wrong if the SDK was not initialized while the app was not in the foreground
 * Updated underlying Android SDK version to 23.8.2

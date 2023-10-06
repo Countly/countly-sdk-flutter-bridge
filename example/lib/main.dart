@@ -224,6 +224,26 @@ class _MyAppState extends State<MyApp> {
     Countly.instance.remoteConfig.getValue('testKey');
   }
 
+  void remoteConfigGetValueAndEnroll() {
+    Countly.instance.remoteConfig.getValueAndEnroll('testKey');
+  }
+
+  Future<void> remoteConfigGetAllValuesAndEnroll() async {
+    final allValues = await Countly.instance.remoteConfig.getAllValuesAndEnroll();
+    for (final entry in allValues.entries) {
+      final value = entry.value.value;
+      print('key: ${entry.key}, value: $value, DataType: ${value.runtimeType}');
+      if (value is Map) {
+        print('begin 2nd level iteration');
+        for (final entry1 in value.entries) {
+          final value1 = entry1.value;
+          print('2nd iteration - key: ${entry1.key}, value: $value1, DataType: ${value1.runtimeType}');
+        }
+        print('end 2nd level iteration');
+      }
+    }
+  }
+
   void remoteConfigClearAll() {
     Countly.instance.remoteConfig.clearAll();
   }
@@ -1098,6 +1118,10 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'Remote Config Download Omitting Values', color: 'purple', onPressed: remoteConfigDownloadOmittingKeys),
               MyButton(text: 'Remote Config Get All Values', color: 'purple', onPressed: remoteConfigGetAllValues),
               MyButton(text: 'Remote Config Get Value', color: 'purple', onPressed: remoteConfigGetValue),
+
+              MyButton(text: 'Remote Config Get Value And Enroll', color: 'purple', onPressed: remoteConfigGetValueAndEnroll),
+              MyButton(text: 'Remote Config Get All Values And Enroll', color: 'purple', onPressed: remoteConfigGetAllValuesAndEnroll),
+
               MyButton(text: 'Remote Config Clear All Values', color: 'purple', onPressed: remoteConfigClearAll),
               MyButton(text: 'Remote Config Enroll Into AB Tests For Keys', color: 'purple', onPressed: remoteConfigEnrollIntoABTestsForKeys),
               MyButton(text: 'Remote Config Exit AB Tests For Keys', color: 'purple', onPressed: remoteConfigExitABTestsForKeys),
