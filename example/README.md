@@ -1,16 +1,83 @@
-# countly_flutter_example
+# Countly Flutter Example App
 
-Demonstrates how to use the countly_flutter plugin.
+This example app demonstrates most of the features the SDK offers.
+You can quickly check the usage of features you are interested in.
+It is possible that the app contains legacy code for the archival purposes.
+So it is good practice to check the SDK [documentation](https://support.count.ly/hc/en-us/articles/360037944212-Flutter).
 
-## Getting Started
+## Usage
+Make sure that Flutter is installed  functioning in your system by running:
 
-This project is a starting point for a Flutter application.
+```bash
+flutter doctor
+```
 
-A few resources to get you started if this is your first Flutter project:
+If you did not get any errors you can run the app by installing the repo:
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+```bash
+git clone https://github.com/Countly/countly-sdk-flutter-bridge.git
+cd countly-sdk-flutter-bridge/example
+flutter pub get
+```
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Then you should change the SERVER_URL and APP_KEY values in 'config_object.dart' to values that you get from your Countly server. 
+
+Next you can run the app in an emulator or real device by:
+
+```bash
+flutter run
+```
+
+### Explanation of the Content
+The main content of the application is in 'lib' folder. Content here includes:
+- main.dart (entry point to the app)
+- page_*.dart (each page corresponding a feature)
+- config_object.dart (manages SDK configuration)
+- style.dart (for the app theme and styling)
+- helpers.dart (some utility functions and classes)
+- convert_packages.py (for testing no-push variation of the SDK)
+
+### No Push Variation
+If you want to use the no-push variation of the SDK you have two options:
+
+- Using the [master-np branch](https://github.com/Countly/countly-sdk-flutter-bridge/tree/master-np) if you are using the local SDK
+- Using the np version from pub.dev (check pubspec.yaml for more info)
+
+If you changed the pubspec.yaml file you should re-run this command:
+
+```bash
+flutter pub get
+```
+
+After changing the SDK to np version you would need to change the imported packages
+from 'package:countly_flutter/' to 'package:countly_flutter_np/'. You can either to this manually by going through each file in the 'lib' folder or you can run the convert_packages.py (assuming python is installed in your system):
+
+```bash
+python convert_packages.py
+```
+
+## Fixing Platform Issues
+If have you encountered a problem where you could not run the App regardless of following this guide the fastest way to proceed is by creating a fresh app and copying only the core files over.
+
+Simply create a new Flutter project at a desired location:
+
+```bash
+flutter create new_project
+cd new_project
+```
+
+You should first check if this project builds and run by:
+
+```bash
+flutter pub get
+flutter run
+```
+
+If it is working then you should copy and paste the 'lib' folder over to this new location and run:
+
+```bash
+flutter pub add countly_flutter
+flutter run
+```
+
+Now the application should be working. If it is still giving some errors/warnings those should be approached on case by case basis depending on the message (like missing assets and such).

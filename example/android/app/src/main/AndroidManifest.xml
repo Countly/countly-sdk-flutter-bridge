@@ -9,7 +9,7 @@
     <application
         android:name=".App"
         android:label="MainActivity"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/icon48">
         <activity
             android:name="com.countly.demo.MainActivity"
             android:launchMode="singleTop"
