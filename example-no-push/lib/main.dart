@@ -452,7 +452,7 @@ class _MyAppState extends State<MyApp> {
 
   void remoteConfigDownloadExperimentInfo() {
     Countly.instance.remoteConfig.testingDownloadExperimentInformation((rResult, error) async {
-      if(rResult == RequestResult.success) {
+      if (rResult == RequestResult.success) {
         Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
         print(experimentInfoMap);
       }

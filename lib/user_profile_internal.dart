@@ -5,9 +5,8 @@ import 'package:countly_flutter/countly_state.dart';
 import 'package:countly_flutter/user_profile.dart';
 
 class UserProfileInternal implements UserProfile {
-  UserProfileInternal(this._cly, this._countlyState);
+  UserProfileInternal(this._countlyState);
 
-  final Countly _cly;
   final CountlyState _countlyState;
 
   @override
