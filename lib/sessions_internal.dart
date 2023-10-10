@@ -1,13 +1,10 @@
-import 'dart:convert';
-
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:countly_flutter/countly_state.dart';
 import 'package:countly_flutter/sessions.dart';
 
 class SessionsInternal implements Sessions {
-  SessionsInternal(this._cly, this._countlyState);
+  SessionsInternal(this._countlyState);
 
-  final Countly _cly;
   final CountlyState _countlyState;
   bool _manualSessionEnabled = false;
 

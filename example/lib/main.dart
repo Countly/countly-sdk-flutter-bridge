@@ -153,7 +153,7 @@ class _MyAppState extends State<MyApp> {
 
   void remoteConfigDownloadExperimentInfo() {
     Countly.instance.remoteConfig.testingDownloadExperimentInformation((rResult, error) async {
-      if(rResult == RequestResult.success) {
+      if (rResult == RequestResult.success) {
         Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
         print(experimentInfoMap);
       }
@@ -432,7 +432,7 @@ class _MyAppState extends State<MyApp> {
       'gender': 'User Gender',
       'byear': '1989',
       'Custom Integer': 123,
-      'Custom String': "Some String",
+      'Custom String': 'Some String',
       'Custom Array': ['array value 1', 'array value 2'],
       'Custom Map': {'key 1': 'value 1', 'key 2': 'value 2'},
     };
@@ -1118,10 +1118,8 @@ class _MyAppState extends State<MyApp> {
               MyButton(text: 'Remote Config Download Omitting Values', color: 'purple', onPressed: remoteConfigDownloadOmittingKeys),
               MyButton(text: 'Remote Config Get All Values', color: 'purple', onPressed: remoteConfigGetAllValues),
               MyButton(text: 'Remote Config Get Value', color: 'purple', onPressed: remoteConfigGetValue),
-
               MyButton(text: 'Remote Config Get Value And Enroll', color: 'purple', onPressed: remoteConfigGetValueAndEnroll),
               MyButton(text: 'Remote Config Get All Values And Enroll', color: 'purple', onPressed: remoteConfigGetAllValuesAndEnroll),
-
               MyButton(text: 'Remote Config Clear All Values', color: 'purple', onPressed: remoteConfigClearAll),
               MyButton(text: 'Remote Config Enroll Into AB Tests For Keys', color: 'purple', onPressed: remoteConfigEnrollIntoABTestsForKeys),
               MyButton(text: 'Remote Config Exit AB Tests For Keys', color: 'purple', onPressed: remoteConfigExitABTestsForKeys),
