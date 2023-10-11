@@ -5,9 +5,8 @@ import 'package:countly_flutter/countly_state.dart';
 import 'package:countly_flutter/experiment_information.dart';
 
 class RemoteConfigInternal implements RemoteConfig {
-  RemoteConfigInternal(this._cly, this._countlyState);
+  RemoteConfigInternal(this._countlyState);
 
-  final Countly _cly;
   final CountlyState _countlyState;
   static final Map<int, RCDownloadInnerCallback> _remoteConfigDownloadCallbacks = {};
   static final Map<int, RCVariantInnerCallback> _remoteConfigVariantInnerCallbacks = {};
@@ -192,6 +191,46 @@ class RemoteConfigInternal implements RemoteConfig {
   }
 
   @override
+  Future<RCData> getValueAndEnroll(String key) async {
+    if (!_countlyState.isInitialized) {
+      Countly.log('"initWithConfig" must be called before "getValueAndEnroll"', logLevel: LogLevel.ERROR);
+      return RCData(null, true);
+    }
+    Countly.log('Calling "getValueAndEnroll":[$key]');
+    if (key.isEmpty) {
+      Countly.log('getValueAndEnroll, key cannot be empty');
+      return RCData(null, true);
+    }
+    List<String> args = [];
+    args.add(key);
+
+    final valueMap = await _countlyState.channel.invokeMethod('remoteConfigGetValueAndEnroll', <String, dynamic>{'data': json.encode(args)});
+
+    RCData? returnValue;
+    if (valueMap != null) {
+      returnValue = RCData.fromMap(valueMap as Map<dynamic, dynamic>);
+    }
+
+    returnValue ??= RCData(null, true);
+    return returnValue;
+  }
+
+  @override
+  Future<Map<String, RCData>> getAllValuesAndEnroll()  async {
+    if (!_countlyState.isInitialized) {
+      Countly.log('"initWithConfig" must be called before "getAllValuesAndEnroll"', logLevel: LogLevel.ERROR);
+      return {};
+    }
+
+    final Map<dynamic, dynamic> allValues = await _countlyState.channel.invokeMethod('remoteConfigGetAllValuesAndEnroll');
+    Countly.log('"getAllValuesAndEnroll" returned values:$allValues', logLevel: LogLevel.DEBUG);
+    Map<String, RCData> returnValue = _parseDownloadedValues(allValues, 'getAllValues');
+
+    Countly.log('"getAllValuesAndEnroll" transformed values:$returnValue', logLevel: LogLevel.DEBUG);
+    return returnValue;
+  }
+
+  @override
   void registerDownloadCallback(RCDownloadCallback callback) {
     if (!_countlyState.isInitialized) {
       Countly.log('"initWithConfig" must be called before "remoteConfigRegisterDownloadCallback"', logLevel: LogLevel.ERROR);
@@ -306,6 +345,7 @@ class RemoteConfigInternal implements RemoteConfig {
     return variant;
   }
 
+  @override
   Future<void> testingDownloadExperimentInformation(RCVariantCallback rcVariantCallback) async {
     if (!_countlyState.isInitialized) {
       Countly.log('"initWithConfig" must be called before "testingDownloadExperimentInformation"', logLevel: LogLevel.ERROR);
@@ -320,6 +360,7 @@ class RemoteConfigInternal implements RemoteConfig {
     return await _countlyState.channel.invokeMethod('testingDownloadExperimentInformation', <String, dynamic>{'data': json.encode(args)});
   }
 
+  @override
   Future<Map<String, ExperimentInformation>> testingGetAllExperimentInfo() async
   {
     if (!_countlyState.isInitialized) {
@@ -329,7 +370,6 @@ class RemoteConfigInternal implements RemoteConfig {
 
     final List<dynamic> experimentsInfo = await _countlyState.channel.invokeMethod('testingGetAllExperimentInfo');
     List<ExperimentInformation> experimentsInfoList = experimentsInfo.map(ExperimentInformation.fromJson).toList();
-    experimentsInfoList ??= [];
     Map<String, ExperimentInformation> experimentsInfoMap = Map.fromIterable(experimentsInfoList, key: (e) => e.experimentID, value: (e) => e);
     return experimentsInfoMap;
   }

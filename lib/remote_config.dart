@@ -37,11 +37,17 @@ abstract class RemoteConfig {
 
   Future<void> downloadOmittingKeys(List<String> omittedKeys, [RCDownloadCallback? callback]);
 
+  /// returns the value of a stored key.
+  Future<RCData> getValue(String key);
+
   /// returns the values of all keys.
   Future<Map<String, RCData>> getAllValues();
 
-  /// returns the value of a stored key.
-  Future<RCData> getValue(String key);
+  /// returns the value of a stored key and enroll it for AB testing.
+  Future<RCData> getValueAndEnroll(String key);
+
+  /// returns the values of all keys and enroll them for AB testing.
+  Future<Map<String, RCData>> getAllValuesAndEnroll();
 
   Future<void> clearAll();
 
