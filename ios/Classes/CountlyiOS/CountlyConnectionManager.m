@@ -63,7 +63,7 @@ NSString* const kCountlyQSKeyMethod           = @"method";
 NSString* const kCountlyRCKeyABOptIn          = @"ab";
 NSString* const kCountlyRCKeyABOptOut         = @"ab_opt_out";
 NSString* const kCountlyEndPointOverrideTag   = @"&new_end_point=";
-NSString* const kCountlyNewEndPoint   = @"new_end_point";
+NSString* const kCountlyNewEndPoint           = @"new_end_point";
 
 CLYAttributionKey const CLYAttributionKeyIDFA = kCountlyQSKeyIDFA;
 CLYAttributionKey const CLYAttributionKeyADID = kCountlyQSKeyADID;
@@ -166,6 +166,18 @@ const NSInteger kCountlyGETRequestMaxLength = 2048;
         CLY_LOG_D(@"Queue is empty. All requests are processed.");
         return;
     }
+    BOOL isOldRequest = [CountlyPersistency.sharedInstance isOldRequest:firstItemInQueue];
+    if(isOldRequest)
+    {
+        [CountlyPersistency.sharedInstance removeFromQueue:firstItemInQueue];
+        
+        [CountlyPersistency.sharedInstance saveToFile];
+        
+        [self proceedOnQueue];
+        
+        return;
+    }
+    
 
     NSString* temporaryDeviceIDQueryString = [NSString stringWithFormat:@"&%@=%@", kCountlyQSKeyDeviceID, CLYTemporaryDeviceID];
     if ([firstItemInQueue containsString:temporaryDeviceIDQueryString])
@@ -176,13 +188,11 @@ const NSInteger kCountlyGETRequestMaxLength = 2048;
 
     NSString* queryString = firstItemInQueue;
     NSString* endPoint = kCountlyEndpointI;
-    NSString *overrideEndPoint = [self getOverrideTagEndPoint:firstItemInQueue];
+    
+    NSString* overrideEndPoint = [self extractAndRemoveOverrideEndPoint:&queryString];
     if(overrideEndPoint) {
-        NSString* stringToRemove = [kCountlyEndPointOverrideTag stringByAppendingString:overrideEndPoint];
-        queryString = [firstItemInQueue stringByReplacingOccurrencesOfString:stringToRemove withString:@""];
         endPoint = overrideEndPoint;
     }
-    
     
     [CountlyCommon.sharedInstance startBackgroundTask];
 
@@ -254,18 +264,16 @@ const NSInteger kCountlyGETRequestMaxLength = 2048;
     [self logRequest:request];
 }
 
-- (NSString *)getOverrideTagEndPoint:(NSString *)queryString
+- (NSString*)extractAndRemoveOverrideEndPoint:(NSString **)queryString
 {
-    NSString* tempURLString = [@"http://example.com/path?" stringByAppendingString:queryString];
-    NSURLComponents* URLComponents = [NSURLComponents componentsWithString:tempURLString];
-    for (NSURLQueryItem* queryItem in URLComponents.queryItems)
-    {
-        if ([queryItem.name isEqualToString:kCountlyNewEndPoint])
-        {
-            return queryItem.value;
+    if([*queryString containsString:kCountlyNewEndPoint]) {
+        NSString* overrideEndPoint = [*queryString cly_valueForQueryStringKey:kCountlyNewEndPoint];
+        if(overrideEndPoint) {
+            NSString* stringToRemove = [kCountlyEndPointOverrideTag stringByAppendingString:overrideEndPoint];
+            *queryString = [*queryString stringByReplacingOccurrencesOfString:stringToRemove withString:@""];
+            return overrideEndPoint;
         }
     }
-    
     return nil;
 }
 
