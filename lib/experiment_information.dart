@@ -20,6 +20,6 @@ class ExperimentInformation {
       }
       variantsMap[item.toString()] = valueMap;
     }
-    return ExperimentInformation(json['experimentID'] ?? "", json['experimentName'] ?? "", json['experimentDescription'] ?? "", json['currentVariant'] ?? "", variantsMap);
+    return ExperimentInformation(json['experimentID'] ?? '', json['experimentName'] ?? '', json['experimentDescription'] ?? '', json['currentVariant'] ?? '', variantsMap);
   }
 }

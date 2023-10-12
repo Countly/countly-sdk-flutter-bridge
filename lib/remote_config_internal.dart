@@ -5,9 +5,8 @@ import 'package:countly_flutter/countly_state.dart';
 import 'package:countly_flutter/experiment_information.dart';
 
 class RemoteConfigInternal implements RemoteConfig {
-  RemoteConfigInternal(this._cly, this._countlyState);
+  RemoteConfigInternal(this._countlyState);
 
-  final Countly _cly;
   final CountlyState _countlyState;
   static final Map<int, RCDownloadInnerCallback> _remoteConfigDownloadCallbacks = {};
   static final Map<int, RCVariantInnerCallback> _remoteConfigVariantInnerCallbacks = {};
@@ -346,6 +345,7 @@ class RemoteConfigInternal implements RemoteConfig {
     return variant;
   }
 
+  @override
   Future<void> testingDownloadExperimentInformation(RCVariantCallback rcVariantCallback) async {
     if (!_countlyState.isInitialized) {
       Countly.log('"initWithConfig" must be called before "testingDownloadExperimentInformation"', logLevel: LogLevel.ERROR);
@@ -360,6 +360,7 @@ class RemoteConfigInternal implements RemoteConfig {
     return await _countlyState.channel.invokeMethod('testingDownloadExperimentInformation', <String, dynamic>{'data': json.encode(args)});
   }
 
+  @override
   Future<Map<String, ExperimentInformation>> testingGetAllExperimentInfo() async
   {
     if (!_countlyState.isInitialized) {
@@ -369,7 +370,6 @@ class RemoteConfigInternal implements RemoteConfig {
 
     final List<dynamic> experimentsInfo = await _countlyState.channel.invokeMethod('testingGetAllExperimentInfo');
     List<ExperimentInformation> experimentsInfoList = experimentsInfo.map(ExperimentInformation.fromJson).toList();
-    experimentsInfoList ??= [];
     Map<String, ExperimentInformation> experimentsInfoMap = Map.fromIterable(experimentsInfoList, key: (e) => e.experimentID, value: (e) => e);
     return experimentsInfoMap;
   }

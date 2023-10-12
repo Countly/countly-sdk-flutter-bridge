@@ -8,9 +8,9 @@ environment:
     flutter: ">=2.0.0"
 
 dependencies:
-    flutter_plugin_android_lifecycle: ^2.0.2
     flutter:
         sdk: flutter
+    flutter_plugin_android_lifecycle: ^2.0.2
     pedantic: ^1.11.0
 
 dev_dependencies:
