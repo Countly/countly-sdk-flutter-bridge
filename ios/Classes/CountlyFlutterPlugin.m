@@ -1468,6 +1468,11 @@ FlutterMethodChannel *_channel;
             config.storedRequestsLimit = [maxRequestQueueSize intValue];
         }
 
+        NSNumber *requestDropAgeHours = _config[@"requestDropAgeHours"];
+        if (requestDropAgeHours) {
+            config.requestDropAgeHours = [requestDropAgeHours intValue];
+        }
+
         NSNumber *manualSessionEnabled = _config[@"manualSessionEnabled"];
         if (manualSessionEnabled && [manualSessionEnabled boolValue]) {
             config.manualSessionHandling = YES;

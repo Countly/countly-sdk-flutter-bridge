@@ -1,12 +1,16 @@
 ## 23.8.3
 * Added a call to enroll users to A/B tests when getting a remote config value: 'getValueAndEnroll'
 * Added a call to enroll users to A/B tests when getting all remote config values: 'getAllValuesAndEnroll'
+* Added a config method to set a time limit after which the requests would be removed if not sent to the server: 'setRequestDropAgeHours'
+
 * Updated underlying Android SDK version to 23.8.3
 * Updated underlying iOS SDK version to 23.8.3
 
 ## 23.8.3-np
 * Added a call to enroll users to A/B tests when getting a remote config value: 'getValueAndEnroll'
 * Added a call to enroll users to A/B tests when getting all remote config values: 'getAllValuesAndEnroll'
+* Added a config method to set a time limit after which the requests would be removed if not sent to the server: 'setRequestDropAgeHours'
+
 * Updated underlying Android SDK version to 23.8.3
 * Updated underlying iOS SDK version to 23.8.3
 

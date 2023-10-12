@@ -1528,6 +1528,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.setMaxRequestQueueSize(_config.getInt("maxRequestQueueSize"));
         }
 
+        if (_config.has("requestDropAgeHours")) {
+            this.config.setRequestDropAgeHours(_config.getInt("requestDropAgeHours"));
+        }
+
         if (_config.has("manualSessionEnabled") && _config.getBoolean("manualSessionEnabled")) {
             enableManualSessionControl();
         }
