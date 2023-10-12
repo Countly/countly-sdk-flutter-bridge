@@ -22,7 +22,14 @@ flutter pub get
 
 Then you should change the SERVER_URL and APP_KEY values in 'config_object.dart' to values that you get from your Countly server. 
 
-Next you can run the app in an emulator or real device by:
+At this point if you are using Mac you would also need to do the following:
+
+```bash
+cd ios
+pod install
+```
+
+Next you can run the app in an emulator/simulator or a real device by:
 
 ```bash
 flutter run
@@ -47,6 +54,9 @@ If you changed the pubspec.yaml file you should re-run this command:
 
 ```bash
 flutter pub get
+# for Mac also:
+# cd ios
+# pod install
 ```
 
 After changing the SDK to np version you would need to change the imported packages
@@ -54,6 +64,8 @@ from 'package:countly_flutter/' to 'package:countly_flutter_np/'. You can either
 
 ```bash
 python convert_packages.py
+# or:
+# python3 convert_packages.py
 ```
 
 ## Fixing Platform Issues
@@ -70,6 +82,9 @@ You should first check if this project builds and run by:
 
 ```bash
 flutter pub get
+# for Mac also:
+# cd ios
+# pod install
 flutter run
 ```
 
@@ -77,6 +92,9 @@ If it is working then you should copy and paste the 'lib' folder over to this ne
 
 ```bash
 flutter pub add countly_flutter
+# for Mac also:
+# cd ios
+# pod install
 flutter run
 ```
 
