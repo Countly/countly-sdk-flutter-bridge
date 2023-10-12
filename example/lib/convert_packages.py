@@ -45,8 +45,8 @@ if __name__ == "__main__":
     from_package = 'package:countly_flutter/' # push version
     to_package = 'package:countly_flutter_np/' # non push version
 
-    # Uncomment the line below to replace base to 'np'
+    # Uncomment the line below to: run the NO-PUSH version
     # update_package(directory_path, from_package, to_package)
 
-    # Uncomment the line below to do the opposite
+    # Uncomment the line below to: run the normal version
     # update_package(directory_path, to_package, from_package)
