@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 1.0.0
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=2.15.0 <3.0.0"
 
 dependencies:
   # The following adds the Cupertino Icons font to your application.
@@ -14,6 +14,13 @@ dependencies:
     sdk: flutter
 
 dev_dependencies:
+# for no push variation use the line below instead of countly_flutter:
+# countly_flutter_np:
+#   path: ../
+# if you want to use a non local version of the plugin, use a  version number instead of 'path':
+# countly_flutter: ^23.8.2
+# or
+# countly_flutter_np: ^23.8.2
   countly_flutter:
     path: ../
   flutter_test:
@@ -29,3 +36,11 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/banner.png
+    - icons/icon512.png
+    - icons/icon144.png
+    - icons/icon92.png
+    - icons/icon72.png
+    - icons/icon48.png
