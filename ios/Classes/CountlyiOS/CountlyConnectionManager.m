@@ -592,8 +592,6 @@ const NSInteger kCountlyGETRequestMaxLength = 2048;
         queryString = [queryString stringByAppendingFormat:@"&%@=%@", kCountlyRCKeyKeys, [keys cly_JSONify]];
     }
     
-    queryString = [queryString stringByAppendingFormat:@"%@%@%@", kCountlyEndPointOverrideTag, kCountlyEndpointO, kCountlyEndpointSDK];
-    
     [CountlyPersistency.sharedInstance addToQueue:queryString];
     
     [self proceedOnQueue];

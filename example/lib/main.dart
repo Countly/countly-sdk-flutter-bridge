@@ -142,10 +142,10 @@ class _MyAppState extends State<MyApp> {
   }
 
   // ignore: non_constant_identifier_names
-  static String SERVER_URL = 'https://xxx.count.ly';
+  static String SERVER_URL = 'https://master.count.ly';
 
   // ignore: non_constant_identifier_names
-  static String APP_KEY = 'YOUR_APP_KEY';
+  static String APP_KEY = '58594c9a3f461ebc000761a68c2146659ef75ea0';
 
   void enableTemporaryIdMode() {
     Countly.changeDeviceId(Countly.deviceIDType['TemporaryDeviceID']!, false);
@@ -155,7 +155,9 @@ class _MyAppState extends State<MyApp> {
     Countly.instance.remoteConfig.testingDownloadExperimentInformation((rResult, error) async {
       if (rResult == RequestResult.success) {
         Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
-        print(experimentInfoMap);
+        for (final entry in experimentInfoMap.entries) {
+          print('CLY key: ${entry.key}: experimentID: ${entry.value.experimentID}  experimentName: ${entry.value.experimentName} experimentDesc: ${entry.value.experimentDescription} currentVariant: ${entry.value.currentVariant}');
+        }
       }
     });
   }
@@ -169,15 +171,26 @@ class _MyAppState extends State<MyApp> {
   }
 
   void remoteConfigDownloadKeys() {
-    final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
-      print(rResult);
-      print(error);
-      print(fullValueUpdate);
+    // This function will download all values, cached them locally and return in callbacks
+    Countly.instance.remoteConfig.downloadAllKeys((rResult, error, fullValueUpdate, downloadedValues) async {
+      print('CLY Result: ${rResult}: error: ${error} fullValueUpdate: ${fullValueUpdate}');
       for (final entry in downloadedValues.entries) {
-        print('key: ${entry.key}: value: ${entry.value.value}');
+        print('CLY key: ${entry.key}: value: ${entry.value.value}');
       }
-    };
-    Countly.instance.remoteConfig.downloadAllKeys(callback);
+      // rResult shows that is it success, error or network issue
+      // If success then we can get the values.
+      if(rResult == RequestResult.success) {
+        // Example to get single value
+        RCData singleValue = await Countly.instance.remoteConfig.getValue('KEY');
+
+        // Example to get all value
+        Map<String, RCData> allValues = await Countly.instance.remoteConfig.getAllValues();
+        for (final value in allValues.entries) {
+          print('CLY getAll key: ${value.key}: value: ${value.value.value}');
+        }
+      }
+    }
+    );
   }
 
   void remoteConfigDownloadSpecificKeys() {
@@ -220,8 +233,8 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  void remoteConfigGetValue() {
-    Countly.instance.remoteConfig.getValue('testKey');
+  void remoteConfigGetValue() async {
+    RCData value = await Countly.instance.remoteConfig.getValue('testKey');
   }
 
   void remoteConfigGetValueAndEnroll() {
@@ -256,8 +269,13 @@ class _MyAppState extends State<MyApp> {
     Countly.instance.remoteConfig.exitABTestsForKeys(['testKey']);
   }
 
-  void remoteConfigFetchVariantForKeys() {
-    Countly.instance.remoteConfig.testingGetVariantsForKey('testKey');
+  void remoteConfigFetchVariantForKeys() async {
+    List<String> variantsForKey = await Countly.instance.remoteConfig.testingGetVariantsForKey('your_key_here');
+    print('Countly variantsForKey: ${variantsForKey}');
+    for (final variant in variantsForKey) {
+      print('Countly variant: $variant');
+    }
+
   }
 
   void remoteConfigFetchAllVariant() {
