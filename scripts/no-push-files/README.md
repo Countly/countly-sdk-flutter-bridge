@@ -5,7 +5,7 @@
 This repository contains the Countly Flutter SDK, which can be integrated into mobile Flutter applications. The Countly Flutter SDK is intended to be used with [Countly Community Edition](https://github.com/Countly/countly-server) or [Countly Enterprise Edition](https://count.ly/product).
 
 ## What is Countly?
-[Countly](https://count.ly) is a product analytics solution and innovation enabler that helps teams track product performance and customer journey and behavior across [mobile](https://count.ly/mobile-analytics), [web](http://count.ly/web-analytics),
+[Countly](https://count.ly) is a product analytics solution and innovation enabler that helps teams track product performance and customer journey and behavior across [mobile](https://count.ly/mobile-analytics), [web](https://count.ly/web-analytics),
 and [desktop](https://count.ly/desktop-analytics) applications. [Ensuring privacy by design](https://count.ly/privacy-by-design), Countly allows you to innovate and enhance your products to provide personalized and customized customer experiences, and meet key business and revenue goals.
 
 Track, measure, and take action - all without leaving Countly.
@@ -54,4 +54,4 @@ If you like Countly, [why not use one of our badges](https://count.ly/brand-asse
 ## How can I help you with your efforts?
 Glad you asked! We need ideas, feedback and constructive comments. All your suggestions will be taken care of with utmost importance. For feature requests and engaging with the community, join [our Slack Community](https://slack.count.ly) or [Community Forum](https://support.count.ly/hc/en-us/community/topics).
 
-We are on [Twitter](http://twitter.com/gocountly), [Facebook](https://www.facebook.com/Countly) and [LinkedIn](https://www.linkedin.com/company/countly) if you would like to keep up with Countly related updates.
+We are on [Twitter](https://twitter.com/gocountly), [Facebook](https://www.facebook.com/Countly) and [LinkedIn](https://www.linkedin.com/company/countly) if you would like to keep up with Countly related updates.
