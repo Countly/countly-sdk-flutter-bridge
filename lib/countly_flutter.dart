@@ -18,8 +18,6 @@ import 'package:pedantic/pedantic.dart';
 
 export 'package:countly_flutter/countly_config.dart';
 export 'package:countly_flutter/remote_config.dart';
-export 'package:countly_flutter/sessions.dart';
-export 'package:countly_flutter/user_profile.dart';
 export 'package:countly_flutter/views.dart';
 
 /// Attribution Keys to record indirect attribution
