@@ -19,11 +19,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
 
-export 'package:countly_flutter/countly_config.dart';
-export 'package:countly_flutter/remote_config.dart';
-export 'package:countly_flutter/sessions.dart';
-export 'package:countly_flutter/user_profile.dart';
-export 'package:countly_flutter/views.dart';
+export 'package:countly_flutter_np/countly_config.dart';
+export 'package:countly_flutter_np/remote_config.dart';
+export 'package:countly_flutter_np/sessions.dart';
+export 'package:countly_flutter_np/user_profile.dart';
+export 'package:countly_flutter_np/views.dart';
 
 /// Attribution Keys to record indirect attribution
 /// IDFA is for iOS and AdvertisingID is for Android

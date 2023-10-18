@@ -21,7 +21,7 @@ dev_dependencies:
 # countly_flutter: ^23.8.2
 # or
 # countly_flutter_np: ^23.8.2
-  countly_flutter:
+  countly_flutter_np:
     path: ../
   flutter_test:
     sdk: flutter
