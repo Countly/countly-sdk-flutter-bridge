@@ -4,8 +4,7 @@ import 'package:countly_flutter_np/countly_flutter.dart';
 import 'package:countly_flutter_np/countly_state.dart';
 
 class ViewsInternal implements Views {
-  ViewsInternal(this._cly, this._countlyState);
-  final Countly _cly;
+  ViewsInternal(this._countlyState);
   final CountlyState _countlyState;
 
   @override

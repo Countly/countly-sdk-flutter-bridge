@@ -64,7 +64,7 @@ import ly.count.android.sdk.messaging.CountlyPush;
  */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
     private static final String TAG = "CountlyFlutterPlugin";
-    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "23.8.2";
+    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "23.8.3";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterbnp-android";
 
@@ -900,6 +900,21 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 Map<String, Object> transData = transformRCDataIntoSendableForm(data);
 
                 result.success(transData);
+            } else if ("remoteConfigGetValueAndEnroll".equals(call.method)) {
+                String key = args.getString(0);
+                log("remoteConfigGetValueAndEnroll, " + key, LogLevel.INFO);
+
+                RCData data = Countly.sharedInstance().remoteConfig().getValueAndEnroll(key);
+                Map<String, Object> transData = transformRCDataIntoSendableForm(data);
+
+                result.success(transData);
+            } else if ("remoteConfigGetAllValuesAndEnroll".equals(call.method)) {
+                log("remoteConfigGetAllValuesAndEnroll", LogLevel.INFO);
+
+                Map<String, RCData> rawDownloadedValues = Countly.sharedInstance().remoteConfig().getAllValuesAndEnroll();
+
+                Map<String, Object> transformedDownloadedValues = transformMapIntoSendableForm(rawDownloadedValues);
+                result.success(transformedDownloadedValues);
             } else if ("remoteConfigClearAllValues".equals(call.method)) {
                 log("remoteConfigClearAllValues", LogLevel.WARNING);
 
@@ -1498,6 +1513,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
         if (_config.has("maxRequestQueueSize")) {
             this.config.setMaxRequestQueueSize(_config.getInt("maxRequestQueueSize"));
+        }
+
+        if (_config.has("requestDropAgeHours")) {
+            this.config.setRequestDropAgeHours(_config.getInt("requestDropAgeHours"));
         }
 
         if (_config.has("manualSessionEnabled") && _config.getBoolean("manualSessionEnabled")) {

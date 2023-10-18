@@ -33,6 +33,8 @@ CLYMetricKey const CLYMetricKeyLocale             = @"_locale";
 CLYMetricKey const CLYMetricKeyHasWatch           = @"_has_watch";
 CLYMetricKey const CLYMetricKeyInstalledWatchApp  = @"_installed_watch_app";
 
+NSString* const kCountlyAppVersionKey = @"av";
+
 @interface CountlyDeviceInfo ()
 @property (nonatomic) BOOL isInBackground;
 #if (TARGET_OS_IOS)
@@ -240,7 +242,15 @@ CLYMetricKey const CLYMetricKeyInstalledWatchApp  = @"_installed_watch_app";
 #if (!TARGET_OS_MACCATALYST)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    return CountlyDeviceInfo.sharedInstance.networkInfo.subscriberCellularProvider.carrierName;
+    //Note: "carrierName" is deprecated and returns '--' value for apps that are built with the iOS 16.4 SDK or later.
+    if (@available(iOS 16.4, *))
+    {
+        return nil;
+    }
+    else 
+    {
+        return CountlyDeviceInfo.sharedInstance.networkInfo.subscriberCellularProvider.carrierName;
+    }
 #pragma GCC diagnostic pop
 #endif
 #endif
@@ -402,7 +412,7 @@ CLYMetricKey const CLYMetricKeyInstalledWatchApp  = @"_installed_watch_app";
 #if (TARGET_OS_IOS)
     // If battey state is "unknown" that means that battery monitoring is not enabled.
     // In that case we will not able to retrieve a battery level.
-    if(UIDevice.currentDevice.batteryState == UIDeviceBatteryStateUnknown)
+    if (UIDevice.currentDevice.batteryState == UIDeviceBatteryStateUnknown)
     {
         return -1;
     }

@@ -60,6 +60,11 @@ NSString* const kCountlyQSKeyRemainingRequest = @"rr";
 
 NSString* const kCountlyQSKeyMethod           = @"method";
 
+NSString* const kCountlyRCKeyABOptIn          = @"ab";
+NSString* const kCountlyRCKeyABOptOut         = @"ab_opt_out";
+NSString* const kCountlyEndPointOverrideTag   = @"&new_end_point=";
+NSString* const kCountlyNewEndPoint           = @"new_end_point";
+
 CLYAttributionKey const CLYAttributionKeyIDFA = kCountlyQSKeyIDFA;
 CLYAttributionKey const CLYAttributionKeyADID = kCountlyQSKeyADID;
 
@@ -161,6 +166,18 @@ const NSInteger kCountlyGETRequestMaxLength = 2048;
         CLY_LOG_D(@"Queue is empty. All requests are processed.");
         return;
     }
+    BOOL isOldRequest = [CountlyPersistency.sharedInstance isOldRequest:firstItemInQueue];
+    if(isOldRequest)
+    {
+        [CountlyPersistency.sharedInstance removeFromQueue:firstItemInQueue];
+        
+        [CountlyPersistency.sharedInstance saveToFile];
+        
+        [self proceedOnQueue];
+        
+        return;
+    }
+    
 
     NSString* temporaryDeviceIDQueryString = [NSString stringWithFormat:@"&%@=%@", kCountlyQSKeyDeviceID, CLYTemporaryDeviceID];
     if ([firstItemInQueue containsString:temporaryDeviceIDQueryString])
@@ -169,14 +186,20 @@ const NSInteger kCountlyGETRequestMaxLength = 2048;
         return;
     }
 
-    [CountlyCommon.sharedInstance startBackgroundTask];
-
     NSString* queryString = firstItemInQueue;
+    NSString* endPoint = kCountlyEndpointI;
+    
+    NSString* overrideEndPoint = [self extractAndRemoveOverrideEndPoint:&queryString];
+    if(overrideEndPoint) {
+        endPoint = overrideEndPoint;
+    }
+    
+    [CountlyCommon.sharedInstance startBackgroundTask];
 
     queryString = [self appendRemainingRequest:queryString];
     queryString = [self appendChecksum:queryString];
 
-    NSString* serverInputEndpoint = [self.host stringByAppendingString:kCountlyEndpointI];
+    NSString* serverInputEndpoint = [self.host stringByAppendingString:endPoint];
     NSString* fullRequestURL = [serverInputEndpoint stringByAppendingFormat:@"?%@", queryString];
     NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:fullRequestURL]];
 
@@ -201,7 +224,14 @@ const NSInteger kCountlyGETRequestMaxLength = 2048;
     {
         self.connection = nil;
 
+        
         CLY_LOG_V(@"Approximate received data size for request <%p> is %ld bytes.", (id)request, (long)data.length);
+        
+        if(response) {
+            NSInteger code = ((NSHTTPURLResponse*)response).statusCode;
+            CLY_LOG_V(@"Response received from server with status code: %ld\nFor Request: %@", (long)code, ((NSHTTPURLResponse*)response).URL);
+        }
+        
 
         if (!error)
         {
@@ -232,6 +262,19 @@ const NSInteger kCountlyGETRequestMaxLength = 2048;
     [self.connection resume];
 
     [self logRequest:request];
+}
+
+- (NSString*)extractAndRemoveOverrideEndPoint:(NSString **)queryString
+{
+    if([*queryString containsString:kCountlyNewEndPoint]) {
+        NSString* overrideEndPoint = [*queryString cly_valueForQueryStringKey:kCountlyNewEndPoint];
+        if(overrideEndPoint) {
+            NSString* stringToRemove = [kCountlyEndPointOverrideTag stringByAppendingString:overrideEndPoint];
+            *queryString = [*queryString stringByReplacingOccurrencesOfString:stringToRemove withString:@""];
+            return overrideEndPoint;
+        }
+    }
+    return nil;
 }
 
 - (void)logRequest:(NSURLRequest *)request
@@ -415,6 +458,9 @@ const NSInteger kCountlyGETRequestMaxLength = 2048;
 
     [CountlyPersistency.sharedInstance saveToFileSync];
 
+    queryString = [queryString stringByAppendingFormat:@"&%@=%@",
+                   kCountlyAppVersionKey, CountlyDeviceInfo.appVersion];
+    
     NSString* serverInputEndpoint = [self.host stringByAppendingString:kCountlyEndpointI];
     NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:serverInputEndpoint]];
     request.HTTPMethod = @"POST";
@@ -519,6 +565,40 @@ const NSInteger kCountlyGETRequestMaxLength = 2048;
 
     [CountlyPersistency.sharedInstance addToQueue:queryString];
 
+    [self proceedOnQueue];
+}
+
+#pragma mark ---
+
+- (void)sendEnrollABRequestForKeys:(NSArray*)keys
+{
+    NSString* queryString = [[self queryEssentials] stringByAppendingFormat:@"&%@=%@", kCountlyQSKeyMethod, kCountlyRCKeyABOptIn];
+    
+    if (keys)
+    {
+        queryString = [queryString stringByAppendingFormat:@"&%@=%@", kCountlyRCKeyKeys, [keys cly_JSONify]];
+    }
+    
+    queryString = [queryString stringByAppendingFormat:@"%@%@%@", kCountlyEndPointOverrideTag, kCountlyEndpointO, kCountlyEndpointSDK];
+    
+    [CountlyPersistency.sharedInstance addToQueue:queryString];
+    
+    [self proceedOnQueue];
+}
+
+- (void)sendExitABRequestForKeys:(NSArray*)keys
+{
+    NSString* queryString = [[self queryEssentials] stringByAppendingFormat:@"&%@=%@", kCountlyQSKeyMethod, kCountlyRCKeyABOptOut];
+    
+    if (keys)
+    {
+        queryString = [queryString stringByAppendingFormat:@"&%@=%@", kCountlyRCKeyKeys, [keys cly_JSONify]];
+    }
+    
+    queryString = [queryString stringByAppendingFormat:@"%@%@%@", kCountlyEndPointOverrideTag, kCountlyEndpointO, kCountlyEndpointSDK];
+    
+    [CountlyPersistency.sharedInstance addToQueue:queryString];
+    
     [self proceedOnQueue];
 }
 
@@ -734,17 +814,17 @@ const NSInteger kCountlyGETRequestMaxLength = 2048;
             return NO;
         }
         
+        CLY_LOG_V(@"Response recieved from server:\n%@\nFor Request: %@", serverReply, ((NSHTTPURLResponse*)response).URL);
+        
         NSString* result = serverReply[@"result"];
-        if ([result isEqualToString:@"Success"])
+        
+        if(result)
         {
-            CLY_LOG_V(@"Value for `result` key in server reply is `Success`.");
-            return YES;            
+            return YES;
         }
-        else
-        {
-            CLY_LOG_V(@"Value for `result` key in server reply is not `Success`.");
-            return NO;
-        }
+        
+        return NO;
+        
     }
     else
     {

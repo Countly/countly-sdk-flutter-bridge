@@ -1,13 +1,11 @@
 import 'dart:convert';
 
-import 'package:countly_flutter_np/countly_flutter.dart';
-import 'package:countly_flutter_np/countly_state.dart';
-import 'package:countly_flutter_np/user_profile.dart';
+import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter/countly_state.dart';
 
 class UserProfileInternal implements UserProfile {
-  UserProfileInternal(this._cly, this._countlyState);
+  UserProfileInternal(this._countlyState);
 
-  final Countly _cly;
   final CountlyState _countlyState;
 
   @override

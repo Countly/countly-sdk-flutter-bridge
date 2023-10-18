@@ -23,7 +23,7 @@ BOOL BUILDING_WITH_PUSH_DISABLED = true;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
 
-NSString *const kCountlyFlutterSDKVersion = @"23.8.2";
+NSString *const kCountlyFlutterSDKVersion = @"23.8.3";
 NSString *const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 NSString *const kCountlyFlutterSDKNameNoPush = @"dart-flutterbnp-ios";
 
@@ -877,6 +877,21 @@ FlutterMethodChannel *_channel;
             result(rcDataMap);
         });
         
+    } else if ([@"remoteConfigGetValueAndEnroll" isEqualToString:call.method]) {
+        NSString *key = [command objectAtIndex:0];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            CountlyRCData* rcData = [Countly.sharedInstance.remoteConfig getValueAndEnroll:key];
+            NSDictionary* rcDataMap = [self rcDataToMap:rcData];
+            result(rcDataMap);
+        });
+
+    } else if ([@"remoteConfigGetAllValuesAndEnroll" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSDictionary<NSString*, CountlyRCData *> * allRCDataValues = [Countly.sharedInstance.remoteConfig getAllValuesAndEnroll];
+            NSDictionary* rCValues = [self getRCValues:allRCDataValues];
+            result(rCValues);
+        });
+
     } else if ([@"remoteConfigClearAllValues" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [Countly.sharedInstance.remoteConfig clearAll];
@@ -1451,6 +1466,11 @@ FlutterMethodChannel *_channel;
         NSNumber *maxRequestQueueSize = _config[@"maxRequestQueueSize"];
         if (maxRequestQueueSize) {
             config.storedRequestsLimit = [maxRequestQueueSize intValue];
+        }
+
+        NSNumber *requestDropAgeHours = _config[@"requestDropAgeHours"];
+        if (requestDropAgeHours) {
+            config.requestDropAgeHours = [requestDropAgeHours intValue];
         }
 
         NSNumber *manualSessionEnabled = _config[@"manualSessionEnabled"];

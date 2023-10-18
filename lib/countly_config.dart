@@ -36,6 +36,7 @@ class CountlyConfig {
   Map<String, Object>? _globalViewSegmentation;
   bool _enableAllConsents = false;
   bool _autoEnrollABOnDownload = false;
+  int? _requestDropAgeHours;
 
   CountlyConfig(this._serverURL, this._appKey);
 
@@ -107,6 +108,8 @@ class CountlyConfig {
   bool get enableAllConsents => _enableAllConsents;
 
   bool get autoEnrollABOnDownload => _autoEnrollABOnDownload;
+
+  int? get requestDropAgeHours => _requestDropAgeHours;
 
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
@@ -303,6 +306,13 @@ class CountlyConfig {
   /// This is used for enrolling user to AB testing on RC download
   CountlyConfig enrollABOnRCDownload() {
     _autoEnrollABOnDownload = true;
+    return this;
+  }
+  /// This would set a time frame in which the requests older than the given hours would be dropped while sending a request
+  /// Ex: Setting this to 10 would mean any requests created more than 10 hours ago would be dropped if they were in the queue
+  /// [int dropAgeHours] A positive integer. Requests older than the 'dropAgeHours' (with respect to now) would be dropped
+  CountlyConfig setRequestDropAgeHours(int dropAgeHours) {
+    _requestDropAgeHours = dropAgeHours;
     return this;
   }
 }

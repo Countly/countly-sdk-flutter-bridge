@@ -19,22 +19,28 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
 
-export 'package:countly_flutter_np/countly_config.dart';
-export 'package:countly_flutter_np/remote_config.dart';
-export 'package:countly_flutter_np/views.dart';
+export 'package:countly_flutter/countly_config.dart';
+export 'package:countly_flutter/remote_config.dart';
+export 'package:countly_flutter/sessions.dart';
+export 'package:countly_flutter/user_profile.dart';
+export 'package:countly_flutter/views.dart';
 
 /// Attribution Keys to record indirect attribution
 /// IDFA is for iOS and AdvertisingID is for Android
 abstract class AttributionKey {
   /// For iOS IDFA
+  // ignore: non_constant_identifier_names
   static String IDFA = 'idfa';
 
   /// For Android advertising ID
+  // ignore: non_constant_identifier_names
   static String AdvertisingID = 'adid';
 }
 
+// ignore: constant_identifier_names
 enum LogLevel { INFO, DEBUG, VERBOSE, WARNING, ERROR }
 
+// ignore: constant_identifier_names
 enum DeviceIdType { DEVELOPER_SUPPLIED, SDK_GENERATED, TEMPORARY_ID }
 
 abstract class CountlyConsent {
@@ -54,15 +60,16 @@ abstract class CountlyConsent {
 
 class Countly {
   Countly._() {
-    _remoteConfigInternal = RemoteConfigInternal(this, _countlyState);
-    _userProfileInternal = UserProfileInternal(this, _countlyState);
-    _viewsInternal = ViewsInternal(this, _countlyState);
-    _sessionsInternal = SessionsInternal(this, _countlyState);
+    _countlyState = CountlyState(this);
+    _remoteConfigInternal = RemoteConfigInternal(_countlyState);
+    _userProfileInternal = UserProfileInternal(_countlyState);
+    _viewsInternal = ViewsInternal(_countlyState);
+    _sessionsInternal = SessionsInternal(_countlyState);
   }
   static final instance = _instance;
   static final _instance = Countly._();
 
-  final _countlyState = CountlyState();
+  late final CountlyState _countlyState;
 
   late final RemoteConfigInternal _remoteConfigInternal;
   RemoteConfig get remoteConfig => _remoteConfigInternal;
@@ -76,6 +83,7 @@ class Countly {
   late final SessionsInternal _sessionsInternal;
   Sessions get sessions => _sessionsInternal;
 
+  // ignore: constant_identifier_names
   static const bool BUILDING_WITH_PUSH_DISABLED = true;
   static const String _pushDisabledMsg = 'In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled';
 
@@ -99,7 +107,7 @@ class Countly {
 
   static Map<String, String> deviceIDType = {'TemporaryDeviceID': 'TemporaryDeviceID'};
 
-  static void log(String? message, {LogLevel logLevel = LogLevel.DEBUG}) async {
+  static void log(String? message, {LogLevel logLevel = LogLevel.DEBUG}) {
     String logLevelStr = describeEnum(logLevel);
     if (_isDebug) {
       print('[$tag] $logLevelStr: $message');
@@ -498,7 +506,7 @@ class Countly {
 
   /// Set callback to receive push notifications
   /// @param { callback listner } callback
-  static Future<String?> onNotification(Function callback) async {
+  static Future<String?> onNotification(Function(String) callback) async {
     if (BUILDING_WITH_PUSH_DISABLED) {
       log('onNotification, $_pushDisabledMsg', logLevel: LogLevel.ERROR);
       return _pushDisabledMsg;
@@ -713,9 +721,9 @@ class Countly {
     return _getDeviceIdType(result);
   }
 
-  static DeviceIdType _getDeviceIdType(String _deviceIdType) {
+  static DeviceIdType _getDeviceIdType(String givenDeviceIDType) {
     DeviceIdType deviceIdType = DeviceIdType.SDK_GENERATED;
-    switch (_deviceIdType) {
+    switch (givenDeviceIDType) {
       case 'DS':
         deviceIdType = DeviceIdType.DEVELOPER_SUPPLIED;
         break;
@@ -1226,7 +1234,7 @@ class Countly {
   /// Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
   /// Should be call before Countly init
   @Deprecated('Use remoteConfigRegisterDownloadCallback of CountlyConfig instead')
-  static Future<String?> setRemoteConfigAutomaticDownload(Function callback) async {
+  static Future<String?> setRemoteConfigAutomaticDownload(Function(String?) callback) async {
     log('Calling "setRemoteConfigAutomaticDownload"');
     log('setRemoteConfigAutomaticDownload is deprecated, use setRemoteConfigAutomaticDownload of CountlyConfig instead', logLevel: LogLevel.WARNING);
     final String? result = await _channel.invokeMethod('setRemoteConfigAutomaticDownload');
@@ -1236,7 +1244,7 @@ class Countly {
   }
 
   @Deprecated('Use remoteConfigDownloadValues instead')
-  static Future<String?> remoteConfigUpdate(Function callback) async {
+  static Future<String?> remoteConfigUpdate(Function(String?) callback) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "remoteConfigUpdate"';
       log('remoteConfigUpdate, $message', logLevel: LogLevel.ERROR);
@@ -1250,7 +1258,7 @@ class Countly {
   }
 
   @Deprecated('Use remoteConfigDownloadSpecificValue instead')
-  static Future<String?> updateRemoteConfigForKeysOnly(List<String> keys, Function callback) async {
+  static Future<String?> updateRemoteConfigForKeysOnly(List<String> keys, Function(String?) callback) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "updateRemoteConfigForKeysOnly"';
       log('updateRemoteConfigForKeysOnly, $message', logLevel: LogLevel.ERROR);
@@ -1270,7 +1278,7 @@ class Countly {
   }
 
   @Deprecated('Use remoteConfigDownloadOmittingValues instead')
-  static Future<String?> updateRemoteConfigExceptKeys(List<String> keys, Function callback) async {
+  static Future<String?> updateRemoteConfigExceptKeys(List<String> keys, Function(String?) callback) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "updateRemoteConfigExceptKeys"';
       log('updateRemoteConfigExceptKeys, $message', logLevel: LogLevel.ERROR);
@@ -1290,7 +1298,7 @@ class Countly {
   }
 
   @Deprecated('Use remoteConfigClearAllValues instead')
-  static Future<String?> remoteConfigClearValues(Function callback) async {
+  static Future<String?> remoteConfigClearValues(Function(String?) callback) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "remoteConfigClearValues"';
       log('remoteConfigClearValues, $message', logLevel: LogLevel.ERROR);
@@ -1304,7 +1312,7 @@ class Countly {
   }
 
   @Deprecated('Use remoteConfigGetValue instead')
-  static Future<String?> getRemoteConfigValueForKey(String key, Function callback) async {
+  static Future<String?> getRemoteConfigValueForKey(String key, Function(String?) callback) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "getRemoteConfigValueForKey"';
       log('getRemoteConfigValueForKey, $message', logLevel: LogLevel.ERROR);
@@ -1794,7 +1802,7 @@ class Countly {
   ///   }, Countly.recordDartError);
   /// }
   ///
-  static Future<void> recordDartError(dynamic exception, StackTrace stack, {dynamic context}) async {
+  static Future<void> recordDartError(exception, StackTrace stack) async {
     log('recordError, Error caught by Countly :');
     if (!_enableCrashReportingFlag) {
       log('recordError, Crash Reporting must be enabled to report crash on Countly', logLevel: LogLevel.WARNING);
@@ -1806,14 +1814,16 @@ class Countly {
   /// A common call for crashes coming from [_recordFlutterError] and [recordDartError]
   ///
   /// They are then further reported to countly
-  static Future<void> _internalRecordError(dynamic exception, StackTrace? stack) async {
+  static Future<void> _internalRecordError(exception, StackTrace? stack) async {
     if (!_instance._countlyState.isInitialized) {
       log('_internalRecordError, countly is not initialized', logLevel: LogLevel.WARNING);
       return;
     }
 
     log('_internalRecordError, Exception : ${exception.toString()}');
-    if (stack != null) log('\n_internalRecordError, Stack : $stack');
+    if (stack != null) {
+      log('\n_internalRecordError, Stack : $stack');
+    }
 
     stack ??= StackTrace.fromString('');
     try {
@@ -2007,6 +2017,10 @@ class Countly {
 
       if (config.autoEnrollABOnDownload) {
         countlyConfig['autoEnrollABOnDownload'] = config.autoEnrollABOnDownload;
+      }
+
+      if (config.requestDropAgeHours != null) {
+        countlyConfig['requestDropAgeHours'] = config.requestDropAgeHours;
       }
 
       countlyConfig['remoteConfigAutomaticTriggers'] = config.remoteConfigAutomaticTriggers;

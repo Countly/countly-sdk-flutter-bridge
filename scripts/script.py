@@ -3,7 +3,7 @@ import shutil
 
 #   README
 #   This script should be run from the root of the project with the command:
-#   python script.py
+#   python script.py or python3 script.py
 #
 #   It will check operation constants, provided below, for information regarding what to erase or where to copy
 #   That information must be filles before running the script
@@ -52,7 +52,12 @@ modPathAndroid = "../android/src/main/java/ly/count/dart/countly_flutter/Countly
 modPathIos = "../ios/Classes/CountlyFlutterPlugin.m"
 modPathCountly = "../lib/countly_flutter.dart"
 modPathCountlyConfig = "../lib/countly_config.dart"
+modPathCountlyState = "../lib/countly_state.dart"
+modPathCountlyRC = "../lib/remote_config.dart"
 modPathCountlyRCInternal = "../lib/remote_config_internal.dart"
+modPathCountlySessionsInternal = "../lib/sessions_internal.dart"
+modPathCountlyUserProfileInternal = "../lib/user_profile_internal.dart"
+modPathCountlyViewsInternal = "../lib/views_internal.dart"
 objectOfComModification = {
     modPathAndroid: {
         "modifications": {
@@ -92,10 +97,17 @@ objectOfComModification = {
             "import 'package:countly_flutter/countly_state.dart';": "import 'package:countly_flutter_np/countly_state.dart';",
             "import 'package:countly_flutter/remote_config.dart';": "import 'package:countly_flutter_np/remote_config.dart';",
             "import 'package:countly_flutter/remote_config_internal.dart';": "import 'package:countly_flutter_np/remote_config_internal.dart';",
+            "import 'package:countly_flutter/sessions.dart';": "import 'package:countly_flutter_np/sessions.dart';",
+            "import 'package:countly_flutter/sessions_internal.dart';": "import 'package:countly_flutter_np/sessions_internal.dart';",
             "import 'package:countly_flutter/user_profile.dart';": "import 'package:countly_flutter_np/user_profile.dart';",
             "import 'package:countly_flutter/user_profile_internal.dart';": "import 'package:countly_flutter_np/user_profile_internal.dart';",
+            "import 'package:countly_flutter/views.dart';": "import 'package:countly_flutter_np/views.dart';",
+            "import 'package:countly_flutter/views_internal.dart';": "import 'package:countly_flutter_np/views_internal.dart';",
             "export 'package:countly_flutter/countly_config.dart';": "export 'package:countly_flutter_np/countly_config.dart';",
             "export 'package:countly_flutter/remote_config.dart';": "export 'package:countly_flutter_np/remote_config.dart';",
+            "export 'package:countly_flutter/sessions.dart';": "export 'package:countly_flutter_np/sessions.dart';",
+            "export 'package:countly_flutter/user_profile.dart';": "export 'package:countly_flutter_np/user_profile.dart';",
+            "export 'package:countly_flutter/views.dart';": "export 'package:countly_flutter_np/views.dart';",
             "static const bool BUILDING_WITH_PUSH_DISABLED = false;": "static const bool BUILDING_WITH_PUSH_DISABLED = true;"
         },
         "consecutiveOmits": []
@@ -106,7 +118,41 @@ objectOfComModification = {
         },
         "consecutiveOmits": []
     },
+    modPathCountlyState: {
+        "modifications": {
+            "import 'package:countly_flutter/countly_flutter.dart';": "import 'package:countly_flutter_np/countly_flutter.dart';",
+        },
+        "consecutiveOmits": []
+    },
+    modPathCountlyRC: {
+        "modifications": {
+            "import 'package:countly_flutter/experiment_information.dart';": "import 'package:countly_flutter_np/experiment_information.dart';",
+        },
+        "consecutiveOmits": []
+    },
     modPathCountlyRCInternal: {
+        "modifications": {
+            "import 'package:countly_flutter/countly_flutter.dart';": "import 'package:countly_flutter_np/countly_flutter.dart';",
+            "import 'package:countly_flutter/countly_state.dart';": "import 'package:countly_flutter_np/countly_state.dart';",
+            "import 'package:countly_flutter/experiment_information.dart';": "import 'package:countly_flutter_np/experiment_information.dart';",
+        },
+        "consecutiveOmits": []
+    },
+    modPathCountlySessionsInternal: {
+        "modifications": {
+            "import 'package:countly_flutter/countly_flutter.dart';": "import 'package:countly_flutter_np/countly_flutter.dart';",
+            "import 'package:countly_flutter/countly_state.dart';": "import 'package:countly_flutter_np/countly_state.dart';",
+        },
+        "consecutiveOmits": []
+    },
+    modPathCountlyUserProfileInternal: {
+        "modifications": {
+            "import 'package:countly_flutter/countly_flutter.dart';": "import 'package:countly_flutter_np/countly_flutter.dart';",
+            "import 'package:countly_flutter/countly_state.dart';": "import 'package:countly_flutter_np/countly_state.dart';",
+        },
+        "consecutiveOmits": []
+    },
+    modPathCountlyViewsInternal: {
         "modifications": {
             "import 'package:countly_flutter/countly_flutter.dart';": "import 'package:countly_flutter_np/countly_flutter.dart';",
             "import 'package:countly_flutter/countly_state.dart';": "import 'package:countly_flutter_np/countly_state.dart';",
@@ -201,8 +247,13 @@ def main():
     print(modPathAndroid)
     print(modPathIos)
     print(modPathCountly)
+    print(modPathCountlyState)
     print(modPathCountlyConfig)
+    print(modPathCountlyRC)
     print(modPathCountlyRCInternal)
+    print(modPathCountlySessionsInternal)
+    print(modPathCountlyUserProfileInternal)
+    print(modPathCountlyViewsInternal)
 
     # ask for permission to run the script
     start = input('Do you want to continue? (y/n)')
@@ -215,7 +266,12 @@ def main():
         modifyFile(modPathIos, objectOfComModification, 'mod')
         modifyFile(modPathCountly, objectOfComModification, 'mod')
         modifyFile(modPathCountlyConfig, objectOfComModification, 'mod')
+        modifyFile(modPathCountlyState, objectOfComModification, 'mod')
+        modifyFile(modPathCountlyRC, objectOfComModification, 'mod')
         modifyFile(modPathCountlyRCInternal, objectOfComModification, 'mod')
+        modifyFile(modPathCountlySessionsInternal, objectOfComModification, 'mod')
+        modifyFile(modPathCountlyUserProfileInternal, objectOfComModification, 'mod')
+        modifyFile(modPathCountlyViewsInternal, objectOfComModification, 'mod')
         print("Done")
     else:
         print("Aborted")

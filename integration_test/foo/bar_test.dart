@@ -1,7 +1,5 @@
+import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:integration_test/integration_test.dart';
-import 'package:countly_flutter_np/countly_config.dart';
-import 'package:countly_flutter_np/countly_flutter.dart';
 
 import '../test_utility.dart';
 
@@ -12,7 +10,7 @@ void main() {
     await Countly.initWithConfig(config);
 
     // wait 1 second
-    await Future.delayed(Duration(seconds: 1));
+    await Future.delayed(const Duration(seconds: 1));
 
     // check if device id is set correctly
     String? id = await Countly.getCurrentDeviceId();

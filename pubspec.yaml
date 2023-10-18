@@ -1,6 +1,6 @@
 name: countly_flutter_np
 description: Countly is an innovative, real-time, open source mobile analytics. This plugin is a flavour of the SDK without push notifications.
-version: 23.8.2
+version: 23.8.3
 homepage: https://support.count.ly/hc/en-us/articles/360037944212-Flutter
 
 environment:
