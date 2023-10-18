@@ -458,6 +458,9 @@ const NSInteger kCountlyGETRequestMaxLength = 2048;
 
     [CountlyPersistency.sharedInstance saveToFileSync];
 
+    queryString = [queryString stringByAppendingFormat:@"&%@=%@",
+                   kCountlyAppVersionKey, CountlyDeviceInfo.appVersion];
+    
     NSString* serverInputEndpoint = [self.host stringByAppendingString:kCountlyEndpointI];
     NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:serverInputEndpoint]];
     request.HTTPMethod = @"POST";
@@ -590,7 +593,9 @@ const NSInteger kCountlyGETRequestMaxLength = 2048;
     if (keys)
     {
         queryString = [queryString stringByAppendingFormat:@"&%@=%@", kCountlyRCKeyKeys, [keys cly_JSONify]];
-    }   
+    }
+    
+    queryString = [queryString stringByAppendingFormat:@"%@%@%@", kCountlyEndPointOverrideTag, kCountlyEndpointO, kCountlyEndpointSDK];
     
     [CountlyPersistency.sharedInstance addToQueue:queryString];
     
