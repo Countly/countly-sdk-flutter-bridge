@@ -1,6 +1,6 @@
 import UIKit
 import Flutter
-import countly_flutter
+import countly_flutter_np
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
@@ -10,7 +10,7 @@ import countly_flutter
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
 	  // For push notification received and action callbacks
-	  CountlyFlutterPlugin.startObservingNotifications();
+//	  CountlyFlutterPlugin.startObservingNotifications();
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
      func application(application: UIApplication,  didReceiveRemoteNotification userInfo: [NSObject : AnyObject],  fetchCompletionHandler completionHandler: (UIBackgroundFetchResult) -> Void) {
