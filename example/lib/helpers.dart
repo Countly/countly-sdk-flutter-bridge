@@ -36,3 +36,22 @@ void navigateToPage(BuildContext context, Widget page) {
     MaterialPageRoute(builder: (context) => page),
   );
 }
+
+Widget countlySpacer() {
+  return SizedBox(height: 20);
+}
+
+Widget countlySpacerSmall() {
+  return SizedBox(height: 10);
+}
+
+Widget countlySubTitle(String text) {
+  return Align(
+    alignment: Alignment.centerLeft,
+    child: Text('-' + text, style: subTitleStyle()),
+  );
+}
+
+Widget countlyTitle(String text) {
+  return Text(text, style: titleStyle());
+}

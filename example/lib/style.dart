@@ -48,6 +48,14 @@ Map<String, Color>? getColor(color) {
   }
 }
 
+TextStyle titleStyle() {
+  return TextStyle(fontSize: 18, fontWeight: FontWeight.w900);
+}
+
+TextStyle subTitleStyle() {
+  return TextStyle(fontSize: 16, fontWeight: FontWeight.w600);
+}
+
 // Theme that we use in the app
 class AppTheme {
   static ThemeData countlyTheme() {
