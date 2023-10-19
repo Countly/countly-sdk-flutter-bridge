@@ -13,6 +13,9 @@
 * Added a call to enroll users to A/B tests when getting a remote config value: 'getValueAndEnroll'
 * Added a call to enroll users to A/B tests when getting all remote config values: 'getAllValuesAndEnroll'
 * Added a config method to set a time limit after which the requests would be removed if not sent to the server: 'setRequestDropAgeHours'
+* Added app version in all API requests.
+
+* Fixed sending '--' as carrier name due to platform changes from iOS version 16.4. This version and above will now not send any carrier information due to platform limitations.
 
 * Updated underlying Android SDK version to 23.8.3
 * Updated underlying iOS SDK version to 23.8.3
