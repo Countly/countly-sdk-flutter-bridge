@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'dart:io' show Platform;
 
-import 'package:countly_flutter_np/countly_config.dart';
 import 'package:countly_flutter_np/countly_state.dart';
 import 'package:countly_flutter_np/remote_config.dart';
 import 'package:countly_flutter_np/remote_config_internal.dart';
@@ -16,7 +15,6 @@ import 'package:countly_flutter_np/user_profile_internal.dart';
 import 'package:countly_flutter_np/views.dart';
 import 'package:countly_flutter_np/views_internal.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
 
 export 'package:countly_flutter_np/countly_config.dart';
