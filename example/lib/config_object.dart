@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter_np/countly_flutter.dart';
 
 // This is where we create the CountlyConfig object that we use in the app
 // You can change the values here according to your needs
