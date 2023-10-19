@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter_np/countly_flutter.dart';
 import 'package:countly_flutter_example/helpers.dart';
 import 'package:flutter/material.dart';
 

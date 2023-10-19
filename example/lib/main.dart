@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter_np/countly_flutter.dart';
 import 'package:countly_flutter_example/config_object.dart';
 
 import 'package:countly_flutter_example/helpers.dart';
