@@ -1,33 +1,57 @@
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:countly_flutter/experiment_information.dart';
 import 'package:countly_flutter_example/helpers.dart';
+import 'package:countly_flutter_example/page_remote_config_legacy.dart';
 import 'package:flutter/material.dart';
 
-final navigatorKey = GlobalKey<NavigatorState>();
-
-class RemoteConfigPage extends StatelessWidget {
+class RemoteConfigPage extends StatefulWidget {
   static final RCDownloadCallback _rcDownloadCallback = (rResult, error, fullValueUpdate, downloadedValues) {
-    print('Registered callback:[$rResult]');
+    print('RCDownloadCallback, Result:[$rResult]');
   };
 
-  void remoteConfigDownloadExperimentInfo() {
-    Countly.instance.remoteConfig.testingDownloadExperimentInformation((rResult, error) async {
-      if (rResult == RequestResult.success) {
-        Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
-        print(experimentInfoMap);
-      }
-    });
-  }
+  @override
+  State<RemoteConfigPage> createState() => _RemoteConfigPageState();
+}
 
-  void remoteConfigRegisterDownloadCallback() {
-    Countly.instance.remoteConfig.registerDownloadCallback(_rcDownloadCallback);
-  }
+class _RemoteConfigPageState extends State<RemoteConfigPage> {
+  var rcKey;
 
-  void remoteConfigRemoveDownloadCallback() {
-    Countly.instance.remoteConfig.removeDownloadCallback(_rcDownloadCallback);
-  }
+//===================================================
+// Contents
+//===================================================
+  void Contents() {}
+// Manual Download Calls
+  /// Download All RC Values [downloadAllRCValues]
+  /// Download Specific RC Values [downloadSpecificRCValues]
+  /// Download Omitting Specific RC Values [downloadOmittingSpecificRCValues]
+// Accessing Values
+  /// Get All RC Values [getAllRCValues]
+  /// Get Specific RC Values [getSpecificRCValues]
+// Clearing Values
+  /// Clear All RC Values [clearAllRCValues]
+// Global Download Callbacks
+  /// Register RC Download Callback [registerRCDownloadCallback]
+  /// Remove RC Download Callback [removeRCDownloadCallback]
+// AB Testing
+// Enroll on Access
+  /// Get All RC Values And Enroll [getAllRCValuesAndEnroll]
+  /// Get Specific RC Values And Enroll [getSpecificRCValuesAndEnroll]
+// Enroll on Action
+  /// Enroll Into AB Tests [enrollIntoABTests]
+// Exiting AB Tests
+  /// Exit AB Tests [exitABTests]
+// Variant Download Calls
+  /// Fetch All Test Variants [downloadAllTestVariants]
+  /// Fetch Specific Test Variants [downloadSpecificTestVariants]
+// Experiment Information
+  /// Download Experiment Information [downloadExperimentInfo]
 
-  void remoteConfigDownloadKeys() {
+//===================================================
+// Manual Download Calls
+//===================================================
+  /// Downloads all RC Values irrespective of the keys
+  /// Return back to contents [Contents]
+  void downloadAllRCValues() {
     final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
       print(rResult);
       print(error);
@@ -39,7 +63,9 @@ class RemoteConfigPage extends StatelessWidget {
     Countly.instance.remoteConfig.downloadAllKeys(callback);
   }
 
-  void remoteConfigDownloadSpecificKeys() {
+  /// Downloads specific RC Values based on the keys
+  /// Return back to contents [Contents]
+  void downloadSpecificRCValues() {
     final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
       print(rResult);
       print(error);
@@ -48,10 +74,12 @@ class RemoteConfigPage extends StatelessWidget {
         print('key: ${entry.key}: value: ${entry.value.value}');
       }
     };
-    Countly.instance.remoteConfig.downloadSpecificKeys(['rc_1', 'ab_1'], callback);
+    Countly.instance.remoteConfig.downloadSpecificKeys([rcKey], callback);
   }
 
-  void remoteConfigDownloadOmittingKeys() {
+  /// Downloads all RC Values except the specified keys
+  /// Return back to contents [Contents]
+  void downloadOmittingSpecificRCValues() {
     final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
       print(rResult);
       print(error);
@@ -60,10 +88,15 @@ class RemoteConfigPage extends StatelessWidget {
         print('key: ${entry.key}: value: ${entry.value.value}');
       }
     };
-    Countly.instance.remoteConfig.downloadOmittingKeys(['rc_1', 'ab_1'], callback);
+    Countly.instance.remoteConfig.downloadOmittingKeys([rcKey], callback);
   }
 
-  Future<void> remoteConfigGetAllValues() async {
+//===================================================
+// Accessing Values
+//===================================================
+  /// Gets all RC values from storage and prints them
+  /// Return back to contents [Contents]
+  Future<void> getAllRCValues() async {
     final allValues = await Countly.instance.remoteConfig.getAllValues();
     for (final entry in allValues.entries) {
       final value = entry.value.value;
@@ -79,15 +112,51 @@ class RemoteConfigPage extends StatelessWidget {
     }
   }
 
-  void remoteConfigGetValue() {
-    Countly.instance.remoteConfig.getValue('testKey');
+  /// Gets specific RC values from storage and prints them
+  /// Return back to contents [Contents]
+  Future<void> getSpecificRCValues() async {
+    RCData data = await Countly.instance.remoteConfig.getValue(rcKey);
+    print('getSpecificRCValues, value:${data.value} cache: ${data.isCurrentUsersData}');
   }
 
-  void remoteConfigGetValueAndEnroll() {
-    Countly.instance.remoteConfig.getValueAndEnroll('testKey');
+//===================================================
+// Clearing Values
+//===================================================
+  /// Clear all RC values from storage
+  /// Return back to contents [Contents]
+  void clearAllRCValues() {
+    Countly.instance.remoteConfig.clearAll();
   }
 
-  Future<void> remoteConfigGetAllValuesAndEnroll() async {
+//===================================================
+// Global Download Callbacks
+//===================================================
+  /// For registering a callback that is called when a remote config download is completed
+  /// Return back to contents [Contents]
+  void registerRCDownloadCallback() {
+    Countly.instance.remoteConfig.registerDownloadCallback(RemoteConfigPage._rcDownloadCallback);
+  }
+
+  /// For removing a global RC callback
+  /// Return back to contents [Contents]
+  void removeRCDownloadCallback() {
+    Countly.instance.remoteConfig.removeDownloadCallback(RemoteConfigPage._rcDownloadCallback);
+  }
+
+//===================================================
+// AB Testing
+//===================================================
+// Enroll on Access -------------------------------
+  /// Gets specific RC values from storage and prints them also enroll for that key
+  /// Return back to contents [Contents]
+  Future<void> getSpecificRCValuesAndEnroll() async {
+    RCData data = await Countly.instance.remoteConfig.getValueAndEnroll(rcKey);
+    print('getSpecificRCValuesAndEnroll, value:${data.value} cache: ${data.isCurrentUsersData}');
+  }
+
+  /// Gets all RC values from storage and prints them also enroll for all keys
+  /// Return back to contents [Contents]
+  Future<void> getAllRCValuesAndEnroll() async {
     final allValues = await Countly.instance.remoteConfig.getAllValuesAndEnroll();
     for (final entry in allValues.entries) {
       final value = entry.value.value;
@@ -103,143 +172,42 @@ class RemoteConfigPage extends StatelessWidget {
     }
   }
 
-  void remoteConfigClearAll() {
-    Countly.instance.remoteConfig.clearAll();
+// Enroll on Action -------------------------------
+  /// Enroll into AB tests for the specified keys
+  /// Return back to contents [Contents]
+  void enrollIntoABTests() {
+    Countly.instance.remoteConfig.enrollIntoABTestsForKeys([rcKey]);
   }
 
-  void remoteConfigEnrollIntoABTestsForKeys() {
-    Countly.instance.remoteConfig.enrollIntoABTestsForKeys(['testKey']);
+// Exiting AB Tests -------------------------------
+  /// Exits from AB tests for the specified keys
+  /// Return back to contents [Contents]
+  void exitABTests() {
+    Countly.instance.remoteConfig.exitABTestsForKeys([rcKey]);
   }
 
-  void remoteConfigExitABTestsForKeys() {
-    Countly.instance.remoteConfig.exitABTestsForKeys(['testKey']);
-  }
-
-  void remoteConfigFetchVariantForKeys() {
-    Countly.instance.remoteConfig.testingGetVariantsForKey('testKey');
-  }
-
-  void remoteConfigFetchAllVariant() {
+// Variant Download Calls -------------------------------
+  /// Downloads all test variants
+  /// Return back to contents [Contents]
+  void downloadAllTestVariants() {
     Countly.instance.remoteConfig.testingGetAllVariants();
   }
 
-  void getRemoteConfigValueString() {
-    Countly.instance.remoteConfig.getValue('stringValue');
+  /// Downloads specific test variants
+  /// Return back to contents [Contents]
+  void downloadSpecificTestVariants() {
+    Countly.instance.remoteConfig.testingGetVariantsForKey(rcKey);
   }
 
-  void getRemoteConfigValueBoolean() {
-    Countly.instance.remoteConfig.getValue('booleanValue');
-  }
-
-  void getRemoteConfigValueFloat() {
-    Countly.instance.remoteConfig.getValue('floatValue');
-  }
-
-  void getRemoteConfigValueInteger() {
-    Countly.instance.remoteConfig.getValue('integerValue');
-  }
-
-  void _showDialog(String alertText) {
-    showDialog(
-      context: navigatorKey.currentContext!,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Alert!!'),
-          content: Text(alertText),
-          actions: <Widget>[
-            ElevatedButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(navigatorKey.currentContext!).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  @deprecated
-  void getABTestingValues() {
-    Countly.remoteConfigUpdate((result) {
-      Countly.getRemoteConfigValueForKey('baloon', (result) {
-        String alertText = "Value for 'baloon' is : ${result.toString()}";
-        _showDialog(alertText);
-        print(alertText);
-      });
-    });
-  }
-
-  void eventForGoal_1() {
-    var event = {'key': 'eventForGoal_1', 'count': 1};
-    Countly.recordEvent(event);
-  }
-
-  void eventForGoal_2() {
-    var event = {'key': 'eventForGoal_2', 'count': 1};
-    Countly.recordEvent(event);
-  }
-
-  @deprecated
-  void remoteConfigUpdate() {
-    Countly.remoteConfigUpdate((result) {
-      print(result);
-    });
-  }
-
-  @deprecated
-  void updateRemoteConfigForKeysOnly() {
-    Countly.updateRemoteConfigForKeysOnly(['name'], (result) {
-      print(result);
-    });
-  }
-
-  @deprecated
-  void getRemoteConfigValueForKeyString() {
-    Countly.getRemoteConfigValueForKey('stringValue', (result) {
-      print(result);
-    });
-  }
-
-  @deprecated
-  void getRemoteConfigValueForKeyBoolean() {
-    Countly.getRemoteConfigValueForKey('booleanValue', (result) {
-      print(result);
-    });
-  }
-
-  @deprecated
-  void getRemoteConfigValueForKeyFloat() {
-    Countly.getRemoteConfigValueForKey('floatValue', (result) {
-      print(result);
-    });
-  }
-
-  @deprecated
-  void getRemoteConfigValueForKeyInteger() {
-    Countly.getRemoteConfigValueForKey('integerValue', (result) {
-      print(result);
-    });
-  }
-
-  @deprecated
-  void updateRemoteConfigExceptKeys() {
-    Countly.updateRemoteConfigExceptKeys(['url'], (result) {
-      print(result);
-    });
-  }
-
-  @deprecated
-  void remoteConfigClearValues() {
-    Countly.remoteConfigClearValues((result) {
-      print(result);
-    });
-  }
-
-  @deprecated
-  void getRemoteConfigValueForKey() {
-    Countly.getRemoteConfigValueForKey('name', (result) {
-      print(result);
+// Experiment Information -------------------------------
+  /// Downloads experiment information and prints it
+  /// Return back to contents [Contents]
+  void downloadExperimentInfo() {
+    Countly.instance.remoteConfig.testingDownloadExperimentInformation((rResult, error) async {
+      if (rResult == RequestResult.success) {
+        Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
+        print(experimentInfoMap);
+      }
     });
   }
 
@@ -254,36 +222,62 @@ class RemoteConfigPage extends StatelessWidget {
         child: Center(
             child: Column(
           children: [
-            MyButton(text: 'Remote Config Download Experiment Info', color: 'yellow', onPressed: remoteConfigDownloadExperimentInfo),
-            MyButton(text: 'Remote Config Register Download Callback', color: 'orange', onPressed: remoteConfigRegisterDownloadCallback),
-            MyButton(text: 'Remote Config Remove Download Callback', color: 'orange', onPressed: remoteConfigRemoveDownloadCallback),
-            MyButton(text: 'Remote Config Download Values', color: 'green', onPressed: remoteConfigDownloadKeys),
-            MyButton(text: 'Remote Config Download Specific Value', color: 'green', onPressed: remoteConfigDownloadSpecificKeys),
-            MyButton(text: 'Remote Config Download Omitting Values', color: 'green', onPressed: remoteConfigDownloadOmittingKeys),
-            MyButton(text: 'Remote Config Get All Values', color: 'teal', onPressed: remoteConfigGetAllValues),
-            MyButton(text: 'Remote Config Get Value', color: 'teal', onPressed: remoteConfigGetValue),
-            MyButton(text: 'Remote Config Get Value And Enroll', color: 'purple', onPressed: remoteConfigGetValueAndEnroll),
-            MyButton(text: 'Remote Config Get All Values And Enroll', color: 'purple', onPressed: remoteConfigGetAllValuesAndEnroll),
-            MyButton(text: 'Remote Config Clear All Values', color: 'orange', onPressed: remoteConfigClearAll),
-            MyButton(text: 'Remote Config Enroll Into AB Tests For Keys', color: 'brown', onPressed: remoteConfigEnrollIntoABTestsForKeys),
-            MyButton(text: 'Remote Config Exit AB Tests For Keys', color: 'brown', onPressed: remoteConfigExitABTestsForKeys),
-            MyButton(text: 'Remote Config FetchVariantForKeys', color: 'brown', onPressed: remoteConfigFetchVariantForKeys),
-            MyButton(text: 'Remote Config Fetch All Variant', color: 'brown', onPressed: remoteConfigFetchAllVariant),
-            MyButton(text: 'Get String Value', color: 'violet', onPressed: getRemoteConfigValueString),
-            MyButton(text: 'Get Boolean Value', color: 'violet', onPressed: getRemoteConfigValueBoolean),
-            MyButton(text: 'Get Float Value', color: 'violet', onPressed: getRemoteConfigValueFloat),
-            MyButton(text: 'Get Integer Value', color: 'violet', onPressed: getRemoteConfigValueInteger),
-            MyButton(text: 'Countly.remoteConfigUpdate (Legacy)', color: 'red', onPressed: remoteConfigUpdate),
-            MyButton(text: 'Countly.updateRemoteConfigForKeysOnly (Legacy)', color: 'red', onPressed: updateRemoteConfigForKeysOnly),
-            MyButton(text: 'Countly.updateRemoteConfigExceptKeys (Legacy)', color: 'red', onPressed: updateRemoteConfigExceptKeys),
-            MyButton(text: 'Countly.remoteConfigClearValues (Legacy)', color: 'red', onPressed: remoteConfigClearValues),
-            MyButton(text: 'Get String Value (Legacy)', color: 'red', onPressed: getRemoteConfigValueForKeyString),
-            MyButton(text: 'Get Boolean Value (Legacy)', color: 'red', onPressed: getRemoteConfigValueForKeyBoolean),
-            MyButton(text: 'Get Float Value (Legacy)', color: 'red', onPressed: getRemoteConfigValueForKeyFloat),
-            MyButton(text: 'Get Integer Value (Legacy)', color: 'red', onPressed: getRemoteConfigValueForKeyInteger),
-            MyButton(text: 'Get AB testing values (Legacy)', color: 'red', onPressed: getABTestingValues),
-            MyButton(text: 'Record event for goal #1', color: 'red', onPressed: eventForGoal_1),
-            MyButton(text: 'Record event for goal #2', color: 'red', onPressed: eventForGoal_2),
+            SizedBox(
+              height: 40,
+              child: TextField(
+                onSubmitted: (value) {
+                  setState(() {
+                    rcKey = value;
+                  });
+                },
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(gapPadding: 4.0, borderSide: BorderSide(color: Colors.teal), borderRadius: BorderRadius.all(Radius.circular(20.0))),
+                  hintText: 'Enter an RC Key',
+                ),
+              ),
+            ),
+            countlySpacer(),
+            countlyTitle('Manual Download Calls'),
+            MyButton(text: 'Download All RC Values', color: 'green', onPressed: downloadAllRCValues),
+            MyButton(text: 'Download Specific RC Values', color: 'green', onPressed: downloadSpecificRCValues),
+            MyButton(text: 'Download Omitting Specific RC Values', color: 'green', onPressed: downloadOmittingSpecificRCValues),
+            countlySpacer(),
+            countlyTitle('Accessing Values'),
+            MyButton(text: 'Get All RC Values', color: 'teal', onPressed: getAllRCValues),
+            MyButton(text: 'Get Specific RC Values', color: 'teal', onPressed: getSpecificRCValues),
+            countlySpacer(),
+            countlyTitle('Clearing Values'),
+            MyButton(text: 'Clear All RC Values', color: 'red', onPressed: clearAllRCValues),
+            countlySpacer(),
+            countlyTitle('Global Download Callbacks'),
+            MyButton(text: 'Register RC Download Callback', color: 'orange', onPressed: registerRCDownloadCallback),
+            MyButton(text: 'Remove RC Download Callback', color: 'red', onPressed: removeRCDownloadCallback),
+            countlySpacer(),
+            countlyTitle('AB Testing'),
+            countlySubTitle('Enroll on Access'),
+            MyButton(text: 'Get All RC Values And Enroll', color: 'teal', onPressed: getAllRCValuesAndEnroll),
+            MyButton(text: 'Get Specific RC Values And Enroll', color: 'teal', onPressed: getSpecificRCValuesAndEnroll),
+            countlySpacerSmall(),
+            countlySubTitle('Enroll on Action'),
+            MyButton(text: 'Enroll Into AB Tests', color: 'blue', onPressed: enrollIntoABTests),
+            countlySpacerSmall(),
+            countlySubTitle('Exiting AB Tests'),
+            MyButton(text: 'Exit AB Tests', color: 'red', onPressed: exitABTests),
+            countlySpacerSmall(),
+            countlySubTitle('Variant Download Calls'),
+            MyButton(text: 'Fetch All Test Variants', color: 'green', onPressed: downloadAllTestVariants),
+            MyButton(text: 'Fetch Specific Test Variants', color: 'green', onPressed: downloadSpecificTestVariants),
+            countlySpacerSmall(),
+            countlySubTitle('Experiment Information'),
+            MyButton(text: 'Download Experiment Information', color: 'yellow', onPressed: downloadExperimentInfo),
+            countlySpacer(),
+            countlyTitle('Legacy Remote Config Methods'),
+            MyButton(
+                text: 'Remote Config (Legacy)',
+                color: 'gray',
+                onPressed: () {
+                  navigateToPage(context, RemoteConfigPageLegacy());
+                }),
           ],
         )),
       ),
