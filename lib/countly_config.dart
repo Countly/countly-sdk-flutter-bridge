@@ -222,8 +222,8 @@ class CountlyConfig {
   /// [String city] - Name of the user's city
   /// [String gpsCoordinates] - comma separate lat and lng values. For example, "56.42345,123.45325"
   /// [String ipAddress] - ip address
-  CountlyConfig setLocation({String? country_code, String? city, String? gpsCoordinates, String? ipAddress}) {
-    _locationCountryCode = country_code;
+  CountlyConfig setLocation({String? countryCode, String? city, String? gpsCoordinates, String? ipAddress}) {
+    _locationCountryCode = countryCode;
     _locationCity = city;
     _locationGpsCoordinates = gpsCoordinates;
     _locationIpAddress = ipAddress;
