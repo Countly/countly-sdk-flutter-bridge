@@ -7,8 +7,8 @@ import 'package:countly_flutter/countly_flutter.dart';
 // where you initialize the Countly SDK.
 // This is just an example of how you can create a class to hold the CountlyConfig object because we used way too many methods here.
 class CountlyConfiguration {
-  static final String SERVER_URL = 'https://xxx.count.ly'; // MANDATORY !!
-  static final String APP_KEY = 'YOUR_APP_KEY'; // MANDATORY !!
+  static final String SERVER_URL = 'https://master.count.ly'; // MANDATORY !!
+  static final String APP_KEY = '21cf5a730c3152bf1cb0d1ace048e25ac9d66b90'; // MANDATORY !!
 
   // These are optional values that you can set for the Countly SDK
   // Below you can see the methods that uses them
@@ -16,12 +16,32 @@ class CountlyConfiguration {
   static final Map<String, String> userProperties = {'customProperty': 'custom Value', 'username': 'USER_NAME', 'email': 'USER_EMAIL'};
   static final String campaignData = '{"cid":"PROVIDED_CAMPAIGN_ID", "cuid":"PROVIDED_CAMPAIGN_USER_ID"}';
   static final Map<String, String> attributionValues = Platform.isIOS ? {AttributionKey.IDFA: 'IDFA'} : {AttributionKey.AdvertisingID: 'AdvertisingID'};
+  static final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
+    if (error != null) {
+      print('RCDownloadCallback, Result:[$rResult], error:[$error]');
+      return;
+    }
+    String downloadedValuesString = '';
+    for (final entry in downloadedValues.entries) {
+      downloadedValuesString += '||key: ${entry.key}, value: ${entry.value.value}||\n';
+    }
+    String message = 'Manual Download, Result:[${rResult}, updatedAll:[${fullValueUpdate}], downloadedValues:[\n${downloadedValuesString}]';
+    print(message);
+  };
 
   static CountlyConfig getConfig() {
     return CountlyConfig(SERVER_URL, APP_KEY)..setLoggingEnabled(true) // Enable countly internal debugging logs
 
         // Currently only logging is enabled for debugging purposes
         // Below you can see most of the methods that you can use to configure the Countly SDK
+
+        // Remote Config related methods
+        //------------------------------------------------------------
+        //   ..enableRemoteConfigAutomaticTriggers()
+        //   ..enableRemoteConfigValueCaching()
+        //   ..enrollABOnRCDownload() // This is for specific circumstances only
+        //   ..remoteConfigRegisterGlobalCallback(callback) // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
+        //------------------------------------------------------------
 
         //   ..enableCrashReporting() // Enable crash reporting to report unhandled crashes to Countly
         //   ..setRequiresConsent(true) // Set that consent should be required for features to work.
@@ -36,23 +56,10 @@ class CountlyConfiguration {
         //   ..setUserProperties(userProperties)
         //   ..recordIndirectAttribution(attributionValues)
         //   ..recordDirectAttribution('countly', campaignData)
-        //   ..remoteConfigRegisterGlobalCallback((rResult, error, fullValueUpdate, downloadedValues) {
-        //     print('Global RC download callback 1');
-        //     if (error != null) {
-        //       print(error);
-        //     }
-        //   }) // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
-        //   ..remoteConfigRegisterGlobalCallback((rResult, error, fullValueUpdate, downloadedValues) {
-        //     print('Global RC download callback 2');
-        //     if (error != null) {
-        //       print(error);
-        //     }
-        //   }) // Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
         //   ..setRecordAppStartTime(true) // Enable APM features, which includes the recording of app start time.
         //   ..setStarRatingTextMessage('Message for start rating dialog')
-        //..enrollABOnRCDownload() // This is for specific circumstances only
         //   ..setParameterTamperingProtectionSalt('salt') // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
-        //..enableManualSessionHandling() // Enable manual session handling
+        //   ..enableManualSessionHandling() // Enable manual session handling
         //   ..setHttpPostForced(false) // Set to 'true' if you want HTTP POST to be used for all requests
         ;
   }
