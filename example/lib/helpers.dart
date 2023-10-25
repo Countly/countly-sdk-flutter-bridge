@@ -63,7 +63,7 @@ void showCountlyToast(BuildContext context, String message, Color? color) {
       child: Center(
         child: Text(
           message,
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
       ),
     ),
