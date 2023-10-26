@@ -220,7 +220,7 @@
 * !! Major breaking change !! Resolved issue with handling push notification actions on iOS. 
   * To handle push notification actions, add the following call "CountlyFlutterPlugin.startObservingNotifications();" to "AppDelegate.swift"
   * For further information, refer to the "Handling Push Callbacks" section of the Countly SDK documentation at:
-    https://support.count.ly/hc/en-us/articles/360037944212-Flutter#handling-push-callbacks.
+    https://support.count.ly/hc/en-us/articles/360037944212-Flutter#h_01H930GAQ67F7994ZMTG30J1C5.
 * Fixed a race condition bug in Android where a recorded event would have the wrong user properties in the drill database on the server. Now event queue is emptied (formed into a request) before recording any user profile changes.
 * Events are now recorded with an internal ID in Android.
 * Updated underlying Android SDK version to 22.09.0
