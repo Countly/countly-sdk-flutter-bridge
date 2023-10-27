@@ -1,3 +1,4 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/d7c460a23b694051ad08f3bb2e30808c)](https://app.codacy.com/gh/Countly/countly-sdk-flutter-bridge?utm_source=github.com&utm_medium=referral&utm_content=Countly/countly-sdk-flutter-bridge&utm_campaign=Badge_Grade)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/7ab95afb3da8421ab499cc921e1381ac)](https://www.codacy.com/gh/Countly/countly-sdk-flutter-bridge/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Countly/countly-sdk-flutter-bridge&amp;utm_campaign=Badge_Grade)
 
 # Countly Flutter SDK
