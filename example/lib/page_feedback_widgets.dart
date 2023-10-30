@@ -12,6 +12,7 @@ class FeedbackWidgetsPage extends StatefulWidget {
 
 class _FeedbackWidgetsPageState extends State<FeedbackWidgetsPage> {
   final ratingIdController = TextEditingController();
+  final Random rnd = Random();
 
   @override
   void initState() {
@@ -108,6 +109,27 @@ class _FeedbackWidgetsPageState extends State<FeedbackWidgetsPage> {
     }
   }
 
+  Future<void> showRating() async {
+    FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets();
+    List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
+    String? error = feedbackWidgetsResponse.error;
+
+    if (error != null) {
+      return;
+    }
+
+    for (CountlyPresentableFeedback widget in widgets) {
+      if (widget.type == 'rating') {
+        await Countly.presentFeedbackWidget(widget, 'Close', widgetShown: () {
+          print('Rating widget shown');
+        }, widgetClosed: () {
+          print('Rating widget closed');
+        });
+        break;
+      }
+    }
+  }
+
   Future<void> reportSurveyManually() async {
     FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets();
     List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
@@ -138,7 +160,6 @@ class _FeedbackWidgetsPageState extends State<FeedbackWidgetsPage> {
         List<dynamic>? questions = retrievedWidgetData['questions'];
 
         if (questions != null) {
-          Random rnd = Random();
           //iterate over all questions and set random answers
           for (int a = 0; a < questions.length; a++) {
             Map<dynamic, dynamic> question = questions[a];
@@ -155,7 +176,7 @@ class _FeedbackWidgetsPageState extends State<FeedbackWidgetsPage> {
                     if (b != 0) {
                       str += ',';
                     }
-                    str += choices[b]['key'];
+                    str += (choices[b] as Map)['key'];
                   }
                 }
                 segments[answerKey] = str;
@@ -165,11 +186,11 @@ class _FeedbackWidgetsPageState extends State<FeedbackWidgetsPage> {
               case 'dropdown':
                 List<dynamic> choices = question['choices'];
                 int pick = rnd.nextInt(choices.length);
-                segments[answerKey] = choices[pick]['key']; //pick the key of random choice
+                segments[answerKey] = (choices[pick] as Map)['key']; //pick the key of random choice
                 break;
               //text input field
               case 'text':
-                segments[answerKey] = 'Some random text';
+                segments[answerKey] = 'Some random text${rnd.nextInt(999999)}';
                 break;
               //rating picker
               case 'rating':
@@ -207,7 +228,37 @@ class _FeedbackWidgetsPageState extends State<FeedbackWidgetsPage> {
   void reportNPS(CountlyPresentableFeedback chosenWidget) {
     Countly.getFeedbackWidgetData(chosenWidget, onFinished: (retrievedWidgetData, error) {
       if (error == null) {
-        Map<String, Object> segments = {'rating': 3, 'comment': 'Filled out comment'};
+        Map<String, Object> segments = {'rating': rnd.nextInt(10), 'comment': 'Filled out comment${rnd.nextInt(999999)}'};
+        Countly.reportFeedbackWidgetManually(chosenWidget, retrievedWidgetData, segments);
+      }
+    });
+  }
+
+  Future<void> reportRatingManually() async {
+    FeedbackWidgetsResponse feedbackWidgetsResponse = await Countly.getAvailableFeedbackWidgets();
+    List<CountlyPresentableFeedback> widgets = feedbackWidgetsResponse.presentableFeedback;
+    String? error = feedbackWidgetsResponse.error;
+
+    if (error != null) {
+      return;
+    }
+
+    CountlyPresentableFeedback? chosenWidget;
+    for (CountlyPresentableFeedback widget in widgets) {
+      if (widget.type == 'rating') {
+        chosenWidget = widget;
+        break;
+      }
+    }
+    if (chosenWidget != null) {
+      reportRating(chosenWidget);
+    }
+  }
+
+  void reportRating(CountlyPresentableFeedback chosenWidget) {
+    Countly.getFeedbackWidgetData(chosenWidget, onFinished: (retrievedWidgetData, error) {
+      if (error == null) {
+        Map<String, Object> segments = {'rating': rnd.nextInt(6), 'comment': 'Filled out comment${rnd.nextInt(999999)}', 'email': 'test${rnd.nextInt(999999)}@yahoo.com'};
         Countly.reportFeedbackWidgetManually(chosenWidget, retrievedWidgetData, segments);
       }
     });
@@ -236,9 +287,11 @@ class _FeedbackWidgetsPageState extends State<FeedbackWidgetsPage> {
             MyButton(text: 'Show Rating using EditBox', color: 'orange', onPressed: ratingIdController.text.isNotEmpty ? presentRatingWidgetUsingEditBox : null),
             MyButton(text: 'Show Survey', color: 'orange', onPressed: showSurvey),
             MyButton(text: 'Show NPS', color: 'orange', onPressed: showNPS),
+            MyButton(text: 'Show Rating', color: 'orange', onPressed: showRating),
             MyButton(text: 'Show Feedback Widget', color: 'orange', onPressed: showFeedbackWidget),
             MyButton(text: 'Report Survey Manually', color: 'orange', onPressed: reportSurveyManually),
             MyButton(text: 'Report NPS Manually', color: 'orange', onPressed: reportNPSManually),
+            MyButton(text: 'Report Rating Manually', color: 'orange', onPressed: reportRatingManually),
           ],
         )),
       ),
