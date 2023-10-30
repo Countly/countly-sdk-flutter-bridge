@@ -1,3 +1,13 @@
+## 23.8.4
+* Fixed the exit AB request failure issue on iOS.
+* Underlying Android SDK version is 23.8.3
+* Underlying iOS SDK version is 23.8.3
+
+## 23.8.4-np
+* Fixed the exit AB request failure issue on iOS.
+* Underlying Android SDK version is 23.8.3
+* Underlying iOS SDK version is 23.8.3
+
 ## 23.8.3
 * Added a call to enroll users to A/B tests when getting a remote config value: 'getValueAndEnroll'
 * Added a call to enroll users to A/B tests when getting all remote config values: 'getAllValuesAndEnroll'
