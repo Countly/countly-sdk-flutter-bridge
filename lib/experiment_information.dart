@@ -7,7 +7,7 @@ class ExperimentInformation {
   final String currentVariant;
   final Map<String, Map<String, dynamic>> variants;
 
-  static ExperimentInformation fromJson(dynamic json) {
+  static ExperimentInformation fromJson(Map json) {
     Map<String, Map<String, dynamic>> variantsMap = {};
     Map<Object?, Object?> variants = json['variants'] ?? {};
     for (var item in variants.keys)

@@ -83,7 +83,7 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         appBar: AppBar(
           flexibleSpace: Image(
-            image: AssetImage("assets/banner.png"),
+            image: AssetImage('assets/banner.png'),
             fit: BoxFit.cover,
           ),
           backgroundColor: Colors.transparent,
