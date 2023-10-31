@@ -16,7 +16,7 @@ class ExperimentInformation {
       Map<Object?, Object?> values = variants[item] as Map<Object?, Object?>;
       for (var key in values.keys)
       {
-        valueMap[key.toString()] = variants[key];
+        valueMap[key.toString()] = values[key];
       }
       variantsMap[item.toString()] = valueMap;
     }

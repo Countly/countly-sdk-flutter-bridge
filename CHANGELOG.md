@@ -1,10 +1,14 @@
 ## 23.8.4
 * Fixed the exit AB request failure issue on iOS.
+* Fixed "null" value issue for experiment info variants.
+
 * Updated underlying Android SDK version to 23.8.3
 * Underlying iOS SDK version is 23.8.3
 
 ## 23.8.4-np
 * Fixed the exit AB request failure issue on iOS.
+* Fixed "null" value issue for experiment info variants.
+
 * Updated underlying Android SDK version to 23.8.3
 * Underlying iOS SDK version is 23.8.3
 
