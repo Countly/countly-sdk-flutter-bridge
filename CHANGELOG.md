@@ -1,11 +1,11 @@
 ## 23.8.4
 * Fixed the exit AB request failure issue on iOS.
-* Underlying Android SDK version is 23.8.3
+* Updated underlying Android SDK version to 23.8.3
 * Underlying iOS SDK version is 23.8.3
 
 ## 23.8.4-np
 * Fixed the exit AB request failure issue on iOS.
-* Underlying Android SDK version is 23.8.3
+* Updated underlying Android SDK version to 23.8.3
 * Underlying iOS SDK version is 23.8.3
 
 ## 23.8.3
@@ -16,7 +16,7 @@
 
 * Fixed sending '--' as carrier name due to platform changes from iOS version 16.4. This version and above will now not send any carrier information due to platform limitations.
 
-* Updated underlying Android SDK version to 23.8.3
+* Updated underlying Android SDK version to 23.8.3-RC1
 * Updated underlying iOS SDK version to 23.8.3
 
 ## 23.8.3-np
@@ -27,7 +27,7 @@
 
 * Fixed sending '--' as carrier name due to platform changes from iOS version 16.4. This version and above will now not send any carrier information due to platform limitations.
 
-* Updated underlying Android SDK version to 23.8.3
+* Updated underlying Android SDK version to 23.8.3-RC1
 * Updated underlying iOS SDK version to 23.8.3
 
 ## 23.8.2
