@@ -55,3 +55,21 @@ Widget countlySubTitle(String text) {
 Widget countlyTitle(String text) {
   return Text(text, style: titleStyle());
 }
+
+void showCountlyToast(BuildContext context, String message, Color? color) {
+  final snackBar = SnackBar(
+    content: Container(
+      //   height: 60,
+      child: Center(
+        child: Text(
+          message,
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+        ),
+      ),
+    ),
+    duration: Duration(seconds: 3),
+    backgroundColor: color ?? Color.fromARGB(255, 44, 174, 92),
+    behavior: SnackBarBehavior.floating,
+  );
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}

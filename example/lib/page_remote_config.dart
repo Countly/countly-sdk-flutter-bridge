@@ -14,205 +14,232 @@ class RemoteConfigPage extends StatefulWidget {
 }
 
 class _RemoteConfigPageState extends State<RemoteConfigPage> {
-  var rcKey;
+  @override
+  Widget build(BuildContext context) {
+    var rcKey = 'testKey';
+    final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
+      if (error != null) {
+        print('RCDownloadCallback, Result:[$rResult], error:[$error]');
+        return;
+      }
+      String downloadedValuesString = '';
+      for (final entry in downloadedValues.entries) {
+        downloadedValuesString += '||key: ${entry.key}, value: ${entry.value.value}||\n';
+      }
+      String message = 'Manual Download, Result:[${rResult}, updatedAll:[${fullValueUpdate}], downloadedValues:[\n${downloadedValuesString}]';
+      print(message);
+      showCountlyToast(context, message, null);
+    };
 
 //===================================================
 // Contents
 //===================================================
-  void Contents() {}
+    void Contents() {}
 // Manual Download Calls
-  /// Download All RC Values [downloadAllRCValues]
-  /// Download Specific RC Values [downloadSpecificRCValues]
-  /// Download Omitting Specific RC Values [downloadOmittingSpecificRCValues]
+    /// Download All RC Values [downloadAllRCValues]
+    /// Download Specific RC Values [downloadSpecificRCValues]
+    /// Download Omitting Specific RC Values [downloadOmittingSpecificRCValues]
 // Accessing Values
-  /// Get All RC Values [getAllRCValues]
-  /// Get Specific RC Values [getSpecificRCValues]
+    /// Get All RC Values [getAllRCValues]
+    /// Get Specific RC Values [getSpecificRCValues]
 // Clearing Values
-  /// Clear All RC Values [clearAllRCValues]
+    /// Clear All RC Values [clearAllRCValues]
 // Global Download Callbacks
-  /// Register RC Download Callback [registerRCDownloadCallback]
-  /// Remove RC Download Callback [removeRCDownloadCallback]
+    /// Register RC Download Callback [registerRCDownloadCallback]
+    /// Remove RC Download Callback [removeRCDownloadCallback]
 // AB Testing
 // Enroll on Access
-  /// Get All RC Values And Enroll [getAllRCValuesAndEnroll]
-  /// Get Specific RC Values And Enroll [getSpecificRCValuesAndEnroll]
+    /// Get All RC Values And Enroll [getAllRCValuesAndEnroll]
+    /// Get Specific RC Values And Enroll [getSpecificRCValuesAndEnroll]
 // Enroll on Action
-  /// Enroll Into AB Tests [enrollIntoABTests]
+    /// Enroll Into AB Tests [enrollIntoABTests]
 // Exiting AB Tests
-  /// Exit AB Tests [exitABTests]
+    /// Exit AB Tests [exitABTests]
 // Variant Download Calls
-  /// Fetch All Test Variants [downloadAllTestVariants]
-  /// Fetch Specific Test Variants [downloadSpecificTestVariants]
+    /// Fetch All Test Variants [downloadAllTestVariants]
+    /// Fetch Specific Test Variants [downloadSpecificTestVariants]
 // Experiment Information
-  /// Download Experiment Information [downloadExperimentInfo]
+    /// Download Experiment Information [downloadExperimentInfo]
 
 //===================================================
 // Manual Download Calls
 //===================================================
-  /// Downloads all RC Values irrespective of the keys
-  /// Return back to [Contents]
-  void downloadAllRCValues() {
-    final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
-      print(rResult);
-      print(error);
-      print(fullValueUpdate);
-      for (final entry in downloadedValues.entries) {
-        print('key: ${entry.key}: value: ${entry.value.value}');
-      }
-    };
-    Countly.instance.remoteConfig.downloadAllKeys(callback);
-  }
 
-  /// Downloads specific RC Values based on the keys
-  /// Return back to [Contents]
-  void downloadSpecificRCValues() {
-    final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
-      print(rResult);
-      print(error);
-      print(fullValueUpdate);
-      for (final entry in downloadedValues.entries) {
-        print('key: ${entry.key}: value: ${entry.value.value}');
-      }
-    };
-    Countly.instance.remoteConfig.downloadSpecificKeys([rcKey], callback);
-  }
+    /// Downloads all RC Values irrespective of the keys
+    /// Return back to [Contents]
+    void downloadAllRCValues() {
+      Countly.instance.remoteConfig.downloadAllKeys(callback);
+    }
 
-  /// Downloads all RC Values except the specified keys
-  /// Return back to [Contents]
-  void downloadOmittingSpecificRCValues() {
-    final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
-      print(rResult);
-      print(error);
-      print(fullValueUpdate);
-      for (final entry in downloadedValues.entries) {
-        print('key: ${entry.key}: value: ${entry.value.value}');
-      }
-    };
-    Countly.instance.remoteConfig.downloadOmittingKeys([rcKey], callback);
-  }
+    /// Downloads specific RC Values based on the keys
+    /// Return back to [Contents]
+    void downloadSpecificRCValues() {
+      Countly.instance.remoteConfig.downloadSpecificKeys([rcKey], callback);
+    }
+
+    /// Downloads all RC Values except the specified keys
+    /// Return back to [Contents]
+    void downloadOmittingSpecificRCValues() {
+      Countly.instance.remoteConfig.downloadOmittingKeys([rcKey], callback);
+    }
 
 //===================================================
 // Accessing Values
 //===================================================
-  /// Gets all RC values from storage and prints them
-  /// Return back to [Contents]
-  Future<void> getAllRCValues() async {
-    final allValues = await Countly.instance.remoteConfig.getAllValues();
-    for (final entry in allValues.entries) {
-      final value = entry.value.value;
-      print('key: ${entry.key}, value: $value, DataType: ${value.runtimeType}');
-      if (value is Map) {
-        print('begin 2nd level iteration');
-        for (final entry1 in value.entries) {
-          final value1 = entry1.value;
-          print('2nd iteration - key: ${entry1.key}, value: $value1, DataType: ${value1.runtimeType}');
+    /// Gets all RC values from storage and prints them
+    /// Return back to [Contents]
+    Future<void> getAllRCValues() async {
+      final allValues = await Countly.instance.remoteConfig.getAllValues();
+      for (final entry in allValues.entries) {
+        final value = entry.value.value;
+        print('key: ${entry.key}, value: $value, DataType: ${value.runtimeType}');
+        if (value is Map) {
+          print('begin 2nd level iteration');
+          for (final entry1 in value.entries) {
+            final value1 = entry1.value;
+            print('2nd iteration - key: ${entry1.key}, value: $value1, DataType: ${value1.runtimeType}');
+          }
+          print('end 2nd level iteration');
         }
-        print('end 2nd level iteration');
+      }
+      String resultString = '';
+      allValues.forEach((key, RCData) {
+        resultString += '\nKey: [$key],';
+        resultString += ' Value: [${RCData.value}] (${RCData.value.runtimeType}),';
+        resultString += ' isCurrentUSer: [${RCData.isCurrentUsersData}]';
+      });
+      showCountlyToast(context, resultString, null);
+    }
+
+    /// Gets specific RC values from storage and prints them
+    /// Return back to [Contents]
+    Future<void> getSpecificRCValues() async {
+      try {
+        RCData data = await Countly.instance.remoteConfig.getValue(rcKey);
+        final s = data.value;
+        print('getSpecificRCValues, value:${data.value} with type:${s.runtimeType}, cache: ${data.isCurrentUsersData}');
+        showCountlyToast(context, 'value:${data.value}', null);
+      } catch (e) {
+        print(e);
       }
     }
-  }
-
-  /// Gets specific RC values from storage and prints them
-  /// Return back to [Contents]
-  Future<void> getSpecificRCValues() async {
-    RCData data = await Countly.instance.remoteConfig.getValue(rcKey);
-    print('getSpecificRCValues, value:${data.value} cache: ${data.isCurrentUsersData}');
-  }
 
 //===================================================
 // Clearing Values
 //===================================================
-  /// Clear all RC values from storage
-  /// Return back to [Contents]
-  void clearAllRCValues() {
-    Countly.instance.remoteConfig.clearAll();
-  }
+    /// Clear all RC values from storage
+    /// Return back to [Contents]
+    void clearAllRCValues() {
+      Countly.instance.remoteConfig.clearAll();
+      showCountlyToast(context, 'Cleared All RC Data', Colors.red);
+    }
 
 //===================================================
 // Global Download Callbacks
 //===================================================
-  /// For registering a callback that is called when a remote config download is completed
-  /// Return back to [Contents]
-  void registerRCDownloadCallback() {
-    Countly.instance.remoteConfig.registerDownloadCallback(RemoteConfigPage._rcDownloadCallback);
-  }
+    /// For registering a callback that is called when a remote config download is completed
+    /// Return back to [Contents]
+    void registerRCDownloadCallback() {
+      Countly.instance.remoteConfig.registerDownloadCallback(RemoteConfigPage._rcDownloadCallback);
+    }
 
-  /// For removing a global RC callback
-  /// Return back to [Contents]
-  void removeRCDownloadCallback() {
-    Countly.instance.remoteConfig.removeDownloadCallback(RemoteConfigPage._rcDownloadCallback);
-  }
+    /// For removing a global RC callback
+    /// Return back to [Contents]
+    void removeRCDownloadCallback() {
+      Countly.instance.remoteConfig.removeDownloadCallback(RemoteConfigPage._rcDownloadCallback);
+    }
 
 //===================================================
 // AB Testing
 //===================================================
 // Enroll on Access -------------------------------
-  /// Gets specific RC values from storage and prints them also enroll for that key
-  /// Return back to [Contents]
-  Future<void> getSpecificRCValuesAndEnroll() async {
-    RCData data = await Countly.instance.remoteConfig.getValueAndEnroll(rcKey);
-    print('getSpecificRCValuesAndEnroll, value:${data.value} cache: ${data.isCurrentUsersData}');
-  }
-
-  /// Gets all RC values from storage and prints them also enroll for all keys
-  /// Return back to [Contents]
-  Future<void> getAllRCValuesAndEnroll() async {
-    final allValues = await Countly.instance.remoteConfig.getAllValuesAndEnroll();
-    for (final entry in allValues.entries) {
-      final value = entry.value.value;
-      print('key: ${entry.key}, value: $value, DataType: ${value.runtimeType}');
-      if (value is Map) {
-        print('begin 2nd level iteration');
-        for (final entry1 in value.entries) {
-          final value1 = entry1.value;
-          print('2nd iteration - key: ${entry1.key}, value: $value1, DataType: ${value1.runtimeType}');
-        }
-        print('end 2nd level iteration');
-      }
+    /// Gets specific RC values from storage and prints them also enroll for that key
+    /// Return back to [Contents]
+    Future<void> getSpecificRCValuesAndEnroll() async {
+      RCData data = await Countly.instance.remoteConfig.getValueAndEnroll(rcKey);
+      print('getSpecificRCValuesAndEnroll, value:${data.value} cache: ${data.isCurrentUsersData}');
+      showCountlyToast(context, 'value:${data.value}', null);
     }
-  }
+
+    /// Gets all RC values from storage and prints them also enroll for all keys
+    /// Return back to [Contents]
+    Future<void> getAllRCValuesAndEnroll() async {
+      final allValues = await Countly.instance.remoteConfig.getAllValuesAndEnroll();
+      for (final entry in allValues.entries) {
+        final value = entry.value.value;
+        print('key: ${entry.key}, value: $value, DataType: ${value.runtimeType}');
+        if (value is Map) {
+          print('begin 2nd level iteration');
+          for (final entry1 in value.entries) {
+            final value1 = entry1.value;
+            print('2nd iteration - key: ${entry1.key}, value: $value1, DataType: ${value1.runtimeType}');
+          }
+          print('end 2nd level iteration');
+        }
+      }
+      String resultString = '';
+      allValues.forEach((key, RCData) {
+        resultString += '\nKey: [$key],';
+        resultString += ' Value: [${RCData.value}] (${RCData.value.runtimeType}),';
+        resultString += ' isCurrentUSer: [${RCData.isCurrentUsersData}]';
+      });
+      showCountlyToast(context, resultString, null);
+    }
 
 // Enroll on Action -------------------------------
-  /// Enroll into AB tests for the specified keys
-  /// Return back to [Contents]
-  void enrollIntoABTests() {
-    Countly.instance.remoteConfig.enrollIntoABTestsForKeys([rcKey]);
-  }
+    /// Enroll into AB tests for the specified keys
+    /// Return back to [Contents]
+    void enrollIntoABTests() {
+      Countly.instance.remoteConfig.enrollIntoABTestsForKeys([rcKey]);
+      showCountlyToast(context, 'Enrolled to tests', null);
+    }
 
 // Exiting AB Tests -------------------------------
-  /// Exits from AB tests for the specified keys
-  /// Return back to [Contents]
-  void exitABTests() {
-    Countly.instance.remoteConfig.exitABTestsForKeys([rcKey]);
-  }
+    /// Exits from AB tests for the specified keys
+    /// Return back to [Contents]
+    void exitABTests() {
+      Countly.instance.remoteConfig.exitABTestsForKeys([rcKey]);
+      showCountlyToast(context, 'Exited from tests', null);
+    }
 
 // Variant Download Calls -------------------------------
-  /// Downloads all test variants
-  /// Return back to [Contents]
-  void downloadAllTestVariants() {
-    Countly.instance.remoteConfig.testingGetAllVariants();
-  }
+    /// Downloads all test variants
+    /// Return back to [Contents]
+    Future<void> downloadAllVariants() async {
+      await Countly.instance.remoteConfig.testingDownloadVariantInformation(
+        (rResult, error) {
+          showCountlyToast(context, 'Downloaded all variants', null);
+        },
+      );
+    }
 
-  /// Downloads specific test variants
-  /// Return back to [Contents]
-  void downloadSpecificTestVariants() {
-    Countly.instance.remoteConfig.testingGetVariantsForKey(rcKey);
-  }
+    /// Downloads all test variants
+    /// Return back to [Contents]
+    void getAllTestVariants() {
+      Countly.instance.remoteConfig.testingGetAllVariants();
+      showCountlyToast(context, 'Downloaded All Variants', null);
+    }
+
+    /// Downloads specific test variants
+    /// Return back to [Contents]
+    void getSpecificTestVariants() {
+      Countly.instance.remoteConfig.testingGetVariantsForKey(rcKey);
+      showCountlyToast(context, 'Downloaded All Variants', null);
+    }
 
 // Experiment Information -------------------------------
-  /// Downloads experiment information and prints it
-  /// Return back to [Contents]
-  void downloadExperimentInfo() {
-    Countly.instance.remoteConfig.testingDownloadExperimentInformation((rResult, error) async {
-      if (rResult == RequestResult.success) {
-        Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
-        print(experimentInfoMap);
-      }
-    });
-  }
+    /// Downloads experiment information and prints it
+    /// Return back to [Contents]
+    void downloadExperimentInfo() {
+      Countly.instance.remoteConfig.testingDownloadExperimentInformation((rResult, error) async {
+        if (rResult == RequestResult.success) {
+          Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
+          print(experimentInfoMap);
+          showCountlyToast(context, 'Experiment Info:${experimentInfoMap}', null);
+        }
+      });
+    }
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Remote Config'),
@@ -264,9 +291,10 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
             countlySubTitle('Exiting AB Tests'),
             MyButton(text: 'Exit AB Tests', color: 'red', onPressed: exitABTests),
             countlySpacerSmall(),
-            countlySubTitle('Variant Download Calls'),
-            MyButton(text: 'Fetch All Test Variants', color: 'green', onPressed: downloadAllTestVariants),
-            MyButton(text: 'Fetch Specific Test Variants', color: 'green', onPressed: downloadSpecificTestVariants),
+            countlySubTitle('Variant Download/Get Calls'),
+            MyButton(text: 'Download All Test Variants', color: 'green', onPressed: downloadAllVariants),
+            MyButton(text: 'Get All Test Variants', color: 'green', onPressed: getAllTestVariants),
+            MyButton(text: 'Get Specific Test Variants', color: 'green', onPressed: getSpecificTestVariants),
             countlySpacerSmall(),
             countlySubTitle('Experiment Information'),
             MyButton(text: 'Download Experiment Information', color: 'yellow', onPressed: downloadExperimentInfo),

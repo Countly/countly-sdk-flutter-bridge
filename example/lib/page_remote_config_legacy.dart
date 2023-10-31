@@ -5,32 +5,12 @@ import 'package:flutter/material.dart';
 final navigatorKey = GlobalKey<NavigatorState>();
 
 class RemoteConfigPageLegacy extends StatelessWidget {
-  void _showDialog(String alertText) {
-    showDialog(
-      context: navigatorKey.currentContext!,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Alert!!'),
-          content: Text(alertText),
-          actions: <Widget>[
-            ElevatedButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(navigatorKey.currentContext!).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @deprecated
   void getABTestingValues() {
     Countly.remoteConfigUpdate((result) {
       Countly.getRemoteConfigValueForKey('baloon', (result) {
         String alertText = "Value for 'baloon' is : ${result.toString()}";
-        _showDialog(alertText);
         print(alertText);
       });
     });

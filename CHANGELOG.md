@@ -1,3 +1,13 @@
+## 23.8.4
+* Fixed the exit AB request failure issue on iOS.
+* Updated underlying Android SDK version to 23.8.3
+* Underlying iOS SDK version is 23.8.3
+
+## 23.8.4-np
+* Fixed the exit AB request failure issue on iOS.
+* Updated underlying Android SDK version to 23.8.3
+* Underlying iOS SDK version is 23.8.3
+
 ## 23.8.3
 * Added a call to enroll users to A/B tests when getting a remote config value: 'getValueAndEnroll'
 * Added a call to enroll users to A/B tests when getting all remote config values: 'getAllValuesAndEnroll'
@@ -6,7 +16,7 @@
 
 * Fixed sending '--' as carrier name due to platform changes from iOS version 16.4. This version and above will now not send any carrier information due to platform limitations.
 
-* Updated underlying Android SDK version to 23.8.3
+* Updated underlying Android SDK version to 23.8.3-RC1
 * Updated underlying iOS SDK version to 23.8.3
 
 ## 23.8.3-np
@@ -17,7 +27,7 @@
 
 * Fixed sending '--' as carrier name due to platform changes from iOS version 16.4. This version and above will now not send any carrier information due to platform limitations.
 
-* Updated underlying Android SDK version to 23.8.3
+* Updated underlying Android SDK version to 23.8.3-RC1
 * Updated underlying iOS SDK version to 23.8.3
 
 ## 23.8.2
@@ -220,7 +230,7 @@
 * !! Major breaking change !! Resolved issue with handling push notification actions on iOS. 
   * To handle push notification actions, add the following call "CountlyFlutterPlugin.startObservingNotifications();" to "AppDelegate.swift"
   * For further information, refer to the "Handling Push Callbacks" section of the Countly SDK documentation at:
-    https://support.count.ly/hc/en-us/articles/360037944212-Flutter#handling-push-callbacks.
+    https://support.count.ly/hc/en-us/articles/360037944212-Flutter#h_01H930GAQ67F7994ZMTG30J1C5.
 * Fixed a race condition bug in Android where a recorded event would have the wrong user properties in the drill database on the server. Now event queue is emptied (formed into a request) before recording any user profile changes.
 * Events are now recorded with an internal ID in Android.
 * Updated underlying Android SDK version to 22.09.0
