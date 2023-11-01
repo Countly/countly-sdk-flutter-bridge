@@ -38,15 +38,19 @@ abstract class RemoteConfig {
   Future<void> downloadOmittingKeys(List<String> omittedKeys, [RCDownloadCallback? callback]);
 
   /// returns the value of a stored key.
+  /// make sure [downloadAllKeys] or [downloadSpecificKeys] is called to download RC data before calling this method.
   Future<RCData> getValue(String key);
 
   /// returns the values of all keys.
+  /// make sure [downloadAllKeys] is called to download all RC data before calling this method.
   Future<Map<String, RCData>> getAllValues();
 
   /// returns the value of a stored key and enroll it for AB testing.
+  /// make sure [downloadAllKeys] or [downloadSpecificKeys] is called to download RC data before calling this method.
   Future<RCData> getValueAndEnroll(String key);
 
   /// returns the values of all keys and enroll them for AB testing.
+  /// make sure [downloadAllKeys] or [downloadSpecificKeys] is called to download all RC data before calling this method.
   Future<Map<String, RCData>> getAllValuesAndEnroll();
 
   Future<void> clearAll();
@@ -55,8 +59,10 @@ abstract class RemoteConfig {
 
   Future<void> exitABTestsForKeys(List<String> keys);
 
+  /// make sure [testingDownloadVariantInformation] is called to download variant info before calling this method.
   Future<List<String>> testingGetVariantsForKey(String key);
 
+  /// make sure [testingDownloadVariantInformation] is called to download variant info before calling this method.
   Future<Map<String, List<String>>> testingGetAllVariants();
 
   Future<void> testingDownloadVariantInformation(RCVariantCallback rcVariantCallback);
@@ -65,5 +71,6 @@ abstract class RemoteConfig {
 
   Future<void> testingDownloadExperimentInformation(RCVariantCallback rcVariantCallback);
 
+  /// make sure [testingDownloadExperimentInformation] is called to download experiment info before calling this method.
   Future<Map<String, ExperimentInformation>> testingGetAllExperimentInfo();
 }
