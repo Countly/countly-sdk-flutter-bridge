@@ -105,6 +105,30 @@ class RemoteConfigInternal implements RemoteConfig {
   }
 
   @override
+  Future<void> testingEnrollIntoABExperiment(String experimentID) async {
+    Map<String, ExperimentInformation> experimentsInfoMap = await testingGetAllExperimentInfo();
+    ExperimentInformation? experimentInformation = experimentsInfoMap[experimentID];
+    if(experimentInformation != null) {
+      await enrollIntoABTestsForKeys([experimentInformation.experimentName]);
+    }
+    else {
+      Countly.log("testingEnrollIntoABExperiment, No experiment information found against experiment Id: '$experimentID'", logLevel: LogLevel.WARNING);
+    }
+  }
+
+  @override
+  Future<void> testingExitABExperiment(String experimentID) async {
+    Map<String, ExperimentInformation> experimentsInfoMap = await testingGetAllExperimentInfo();
+    ExperimentInformation? experimentInformation = experimentsInfoMap[experimentID];
+    if(experimentInformation != null) {
+      await exitABTestsForKeys([experimentInformation.experimentName]);
+    }
+    else {
+      Countly.log("testingExitABExperiment, No experiment information found against experiment Id: '$experimentID'", logLevel: LogLevel.WARNING);
+    }
+  }
+
+  @override
   Future<void> enrollIntoABTestsForKeys(List<String> keys) async {
     if (!_countlyState.isInitialized) {
       Countly.log('"initWithConfig" must be called before "remoteConfigEnrollIntoABTestsForKeys"', logLevel: LogLevel.ERROR);

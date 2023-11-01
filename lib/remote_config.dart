@@ -51,6 +51,10 @@ abstract class RemoteConfig {
 
   Future<void> clearAll();
 
+  Future<void> testingEnrollIntoABExperiment(String experimentID);
+
+  Future<void> testingExitABExperiment(String experimentID);
+
   Future<void> enrollIntoABTestsForKeys(List<String> keys);
 
   Future<void> exitABTestsForKeys(List<String> keys);

@@ -1,4 +1,7 @@
 ## 23.8.4
+* Added a call to enroll users to A/B experiment with experiment ID : `testingEnrollIntoABExperiment:`
+* Added a call to exit users from A/B experiment with experiment ID : `testingExitABExperiment:`
+
 * Fixed the exit AB request failure issue on iOS.
 * Fixed "null" value issue for experiment info variants.
 
@@ -6,6 +9,9 @@
 * Underlying iOS SDK version is 23.8.3
 
 ## 23.8.4-np
+* Added a call to enroll users to A/B experiment with experiment ID : `testingEnrollIntoABExperiment:`
+* Added a call to exit users from A/B experiment with experiment ID : `testingExitABExperiment:`
+
 * Fixed the exit AB request failure issue on iOS.
 * Fixed "null" value issue for experiment info variants.
 
