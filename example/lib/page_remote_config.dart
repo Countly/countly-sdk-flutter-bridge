@@ -194,6 +194,28 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
       showCountlyToast(context, 'Enrolled to tests', null);
     }
 
+    Future<void> enrollIntoABExperiment() async {
+      Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
+      String experimentID = 'EXPERIMENT_ID';
+      if(experimentInfoMap.isNotEmpty) {
+        ExperimentInformation experimentInformation = experimentInfoMap.entries.first.value;
+        experimentID = experimentInformation.experimentID;
+      }
+      await Countly.instance.remoteConfig.testingEnrollIntoABExperiment(experimentID);
+    }
+
+    Future<void> exitABExperiment() async {
+      Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
+      String experimentID = 'EXPERIMENT_ID';
+      if(experimentInfoMap.isNotEmpty) {
+        ExperimentInformation experimentInformation = experimentInfoMap.entries.first.value;
+        experimentID = experimentInformation.experimentID;
+      }
+      await Countly.instance.remoteConfig.testingExitABExperiment(experimentID);
+    }
+
+
+
 // Exiting AB Tests -------------------------------
     /// Exits from AB tests for the specified keys
     /// Return back to [Contents]
@@ -234,8 +256,21 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
       Countly.instance.remoteConfig.testingDownloadExperimentInformation((rResult, error) async {
         if (rResult == RequestResult.success) {
           Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
-          print(experimentInfoMap);
-          showCountlyToast(context, 'Experiment Info:${experimentInfoMap}', null);
+          experimentInfoMap['newEntry'] = experimentInfoMap.entries.first.value;
+          String printAble = '';
+          for (final experimentInfoEntry in experimentInfoMap.entries) {
+            final experimentInfo = experimentInfoEntry.value;
+            printAble += '- key: ${experimentInfoEntry.key}, experimentID: ${experimentInfo.experimentID}, experimentName: ${experimentInfo.experimentName}, experimentDescription: ${experimentInfo.experimentDescription}, currentVariant: ${experimentInfo.currentVariant}';
+            printAble += '\nVariants:';
+            for(final variant in experimentInfo.variants.entries) {
+              printAble += '\n-- ${variant.key}:';
+              for(final variantValue in variant.value.entries) {
+                printAble += '\nkey: ${variantValue.key}, value: ${variantValue.value}\n';
+              }
+            }
+          }
+          print(printAble);
+          showCountlyToast(context, 'Experiment Info:${printAble}', null);
         }
       });
     }
@@ -287,9 +322,11 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
             countlySpacerSmall(),
             countlySubTitle('Enroll on Action'),
             MyButton(text: 'Enroll Into AB Tests', color: 'blue', onPressed: enrollIntoABTests),
+            MyButton(text: 'Enroll Into AB Experiment', color: 'blue', onPressed: enrollIntoABExperiment),
             countlySpacerSmall(),
             countlySubTitle('Exiting AB Tests'),
             MyButton(text: 'Exit AB Tests', color: 'red', onPressed: exitABTests),
+            MyButton(text: 'Exit AB Experiment', color: 'red', onPressed: exitABExperiment),
             countlySpacerSmall(),
             countlySubTitle('Variant Download/Get Calls'),
             MyButton(text: 'Download All Test Variants', color: 'green', onPressed: downloadAllVariants),
