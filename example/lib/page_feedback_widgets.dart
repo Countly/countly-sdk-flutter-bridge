@@ -155,7 +155,7 @@ class _FeedbackWidgetsPageState extends State<FeedbackWidgetsPage> {
                     if (b != 0) {
                       str += ',';
                     }
-                    str += choices[b]['key'];
+                    str += (choices[b] as Map)['key'];
                   }
                 }
                 segments[answerKey] = str;
@@ -165,7 +165,7 @@ class _FeedbackWidgetsPageState extends State<FeedbackWidgetsPage> {
               case 'dropdown':
                 List<dynamic> choices = question['choices'];
                 int pick = rnd.nextInt(choices.length);
-                segments[answerKey] = choices[pick]['key']; //pick the key of random choice
+                segments[answerKey] = (choices[pick] as Map)['key']; //pick the key of random choice
                 break;
               //text input field
               case 'text':
