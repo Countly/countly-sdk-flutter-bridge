@@ -34,6 +34,7 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
 //===================================================
 // Contents
 //===================================================
+    void Contents() {}
 // Manual Download Calls
     /// Download All RC Values [downloadAllRCValues]
     /// Download Specific RC Values [downloadSpecificRCValues]
