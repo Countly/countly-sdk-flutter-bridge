@@ -100,14 +100,23 @@ class RemoteConfigPageLegacy extends StatelessWidget {
         child: Center(
             child: Column(
           children: [
+            // ignore: deprecated_member_use_from_same_package
             MyButton(text: 'Countly.remoteConfigUpdate (Legacy)', color: 'red', onPressed: remoteConfigUpdate),
+            // ignore: deprecated_member_use_from_same_package
             MyButton(text: 'Countly.updateRemoteConfigForKeysOnly (Legacy)', color: 'red', onPressed: updateRemoteConfigForKeysOnly),
+            // ignore: deprecated_member_use_from_same_package
             MyButton(text: 'Countly.updateRemoteConfigExceptKeys (Legacy)', color: 'red', onPressed: updateRemoteConfigExceptKeys),
+            // ignore: deprecated_member_use_from_same_package
             MyButton(text: 'Countly.remoteConfigClearValues (Legacy)', color: 'red', onPressed: remoteConfigClearValues),
+            // ignore: deprecated_member_use_from_same_package
             MyButton(text: 'Get String Value (Legacy)', color: 'red', onPressed: getRemoteConfigValueForKeyString),
+            // ignore: deprecated_member_use_from_same_package
             MyButton(text: 'Get Boolean Value (Legacy)', color: 'red', onPressed: getRemoteConfigValueForKeyBoolean),
+            // ignore: deprecated_member_use_from_same_package
             MyButton(text: 'Get Float Value (Legacy)', color: 'red', onPressed: getRemoteConfigValueForKeyFloat),
+            // ignore: deprecated_member_use_from_same_package
             MyButton(text: 'Get Integer Value (Legacy)', color: 'red', onPressed: getRemoteConfigValueForKeyInteger),
+            // ignore: deprecated_member_use_from_same_package
             MyButton(text: 'Get AB testing values (Legacy)', color: 'red', onPressed: getABTestingValues),
             MyButton(text: 'Record event for goal #1', color: 'red', onPressed: eventForGoal_1),
             MyButton(text: 'Record event for goal #2', color: 'red', onPressed: eventForGoal_2),

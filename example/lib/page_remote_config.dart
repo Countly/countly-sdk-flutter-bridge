@@ -108,7 +108,9 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
         resultString += ' Value: [${RCData.value}] (${RCData.value.runtimeType}),';
         resultString += ' isCurrentUSer: [${RCData.isCurrentUsersData}]';
       });
-      showCountlyToast(context, resultString, null);
+      if (context.mounted) {
+        showCountlyToast(context, resultString, null);
+      }
     }
 
     /// Gets specific RC values from storage and prints them
@@ -118,7 +120,9 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
         RCData data = await Countly.instance.remoteConfig.getValue(rcKey);
         final s = data.value;
         print('getSpecificRCValues, value:${data.value} with type:${s.runtimeType}, cache: ${data.isCurrentUsersData}');
-        showCountlyToast(context, 'value:${data.value}', null);
+        if (context.mounted) {
+          showCountlyToast(context, 'value:${data.value}', null);
+        }
       } catch (e) {
         print(e);
       }
@@ -158,7 +162,9 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
     Future<void> getSpecificRCValuesAndEnroll() async {
       RCData data = await Countly.instance.remoteConfig.getValueAndEnroll(rcKey);
       print('getSpecificRCValuesAndEnroll, value:${data.value} cache: ${data.isCurrentUsersData}');
-      showCountlyToast(context, 'value:${data.value}', null);
+      if (context.mounted) {
+        showCountlyToast(context, 'value:${data.value}', null);
+      }
     }
 
     /// Gets all RC values from storage and prints them also enroll for all keys
@@ -183,7 +189,9 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
         resultString += ' Value: [${RCData.value}] (${RCData.value.runtimeType}),';
         resultString += ' isCurrentUSer: [${RCData.isCurrentUsersData}]';
       });
-      showCountlyToast(context, resultString, null);
+      if (context.mounted) {
+        showCountlyToast(context, resultString, null);
+      }
     }
 
 // Enroll on Action -------------------------------
@@ -268,8 +276,11 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
               }
             }
           }
+
           print(printAble);
-          showCountlyToast(context, 'Experiment Info:${printAble}', null);
+          if (context.mounted) {
+            showCountlyToast(context, 'Experiment Info:${printAble}', null);
+          }
         }
       });
     }

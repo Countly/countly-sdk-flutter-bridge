@@ -966,7 +966,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 String[] variants = Countly.sharedInstance().remoteConfig().testingGetVariantsForKey(key);
 
-                List<String> convertedVariants = Arrays.asList(variants); // TODO: Make better
+                List<String> convertedVariants = null;
+                if (variants != null) {
+                    convertedVariants = Arrays.asList(variants);
+                }
 
                 result.success(convertedVariants);
             } else if ("remoteConfigTestingGetAllVariants".equals(call.method)) {
