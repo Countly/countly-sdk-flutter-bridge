@@ -256,7 +256,6 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
       Countly.instance.remoteConfig.testingDownloadExperimentInformation((rResult, error) async {
         if (rResult == RequestResult.success) {
           Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
-          experimentInfoMap['newEntry'] = experimentInfoMap.entries.first.value;
           String printAble = '';
           for (final experimentInfoEntry in experimentInfoMap.entries) {
             final experimentInfo = experimentInfoEntry.value;
