@@ -115,6 +115,7 @@ class _FeedbackWidgetsPageState extends State<FeedbackWidgetsPage> {
     String? error = feedbackWidgetsResponse.error;
 
     if (error != null) {
+      print(error);
       return;
     }
 
@@ -228,6 +229,7 @@ class _FeedbackWidgetsPageState extends State<FeedbackWidgetsPage> {
   void reportNPS(CountlyPresentableFeedback chosenWidget) {
     Countly.getFeedbackWidgetData(chosenWidget, onFinished: (retrievedWidgetData, error) {
       if (error == null) {
+        print(retrievedWidgetData);
         Map<String, Object> segments = {'rating': rnd.nextInt(10), 'comment': 'Filled out comment${rnd.nextInt(999999)}'};
         Countly.reportFeedbackWidgetManually(chosenWidget, retrievedWidgetData, segments);
       }
@@ -258,6 +260,7 @@ class _FeedbackWidgetsPageState extends State<FeedbackWidgetsPage> {
   void reportRating(CountlyPresentableFeedback chosenWidget) {
     Countly.getFeedbackWidgetData(chosenWidget, onFinished: (retrievedWidgetData, error) {
       if (error == null) {
+        print(retrievedWidgetData);
         Map<String, Object> segments = {'rating': rnd.nextInt(6), 'comment': 'Filled out comment${rnd.nextInt(999999)}', 'email': 'test${rnd.nextInt(999999)}@yahoo.com'};
         Countly.reportFeedbackWidgetManually(chosenWidget, retrievedWidgetData, segments);
       }
