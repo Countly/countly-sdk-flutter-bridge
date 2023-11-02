@@ -108,40 +108,39 @@ class RemoteConfigInternal implements RemoteConfig {
   Future<void> testingEnrollIntoABExperiment(String experimentID) async {
     Map<String, ExperimentInformation> experimentsInfoMap = await testingGetAllExperimentInfo();
     ExperimentInformation? experimentInformation = experimentsInfoMap[experimentID];
-    if(experimentInformation == null) {
+    if (experimentInformation == null) {
       Countly.log("testingExitABExperiment, No experiment information found against experiment Id: '$experimentID'", logLevel: LogLevel.WARNING);
       return;
     }
 
-    if(experimentInformation.variants.isEmpty) {
+    if (experimentInformation.variants.isEmpty) {
       Countly.log("testingExitABExperiment, No variants found in experiment information against experiment Id: '$experimentID'", logLevel: LogLevel.WARNING);
       return;
     }
 
-    if(experimentInformation.variants.entries.first.value.keys.isEmpty) {
+    if (experimentInformation.variants.entries.first.value.keys.isEmpty) {
       Countly.log("testingExitABExperiment, No values found against in variants for experiment information against experiment Id: '$experimentID'", logLevel: LogLevel.WARNING);
       return;
     }
 
     await enrollIntoABTestsForKeys(experimentInformation.variants.entries.first.value.keys.toList());
-
   }
 
   @override
   Future<void> testingExitABExperiment(String experimentID) async {
     Map<String, ExperimentInformation> experimentsInfoMap = await testingGetAllExperimentInfo();
     ExperimentInformation? experimentInformation = experimentsInfoMap[experimentID];
-    if(experimentInformation == null) {
+    if (experimentInformation == null) {
       Countly.log("testingExitABExperiment, No experiment information found against experiment Id: '$experimentID'", logLevel: LogLevel.WARNING);
       return;
     }
 
-    if(experimentInformation.variants.isEmpty) {
+    if (experimentInformation.variants.isEmpty) {
       Countly.log("testingExitABExperiment, No variants found in experiment information against experiment Id: '$experimentID'", logLevel: LogLevel.WARNING);
       return;
     }
 
-    if(experimentInformation.variants.entries.first.value.keys.isEmpty) {
+    if (experimentInformation.variants.entries.first.value.keys.isEmpty) {
       Countly.log("testingExitABExperiment, No values found against in variants for experiment information against experiment Id: '$experimentID'", logLevel: LogLevel.WARNING);
       return;
     }
@@ -261,7 +260,7 @@ class RemoteConfigInternal implements RemoteConfig {
   }
 
   @override
-  Future<Map<String, RCData>> getAllValuesAndEnroll()  async {
+  Future<Map<String, RCData>> getAllValuesAndEnroll() async {
     if (!_countlyState.isInitialized) {
       Countly.log('"initWithConfig" must be called before "getAllValuesAndEnroll"', logLevel: LogLevel.ERROR);
       return {};
@@ -406,8 +405,7 @@ class RemoteConfigInternal implements RemoteConfig {
   }
 
   @override
-  Future<Map<String, ExperimentInformation>> testingGetAllExperimentInfo() async
-  {
+  Future<Map<String, ExperimentInformation>> testingGetAllExperimentInfo() async {
     if (!_countlyState.isInitialized) {
       Countly.log('"initWithConfig" must be called before "testingGetAllExperimentInfo"', logLevel: LogLevel.ERROR);
       return {};
@@ -415,7 +413,7 @@ class RemoteConfigInternal implements RemoteConfig {
 
     final List<dynamic> experimentsInfo = await _countlyState.channel.invokeMethod('testingGetAllExperimentInfo');
     List<ExperimentInformation> experimentsInfoList = experimentsInfo.map((e) => ExperimentInformation.fromJson(e)).toList();
-    Map<String, ExperimentInformation> experimentsInfoMap = { for (var e in experimentsInfoList) e.experimentID : e };
+    Map<String, ExperimentInformation> experimentsInfoMap = {for (var e in experimentsInfoList) e.experimentID: e};
     return experimentsInfoMap;
   }
 

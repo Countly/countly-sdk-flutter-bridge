@@ -51,12 +51,12 @@ abstract class RemoteConfig {
 
   Future<void> clearAll();
 
-  /// Enroll in to AB experiment with experiment ID
+  /// Enroll into AB experiment (for all keys under that experiment) with experiment ID
   /// [String experimentID] - ID of experiment
   /// make sure [testingDownloadExperimentInformation] is called to download experiment info before calling this method.
   Future<void> testingEnrollIntoABExperiment(String experimentID);
 
-  /// Exit from AB experiment with experiment ID
+  /// Exit from AB experiment (for all keys under that experiment) with experiment ID
   /// [String experimentID] - ID of experiment
   /// make sure [testingDownloadExperimentInformation] is called to download experiment info before calling this method.
   Future<void> testingExitABExperiment(String experimentID);
