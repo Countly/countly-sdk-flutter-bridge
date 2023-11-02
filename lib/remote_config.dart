@@ -55,6 +55,16 @@ abstract class RemoteConfig {
 
   Future<void> clearAll();
 
+  /// Enroll into AB experiment (for all keys under that experiment) with experiment ID
+  /// [String experimentID] - ID of experiment
+  /// You can get experiment ID from [testingDownloadExperimentInformation]
+  Future<void> testingEnrollIntoABExperiment(String experimentID);
+
+  /// Exit from AB experiment (for all keys under that experiment) with experiment ID
+  /// [String experimentID] - ID of experiment
+  /// You can get experiment ID from [testingDownloadExperimentInformation]
+  Future<void> testingExitABExperiment(String experimentID);
+
   Future<void> enrollIntoABTestsForKeys(List<String> keys);
 
   Future<void> exitABTestsForKeys(List<String> keys);
