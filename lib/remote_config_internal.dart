@@ -106,8 +106,8 @@ class RemoteConfigInternal implements RemoteConfig {
 
   @override
   Future<void> testingEnrollIntoABExperiment(String experimentID) async {
-    Map<String, ExperimentInformation> experimentsInfoMap = await testingGetAllExperimentInfo();
-    ExperimentInformation? experimentInformation = experimentsInfoMap[experimentID];
+    final Map<String, ExperimentInformation> experimentsInfoMap = await testingGetAllExperimentInfo();
+    final ExperimentInformation? experimentInformation = experimentsInfoMap[experimentID];
     if (experimentInformation == null) {
       Countly.log("testingExitABExperiment, No experiment information found against experiment Id: '$experimentID'", logLevel: LogLevel.WARNING);
       return;
@@ -128,8 +128,8 @@ class RemoteConfigInternal implements RemoteConfig {
 
   @override
   Future<void> testingExitABExperiment(String experimentID) async {
-    Map<String, ExperimentInformation> experimentsInfoMap = await testingGetAllExperimentInfo();
-    ExperimentInformation? experimentInformation = experimentsInfoMap[experimentID];
+    final Map<String, ExperimentInformation> experimentsInfoMap = await testingGetAllExperimentInfo();
+    final ExperimentInformation? experimentInformation = experimentsInfoMap[experimentID];
     if (experimentInformation == null) {
       Countly.log("testingExitABExperiment, No experiment information found against experiment Id: '$experimentID'", logLevel: LogLevel.WARNING);
       return;
@@ -377,14 +377,14 @@ class RemoteConfigInternal implements RemoteConfig {
     }
     Countly.log(key.toString());
 
-    List<String> args = [];
+    final List<String> args = [];
     args.add(key);
 
     List<dynamic>? returnValue = await _countlyState.channel.invokeMethod('remoteConfigTestingGetVariantsForKey', <String, dynamic>{'data': json.encode(args)});
 
     returnValue ??= [];
 
-    List<String> variant = List<String>.from(returnValue);
+    final List<String> variant = List<String>.from(returnValue);
 
     return variant;
   }
@@ -396,9 +396,9 @@ class RemoteConfigInternal implements RemoteConfig {
       return;
     }
     Countly.log('Calling "testingDownloadExperimentInformation"');
-    int requestID = _wrapVariantCallback(rcVariantCallback);
+    final int requestID = _wrapVariantCallback(rcVariantCallback);
 
-    List<dynamic> args = [];
+    final List<dynamic> args = [];
     args.add(requestID);
 
     return await _countlyState.channel.invokeMethod('testingDownloadExperimentInformation', <String, dynamic>{'data': json.encode(args)});
@@ -412,8 +412,8 @@ class RemoteConfigInternal implements RemoteConfig {
     }
 
     final List<dynamic> experimentsInfo = await _countlyState.channel.invokeMethod('testingGetAllExperimentInfo');
-    List<ExperimentInformation> experimentsInfoList = experimentsInfo.map((e) => ExperimentInformation.fromJson(e)).toList();
-    Map<String, ExperimentInformation> experimentsInfoMap = {for (final e in experimentsInfoList) e.experimentID: e};
+    final List<ExperimentInformation> experimentsInfoList = experimentsInfo.map((e) => ExperimentInformation.fromJson(e)).toList();
+    final Map<String, ExperimentInformation> experimentsInfoMap = {for (final e in experimentsInfoList) e.experimentID: e};
     return experimentsInfoMap;
   }
 
