@@ -108,24 +108,45 @@ class RemoteConfigInternal implements RemoteConfig {
   Future<void> testingEnrollIntoABExperiment(String experimentID) async {
     Map<String, ExperimentInformation> experimentsInfoMap = await testingGetAllExperimentInfo();
     ExperimentInformation? experimentInformation = experimentsInfoMap[experimentID];
-    if(experimentInformation != null) {
-      await enrollIntoABTestsForKeys([experimentInformation.experimentName]);
+    if(experimentInformation == null) {
+      Countly.log("testingExitABExperiment, No experiment information found against experiment Id: '$experimentID'", logLevel: LogLevel.WARNING);
+      return;
     }
-    else {
-      Countly.log("testingEnrollIntoABExperiment, No experiment information found against experiment Id: '$experimentID'", logLevel: LogLevel.WARNING);
+
+    if(experimentInformation.variants.isEmpty) {
+      Countly.log("testingExitABExperiment, No variants found in experiment information against experiment Id: '$experimentID'", logLevel: LogLevel.WARNING);
+      return;
     }
+
+    if(experimentInformation.variants.entries.first.value.keys.isEmpty) {
+      Countly.log("testingExitABExperiment, No values found against in variants for experiment information against experiment Id: '$experimentID'", logLevel: LogLevel.WARNING);
+      return;
+    }
+
+    await enrollIntoABTestsForKeys(experimentInformation.variants.entries.first.value.keys.toList());
+
   }
 
   @override
   Future<void> testingExitABExperiment(String experimentID) async {
     Map<String, ExperimentInformation> experimentsInfoMap = await testingGetAllExperimentInfo();
     ExperimentInformation? experimentInformation = experimentsInfoMap[experimentID];
-    if(experimentInformation != null) {
-      await exitABTestsForKeys([experimentInformation.experimentName]);
-    }
-    else {
+    if(experimentInformation == null) {
       Countly.log("testingExitABExperiment, No experiment information found against experiment Id: '$experimentID'", logLevel: LogLevel.WARNING);
+      return;
     }
+
+    if(experimentInformation.variants.isEmpty) {
+      Countly.log("testingExitABExperiment, No variants found in experiment information against experiment Id: '$experimentID'", logLevel: LogLevel.WARNING);
+      return;
+    }
+
+    if(experimentInformation.variants.entries.first.value.keys.isEmpty) {
+      Countly.log("testingExitABExperiment, No values found against in variants for experiment information against experiment Id: '$experimentID'", logLevel: LogLevel.WARNING);
+      return;
+    }
+
+    await exitABTestsForKeys(experimentInformation.variants.entries.first.value.keys.toList());
   }
 
   @override
