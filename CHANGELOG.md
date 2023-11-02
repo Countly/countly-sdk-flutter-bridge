@@ -6,7 +6,7 @@
 * Fixed 'null' value issue for experiment info variants.
 * Fixed 'null' pointer error thrown when 'testingGetVariantsForKey' method is called with a key that does not exist.
 
-* Updated underlying Android SDK version to 23.8.3
+* Updated underlying Android SDK version to 23.8.4
 * Underlying iOS SDK version is 23.8.3
 
 ## 23.8.4-np
@@ -17,7 +17,7 @@
 * Fixed 'null' value issue for experiment info variants.
 * Fixed 'null' pointer error thrown when 'testingGetVariantsForKey' method is called with a key that does not exist.
 
-* Updated underlying Android SDK version to 23.8.3
+* Updated underlying Android SDK version to 23.8.4
 * Underlying iOS SDK version is 23.8.3
 
 ## 23.8.3
