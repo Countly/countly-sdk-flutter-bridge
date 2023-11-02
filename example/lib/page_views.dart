@@ -8,10 +8,12 @@ class ViewsPage extends StatelessWidget {
 
   void recordViewHome() {
     Map<String, Object> segments = {'Cats': 123, 'Moons': 9.98, 'Moose': 'Deer'};
+    // ignore: deprecated_member_use
     Countly.recordView('HomePage', segments);
   }
 
   void recordViewDashboard() {
+    // ignore: deprecated_member_use
     Countly.recordView('Dashboard');
   }
 

@@ -30,7 +30,7 @@ class UserProfilesPage extends StatelessWidget {
       'gender': 'User Gender',
       'byear': '1989',
       'Custom Integer': 123,
-      'Custom String': "Some String",
+      'Custom String': 'Some String',
       'Custom Array': ['array value 1', 'array value 2'],
       'Custom Map': {'key 1': 'value 1', 'key 2': 'value 2'},
     };

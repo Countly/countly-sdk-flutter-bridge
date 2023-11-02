@@ -1413,7 +1413,7 @@ class Countly {
     String? error;
     try {
       final List<dynamic> retrievedWidgets = await _channel.invokeMethod('getAvailableFeedbackWidgets');
-      presentableFeedback = retrievedWidgets.map(CountlyPresentableFeedback.fromJson).toList();
+      presentableFeedback = retrievedWidgets.map((e) => CountlyPresentableFeedback.fromJson(e)).toList();
     } on PlatformException catch (e) {
       error = e.message;
       log('getAvailableFeedbackWidgets Error : $error');
@@ -2038,7 +2038,7 @@ class CountlyPresentableFeedback {
   final String type;
   final String name;
 
-  static CountlyPresentableFeedback fromJson(dynamic json) {
+  static CountlyPresentableFeedback fromJson(Map json) {
     return CountlyPresentableFeedback(json['id'], json['type'], json['name']);
   }
 }

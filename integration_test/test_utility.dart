@@ -20,8 +20,11 @@ This would go through each test under the integration_test folder (and sub folde
 */
 
 // Constants
+// ignore: constant_identifier_names
 const String SERVER_URL = 'https://xxx.count.ly';
+// ignore: constant_identifier_names
 const String APP_KEY = 'YOUR_APP_KEY';
+// ignore: constant_identifier_names
 const String DEVICE_ID = 'DEVICE_ID';
 
 /// Creates a base CountlyConfig object for testing.

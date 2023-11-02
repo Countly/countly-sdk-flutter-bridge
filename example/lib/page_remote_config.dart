@@ -14,9 +14,9 @@ class RemoteConfigPage extends StatefulWidget {
 }
 
 class _RemoteConfigPageState extends State<RemoteConfigPage> {
+  String rcKey = 'testKey';
   @override
   Widget build(BuildContext context) {
-    var rcKey = 'testKey';
     final RCDownloadCallback callback = (rResult, error, fullValueUpdate, downloadedValues) {
       if (error != null) {
         print('RCDownloadCallback, Result:[$rResult], error:[$error]');
@@ -34,6 +34,7 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
 //===================================================
 // Contents
 //===================================================
+    // ignore: unused_element
     void Contents() {}
 // Manual Download Calls
     /// Download All RC Values [downloadAllRCValues]
@@ -53,13 +54,17 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
     /// Get Specific RC Values And Enroll [getSpecificRCValuesAndEnroll]
 // Enroll on Action
     /// Enroll Into AB Tests [enrollIntoABTests]
+    /// Enroll Into an AB Experiment [enrollIntoABExperiment]
 // Exiting AB Tests
     /// Exit AB Tests [exitABTests]
-// Variant Download Calls
-    /// Fetch All Test Variants [downloadAllTestVariants]
-    /// Fetch Specific Test Variants [downloadSpecificTestVariants]
+    /// Exit an AB Experiment [exitABExperiment]
+// Variant Download/Get Calls
+    /// Download All Test Variants [downloadAllVariants]
+    /// Get All Test Variants [getAllTestVariants]
+    /// Get Specific Test Variants [getSpecificTestVariants]
 // Experiment Information
     /// Download Experiment Information [downloadExperimentInfo]
+    /// Get Experiment Information [getExperimentInfo]
 
 //===================================================
 // Manual Download Calls
@@ -108,7 +113,9 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
         resultString += ' Value: [${RCData.value}] (${RCData.value.runtimeType}),';
         resultString += ' isCurrentUSer: [${RCData.isCurrentUsersData}]';
       });
-      showCountlyToast(context, resultString, null);
+      if (context.mounted) {
+        showCountlyToast(context, resultString, null);
+      }
     }
 
     /// Gets specific RC values from storage and prints them
@@ -118,7 +125,9 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
         RCData data = await Countly.instance.remoteConfig.getValue(rcKey);
         final s = data.value;
         print('getSpecificRCValues, value:${data.value} with type:${s.runtimeType}, cache: ${data.isCurrentUsersData}');
-        showCountlyToast(context, 'value:${data.value}', null);
+        if (context.mounted) {
+          showCountlyToast(context, 'value:${data.value}', null);
+        }
       } catch (e) {
         print(e);
       }
@@ -158,7 +167,9 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
     Future<void> getSpecificRCValuesAndEnroll() async {
       RCData data = await Countly.instance.remoteConfig.getValueAndEnroll(rcKey);
       print('getSpecificRCValuesAndEnroll, value:${data.value} cache: ${data.isCurrentUsersData}');
-      showCountlyToast(context, 'value:${data.value}', null);
+      if (context.mounted) {
+        showCountlyToast(context, 'value:${data.value}', null);
+      }
     }
 
     /// Gets all RC values from storage and prints them also enroll for all keys
@@ -183,7 +194,9 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
         resultString += ' Value: [${RCData.value}] (${RCData.value.runtimeType}),';
         resultString += ' isCurrentUSer: [${RCData.isCurrentUsersData}]';
       });
-      showCountlyToast(context, resultString, null);
+      if (context.mounted) {
+        showCountlyToast(context, resultString, null);
+      }
     }
 
 // Enroll on Action -------------------------------
@@ -194,12 +207,38 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
       showCountlyToast(context, 'Enrolled to tests', null);
     }
 
+    /// Enroll into an AB experiment (for its all keys)
+    /// Return back to [Contents]
+    Future<void> enrollIntoABExperiment() async {
+      // Get All Experiment information from the server
+      Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
+      String experimentID = 'EXPERIMENT_ID';
+      if (experimentInfoMap.isNotEmpty) {
+        // Get the first experiment's ID
+        ExperimentInformation experimentInformation = experimentInfoMap.entries.first.value;
+        experimentID = experimentInformation.experimentID;
+      }
+      await Countly.instance.remoteConfig.testingEnrollIntoABExperiment(experimentID);
+    }
+
 // Exiting AB Tests -------------------------------
     /// Exits from AB tests for the specified keys
     /// Return back to [Contents]
     void exitABTests() {
       Countly.instance.remoteConfig.exitABTestsForKeys([rcKey]);
       showCountlyToast(context, 'Exited from tests', null);
+    }
+
+    /// Exits from an AB experiment (for its all keys)
+    /// Return back to [Contents]
+    Future<void> exitABExperiment() async {
+      Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
+      String experimentID = 'EXPERIMENT_ID';
+      if (experimentInfoMap.isNotEmpty) {
+        ExperimentInformation experimentInformation = experimentInfoMap.entries.first.value;
+        experimentID = experimentInformation.experimentID;
+      }
+      await Countly.instance.remoteConfig.testingExitABExperiment(experimentID);
     }
 
 // Variant Download Calls -------------------------------
@@ -215,29 +254,72 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
 
     /// Downloads all test variants
     /// Return back to [Contents]
-    void getAllTestVariants() {
-      Countly.instance.remoteConfig.testingGetAllVariants();
-      showCountlyToast(context, 'Downloaded All Variants', null);
+    Future<void> getAllTestVariants() async {
+      String resultString = '';
+      Map<String, List<String>> result = await Countly.instance.remoteConfig.testingGetAllVariants();
+      result.forEach((key, value) {
+        resultString += '\n[$key]:\n';
+        value.forEach((item) {
+          resultString += '- [$item]\n';
+        });
+      });
+      print(resultString);
+      if (context.mounted) {
+        showCountlyToast(context, resultString, null);
+      }
     }
 
     /// Downloads specific test variants
     /// Return back to [Contents]
-    void getSpecificTestVariants() {
-      Countly.instance.remoteConfig.testingGetVariantsForKey(rcKey);
-      showCountlyToast(context, 'Downloaded All Variants', null);
+    Future<void> getSpecificTestVariants() async {
+      String resultString = '';
+      List<String> result = await Countly.instance.remoteConfig.testingGetVariantsForKey(rcKey);
+      result.forEach((item) {
+        resultString += '- [$item]\n';
+      });
+      print(resultString);
+      if (context.mounted) {
+        showCountlyToast(context, resultString, null);
+      }
     }
 
 // Experiment Information -------------------------------
-    /// Downloads experiment information and prints it
+    /// Downloads experiment information
     /// Return back to [Contents]
     void downloadExperimentInfo() {
-      Countly.instance.remoteConfig.testingDownloadExperimentInformation((rResult, error) async {
-        if (rResult == RequestResult.success) {
-          Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
-          print(experimentInfoMap);
-          showCountlyToast(context, 'Experiment Info:${experimentInfoMap}', null);
+      String message = 'Downloaded experiment information';
+      Color? color = null;
+      Countly.instance.remoteConfig.testingDownloadExperimentInformation((rResult, error) {
+        if (error != null) {
+          print('RCDownloadCallback, Result:[$rResult], error:[$error]');
+          message = 'Downloaded experiment information failed';
+          color = Colors.red;
         }
+        showCountlyToast(context, message, color);
       });
+    }
+
+    /// Gets experiment information and prints it
+    /// Return back to [Contents]
+    Future<void> getExperimentInfo() async {
+      Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
+      String resultString = '';
+      for (final experimentInfoEntry in experimentInfoMap.entries) {
+        final experimentInfo = experimentInfoEntry.value;
+        resultString += '- key: ${experimentInfoEntry.key}, experimentID: ${experimentInfo.experimentID}, experimentName: ${experimentInfo.experimentName}, experimentDescription: ${experimentInfo.experimentDescription}, currentVariant: ${experimentInfo.currentVariant}';
+        resultString += '\nVariants:';
+        for (final variant in experimentInfo.variants.entries) {
+          resultString += '\n-- ${variant.key}:';
+          for (final variantValue in variant.value.entries) {
+            resultString += '\nkey: ${variantValue.key}, value: ${variantValue.value}\n';
+          }
+        }
+      }
+
+      print(resultString);
+      if (context.mounted) {
+        showCountlyToast(context, resultString, null);
+      }
     }
 
     return Scaffold(
@@ -286,10 +368,12 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
             MyButton(text: 'Get Specific RC Values And Enroll', color: 'teal', onPressed: getSpecificRCValuesAndEnroll),
             countlySpacerSmall(),
             countlySubTitle('Enroll on Action'),
-            MyButton(text: 'Enroll Into AB Tests', color: 'blue', onPressed: enrollIntoABTests),
+            MyButton(text: 'Enroll Into Specific AB Test Keys', color: 'blue', onPressed: enrollIntoABTests),
+            MyButton(text: 'Enroll Into an AB Test', color: 'blue', onPressed: enrollIntoABExperiment),
             countlySpacerSmall(),
             countlySubTitle('Exiting AB Tests'),
-            MyButton(text: 'Exit AB Tests', color: 'red', onPressed: exitABTests),
+            MyButton(text: 'Exit from Specific AB Test Keys', color: 'red', onPressed: exitABTests),
+            MyButton(text: 'Exit an AB Test', color: 'red', onPressed: exitABExperiment),
             countlySpacerSmall(),
             countlySubTitle('Variant Download/Get Calls'),
             MyButton(text: 'Download All Test Variants', color: 'green', onPressed: downloadAllVariants),
@@ -298,6 +382,7 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
             countlySpacerSmall(),
             countlySubTitle('Experiment Information'),
             MyButton(text: 'Download Experiment Information', color: 'yellow', onPressed: downloadExperimentInfo),
+            MyButton(text: 'Get All Experiment Information', color: 'yellow', onPressed: getExperimentInfo),
             countlySpacer(),
             countlyTitle('Legacy Remote Config Methods'),
             MyButton(
