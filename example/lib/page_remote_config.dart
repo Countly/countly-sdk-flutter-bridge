@@ -263,10 +263,10 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
           resultString += '- [$item]\n';
         });
       });
+      print(resultString);
       if (context.mounted) {
         showCountlyToast(context, resultString, null);
       }
-      print(resultString);
     }
 
     /// Downloads specific test variants
@@ -290,6 +290,7 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
       String message = 'Downloaded experiment information';
       Color? color = null;
       Countly.instance.remoteConfig.testingDownloadExperimentInformation((rResult, error) {
+        print('random');
         if (error != null) {
           print('RCDownloadCallback, Result:[$rResult], error:[$error]');
           message = 'Downloaded experiment information failed';
