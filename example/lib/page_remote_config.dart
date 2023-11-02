@@ -34,6 +34,7 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
 //===================================================
 // Contents
 //===================================================
+    // ignore: unused_element
     void Contents() {}
 // Manual Download Calls
     /// Download All RC Values [downloadAllRCValues]
@@ -63,6 +64,7 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
     /// Get Specific Test Variants [getSpecificTestVariants]
 // Experiment Information
     /// Download Experiment Information [downloadExperimentInfo]
+    /// Get Experiment Information [getExperimentInfo]
 
 //===================================================
 // Manual Download Calls
@@ -282,31 +284,42 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
     }
 
 // Experiment Information -------------------------------
-    /// Downloads experiment information and prints it
+    /// Downloads experiment information
     /// Return back to [Contents]
     void downloadExperimentInfo() {
-      Countly.instance.remoteConfig.testingDownloadExperimentInformation((rResult, error) async {
-        if (rResult == RequestResult.success) {
-          Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
-          String printAble = '';
-          for (final experimentInfoEntry in experimentInfoMap.entries) {
-            final experimentInfo = experimentInfoEntry.value;
-            printAble += '- key: ${experimentInfoEntry.key}, experimentID: ${experimentInfo.experimentID}, experimentName: ${experimentInfo.experimentName}, experimentDescription: ${experimentInfo.experimentDescription}, currentVariant: ${experimentInfo.currentVariant}';
-            printAble += '\nVariants:';
-            for (final variant in experimentInfo.variants.entries) {
-              printAble += '\n-- ${variant.key}:';
-              for (final variantValue in variant.value.entries) {
-                printAble += '\nkey: ${variantValue.key}, value: ${variantValue.value}\n';
-              }
-            }
-          }
+      String message = 'Downloaded experiment information';
+      Color? color = null;
+      Countly.instance.remoteConfig.testingDownloadExperimentInformation((rResult, error) {
+        if (error != null) {
+          print('RCDownloadCallback, Result:[$rResult], error:[$error]');
+          message = 'Downloaded experiment information failed';
+          color = Colors.red;
+        }
+        showCountlyToast(context, message, color);
+      });
+    }
 
-          print(printAble);
-          if (context.mounted) {
-            showCountlyToast(context, 'Experiment Info:${printAble}', null);
+    /// Gets experiment information and prints it
+    /// Return back to [Contents]
+    Future<void> getExperimentInfo() async {
+      Map<String, ExperimentInformation> experimentInfoMap = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
+      String resultString = '';
+      for (final experimentInfoEntry in experimentInfoMap.entries) {
+        final experimentInfo = experimentInfoEntry.value;
+        resultString += '- key: ${experimentInfoEntry.key}, experimentID: ${experimentInfo.experimentID}, experimentName: ${experimentInfo.experimentName}, experimentDescription: ${experimentInfo.experimentDescription}, currentVariant: ${experimentInfo.currentVariant}';
+        resultString += '\nVariants:';
+        for (final variant in experimentInfo.variants.entries) {
+          resultString += '\n-- ${variant.key}:';
+          for (final variantValue in variant.value.entries) {
+            resultString += '\nkey: ${variantValue.key}, value: ${variantValue.value}\n';
           }
         }
-      });
+      }
+
+      print(resultString);
+      if (context.mounted) {
+        showCountlyToast(context, resultString, null);
+      }
     }
 
     return Scaffold(
@@ -369,6 +382,7 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
             countlySpacerSmall(),
             countlySubTitle('Experiment Information'),
             MyButton(text: 'Download Experiment Information', color: 'yellow', onPressed: downloadExperimentInfo),
+            MyButton(text: 'Get All Experiment Information', color: 'yellow', onPressed: getExperimentInfo),
             countlySpacer(),
             countlyTitle('Legacy Remote Config Methods'),
             MyButton(
