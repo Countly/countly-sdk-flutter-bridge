@@ -1,5 +1,4 @@
 abstract class Views {
-
   Future<String?> startAutoStoppedView(String viewName, [Map<String, Object> segmentation]);
 
   Future<String?> startView(String viewName, [Map<String, Object> segmentation]);
