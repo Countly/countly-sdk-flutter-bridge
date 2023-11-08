@@ -14,6 +14,8 @@ import shutil
 #       - can copy files if file and copy directory information is provided
 #   0.2
 #       - can modify files
+#   0.3
+#       - can change the package names in the example app
 
 # OPERATION CONSTANTS
 FILES_TO_ERASE = [
@@ -58,6 +60,7 @@ modPathCountlyRCInternal = "../lib/remote_config_internal.dart"
 modPathCountlySessionsInternal = "../lib/sessions_internal.dart"
 modPathCountlyUserProfileInternal = "../lib/user_profile_internal.dart"
 modPathCountlyViewsInternal = "../lib/views_internal.dart"
+modPathExampleYaml = "../example/pubspec.yaml"
 objectOfComModification = {
     modPathAndroid: {
         "modifications": {
@@ -158,6 +161,12 @@ objectOfComModification = {
             "import 'package:countly_flutter/countly_state.dart';": "import 'package:countly_flutter_np/countly_state.dart';",
         },
         "consecutiveOmits": []
+    },
+    modPathExampleYaml: {
+        "modifications": {
+            "countly_flutter:": "countly_flutter_np:",
+        },
+        "consecutiveOmits": []
     }
 }  # 'modifications' is a map with keys are the lines to remove or modify. 'consecutiveOmits' are a block of lines to remove.
 
@@ -233,7 +242,31 @@ def modifyFile(filePath, modificationInfo, modificationType):
     finalFile.writelines(fileLines)
     finalFile.close()
     print("Modified the file:"+filePath)
+    
+def update_package(directory_path, from_package, to_package):
+    for root, dirs, files in os.walk(directory_path):
+        for file_name in files:
+            file_path = os.path.join(root, file_name)
 
+            # Process only Dart files
+            if file_path.endswith('.dart'):
+                print(f"Processing file: {file_path}")
+
+                # Read the file content
+                with open(file_path, 'r') as file:
+                    lines = file.readlines()
+
+                # Process only the first 30 lines as the package import statement is usually in the first 30 lines
+                for line_number, line in enumerate(lines[:30], start=1):
+                    if from_package in line:
+                        lines[line_number -
+                              1] = line.replace(from_package, to_package)
+
+                # Write the modified content back to the file
+                with open(file_path, 'w') as file:
+                    file.writelines(lines)
+
+                print(f"File processed: {file_path}")
 
 def main():
     # give info about set constants
@@ -254,6 +287,7 @@ def main():
     print(modPathCountlySessionsInternal)
     print(modPathCountlyUserProfileInternal)
     print(modPathCountlyViewsInternal)
+    print(modPathExampleYaml)
 
     # ask for permission to run the script
     start = input('Do you want to continue? (y/n)')
@@ -272,6 +306,8 @@ def main():
         modifyFile(modPathCountlySessionsInternal, objectOfComModification, 'mod')
         modifyFile(modPathCountlyUserProfileInternal, objectOfComModification, 'mod')
         modifyFile(modPathCountlyViewsInternal, objectOfComModification, 'mod')
+        modifyFile(modPathExampleYaml, objectOfComModification, 'mod')
+        update_package("../example/lib/", 'package:countly_flutter/', 'package:countly_flutter_np/')
         print("Done")
     else:
         print("Aborted")
