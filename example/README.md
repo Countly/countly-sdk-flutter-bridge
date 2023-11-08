@@ -3,7 +3,7 @@
 This example app demonstrates most of the features the SDK offers.
 You can quickly check the usage of features you are interested in.
 It is possible that the app contains legacy code for the archival purposes.
-So it is good practice to check the SDK [documentation](https://support.count.ly/hc/en-us/articles/360037944212-Flutter).
+So it is good practice to check the SDK [documentation](https://support.count.ly/hc/en-us/articles/360037944212).
 
 ## Usage
 Make sure that Flutter is installed  functioning in your system by running:
