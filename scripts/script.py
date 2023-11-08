@@ -164,7 +164,7 @@ objectOfComModification = {
     },
     modPathExampleYaml: {
         "modifications": {
-            "countly_flutter:": "countly_flutter_np:",
+            "  countly_flutter:": "  countly_flutter_np:",
         },
         "consecutiveOmits": []
     }
