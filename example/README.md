@@ -42,31 +42,6 @@ The main content of the application is in 'lib' folder. Content here includes:
 - config_object.dart (manages SDK configuration)
 - style.dart (for the app theme and styling)
 - helpers.dart (some utility functions and classes)
-- convert_packages.py (for testing no-push variation of the SDK)
-
-### No Push Variation
-If you want to use the no-push variation of the SDK you have two options:
-
-- Using the [master-np branch](https://github.com/Countly/countly-sdk-flutter-bridge/tree/master-np) if you are using the local SDK
-- Using the np version from pub.dev (check pubspec.yaml for more info)
-
-If you changed the pubspec.yaml file you should re-run this command:
-
-```bash
-flutter pub get
-# for Mac also:
-# cd ios
-# pod install
-```
-
-After changing the SDK to np version you would need to change the imported packages
-from 'package:countly_flutter/' to 'package:countly_flutter_np/'. You can either to this manually by going through each file in the 'lib' folder or you can run the convert_packages.py (assuming python is installed in your system):
-
-```bash
-python convert_packages.py
-# or:
-# python3 convert_packages.py
-```
 
 ## Fixing Platform Issues
 If have you encountered a problem where you could not run the App regardless of following this guide the fastest way to proceed is by creating a fresh app and copying only the core files over.
