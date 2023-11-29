@@ -374,6 +374,12 @@ FlutterMethodChannel *_channel;
           result(@"setUserLocation!");
         });
 
+    } else if ([@"disableLocation" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          [Countly.sharedInstance disableLocationInfo];
+          result(@"disableLocation!");
+        });
+
     } else if ([@"enableCrashReporting" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           // config.features = @[CLYCrashReporting];
@@ -1408,6 +1414,10 @@ FlutterMethodChannel *_channel;
         if (loggingEnabled) {
             config.enableDebug = [loggingEnabled boolValue];
         }
+        NSNumber *locationDisabled = _config[@"locationDisabled"];
+        if (locationDisabled) {
+            [Countly.sharedInstance disableLocationInfo];
+        }
         NSNumber *httpPostForced = _config[@"httpPostForced"];
         if (httpPostForced) {
             config.alwaysUsePOST = [httpPostForced boolValue];
@@ -1531,7 +1541,6 @@ FlutterMethodChannel *_channel;
         if (campaignType) {
             config.campaignType = campaignType;
             config.campaignData = _config[@"campaignData"];
-            ;
         }
 
         NSDictionary *attributionValues = _config[@"attributionValues"];

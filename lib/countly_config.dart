@@ -9,6 +9,7 @@ class CountlyConfig {
   String? _locationIpAddress;
   String? _locationCountryCode;
   bool? _loggingEnabled;
+  bool _locationDisabled = false;
   bool? _httpPostForced;
   String? _locationGpsCoordinates;
   String? _daCampaignType;
@@ -62,6 +63,8 @@ class CountlyConfig {
   String? get daCampaignData => _daCampaignData;
 
   bool? get loggingEnabled => _loggingEnabled;
+
+  bool get locationDisabled => _locationDisabled;
 
   bool? get httpPostForced => _httpPostForced;
 
@@ -135,6 +138,17 @@ class CountlyConfig {
   /// those logs will be printed to the console
   CountlyConfig setLoggingEnabled(bool enabled) {
     _loggingEnabled = enabled;
+    return this;
+  }
+
+  /// Set to true if you want to disable location tracking
+  CountlyConfig setDisableLocation() {
+    _locationDisabled = true;
+
+    _locationCountryCode = null;
+    _locationCity = null;
+    _locationGpsCoordinates = null;
+    _locationIpAddress = null;
     return this;
   }
 
@@ -227,6 +241,8 @@ class CountlyConfig {
     _locationCity = city;
     _locationGpsCoordinates = gpsCoordinates;
     _locationIpAddress = ipAddress;
+
+    _locationDisabled = false;
     return this;
   }
 
@@ -308,6 +324,7 @@ class CountlyConfig {
     _autoEnrollABOnDownload = true;
     return this;
   }
+
   /// This would set a time frame in which the requests older than the given hours would be dropped while sending a request
   /// Ex: Setting this to 10 would mean any requests created more than 10 hours ago would be dropped if they were in the queue
   /// [int dropAgeHours] A positive integer. Requests older than the 'dropAgeHours' (with respect to now) would be dropped

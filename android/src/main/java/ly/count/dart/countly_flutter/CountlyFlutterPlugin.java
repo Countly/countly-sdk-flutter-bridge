@@ -376,6 +376,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 Countly.sharedInstance().location().setLocation(countryCode, city, gpsCoordinates, ipAddress);
                 result.success("setUserLocation success!");
+            } else if ("disableLocation".equals(call.method)) {
+                Countly.sharedInstance().location().disableLocation();
+                result.success("disableLocation success!");
             } else if ("enableCrashReporting".equals(call.method)) {
                 this.config.enableCrashReporting();
                 // Countly.sharedInstance().enableCrashReporting();
@@ -1481,6 +1484,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
         if (_config.has("loggingEnabled")) {
             this.config.setLoggingEnabled(_config.getBoolean("loggingEnabled"));
+        }
+        if (_config.has("locationDisabled") && _config.getBoolean("locationDisabled")) {
+            this.config.setDisableLocation();
         }
         if (_config.has("httpPostForced")) {
             this.config.setHttpPostForced(_config.getBoolean("httpPostForced"));

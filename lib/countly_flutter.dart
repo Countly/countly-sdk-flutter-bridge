@@ -890,6 +890,17 @@ class Countly {
     return result;
   }
 
+  /// Disable User Location tracking
+  static Future<String?> disableLocation() async {
+    if (!_instance._countlyState.isInitialized) {
+      String message = '"initWithConfig" must be called before "disableLocation"';
+      log('disableLocation, $message', logLevel: LogLevel.ERROR);
+      return message;
+    }
+    final String? result = await _channel.invokeMethod('disableLocation');
+    return result;
+  }
+
   @Deprecated('Use "Countly.instance.userProfile.setProperty" instead')
   static Future<String?> setProperty(String keyName, String keyValue) async {
     if (!_instance._countlyState.isInitialized) {
@@ -1950,6 +1961,9 @@ class Countly {
       }
       if (config.loggingEnabled != null) {
         countlyConfig['loggingEnabled'] = config.loggingEnabled;
+      }
+      if (config.locationDisabled) {
+        countlyConfig['locationDisabled'] = config.locationDisabled;
       }
       if (config.httpPostForced != null) {
         countlyConfig['httpPostForced'] = config.httpPostForced;
