@@ -308,6 +308,7 @@ class CountlyConfig {
     _autoEnrollABOnDownload = true;
     return this;
   }
+
   /// This would set a time frame in which the requests older than the given hours would be dropped while sending a request
   /// Ex: Setting this to 10 would mean any requests created more than 10 hours ago would be dropped if they were in the queue
   /// [int dropAgeHours] A positive integer. Requests older than the 'dropAgeHours' (with respect to now) would be dropped
