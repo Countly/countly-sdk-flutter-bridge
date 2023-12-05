@@ -1415,7 +1415,7 @@ FlutterMethodChannel *_channel;
             config.enableDebug = [loggingEnabled boolValue];
         }
         NSNumber *locationDisabled = _config[@"locationDisabled"];
-        if (locationDisabled) {
+        if (locationDisabled && [locationDisabled boolValue]) {
             [Countly.sharedInstance disableLocationInfo];
         }
         NSNumber *httpPostForced = _config[@"httpPostForced"];
