@@ -142,7 +142,7 @@ class CountlyConfig {
   }
 
   /// Set to true if you want to disable location tracking
-  CountlyConfig setDisableLocation() {
+  CountlyConfig disableLocation() {
     _locationDisabled = true;
 
     _locationCountryCode = null;

@@ -1,12 +1,12 @@
 ## xx.x.x
-* Added a config method to disable user location tracking: `setDisableLocation`
+* Added a config method to disable user location tracking: `disableLocation`
 * Added a call to disable user location tracking: `disableLocation:`
 
 * Updated underlying Android SDK version to 23.8.4
 * Underlying iOS SDK version is 23.8.3
 
 ## xx.x.x-np
-* Added a config method to disable user location tracking: `setDisableLocation`
+* Added a config method to disable user location tracking: `disableLocation`
 * Added a call to disable user location tracking: `disableLocation:`
 
 * Updated underlying Android SDK version to 23.8.4
