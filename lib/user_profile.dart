@@ -1,4 +1,3 @@
-
 abstract class UserProfile {
   /// Provide a map of user properties to set.
   /// Those can be either custom user properties or predefined user properties
