@@ -51,6 +51,14 @@ class ViewsPage extends StatelessWidget {
     Countly.instance.views.updateGlobalViewSegmentation({'abcd': '123'});
   }
 
+  Future<void> addSegmentationToViewWithID() async {
+    await Countly.instance.views.addSegmentationToViewWithID(viewIDs[1], {'addSegmentationToViewWithID': 'page'});
+  }
+
+  Future<void> addSegmentationToViewWithName() async {
+    await Countly.instance.views.addSegmentationToViewWithName(viewIDs[1], {'addSegmentationToViewWithName': 'page'});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,6 +80,8 @@ class ViewsPage extends StatelessWidget {
             MyButton(text: 'Resume View with ID', color: 'yellow', onPressed: resumeViewWithID),
             MyButton(text: 'Set Global View Segmentation', color: 'grey', onPressed: setGlobalViewSegmentation),
             MyButton(text: 'Update Global View Segmentation', color: 'grey', onPressed: updateGlobalViewSegmentation),
+            MyButton(text: 'Add Segmentation to View with ID', color: 'grey', onPressed: addSegmentationToViewWithID),
+            MyButton(text: 'Add Segmentation to View with Name', color: 'grey', onPressed: addSegmentationToViewWithName),
           ],
         )),
       ),

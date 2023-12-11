@@ -17,7 +17,7 @@ abstract class Views {
 
   void stopAllViews([Map<String, Object> segmentation]);
 
-  void addSegmentationToViewWithID(String viewID, Map<String, Object> segmentation);
+  Future<void> addSegmentationToViewWithID(String viewID, Map<String, Object> segmentation);
 
-  void addSegmentationToViewWithName(String viewName, Map<String, Object> segmentation);
+  Future<void> addSegmentationToViewWithName(String viewName, Map<String, Object> segmentation);
 }
