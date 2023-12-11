@@ -1,3 +1,14 @@
+## xx.x.x
+* Added `addSegmentationToViewWithID` and `addSegmentationToViewWithName` methods to the countly views interface.
+
+* Updated underlying Android SDK version to 23.8.4
+* Underlying iOS SDK version is 23.8.3
+
+## xx.x.x-np
+* Added `addSegmentationToViewWithID` and `addSegmentationToViewWithName` methods to the countly views interface.
+
+* Updated underlying Android SDK version to 23.8.4
+* Underlying iOS SDK version is 23.8.3
 
 ## 23.8.4
 * Added a call to enroll users to A/B experiment with experiment ID : `testingEnrollIntoABExperiment:`

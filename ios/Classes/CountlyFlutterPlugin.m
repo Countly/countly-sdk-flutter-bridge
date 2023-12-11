@@ -1218,6 +1218,18 @@ FlutterMethodChannel *_channel;
           NSDictionary* segmentation = [command objectAtIndex:0];
           [Countly.sharedInstance.views updateGlobalViewSegmentation:segmentation];
         });
+    } else if ([@"addSegmentationToViewWithID" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *viewId = [command objectAtIndex:0];
+            NSDictionary* segmentation = [command objectAtIndex:1];
+            // [Countly.sharedInstance.views addSegmentationToViewWithID:viewId segmentation:segmentation];
+        });
+    } else if ([@"addSegmentationToViewWithName" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *viewName = [command objectAtIndex:0];
+            NSDictionary* segmentation = [command objectAtIndex:1];
+            // [Countly.sharedInstance.views addSegmentationToViewWithName:viewName segmentation:segmentation];
+        });
     } else if ([@"appLoadingFinished" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           [Countly.sharedInstance appLoadingFinished];

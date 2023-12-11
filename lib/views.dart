@@ -16,4 +16,8 @@ abstract class Views {
   void updateGlobalViewSegmentation(Map<String, Object> segmentation);
 
   void stopAllViews([Map<String, Object> segmentation]);
+
+  void addSegmentationToViewWithID(String viewID, Map<String, Object> segmentation);
+
+  void addSegmentationToViewWithName(String viewName, Map<String, Object> segmentation);
 }

@@ -122,4 +122,30 @@ class ViewsInternal implements Views {
     args.add(segmentation);
     await _countlyState.channel.invokeMethod('stopAllViews', <String, dynamic>{'data': json.encode(args)});
   }
+
+  @override
+  Future<void> addSegmentationToViewWithID(String viewID, Map<String, Object> segmentation) async {
+    if (!_countlyState.isInitialized) {
+      Countly.log('[Views] addSegmentationToViewWithID, "initWithConfig" must be called before "[Views] addSegmentationToViewWithID"', logLevel: LogLevel.ERROR);
+      return;
+    }
+    Countly.log('Calling "[Views] addSegmentationToViewWithID"');
+    final List<Object> args = [];
+    args.add(viewID);
+    args.add(segmentation);
+    await _countlyState.channel.invokeMethod('addSegmentationToViewWithID', <String, dynamic>{'data': json.encode(args)});
+  }
+
+  @override
+  Future<void> addSegmentationToViewWithName(String viewName, Map<String, Object> segmentation) async {
+    if (!_countlyState.isInitialized) {
+      Countly.log('[Views] addSegmentationToViewWithName, "initWithConfig" must be called before "[Views] addSegmentationToViewWithName"', logLevel: LogLevel.ERROR);
+      return;
+    }
+    Countly.log('Calling "[Views] addSegmentationToViewWithName"');
+    final List<Object> args = [];
+    args.add(viewName);
+    args.add(segmentation);
+    await _countlyState.channel.invokeMethod('addSegmentationToViewWithName', <String, dynamic>{'data': json.encode(args)});
+  }
 }
