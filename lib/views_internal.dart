@@ -129,7 +129,7 @@ class ViewsInternal implements Views {
       Countly.log('[Views] addSegmentationToViewWithID, "initWithConfig" must be called before "[Views] addSegmentationToViewWithID"', logLevel: LogLevel.ERROR);
       return;
     }
-    Countly.log('Calling "[Views] addSegmentationToViewWithID"');
+    Countly.log('Calling "[Views] addSegmentationToViewWithID" with view ID:[$viewID]');
     final List<Object> args = [];
     args.add(viewID);
     args.add(segmentation);
@@ -142,7 +142,7 @@ class ViewsInternal implements Views {
       Countly.log('[Views] addSegmentationToViewWithName, "initWithConfig" must be called before "[Views] addSegmentationToViewWithName"', logLevel: LogLevel.ERROR);
       return;
     }
-    Countly.log('Calling "[Views] addSegmentationToViewWithName"');
+    Countly.log('Calling "[Views] addSegmentationToViewWithName" with view ID:[$viewName]');
     final List<Object> args = [];
     args.add(viewName);
     args.add(segmentation);

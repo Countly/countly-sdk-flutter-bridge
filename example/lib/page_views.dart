@@ -52,11 +52,11 @@ class ViewsPage extends StatelessWidget {
   }
 
   Future<void> addSegmentationToViewWithID() async {
-    await Countly.instance.views.addSegmentationToViewWithID(viewIDs[1], {'addSegmentationToViewWithID': 'page'});
+    await Countly.instance.views.addSegmentationToViewWithID(viewIDs[0], {'aaa': '111'});
   }
 
   Future<void> addSegmentationToViewWithName() async {
-    await Countly.instance.views.addSegmentationToViewWithName(viewIDs[1], {'addSegmentationToViewWithName': 'page'});
+    await Countly.instance.views.addSegmentationToViewWithName(viewNames[0], {'bbb': '222'});
   }
 
   @override
