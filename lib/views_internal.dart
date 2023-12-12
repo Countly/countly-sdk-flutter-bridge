@@ -129,6 +129,10 @@ class ViewsInternal implements Views {
       Countly.log('[Views] addSegmentationToViewWithID, "initWithConfig" must be called before "[Views] addSegmentationToViewWithID"', logLevel: LogLevel.ERROR);
       return;
     }
+    if (viewID.isEmpty) {
+      Countly.log('[Views] addSegmentationToViewWithID, "viewID" must not be empty', logLevel: LogLevel.ERROR);
+      return;
+    }
     Countly.log('Calling "[Views] addSegmentationToViewWithID" with view ID:[$viewID]');
     final List<Object> args = [];
     args.add(viewID);
@@ -140,6 +144,10 @@ class ViewsInternal implements Views {
   Future<void> addSegmentationToViewWithName(String viewName, Map<String, Object> segmentation) async {
     if (!_countlyState.isInitialized) {
       Countly.log('[Views] addSegmentationToViewWithName, "initWithConfig" must be called before "[Views] addSegmentationToViewWithName"', logLevel: LogLevel.ERROR);
+      return;
+    }
+    if (viewName.isEmpty) {
+      Countly.log('[Views] addSegmentationToViewWithName, "viewName" must not be empty', logLevel: LogLevel.ERROR);
       return;
     }
     Countly.log('Calling "[Views] addSegmentationToViewWithName" with view ID:[$viewName]');
