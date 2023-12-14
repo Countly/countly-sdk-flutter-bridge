@@ -1222,14 +1222,14 @@ FlutterMethodChannel *_channel;
         dispatch_async(dispatch_get_main_queue(), ^{
             NSString *viewId = [command objectAtIndex:0];
             NSDictionary* segmentation = [command objectAtIndex:1];
-             [Countly.sharedInstance.views addSegmentationToViewWithID:viewId segmentation:segmentation];
+            [Countly.sharedInstance.views addSegmentationToViewWithID:viewId segmentation:segmentation];
             result(nil);
         });
     } else if ([@"addSegmentationToViewWithName" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
             NSString *viewName = [command objectAtIndex:0];
             NSDictionary* segmentation = [command objectAtIndex:1];
-             [Countly.sharedInstance.views addSegmentationToViewWithName:viewName segmentation:segmentation];
+            [Countly.sharedInstance.views addSegmentationToViewWithName:viewName segmentation:segmentation];
             result(nil);
         });
     } else if ([@"appLoadingFinished" isEqualToString:call.method]) {
