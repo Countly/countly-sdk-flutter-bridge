@@ -1183,40 +1183,47 @@ FlutterMethodChannel *_channel;
         dispatch_async(dispatch_get_main_queue(), ^{
             NSDictionary* segmentation = [command objectAtIndex:0];
             [Countly.sharedInstance.views stopAllViews:segmentation];
+            result(nil);
         });
     } else if ([@"stopViewWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *viewId = [command objectAtIndex:0];
           NSDictionary* segmentation = [command objectAtIndex:1];
           [Countly.sharedInstance.views stopViewWithID:viewId segmentation:segmentation];
+          result(nil);
         });
     } else if ([@"stopViewWithName" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *viewName = [command objectAtIndex:0];
           NSDictionary* segmentation = [command objectAtIndex:1];
           [Countly.sharedInstance.views stopViewWithName:viewName segmentation:segmentation];
+          result(nil);
         });
     } else if ([@"pauseViewWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *viewId = [command objectAtIndex:0];
           NSDictionary* segmentation = [command objectAtIndex:1];
           [Countly.sharedInstance.views pauseViewWithID:viewId];
+          result(nil);
         });
     } else if ([@"resumeViewWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *viewId = [command objectAtIndex:0];
           NSDictionary* segmentation = [command objectAtIndex:1];
           [Countly.sharedInstance.views resumeViewWithID:viewId];
+          result(nil);
         });
     } else if ([@"setGlobalViewSegmentation" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSDictionary* segmentation = [command objectAtIndex:0];
           [Countly.sharedInstance.views setGlobalViewSegmentation:segmentation];
+          result(nil);
         });
     } else if ([@"updateGlobalViewSegmentation" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSDictionary* segmentation = [command objectAtIndex:0];
           [Countly.sharedInstance.views updateGlobalViewSegmentation:segmentation];
+          result(nil);
         });
     } else if ([@"addSegmentationToViewWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
