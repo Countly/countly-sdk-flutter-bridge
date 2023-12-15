@@ -1202,14 +1202,12 @@ FlutterMethodChannel *_channel;
     } else if ([@"pauseViewWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *viewId = [command objectAtIndex:0];
-          NSDictionary* segmentation = [command objectAtIndex:1];
           [Countly.sharedInstance.views pauseViewWithID:viewId];
           result(nil);
         });
     } else if ([@"resumeViewWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *viewId = [command objectAtIndex:0];
-          NSDictionary* segmentation = [command objectAtIndex:1];
           [Countly.sharedInstance.views resumeViewWithID:viewId];
           result(nil);
         });
