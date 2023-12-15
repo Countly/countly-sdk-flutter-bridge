@@ -8,7 +8,7 @@
 * Fixed 'null' pointer error thrown when 'testingGetVariantsForKey' method is called with a key that does not exist.
 
 * Updated underlying Android SDK version to 23.8.4
-* Updated underlying iOS SDK version to 23.8.4
+* Underlying iOS SDK version is 23.8.3
 
 ## 23.8.4-np
 * Added a call to enroll users to A/B experiment with experiment ID : `testingEnrollIntoABExperiment:`
@@ -19,7 +19,7 @@
 * Fixed 'null' pointer error thrown when 'testingGetVariantsForKey' method is called with a key that does not exist.
 
 * Updated underlying Android SDK version to 23.8.4
-* Updated underlying iOS SDK version to 23.8.4
+* Underlying iOS SDK version is 23.8.3
 
 ## 23.8.3
 * Added a call to enroll users to A/B tests when getting a remote config value: 'getValueAndEnroll'
