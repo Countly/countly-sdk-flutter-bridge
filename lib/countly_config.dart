@@ -141,7 +141,7 @@ class CountlyConfig {
     return this;
   }
 
-  /// Set to true if you want to disable location tracking
+  /// Call this to disable location tracking
   CountlyConfig disableLocation() {
     _locationDisabled = true;
     return this;
