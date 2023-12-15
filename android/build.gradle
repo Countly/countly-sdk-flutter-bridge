@@ -22,7 +22,7 @@ rootProject.allprojects {
 apply plugin: 'com.android.library'
 
 android {
-    compileSdk 31
+    compileSdk 33
 
     defaultConfig {
         minSdkVersion 17
@@ -34,5 +34,5 @@ android {
 }
 
 dependencies {
-    implementation 'ly.count.android:sdk:23.8.4'
+    implementation 'ly.count.android:sdk:23.12.0'
 }

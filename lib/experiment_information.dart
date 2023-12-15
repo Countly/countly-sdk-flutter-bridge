@@ -10,12 +10,10 @@ class ExperimentInformation {
   static ExperimentInformation fromJson(Map json) {
     Map<String, Map<String, dynamic>> variantsMap = {};
     Map<Object?, Object?> variants = json['variants'] ?? {};
-    for (var item in variants.keys)
-    {
+    for (var item in variants.keys) {
       Map<String, dynamic> valueMap = {};
       Map<Object?, Object?> values = variants[item] as Map<Object?, Object?>;
-      for (var key in values.keys)
-      {
+      for (var key in values.keys) {
         valueMap[key.toString()] = values[key];
       }
       variantsMap[item.toString()] = valueMap;

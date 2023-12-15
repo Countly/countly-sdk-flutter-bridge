@@ -23,7 +23,7 @@ BOOL BUILDING_WITH_PUSH_DISABLED = true;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
 
-NSString *const kCountlyFlutterSDKVersion = @"23.8.4";
+NSString *const kCountlyFlutterSDKVersion = @"23.12.0";
 NSString *const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 NSString *const kCountlyFlutterSDKNameNoPush = @"dart-flutterbnp-ios";
 
@@ -372,6 +372,12 @@ FlutterMethodChannel *_channel;
 
           [Countly.sharedInstance recordLocation:locationCoordinate city:city ISOCountryCode:countryCode IP:ipAddress];
           result(@"setUserLocation!");
+        });
+
+    } else if ([@"disableLocation" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          [Countly.sharedInstance disableLocationInfo];
+          result(@"disableLocation!");
         });
 
     } else if ([@"enableCrashReporting" isEqualToString:call.method]) {
@@ -1183,40 +1189,59 @@ FlutterMethodChannel *_channel;
         dispatch_async(dispatch_get_main_queue(), ^{
             NSDictionary* segmentation = [command objectAtIndex:0];
             [Countly.sharedInstance.views stopAllViews:segmentation];
+            result(nil);
         });
     } else if ([@"stopViewWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *viewId = [command objectAtIndex:0];
           NSDictionary* segmentation = [command objectAtIndex:1];
           [Countly.sharedInstance.views stopViewWithID:viewId segmentation:segmentation];
+          result(nil);
         });
     } else if ([@"stopViewWithName" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *viewName = [command objectAtIndex:0];
           NSDictionary* segmentation = [command objectAtIndex:1];
           [Countly.sharedInstance.views stopViewWithName:viewName segmentation:segmentation];
+          result(nil);
         });
     } else if ([@"pauseViewWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *viewId = [command objectAtIndex:0];
-          NSDictionary* segmentation = [command objectAtIndex:1];
           [Countly.sharedInstance.views pauseViewWithID:viewId];
+          result(nil);
         });
     } else if ([@"resumeViewWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *viewId = [command objectAtIndex:0];
-          NSDictionary* segmentation = [command objectAtIndex:1];
           [Countly.sharedInstance.views resumeViewWithID:viewId];
+          result(nil);
         });
     } else if ([@"setGlobalViewSegmentation" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSDictionary* segmentation = [command objectAtIndex:0];
           [Countly.sharedInstance.views setGlobalViewSegmentation:segmentation];
+          result(nil);
         });
     } else if ([@"updateGlobalViewSegmentation" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSDictionary* segmentation = [command objectAtIndex:0];
           [Countly.sharedInstance.views updateGlobalViewSegmentation:segmentation];
+          result(nil);
+        });
+    } else if ([@"addSegmentationToViewWithID" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *viewId = [command objectAtIndex:0];
+            NSDictionary* segmentation = [command objectAtIndex:1];
+            [Countly.sharedInstance.views addSegmentationToViewWithID:viewId segmentation:segmentation];
+            result(nil);
+        });
+    } else if ([@"addSegmentationToViewWithName" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *viewName = [command objectAtIndex:0];
+            NSDictionary* segmentation = [command objectAtIndex:1];
+            [Countly.sharedInstance.views addSegmentationToViewWithName:viewName segmentation:segmentation];
+            result(nil);
         });
     } else if ([@"appLoadingFinished" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -1408,6 +1433,10 @@ FlutterMethodChannel *_channel;
         if (loggingEnabled) {
             config.enableDebug = [loggingEnabled boolValue];
         }
+        NSNumber *locationDisabled = _config[@"locationDisabled"];
+        if (locationDisabled) {
+            config.disableLocation = [locationDisabled boolValue];
+        }
         NSNumber *httpPostForced = _config[@"httpPostForced"];
         if (httpPostForced) {
             config.alwaysUsePOST = [httpPostForced boolValue];
@@ -1531,7 +1560,6 @@ FlutterMethodChannel *_channel;
         if (campaignType) {
             config.campaignType = campaignType;
             config.campaignData = _config[@"campaignData"];
-            ;
         }
 
         NSDictionary *attributionValues = _config[@"attributionValues"];

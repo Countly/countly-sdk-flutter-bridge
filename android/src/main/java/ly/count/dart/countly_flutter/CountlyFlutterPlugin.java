@@ -64,7 +64,7 @@ import ly.count.android.sdk.messaging.CountlyPush;
  */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
     private static final String TAG = "CountlyFlutterPlugin";
-    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "23.8.4";
+    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "23.12.0";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterbnp-android";
 
@@ -376,6 +376,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 Countly.sharedInstance().location().setLocation(countryCode, city, gpsCoordinates, ipAddress);
                 result.success("setUserLocation success!");
+            } else if ("disableLocation".equals(call.method)) {
+                Countly.sharedInstance().location().disableLocation();
+                result.success("disableLocation success!");
             } else if ("enableCrashReporting".equals(call.method)) {
                 this.config.enableCrashReporting();
                 // Countly.sharedInstance().enableCrashReporting();
@@ -1290,6 +1293,18 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 Countly.sharedInstance().views().stopAllViews(segmentation);
                 result.success(null);
+            } else if ("addSegmentationToViewWithID".equals(call.method)) {
+                String viewId = args.getString(0);
+                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+                Countly.sharedInstance().views().addSegmentationToViewWithID(viewId, segmentation);
+                result.success(null);
+            } else if ("addSegmentationToViewWithName".equals(call.method)) {
+                String viewName = args.getString(0);
+                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+                Countly.sharedInstance().views().addSegmentationToViewWithName(viewName, segmentation);
+                result.success(null);
             } else if ("startAutoStoppedView".equals(call.method)) {
                 String viewName = args.getString(0);
                 Map<String, Object> segmentation = toMap(args.getJSONObject(1));
@@ -1468,6 +1483,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
         if (_config.has("loggingEnabled")) {
             this.config.setLoggingEnabled(_config.getBoolean("loggingEnabled"));
+        }
+        if (_config.has("locationDisabled") && _config.getBoolean("locationDisabled")) {
+            this.config.setDisableLocation();
         }
         if (_config.has("httpPostForced")) {
             this.config.setHttpPostForced(_config.getBoolean("httpPostForced"));

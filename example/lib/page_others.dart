@@ -31,6 +31,10 @@ class OthersPage extends StatelessWidget {
     Countly.setUserLocation(countryCode: 'KR', city: 'Seoul', gpsCoordinates: '41.0082,28.9784', ipAddress: '10.2.33.12');
   }
 
+  void disableLocation() {
+    Countly.disableLocation();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,7 +49,8 @@ class OthersPage extends StatelessWidget {
             MyButton(text: 'Record Direct Attribution', color: 'olive', onPressed: recordDirectAttribution),
             MyButton(text: 'Record Indirect Attribution', color: 'olive', onPressed: recordIndirectAttribution),
             MyButton(text: 'Push Notification', color: 'blue', onPressed: askForNotificationPermission),
-            MyButton(text: 'setLocation', color: 'violet', onPressed: setLocation),
+            MyButton(text: 'Set Location', color: 'violet', onPressed: setLocation),
+            MyButton(text: 'Disable Location', color: 'violet', onPressed: disableLocation),
           ],
         )),
       ),

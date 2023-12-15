@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 final navigatorKey = GlobalKey<NavigatorState>();
 
 class RemoteConfigPageLegacy extends StatelessWidget {
-
   @deprecated
   void getABTestingValues() {
     Countly.remoteConfigUpdate((result) {
