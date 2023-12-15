@@ -1307,13 +1307,13 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 String viewId = args.getString(0);
                 Map<String, Object> segmentation = toMap(args.getJSONObject(1));
 
-                 Countly.sharedInstance().views().addSegmentationToViewWithID(viewId, segmentation);
+                Countly.sharedInstance().views().addSegmentationToViewWithID(viewId, segmentation);
                 result.success(null);
             } else if ("addSegmentationToViewWithName".equals(call.method)) {
                 String viewName = args.getString(0);
                 Map<String, Object> segmentation = toMap(args.getJSONObject(1));
 
-                 Countly.sharedInstance().views().addSegmentationToViewWithName(viewName, segmentation);
+                Countly.sharedInstance().views().addSegmentationToViewWithName(viewName, segmentation);
                 result.success(null);
             } else if ("startAutoStoppedView".equals(call.method)) {
                 String viewName = args.getString(0);
