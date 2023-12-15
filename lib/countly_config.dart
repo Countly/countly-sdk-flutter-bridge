@@ -9,6 +9,7 @@ class CountlyConfig {
   String? _locationIpAddress;
   String? _locationCountryCode;
   bool? _loggingEnabled;
+  bool _locationDisabled = false;
   bool? _httpPostForced;
   String? _locationGpsCoordinates;
   String? _daCampaignType;
@@ -62,6 +63,8 @@ class CountlyConfig {
   String? get daCampaignData => _daCampaignData;
 
   bool? get loggingEnabled => _loggingEnabled;
+
+  bool get locationDisabled => _locationDisabled;
 
   bool? get httpPostForced => _httpPostForced;
 
@@ -135,6 +138,12 @@ class CountlyConfig {
   /// those logs will be printed to the console
   CountlyConfig setLoggingEnabled(bool enabled) {
     _loggingEnabled = enabled;
+    return this;
+  }
+
+  /// Call this to disable location tracking
+  CountlyConfig disableLocation() {
+    _locationDisabled = true;
     return this;
   }
 

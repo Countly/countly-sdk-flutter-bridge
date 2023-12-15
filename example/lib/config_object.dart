@@ -51,7 +51,7 @@ class CountlyConfiguration {
         //     CountlyConsent.events,
         //     CountlyConsent.views,
         //   ]) // for giving specific consent
-        //   ..setLocation(country_code: 'KR', city: 'Seoul', ipAddress: '41.0082,28.9784', gpsCoordinates: '10.2.33.12') // Set user  location.
+        // ..setLocation(countryCode: 'KR', city: 'Seoul', gpsCoordinates: '41.0082,28.9784', ipAddress: '10.2.33.12') // Set user  location.
         //   ..setCustomCrashSegment(crashSegment)
         //   ..setUserProperties(userProperties)
         //   ..recordIndirectAttribution(attributionValues)
@@ -61,6 +61,7 @@ class CountlyConfiguration {
         //   ..setParameterTamperingProtectionSalt('salt') // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
         //   ..enableManualSessionHandling() // Enable manual session handling
         //   ..setHttpPostForced(false) // Set to 'true' if you want HTTP POST to be used for all requests
+        // ..disableLocation() // Call if you want to disable location tracking
         ;
   }
 }
