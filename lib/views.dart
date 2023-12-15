@@ -3,17 +3,21 @@ abstract class Views {
 
   Future<String?> startView(String viewName, [Map<String, Object> segmentation]);
 
-  void stopViewWithID(String viewID, [Map<String, Object> segmentation]);
+  Future<void> stopViewWithID(String viewID, [Map<String, Object> segmentation]);
 
-  void stopViewWithName(String viewName, [Map<String, Object> segmentation]);
+  Future<void> stopViewWithName(String viewName, [Map<String, Object> segmentation]);
 
-  void pauseViewWithID(String viewID);
+  Future<void> pauseViewWithID(String viewID);
 
-  void resumeViewWithID(String viewID);
+  Future<void> resumeViewWithID(String viewID);
 
-  void setGlobalViewSegmentation(Map<String, Object> segmentation);
+  Future<void> setGlobalViewSegmentation(Map<String, Object> segmentation);
 
-  void updateGlobalViewSegmentation(Map<String, Object> segmentation);
+  Future<void> updateGlobalViewSegmentation(Map<String, Object> segmentation);
 
-  void stopAllViews([Map<String, Object> segmentation]);
+  Future<void> stopAllViews([Map<String, Object> segmentation]);
+
+  Future<void> addSegmentationToViewWithID(String viewID, Map<String, Object> segmentation);
+
+  Future<void> addSegmentationToViewWithName(String viewName, Map<String, Object> segmentation);
 }

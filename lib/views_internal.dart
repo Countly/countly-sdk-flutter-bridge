@@ -122,4 +122,38 @@ class ViewsInternal implements Views {
     args.add(segmentation);
     await _countlyState.channel.invokeMethod('stopAllViews', <String, dynamic>{'data': json.encode(args)});
   }
+
+  @override
+  Future<void> addSegmentationToViewWithID(String viewID, Map<String, Object> segmentation) async {
+    if (!_countlyState.isInitialized) {
+      Countly.log('[Views] addSegmentationToViewWithID, "initWithConfig" must be called before "[Views] addSegmentationToViewWithID"', logLevel: LogLevel.ERROR);
+      return;
+    }
+    if (viewID.isEmpty) {
+      Countly.log('[Views] addSegmentationToViewWithID, "viewID" must not be empty', logLevel: LogLevel.ERROR);
+      return;
+    }
+    Countly.log('Calling "[Views] addSegmentationToViewWithID" with view ID:[$viewID]');
+    final List<Object> args = [];
+    args.add(viewID);
+    args.add(segmentation);
+    await _countlyState.channel.invokeMethod('addSegmentationToViewWithID', <String, dynamic>{'data': json.encode(args)});
+  }
+
+  @override
+  Future<void> addSegmentationToViewWithName(String viewName, Map<String, Object> segmentation) async {
+    if (!_countlyState.isInitialized) {
+      Countly.log('[Views] addSegmentationToViewWithName, "initWithConfig" must be called before "[Views] addSegmentationToViewWithName"', logLevel: LogLevel.ERROR);
+      return;
+    }
+    if (viewName.isEmpty) {
+      Countly.log('[Views] addSegmentationToViewWithName, "viewName" must not be empty', logLevel: LogLevel.ERROR);
+      return;
+    }
+    Countly.log('Calling "[Views] addSegmentationToViewWithName" with view ID:[$viewName]');
+    final List<Object> args = [];
+    args.add(viewName);
+    args.add(segmentation);
+    await _countlyState.channel.invokeMethod('addSegmentationToViewWithName', <String, dynamic>{'data': json.encode(args)});
+  }
 }
