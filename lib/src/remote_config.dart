@@ -1,4 +1,4 @@
-import 'package:countly_flutter/experiment_information.dart';
+import 'package:countly_flutter/src/experiment_information.dart';
 
 /// REMOTE CONFIG / AB TESTING
 class RCData {
