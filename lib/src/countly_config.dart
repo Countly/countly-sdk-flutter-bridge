@@ -1,5 +1,5 @@
-import 'package:countly_flutter/src/countly_flutter.dart';
-import 'package:countly_flutter/src/remote_config.dart';
+import 'countly_flutter.dart';
+import 'remote_config.dart';
 
 class CountlyConfig {
   String _appKey;

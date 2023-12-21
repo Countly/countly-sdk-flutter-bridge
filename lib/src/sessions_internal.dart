@@ -1,6 +1,6 @@
-import 'package:countly_flutter/src/countly_flutter.dart';
-import 'package:countly_flutter/src/countly_state.dart';
-import 'package:countly_flutter/src/sessions.dart';
+import 'countly_flutter.dart';
+import 'countly_state.dart';
+import 'sessions.dart';
 
 class SessionsInternal implements Sessions {
   SessionsInternal(this._countlyState);
