@@ -281,7 +281,7 @@ class RemoteConfigInternal implements RemoteConfig {
       return;
     }
 
-    // ignore: prefer_function_declarations_over_variables
+    /// ignore: prefer_function_declarations_over_variables
     RCDownloadInnerCallback innerCallback = (rResult, error, fullValueUpdate, downloadedValues, requestID) {
       Countly.log('receiving inner callback notification: $requestID', logLevel: LogLevel.VERBOSE);
       if (requestID != _requestIDGlobalCallback) {
@@ -422,18 +422,18 @@ class RemoteConfigInternal implements RemoteConfig {
     if (callback != null) {
       requestID = callback.hashCode;
 
-      // ignore: prefer_function_declarations_over_variables
+      /// ignore: prefer_function_declarations_over_variables
       RCDownloadInnerCallback innerCallback = (rResult, error, fullValueUpdate, downloadedValues, providedRequestID) {
         if (requestID != providedRequestID) {
           return;
         }
 
-        // remove callback from the inner list if it matches the request.
+        /// remove callback from the inner list if it matches the request.
         _downloadKeysToRemove.add(requestID);
         callback(rResult, error, fullValueUpdate, downloadedValues);
       };
 
-      // add new callback to the list
+      /// add new callback to the list
       _remoteConfigDownloadCallbacks[requestID] = innerCallback;
     }
 
@@ -445,18 +445,18 @@ class RemoteConfigInternal implements RemoteConfig {
     if (callback != null) {
       requestID = callback.hashCode;
 
-      // ignore: prefer_function_declarations_over_variables
+      /// ignore: prefer_function_declarations_over_variables
       RCVariantInnerCallback innerCallback = (rResult, error, providedRequestID) {
         if (requestID != providedRequestID) {
           return;
         }
 
-        // remove callback from the inner list if it matches the request.
+        /// remove callback from the inner list if it matches the request.
         _variantKeysToRemove.add(requestID);
         callback(rResult, error);
       };
 
-      // add new callback to the list
+      /// add new callback to the list
       _remoteConfigVariantInnerCallbacks[requestID] = innerCallback;
     }
 

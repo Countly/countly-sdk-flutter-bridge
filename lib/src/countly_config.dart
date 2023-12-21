@@ -122,7 +122,7 @@ class CountlyConfig {
   }
 
   /// app key for the application being tracked; find in the Countly Dashboard under Management &gt; Applications.
-  // Mandatory field.
+  /// Mandatory field.
   CountlyConfig setAppKey(String appKey) {
     _appKey = appKey;
     return this;
@@ -163,7 +163,7 @@ class CountlyConfig {
   /// Sets the interval for the automatic session update calls
   /// min value 1 (1 second),
   /// max value 600 (10 minutes)
-  // [int delay] - delay in seconds
+  /// [int delay] - delay in seconds
   CountlyConfig setUpdateSessionTimerDelay(int delay) {
     _sessionUpdateTimerDelay = delay;
     return this;

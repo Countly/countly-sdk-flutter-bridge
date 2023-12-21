@@ -20,11 +20,11 @@ import 'package:pedantic/pedantic.dart';
 /// IDFA is for iOS and AdvertisingID is for Android
 abstract class AttributionKey {
   /// For iOS IDFA
-  // ignore: non_constant_identifier_names
+  /// ignore: non_constant_identifier_names
   static String IDFA = 'idfa';
 
   /// For Android advertising ID
-  // ignore: non_constant_identifier_names
+  /// ignore: non_constant_identifier_names
   static String AdvertisingID = 'adid';
 }
 
@@ -74,7 +74,7 @@ class Countly {
   late final SessionsInternal _sessionsInternal;
   Sessions get sessions => _sessionsInternal;
 
-  // ignore: constant_identifier_names
+  /// ignore: constant_identifier_names
   static const bool BUILDING_WITH_PUSH_DISABLED = false;
   static const String _pushDisabledMsg = 'In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled';
 
