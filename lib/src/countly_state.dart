@@ -1,4 +1,4 @@
-import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter/src/countly_flutter.dart';
 import 'package:flutter/services.dart';
 
 class CountlyState {

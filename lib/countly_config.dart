@@ -1,1 +1,1 @@
-export 'src/countly_config.dart';
+export 'package:countly_flutter/src/countly_config.dart';
