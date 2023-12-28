@@ -7,10 +7,13 @@ final String APP_KEY = 'YOUR_APP_KEY';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  testWidgets('Test Device ID Type - Dev', (WidgetTester tester) async {
-    CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)..setLoggingEnabled(true).setDeviceId('test');
+  testWidgets('Test Device ID Type - Developer sets the ID during init', (WidgetTester tester) async {
+    // Initialize the SDK
+    CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true).setDeviceId('test');
     await Countly.initWithConfig(config);
+    // Get the device ID type
     DeviceIdType? type = await Countly.getDeviceIDType();
+    // Verify the device ID type
     expect(type, DeviceIdType.DEVELOPER_SUPPLIED);
   });
 }
