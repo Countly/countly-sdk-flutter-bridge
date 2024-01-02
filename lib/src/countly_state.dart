@@ -1,5 +1,5 @@
-import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter/services.dart';
+import 'countly_flutter.dart';
 
 class CountlyState {
   CountlyState(this.cly);

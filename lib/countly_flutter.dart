@@ -1,6 +1,6 @@
-export 'package:countly_flutter/src/countly_config.dart';
-export 'package:countly_flutter/src/countly_flutter.dart';
-export 'package:countly_flutter/src/remote_config.dart';
-export 'package:countly_flutter/src/sessions.dart';
-export 'package:countly_flutter/src/user_profile.dart';
-export 'package:countly_flutter/src/views.dart';
+export 'src/countly_config.dart';
+export 'src/countly_flutter.dart';
+export 'src/remote_config.dart';
+export 'src/sessions.dart';
+export 'src/user_profile.dart';
+export 'src/views.dart';

@@ -2,29 +2,29 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
 
-import 'package:countly_flutter/src/countly_config.dart';
-import 'package:countly_flutter/src/countly_state.dart';
-import 'package:countly_flutter/src/remote_config.dart';
-import 'package:countly_flutter/src/remote_config_internal.dart';
-import 'package:countly_flutter/src/sessions.dart';
-import 'package:countly_flutter/src/sessions_internal.dart';
-import 'package:countly_flutter/src/user_profile.dart';
-import 'package:countly_flutter/src/user_profile_internal.dart';
-import 'package:countly_flutter/src/views.dart';
-import 'package:countly_flutter/src/views_internal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
+import 'countly_config.dart';
+import 'countly_state.dart';
+import 'remote_config.dart';
+import 'remote_config_internal.dart';
+import 'sessions.dart';
+import 'sessions_internal.dart';
+import 'user_profile.dart';
+import 'user_profile_internal.dart';
+import 'views.dart';
+import 'views_internal.dart';
 
 /// Attribution Keys to record indirect attribution
 /// IDFA is for iOS and AdvertisingID is for Android
 abstract class AttributionKey {
   /// For iOS IDFA
-  // ignore: non_constant_identifier_names
+  /// ignore: non_constant_identifier_names
   static String IDFA = 'idfa';
 
   /// For Android advertising ID
-  // ignore: non_constant_identifier_names
+  /// ignore: non_constant_identifier_names
   static String AdvertisingID = 'adid';
 }
 
@@ -74,7 +74,7 @@ class Countly {
   late final SessionsInternal _sessionsInternal;
   Sessions get sessions => _sessionsInternal;
 
-  // ignore: constant_identifier_names
+  /// ignore: constant_identifier_names
   static const bool BUILDING_WITH_PUSH_DISABLED = false;
   static const String _pushDisabledMsg = 'In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled';
 
