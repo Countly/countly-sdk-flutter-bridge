@@ -3,10 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import '../utils.dart';
 
-/// Check if the SDK generates a device ID and the type is SDK_GENERATED
+/// 2.Check if the SDK generates a device ID and the type is SDK_GENERATED
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  testWidgets('Test Device ID Type - SDK generates ID', (WidgetTester tester) async {
+  testWidgets('2.Test Device ID Type - SDK generates ID', (WidgetTester tester) async {
     // Initialize the SDK
     CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true);
     await Countly.initWithConfig(config);
