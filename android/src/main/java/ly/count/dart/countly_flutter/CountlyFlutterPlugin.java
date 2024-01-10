@@ -13,6 +13,8 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 import ly.count.android.sdk.Countly;
 import ly.count.android.sdk.CountlyConfig;
+import ly.count.android.sdk.CountlyStore;
+import ly.count.android.sdk.ModuleLog;
 import ly.count.android.sdk.ExperimentInformation;
 import ly.count.android.sdk.FeedbackRatingCallback;
 import ly.count.android.sdk.ModuleFeedback.*;
@@ -295,6 +297,22 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 } else {
                     result.success("false");
                 }
+            } else if ("getRequestQueue".equals(call.method)) {
+                CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
+                String[] requestQ = countlyStore.getRequests();
+                JSONArray requestArray = new JSONArray();
+                for (String request : requestQ) {
+                    requestArray.put(request);
+                }
+                result.success(requestArray.toString());
+            } else if ("getEventQueue".equals(call.method)) {
+                CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
+                String[] eventQ = countlyStore.getEvents();
+                JSONArray eventArray = new JSONArray();
+                for (String event : eventQ) {
+                    eventArray.put(event);
+                }
+                result.success(eventArray.toString());
             } else if ("getCurrentDeviceId".equals(call.method)) {
                 String deviceID = Countly.sharedInstance().deviceId().getID();
                 result.success(deviceID);
