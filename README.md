@@ -29,6 +29,144 @@ This SDK supports the following features:
 * [Performance Monitoring](https://support.count.ly/hc/en-us/articles/4734457847705-Performance)
 * [Feedback Widgets](https://support.count.ly/hc/en-us/articles/4652903481753-Feedback-Surveys-NPS-and-Ratings-)
 
+## Installation
+
+In the `dependencies:` section of your `pubspec.yaml`, add the following line:
+
+```yaml
+dependencies:
+  countly_flutter: <latest_version>
+```
+
+## Usage
+
+```dart
+import 'package:countly_flutter/countly_flutter.dart';
+
+void main() {
+  runZonedGuarded<void>(() {
+    runApp(MaterialApp(home: const MyApp()));
+  }, Countly.recordDartError);
+}
+
+class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+
+    Countly.isInitialized().then((bool isInitialized) {
+      if (!isInitialized) {
+        final CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)..setLoggingEnabled(true);
+        Countly.initWithConfig(config);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Countly Example App')),
+      body: Center(
+        child: TextButton(
+          onPressed: () {
+            Countly.recordEvent({'key': 'Basic Event', 'count': 1});
+          },
+          child: Text('Record Event'),
+        ),
+      ),
+    );
+  }
+}
+```
+
+## Enabling Automatic Crash Handling
+
+```dart
+final CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
+  ..enableCrashReporting()
+Countly.initWithConfig(config);
+```
+
+## Reporting Exceptions manually
+
+```dart
+Countly.logException('This is a manually created exception', true, null);
+```
+
+## Recording Events
+
+```dart
+Countly.recordEvent({'key': 'Basic Event', 'count': 1});
+```
+
+## Recording Views
+
+```dart
+// start recording view
+await Countly.instance.views.startView('HomePage');
+
+// stop recording view
+await Countly.instance.views.stopViewWithName('HomePage');
+```
+
+## Change Device ID
+
+```dart
+// with merge
+await Countly.changeDeviceId('123456', true);
+
+// without merge
+await Countly.changeDeviceId('123456', false);
+```
+
+## Get Device ID Type
+
+```dart
+final DeviceIdType? deviceIdtype = await Countly.getDeviceIDType();
+```
+
+## User Profile
+
+```dart
+final Map<String, Object> options = {
+  'name': 'Name of User',
+  'username': 'Username',
+  'email': 'User Email',
+  'phone': 'User Contact number',
+  'gender': 'User Gender',
+};
+Countly.instance.userProfile.setUserProperties(options);
+
+// save user profile
+Countly.instance.userProfile.save();
+
+// clear user profile
+Countly.instance.userProfile.clear();
+```
+
+## Consent
+
+```dart
+// give multiple consent
+Countly.giveConsent(['events', 'views', 'star-rating', 'crashes']);
+
+// remove multiple consent
+Countly.removeConsent(['events', 'views', 'star-rating', 'crashes']);
+
+// give all consent
+Countly.giveAllConsent();
+
+// remove all consent
+Countly.removeAllConsent();
+```
+
 ## Acknowledgements
 
 From 2014 to 2020 it was maintained by Trinisoft Technologies developers (trinisofttechnologies@gmail.com).
