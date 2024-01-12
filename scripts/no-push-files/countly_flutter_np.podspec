@@ -3,7 +3,7 @@
 #
 Pod::Spec.new do |s|
   s.name = 'countly_flutter_np'
-  s.version = '23.12.0'
+  s.version = '23.12.1'
   s.summary = 'Countly is an innovative, real-time, open source mobile analytics platform.'
   s.homepage = 'https://github.com/Countly/countly-sdk-flutter-bridge'
   s.social_media_url = 'https://twitter.com/gocountly'
@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/CountlyFlutterPlugin.h'
   s.dependency 'Flutter'
-
+  s.swift_version = '5.0'
   s.ios.deployment_target = '10.0'
   s.static_framework = true
 end

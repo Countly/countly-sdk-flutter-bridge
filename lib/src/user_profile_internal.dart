@@ -1,7 +1,8 @@
 import 'dart:convert';
 
-import 'package:countly_flutter_np/countly_flutter.dart';
-import 'package:countly_flutter_np/countly_state.dart';
+import 'countly_flutter.dart';
+import 'countly_state.dart';
+import 'user_profile.dart';
 
 class UserProfileInternal implements UserProfile {
   UserProfileInternal(this._countlyState);
