@@ -11,7 +11,7 @@ final String APP_KEY = 'YOUR_APP_KEY';
 void testCommonRequestParams(Map<String, List<String>> requestObject) {
   expect(requestObject['app_key']?[0], 'YOUR_APP_KEY');
   expect(requestObject['sdk_name']?[0], 'dart-flutterb-android');
-  expect(requestObject['sdk_version']?[0], '23.12.0');
+  expect(requestObject['sdk_version']?[0], '23.12.1');
   expect(requestObject['av']?[0], '1.0.0');
 
   assert(requestObject['device_id']?[0] != null);
