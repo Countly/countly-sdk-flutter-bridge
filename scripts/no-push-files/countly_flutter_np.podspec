@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/CountlyFlutterPlugin.h'
   s.dependency 'Flutter'
-
+  s.swift_version = '5.0'
   s.ios.deployment_target = '10.0'
   s.static_framework = true
 end
