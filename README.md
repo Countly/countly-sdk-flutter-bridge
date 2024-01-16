@@ -2,7 +2,7 @@
 
 # Countly Flutter SDK
 
-This repository contains the Countly Flutter SDK, which can be integrated into mobile Flutter applications. The Countly Flutter SDK is intended to be used with [Countly Lite](https://github.com/Countly/countly-server) or [Countly Enterprise](https://count.ly/product).
+This repository contains the Countly Flutter SDK, which can be integrated into mobile Flutter applications. The Countly Flutter SDK is intended to be used with [Countly Lite](https://countly.com/lite), [Countly Flex](https://countly.com/flex), [Countly Enterprise](https://countly.com/enterprise).
 
 ## What is Countly?
 [Countly](https://count.ly) is a product analytics solution and innovation enabler that helps teams track product performance and customer journey and behavior across [mobile](https://count.ly/mobile-analytics), [web](https://count.ly/web-analytics),
@@ -11,15 +11,19 @@ and [desktop](https://count.ly/desktop-analytics) applications. [Ensuring privac
 Track, measure, and take action - all without leaving Countly.
 
 * **Questions or feature requests?** [Join the Countly Community on Discord](https://discord.gg/countly)
-* **Looking for the Countly Server?** [Countly Lite repository](https://github.com/Countly/countly-server)
+* **Looking for the Countly Server?** [Countly Server repository](https://github.com/Countly/countly-server)
 * **Looking for other Countly SDKs?** [An overview of all Countly SDKs for mobile, web and desktop](https://support.count.ly/hc/en-us/articles/360037236571-Downloading-and-Installing-SDKs#h_01H9QCP8G5Y9PZJGERZ4XWYDY9)
 
 ## Integrating Countly SDK in your projects
 
 For a detailed description on how to use this SDK [check out our documentation](https://support.count.ly/hc/en-us/articles/360037944212-Flutter).
+
 For information about how to add the SDK to your project, please check [this section of the documentation](https://support.count.ly/hc/en-us/articles/360037944212-Flutter#h_01H930GAQ59MD94NK0NP68GNGT).
+
 You can find minimal SDK integration information for your project in [this section of the documentation](https://support.count.ly/hc/en-us/articles/360037944212-Flutter#h_01H930GAQ5RGKSA3CTNVTBTDZF).
+
 For an example integration of this SDK, you can have a look [here](https://github.com/Countly/countly-sdk-flutter-bridge/tree/master/example).
+
 This SDK supports the following features:
 * [Analytics](https://support.count.ly/hc/en-us/articles/4431589003545-Analytics)
 * [Push Notifications](https://support.count.ly/hc/en-us/articles/4405405459225-Push-Notifications)
@@ -130,6 +134,7 @@ await Countly.changeDeviceId('123456', false);
 
 ```dart
 final DeviceIdType? deviceIdtype = await Countly.getDeviceIDType();
+// DeviceIdType: DEVELOPER_SUPPLIED, SDK_GENERATED, TEMPORARY_ID
 ```
 
 ## User Profile
@@ -144,10 +149,37 @@ final Map<String, Object> options = {
 };
 Countly.instance.userProfile.setUserProperties(options);
 
-// save user profile
+// Increment custom property value by 1
+Countly.instance.userProfile.increment('increment');
+
+// Increment custom property value by 10
+Countly.instance.userProfile.incrementBy('incrementBy', 10);
+
+// Multiply custom property value by 20
+Countly.instance.userProfile.multiply('multiply', 20);
+
+// Save max value between current value and provided value
+Countly.instance.userProfile.saveMax('saveMax', 100);
+
+// Save min value between current value and provided value
+Countly.instance.userProfile.saveMin('saveMin', 50);
+
+// Set custom property value if it doesn't exist
+Countly.instance.userProfile.setOnce('setOnce', '200');
+
+// Add unique value to custom property array
+Countly.instance.userProfile.pushUnique('pushUniqueValue', 'morning');
+
+// Add unique value to custom property array if it does not exist
+Countly.instance.userProfile.push('pushValue', 'morning');
+
+// Remove value from custom property array
+Countly.instance.userProfile.pull('pushValue', 'morning');
+
+// Send/Save provided values to server
 Countly.instance.userProfile.save();
 
-// clear user profile
+// Clear queued operations / modifications
 Countly.instance.userProfile.clear();
 ```
 
