@@ -53,11 +53,14 @@ FILES_TO_MOVE = [
 # paths to modify
 modPathAndroid = '../android/src/main/java/ly/count/dart/countly_flutter/CountlyFlutterPlugin.java'
 modPathIos = '../ios/Classes/CountlyFlutterPlugin.m'
-modPathCountly = '../lib/countly_flutter.dart'
+modPathCountly = '../lib/src/countly_flutter.dart'
 modPathExampleYaml = '../example/pubspec.yaml'
 # paths to change packages
 packagePathExample = '../example/lib/'
+packagePathExampleIntegrationTest = '../example/integration_test/'
+packagePathExampleIntegrationTest_sc1 = '../example/integration_test/scenario_device_id_init/'
 packagePathLib = '../lib/'
+packagePathLibInternal = '../lib/src/'
 packagePathIntegrationTest = '../integration_test/'
 # normal and np package names
 packagePrefix = 'package:countly_flutter/'
@@ -222,7 +225,10 @@ def main():
     print(modPathExampleYaml)
     print('Paths to change packages:')
     print(packagePathExample)
+    print(packagePathExampleIntegrationTest)
+    print(packagePathExampleIntegrationTest_sc1)
     print(packagePathLib)
+    print(packagePathLibInternal)
     print(packagePathIntegrationTest)
 
     # ask for permission to run the script
@@ -239,7 +245,10 @@ def main():
         modifyFile(modPathExampleYaml, objectOfComModification, 'mod')
         # np package update
         update_package(packagePathExample, packagePrefix, packagePrefixToChange)
+        update_package(packagePathExampleIntegrationTest, packagePrefix, packagePrefixToChange)
+        update_package(packagePathExampleIntegrationTest_sc1, packagePrefix, packagePrefixToChange)
         update_package(packagePathLib, packagePrefix, packagePrefixToChange)
+        update_package(packagePathLibInternal, packagePrefix, packagePrefixToChange)
         update_package(packagePathIntegrationTest, packagePrefix, packagePrefixToChange)
         print('Done')
     else:

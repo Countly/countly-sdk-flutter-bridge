@@ -1,3 +1,15 @@
+## 23.12.1
+* Added s.swift_version = '5.0' in the podspec file to resolve an error related to the Flutter module.
+
+* Underlying Android SDK version is 23.12.0
+* Updated underlying iOS SDK version to 23.12.1
+
+## 23.12.1-np
+* Added s.swift_version = '5.0' in the podspec file to resolve an error related to the Flutter module.
+
+* Underlying Android SDK version is 23.12.0
+* Updated underlying iOS SDK version to 23.12.1
+
 ## 23.12.0
 * Added `addSegmentationToViewWithID` and `addSegmentationToViewWithName` methods to the countly views interface.
 
