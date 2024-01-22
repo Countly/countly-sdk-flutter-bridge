@@ -1,11 +1,31 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+const MethodChannel _channelTest = MethodChannel('countly_flutter');
 
 // Base config options for tests
 final String SERVER_URL = 'https://xxx.count.ly';
 final String APP_KEY = 'YOUR_APP_KEY';
+
+/// Get request queue from native side
+Future<List> getRequestQueue() async {
+  _channelTest.setMethodCallHandler((call) => Future.value(null));
+  String? rq = await _channelTest.invokeMethod('getRequestQueue');
+  List<dynamic> requestList = json.decode(rq!);
+  return requestList;
+}
+
+/// Get event queue from native side
+Future<List> getEventQueue() async {
+  _channelTest.setMethodCallHandler((call) => Future.value(null));
+
+  String? eq = await _channelTest.invokeMethod('getEventQueue');
+  List<dynamic> eventList = json.decode(eq!);
+  return eventList;
+}
 
 /// Verify the common request queue parameters
 void testCommonRequestParams(Map<String, List<String>> requestObject) {

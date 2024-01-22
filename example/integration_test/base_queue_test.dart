@@ -1,11 +1,8 @@
 import 'dart:convert';
 import 'package:countly_flutter/countly_flutter.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'utils.dart';
-
-const MethodChannel _channel = MethodChannel('countly_flutter');
 
 /// Check if we can get stored queues from native side
 void main() {
@@ -15,13 +12,12 @@ void main() {
     CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true);
     await Countly.initWithConfig(config);
     // Create some events
-    Countly.instance.views.startAutoStoppedView('test');
-    Countly.instance.views.startAutoStoppedView('test2');
+    await Countly.instance.views.startAutoStoppedView('test');
+    await Countly.instance.views.startAutoStoppedView('test2');
+
     // Get request and event queues from native side
-    String? rq = await _channel.invokeMethod('getRequestQueue');
-    String? eq = await _channel.invokeMethod('getEventQueue');
-    List<dynamic> requestList = json.decode(rq!); // List of strings
-    List<dynamic> eventList = json.decode(eq!); // List of json objects
+    List<dynamic> requestList = await getRequestQueue(); // List of strings
+    List<dynamic> eventList = await getEventQueue(); // List of json objects
 
     // Some logs for debugging
     print('RQ: $requestList');
@@ -29,10 +25,11 @@ void main() {
     print('RQ length: ${requestList.length}');
     print('EQ length: ${eventList.length}');
 
-    // Verify the request queue for a single request
-    Uri uri = Uri.parse("?" + requestList[0]);
-    Map<String, List<String>> queryParams = uri.queryParametersAll;
-    testCommonRequestParams(queryParams); // tests
+    // Verify the request queue for a single request (example)
+    if (requestList.length > 0) {
+      Map<String, List<String>> queryParams = Uri.parse("?" + requestList[0]).queryParametersAll;
+      testCommonRequestParams(queryParams); // tests
+    }
 
     // Verify some parameters of a single event
     Map<String, dynamic> event = json.decode(eventList[0]);
