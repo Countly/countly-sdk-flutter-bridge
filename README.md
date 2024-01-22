@@ -5,8 +5,8 @@
 This repository contains the Countly Flutter SDK, which can be integrated into mobile Flutter applications. The Countly Flutter SDK is intended to be used with [Countly Lite](https://countly.com/lite), [Countly Flex](https://countly.com/flex), [Countly Enterprise](https://countly.com/enterprise).
 
 ## What is Countly?
-[Countly](https://count.ly) is a product analytics solution and innovation enabler that helps teams track product performance and customer journey and behavior across [mobile](https://count.ly/mobile-analytics), [web](https://count.ly/web-analytics),
-and [desktop](https://count.ly/desktop-analytics) applications. [Ensuring privacy by design](https://count.ly/privacy-by-design), Countly allows you to innovate and enhance your products to provide personalized and customized customer experiences, and meet key business and revenue goals.
+[Countly](https://countly.com) is a product analytics solution and innovation enabler that helps teams track product performance and customer journey and behavior across [mobile](https://countly.com/mobile-analytics), [web](https://countly.com/web-analytics),
+and [desktop](https://countly.com/desktop-analytics) applications. [Ensuring privacy by design](https://countly.com/privacy-by-design), Countly allows you to innovate and enhance your products to provide personalized and customized customer experiences, and meet key business and revenue goals.
 
 Track, measure, and take action - all without leaving Countly.
 
@@ -48,6 +48,7 @@ dependencies:
 import 'package:countly_flutter/countly_flutter.dart';
 
 void main() {
+  // If you want to catch Dart errors, run your app inside a Zone and pass Countly.recordDartError as the onError parameter to it.
   runZonedGuarded<void>(() {
     runApp(MaterialApp(home: const MyApp()));
   }, Countly.recordDartError);
@@ -65,10 +66,17 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
+    // Initialize the SDK once
     Countly.isInitialized().then((bool isInitialized) {
       if (!isInitialized) {
+        // Create the configuration with your app key and server URL
         final CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)..setLoggingEnabled(true);
-        Countly.initWithConfig(config);
+        // In this example, we have logging enabled. For production, disable this.
+
+        // Initialize with that configuration
+        Countly.initWithConfig(config).then((value) {
+            Countly.start(); // Enables automatic view tracking
+        });
       }
     });
   }
@@ -80,6 +88,7 @@ class _MyAppState extends State<MyApp> {
       body: Center(
         child: TextButton(
           onPressed: () {
+            // record an event
             Countly.recordEvent({'key': 'Basic Event', 'count': 1});
           },
           child: Text('Record Event'),
@@ -93,6 +102,7 @@ class _MyAppState extends State<MyApp> {
 ## Enabling Automatic Crash Handling
 
 ```dart
+// This will automatically catch all errors that are thrown from within the Flutter framework.
 final CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
   ..enableCrashReporting()
 Countly.initWithConfig(config);
@@ -101,38 +111,61 @@ Countly.initWithConfig(config);
 ## Reporting Exceptions manually
 
 ```dart
+// Manually report a handled or unhandled exception/error to Countly
 Countly.logException('This is a manually created exception', true, null);
 ```
 
 ## Recording Events
 
 ```dart
+// Record events (User interactions)
+
+final event = {'key': 'Basic Event', 'count': 1};
+Countly.recordEvent({'key': 'Basic Event', 'count': 1});
+
+// you can also record events with segmentation
+event['segmentation'] = {'Country': 'Turkey', 'Age': '28'};
 Countly.recordEvent({'key': 'Basic Event', 'count': 1});
 ```
 
 ## Recording Views
 
 ```dart
-// start recording view
-await Countly.instance.views.startView('HomePage');
+// Record screen views
 
-// stop recording view
-await Countly.instance.views.stopViewWithName('HomePage');
+final segmentation = {'Country': 'Turkey', 'Age': '28'};
+
+// start recording view with segmentation. NB: Segmentation values are optional.
+final String? id = await Countly.instance.views.startView('HomePage', segmentation);
+
+// stop recording view with name with segmentation
+await Countly.instance.views.stopViewWithName('HomePage', segmentation);
+
+// stop recording view with ID with segmentation
+await Countly.instance.views.stopViewWithID(id, segmentation);
+
+// stop recording all views with segmentation
+await Countly.instance.views.stopAllViews(segmentation);
 ```
 
 ## Change Device ID
 
 ```dart
-// with merge
+// A device ID is a unique identifier for your users/device.
+
+// Change device ID with merge.
+// Here, the data associated with the previous device ID is merged with the new ID.
 await Countly.changeDeviceId('123456', true);
 
-// without merge
+// Change device ID without merge.
+// Here, the new device ID is counted as a new device.
 await Countly.changeDeviceId('123456', false);
 ```
 
 ## Get Device ID Type
 
 ```dart
+// To fetch the device ID type
 final DeviceIdType? deviceIdtype = await Countly.getDeviceIDType();
 // DeviceIdType: DEVELOPER_SUPPLIED, SDK_GENERATED, TEMPORARY_ID
 ```
@@ -140,6 +173,8 @@ final DeviceIdType? deviceIdtype = await Countly.getDeviceIDType();
 ## User Profile
 
 ```dart
+// To provide information regarding the current user, use this.
+
 final Map<String, Object> options = {
   'name': 'Name of User',
   'username': 'Username',
@@ -176,7 +211,7 @@ Countly.instance.userProfile.push('pushValue', 'morning');
 // Remove value from custom property array
 Countly.instance.userProfile.pull('pushValue', 'morning');
 
-// Send/Save provided values to server
+// Send/Save provided values to server. After setting values, you must save it by calling save();
 Countly.instance.userProfile.save();
 
 // Clear queued operations / modifications
@@ -186,11 +221,23 @@ Countly.instance.userProfile.clear();
 ## Consent
 
 ```dart
+// For compatibility with data protection regulations, such as GDPR, the Countly
+// Flutter SDK allows developers to enable/disable any feature at any time depending
+// on user consent.
+
+// Consent values: sessions, events, views, location, crashes, attribution, users, push, starRating, apm, feedback, remoteConfig
+
+// Consent can be enabled during initialization
+final CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
+  ..setConsentEnabled([CountlyConsent.sessions]);
+Countly.initWithConfig(config);
+
+// Or after initialization using one of the below methods
 // give multiple consent
-Countly.giveConsent(['events', 'views', 'star-rating', 'crashes']);
+Countly.giveConsent([CountlyConsent.events, CountlyConsent.views, CountlyConsent.crashes]);
 
 // remove multiple consent
-Countly.removeConsent(['events', 'views', 'star-rating', 'crashes']);
+Countly.removeConsent([CountlyConsent.events, CountlyConsent.views, CountlyConsent.crashes]);
 
 // give all consent
 Countly.giveAllConsent();
@@ -207,18 +254,18 @@ From 2014 to 2020 it was maintained by Trinisoft Technologies developers (trinis
 Security is very important to us. If you discover any issue regarding security, please disclose the information responsibly by sending an email to security@count.ly and **not by creating a GitHub issue**.
 
 ## Badges
-If you like Countly, [why not use one of our badges](https://count.ly/brand-assets) and give a link back to us so others know about this wonderful platform?
+If you like Countly, [why not use one of our badges](https://countly.com/brand-assets) and give a link back to us so others know about this wonderful platform?
 
-<a href="https://count.ly/f/badge" rel="nofollow"><img style="width:145px;height:60px" src="https://count.ly/badges/dark.svg?v2" alt="Countly - Product Analytics" /></a>
+<a href="https://count.ly/f/badge" rel="nofollow"><img style="width:145px;height:60px" src="https://countly.com/badges/dark.svg?v2" alt="Countly - Product Analytics" /></a>
 
 ```JS
-<a href="https://count.ly/f/badge" rel="nofollow"><img style="width:145px;height:60px" src="https://count.ly/badges/dark.svg" alt="Countly - Product Analytics" /></a>
+<a href="https://count.ly/f/badge" rel="nofollow"><img style="width:145px;height:60px" src="https://countly.com/badges/dark.svg" alt="Countly - Product Analytics" /></a>
 ```
 
-<a href="https://count.ly/f/badge" rel="nofollow"><img style="width:145px;height:60px" src="https://count.ly/badges/light.svg?v2" alt="Countly - Product Analytics" /></a>
+<a href="https://count.ly/f/badge" rel="nofollow"><img style="width:145px;height:60px" src="https://countly.com/badges/light.svg?v2" alt="Countly - Product Analytics" /></a>
 
 ```JS
-<a href="https://count.ly/f/badge" rel="nofollow"><img style="width:145px;height:60px" src="https://count.ly/badges/light.svg" alt="Countly - Product Analytics" /></a>
+<a href="https://count.ly/f/badge" rel="nofollow"><img style="width:145px;height:60px" src="https://countly.com/badges/light.svg" alt="Countly - Product Analytics" /></a>
 ```
 
 ## How can I help you with your efforts?
