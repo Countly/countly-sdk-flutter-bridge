@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+const MethodChannel channelTest = MethodChannel('countly_flutter');
 
 // Base config options for tests
 final String SERVER_URL = 'https://xxx.count.ly';

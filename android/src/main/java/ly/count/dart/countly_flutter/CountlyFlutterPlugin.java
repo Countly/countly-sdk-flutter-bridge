@@ -135,6 +135,13 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
     List<CountlyFeedbackWidget> retrievedWidgetList = null;
 
+    //-------------TESTING RELATED------------------
+    private static Boolean isAppStartTimeTracked = false;
+    private static Boolean isFBenabled = false;
+    private static Boolean isManualAppLoadedTriggerEnabled = false;
+    private static Boolean isStartTSOverridden = false;
+    // TODO: this will take forever. Check config object instead
+
     //----------PLUGIN REGISTRATION (FlutterPlugin)-------------------
     
     // Required for pre Flutter 1.12 projects
@@ -167,7 +174,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         this.context = context;
         methodChannel = new MethodChannel(messenger, "countly_flutter");
         methodChannel.setMethodCallHandler(this);
-        this.config.enableManualAppLoadedTrigger();
+        this.config.enableManualAppLoadedTrigger(); // TODO: will stay till future update
 
         log("onAttachedToEngineInternal", LogLevel.INFO);
     }
@@ -1240,7 +1247,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 }
                 result.success("recordNetworkTrace: success");
             } else if ("enableApm".equals(call.method)) {
-                this.config.setRecordAppStartTime(true);
+                // this.config.apm.enableAppStartTimeTracking();
+                isAppStartTimeTracked = true;
                 result.success("enableApm: success");
             } else if ("throwNativeException".equals(call.method)) {
                 throw new IllegalStateException("Native Exception Crashhh!");
@@ -1327,7 +1335,21 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("appLoadingFinished".equals(call.method)) {
                 Countly.sharedInstance().apm().setAppIsLoaded();
                 result.success("appLoadingFinished: success");
-            } else {
+            } 
+            
+            //--------------Test Methods-------------------------------
+            else if ("isAppStartTimeTracked".equals(call.method)) {
+                result.success(isAppStartTimeTracked);
+            } else if ("isFBenabled".equals(call.method)) {
+                result.success(isFBenabled);
+            } else if ("isManualAppLoadedTriggerEnabled".equals(call.method)) {
+                result.success(isManualAppLoadedTriggerEnabled);
+            } else if ("isStartTSOverridden".equals(call.method)) {
+                result.success(isStartTSOverridden);
+            }    
+            //------------------End------------------------------------
+
+            else {
                 result.notImplemented();
             }
 
@@ -1538,9 +1560,25 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if (_config.has("starRatingTextDismiss")) {
             this.config.setStarRatingTextDismiss(_config.getString("starRatingTextDismiss"));
         }
+        // APM ------------------------------------------------
         if (_config.has("recordAppStartTime")) {
-            this.config.setRecordAppStartTime(_config.getBoolean("recordAppStartTime"));
+            // this.config.apm.enableAppStartTimeTracking();
+            isAppStartTimeTracked = true;
         }
+        if (_config.has("enableForegroundBackground")) {
+            // this.config.apm.enableForegroundBackgroundTracking();
+            isFBenabled = true;
+        }
+        if (_config.has("enableManualAppLoaded")) {
+            // this.config.apm.enableManualAppLoadedTrigger();
+            isManualAppLoadedTriggerEnabled = true;
+        }
+        if (_config.has("startTSOverride")) {
+            // this.config.apm.setAppStartTimestampOverride(_config.getLong("startTSOverride"));
+            isStartTSOverridden = true;
+        }
+        // APM END --------------------------------------------
+
         if (_config.has("enableUnhandledCrashReporting") && _config.getBoolean("enableUnhandledCrashReporting")) {
             this.config.enableCrashReporting();
         }

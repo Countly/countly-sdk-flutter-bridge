@@ -1,3 +1,4 @@
+import 'configuration_interfaces/countly_config_apm.dart';
 import 'countly_flutter.dart';
 import 'remote_config.dart';
 
@@ -40,6 +41,9 @@ class CountlyConfig {
   bool _autoEnrollABOnDownload = false;
   int? _requestDropAgeHours;
 
+  /// instance of CountlyConfigApm
+  final CountlyConfigApm _countlyConfigApmInstance = CountlyConfigApm();
+
   CountlyConfig(this._serverURL, this._appKey);
 
   /// Getters of private members
@@ -70,8 +74,6 @@ class CountlyConfig {
   bool? get httpPostForced => _httpPostForced;
 
   Map<String, String>? get location => _location;
-
-  bool? get recordAppStartTime => _recordAppStartTime;
 
   int? get maxRequestQueueSize => _maxRequestQueueSize;
 
@@ -114,6 +116,9 @@ class CountlyConfig {
   bool get autoEnrollABOnDownload => _autoEnrollABOnDownload;
 
   int? get requestDropAgeHours => _requestDropAgeHours;
+
+  /// getter for CountlyConfigApm instance that is used to access CountlyConfigApm methods
+  CountlyConfigApm get apm => _countlyConfigApmInstance;
 
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
@@ -215,9 +220,12 @@ class CountlyConfig {
     return this;
   }
 
-  /// Enable the recording of the app start time
+  /// Enable the recording of the app start time. (disabled by default)
+  /// This is now deprecated, use CountlyConfig.apm.enableAppStartTimeTracking() instead
   CountlyConfig setRecordAppStartTime(bool recordAppStartTime) {
-    _recordAppStartTime = recordAppStartTime;
+    if (recordAppStartTime) {
+      _countlyConfigApmInstance.enableAppStartTimeTracking();
+    }
     return this;
   }
 
