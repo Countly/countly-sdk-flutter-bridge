@@ -1,3 +1,6 @@
+## X.X.X
+* 
+
 ## 23.12.1
 * Added s.swift_version = '5.0' in the podspec file to resolve an error related to the Flutter module.
 
