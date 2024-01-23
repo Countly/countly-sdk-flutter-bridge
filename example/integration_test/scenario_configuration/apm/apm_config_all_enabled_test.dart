@@ -14,7 +14,7 @@ void main() {
 
     // check if apm config options are set correctly
     bool appStart = await channelTest.invokeMethod('isAppStartTimeTracked');
-    bool fBEnabled = await channelTest.invokeMethod('isFBenabled');
+    bool fBEnabled = await channelTest.invokeMethod('isFBEnabled');
     bool manualTrigger = await channelTest.invokeMethod('isManualAppLoadedTriggerEnabled');
     bool tSOverride = await channelTest.invokeMethod('isStartTSOverridden');
     expect(appStart, true);

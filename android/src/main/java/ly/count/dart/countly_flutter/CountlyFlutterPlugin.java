@@ -137,7 +137,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
     //-------------TESTING RELATED------------------
     private static Boolean isAppStartTimeTracked = false;
-    private static Boolean isFBenabled = false;
+    private static Boolean isFBEnabled = false;
     private static Boolean isManualAppLoadedTriggerEnabled = false;
     private static Boolean isStartTSOverridden = false;
     // TODO: this will take forever. Check config object instead
@@ -1340,8 +1340,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             //--------------Test Methods-------------------------------
             else if ("isAppStartTimeTracked".equals(call.method)) {
                 result.success(isAppStartTimeTracked);
-            } else if ("isFBenabled".equals(call.method)) {
-                result.success(isFBenabled);
+            } else if ("isFBEnabled".equals(call.method)) {
+                result.success(isFBEnabled);
             } else if ("isManualAppLoadedTriggerEnabled".equals(call.method)) {
                 result.success(isManualAppLoadedTriggerEnabled);
             } else if ("isStartTSOverridden".equals(call.method)) {
@@ -1567,7 +1567,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
         if (_config.has("enableForegroundBackground")) {
             // this.config.apm.enableForegroundBackgroundTracking();
-            isFBenabled = true;
+            isFBEnabled = true;
         }
         if (_config.has("enableManualAppLoaded")) {
             // this.config.apm.enableManualAppLoadedTrigger();
