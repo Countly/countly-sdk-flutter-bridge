@@ -1552,19 +1552,19 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
         // APM ------------------------------------------------
         if (_config.has("recordAppStartTime")) {
-            // this.config.apm.enableAppStartTimeTracking();
+            this.config.apm.enableAppStartTimeTracking();
             testState.isAppStartTimeTracked = true;
         }
         if (_config.has("enableForegroundBackground")) {
-            // this.config.apm.enableForegroundBackgroundTracking();
+            this.config.apm.enableForegroundBackgroundTracking();
             testState.isForegroundBackgroundEnabled = true;
         }
         if (_config.has("enableManualAppLoaded")) {
-            // this.config.apm.enableManualAppLoadedTrigger();
+            this.config.apm.enableManualAppLoadedTrigger();
             testState.isManualAppLoadedTriggerEnabled = true;
         }
         if (_config.has("startTSOverride")) {
-            // this.config.apm.setAppStartTimestampOverride(_config.getLong("startTSOverride"));
+            this.config.apm.setAppStartTimestampOverride(_config.getLong("startTSOverride"));
             testState.isStartTSOverridden = true;
         }
         // APM END --------------------------------------------
