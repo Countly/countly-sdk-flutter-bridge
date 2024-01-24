@@ -1497,6 +1497,23 @@ FlutterMethodChannel *_channel;
         if (recordAppStartTime) {
             config.enablePerformanceMonitoring = [recordAppStartTime boolValue];
         }
+        NSNumber *enableForegroundBackground = _config[@"enableForegroundBackground"];
+        if (enableForegroundBackground) {
+            config.apm.enableForegroundBackgroundTracking = [enableForegroundBackground boolValue];
+        }
+        NSNumber *enableManualAppLoaded = _config[@"enableManualAppLoaded"];
+        if (enableManualAppLoaded) {
+            config.apm.enableManualAppLoadedTrigger = [enableManualAppLoaded boolValue];
+        }
+        NSNumber *enableAppStartTime = _config[@"enableAppStartTime"];
+        if (enableAppStartTime) {
+            config.apm.enableAppStartTimeTracking = [enableForegroundBackground boolValue];
+        }
+        NSNumber *startTSOverride = _config[@"startTSOverride"];
+        if (startTSOverride) {
+            [config.apm setAppStartTimestampOverride:[startTSOverride longLongValue]];
+        }
+        
         NSNumber *enableUnhandledCrashReporting = _config[@"enableUnhandledCrashReporting"];
         if (enableUnhandledCrashReporting && [enableUnhandledCrashReporting boolValue]) {
             [self addCountlyFeature:CLYCrashReporting];
