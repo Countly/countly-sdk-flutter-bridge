@@ -12,14 +12,13 @@ void main() {
     config.apm.enableForegroundBackgroundTracking().enableManualAppLoadedTrigger();
     await Countly.initWithConfig(config);
 
-    // check if apm config options are set correctly
-    bool appStart = await channelTest.invokeMethod('isAppStartTimeTracked');
-    bool fBEnabled = await channelTest.invokeMethod('isFBEnabled');
-    bool manualTrigger = await channelTest.invokeMethod('isManualAppLoadedTriggerEnabled');
-    bool tSOverride = await channelTest.invokeMethod('isStartTSOverridden');
-    expect(appStart, false);
-    expect(fBEnabled, true);
-    expect(manualTrigger, true);
-    expect(tSOverride, false);
+    // get test state
+    Map<String, dynamic> state = await getTestState();
+
+    // check if all apm config options are set correctly
+    expect(state['isAppStartTimeTracked'], false);
+    expect(state['isForegroundBackgroundEnabled'], true);
+    expect(state['isManualAppLoadedTriggerEnabled'], true);
+    expect(state['isStartTSOverridden'], false);
   });
 }

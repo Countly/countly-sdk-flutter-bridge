@@ -17,6 +17,7 @@ import ly.count.android.sdk.ExperimentInformation;
 import ly.count.android.sdk.FeedbackRatingCallback;
 import ly.count.android.sdk.ModuleFeedback.*;
 import ly.count.android.sdk.DeviceIdType;
+import ly.count.dart.countly_flutter.CountlyTestState;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -132,15 +133,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private Lifecycle lifecycle;
     static final int requestIDNoCallback = -1;
     static final int requestIDGlobalCallback = -2;
+    private CountlyTestState testState = new CountlyTestState();
 
     List<CountlyFeedbackWidget> retrievedWidgetList = null;
-
-    //-------------TESTING RELATED------------------
-    private static Boolean isAppStartTimeTracked = false;
-    private static Boolean isFBEnabled = false;
-    private static Boolean isManualAppLoadedTriggerEnabled = false;
-    private static Boolean isStartTSOverridden = false;
-    // TODO: this will take forever. Check config object instead
 
     //----------PLUGIN REGISTRATION (FlutterPlugin)-------------------
     
@@ -292,6 +287,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 } else {
                     this.config.setApplication(activity.getApplication());
                 }
+                testState.initConfig = config;
                 Countly.sharedInstance().init(this.config);
                 result.success("initialized!");
             } else if ("isInitialized".equals(call.method)) {
@@ -1248,7 +1244,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success("recordNetworkTrace: success");
             } else if ("enableApm".equals(call.method)) {
                 // this.config.apm.enableAppStartTimeTracking();
-                isAppStartTimeTracked = true;
+                testState.isAppStartTimeTracked = true;
                 result.success("enableApm: success");
             } else if ("throwNativeException".equals(call.method)) {
                 throw new IllegalStateException("Native Exception Crashhh!");
@@ -1338,15 +1334,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } 
             
             //--------------Test Methods-------------------------------
-            else if ("isAppStartTimeTracked".equals(call.method)) {
-                result.success(isAppStartTimeTracked);
-            } else if ("isFBEnabled".equals(call.method)) {
-                result.success(isFBEnabled);
-            } else if ("isManualAppLoadedTriggerEnabled".equals(call.method)) {
-                result.success(isManualAppLoadedTriggerEnabled);
-            } else if ("isStartTSOverridden".equals(call.method)) {
-                result.success(isStartTSOverridden);
-            }    
+            else if ("getTestState".equals(call.method)) {
+                result.success(testState.getState().toString());
+            }
             //------------------End------------------------------------
 
             else {
@@ -1563,19 +1553,19 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         // APM ------------------------------------------------
         if (_config.has("recordAppStartTime")) {
             // this.config.apm.enableAppStartTimeTracking();
-            isAppStartTimeTracked = true;
+            testState.isAppStartTimeTracked = true;
         }
         if (_config.has("enableForegroundBackground")) {
             // this.config.apm.enableForegroundBackgroundTracking();
-            isFBEnabled = true;
+            testState.isForegroundBackgroundEnabled = true;
         }
         if (_config.has("enableManualAppLoaded")) {
             // this.config.apm.enableManualAppLoadedTrigger();
-            isManualAppLoadedTriggerEnabled = true;
+            testState.isManualAppLoadedTriggerEnabled = true;
         }
         if (_config.has("startTSOverride")) {
             // this.config.apm.setAppStartTimestampOverride(_config.getLong("startTSOverride"));
-            isStartTSOverridden = true;
+            testState.isStartTSOverridden = true;
         }
         // APM END --------------------------------------------
 

@@ -11,14 +11,13 @@ void main() {
     // set no apm config options
     await Countly.initWithConfig(config);
 
-    // check if apm config options are not set
-    bool appStart = await channelTest.invokeMethod('isAppStartTimeTracked');
-    bool fBEnabled = await channelTest.invokeMethod('isFBEnabled');
-    bool manualTrigger = await channelTest.invokeMethod('isManualAppLoadedTriggerEnabled');
-    bool tSOverride = await channelTest.invokeMethod('isStartTSOverridden');
-    expect(appStart, false);
-    expect(fBEnabled, false);
-    expect(manualTrigger, false);
-    expect(tSOverride, false);
+    // get test state
+    Map<String, dynamic> state = await getTestState();
+
+    // check if all apm config options are set correctly
+    expect(state['isAppStartTimeTracked'], false);
+    expect(state['isForegroundBackgroundEnabled'], false);
+    expect(state['isManualAppLoadedTriggerEnabled'], false);
+    expect(state['isStartTSOverridden'], false);
   });
 }

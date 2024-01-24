@@ -50,3 +50,9 @@ void creatServer(List requestArray) async {
     request.response.close();
   });
 }
+
+/// Gives you the current state of the native plugin
+Future<Map<String, dynamic>> getTestState() async {
+  String state = await channelTest.invokeMethod('getTestState');
+  return jsonDecode(state) as Map<String, dynamic>;
+}
