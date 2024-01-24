@@ -19,6 +19,11 @@
 + (CountlyFeedbackWidget *)createWithDictionary:(NSDictionary *)dictionary;
 @end
 
+@interface CountlyPersistency ()
+@property (nonatomic) NSMutableArray* queuedRequests;
+@property (nonatomic) NSMutableArray* recordedEvents;
+@end
+
 BOOL BUILDING_WITH_PUSH_DISABLED = false;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
@@ -107,7 +112,21 @@ FlutterMethodChannel *_channel;
         } else {
             result(@"false");
         }
-    } else if ([@"recordEvent" isEqualToString:call.method]) {
+    } else if ([@"getRequestQueue" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSMutableArray*  queuedRequests = [CountlyPersistency.sharedInstance queuedRequests];
+            NSString * queuedRequestsString = [queuedRequests componentsJoinedByString:@", "];
+            result(queuedRequestsString);
+        });
+        
+    } else if ([@"getEventQueue" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSMutableArray*  recordedEvents = [CountlyPersistency.sharedInstance recordedEvents];
+            NSString * recordedEventsString = [recordedEvents componentsJoinedByString:@", "];
+            result(recordedEventsString);
+        });
+        
+    }  else if ([@"recordEvent" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *key = [command objectAtIndex:0];
           NSString *countString = [command objectAtIndex:1];
