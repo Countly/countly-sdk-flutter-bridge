@@ -313,8 +313,6 @@ class Countly {
     return result;
   }
 
-  static bool isNullOrEmpty(String? s) => s == null || s.isEmpty;
-
   static Future<String?> recordEvent(Map<String, Object> options) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "recordEvent"';
