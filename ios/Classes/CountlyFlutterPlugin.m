@@ -707,7 +707,17 @@ FlutterMethodChannel *_channel;
           [Countly.sharedInstance giveAllConsents];
           result(@"giveAllConsent!");
         });
-    } else if ([@"removeAllConsent" isEqualToString:call.method]) {
+    } else if ([@"getRequestQueue" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          // TODO: implement
+          result(@"RQ");
+        });
+    } else if ([@"getEventQueue" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          // TODO: implement
+          result(@"EQ");
+        });
+    }  else if ([@"removeAllConsent" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           [Countly.sharedInstance cancelConsentForAllFeatures];
           result(@"removeAllConsent!");
