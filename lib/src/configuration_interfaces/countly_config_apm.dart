@@ -3,13 +3,13 @@
 class CountlyConfigApm {
   /// private variables.
   bool _enableForegroundBackground = false;
-  bool _recordAppStartTime = false;
+  bool _trackAppStartTime = false;
   bool _enableManualAppLoaded = false;
   int _startTSOverride = 0;
 
   /// getters
   bool get enableForegroundBackground => _enableForegroundBackground;
-  bool get recordAppStartTime => _recordAppStartTime;
+  bool get trackAppStartTime => _trackAppStartTime;
   bool get enableManualAppLoaded => _enableManualAppLoaded;
   int get startTSOverride => _startTSOverride;
 
@@ -23,7 +23,7 @@ class CountlyConfigApm {
 
   /// Enables the automatic tracking of app start time.
   CountlyConfigApm enableAppStartTimeTracking() {
-    _recordAppStartTime = true;
+    _trackAppStartTime = true;
     return this;
   }
 

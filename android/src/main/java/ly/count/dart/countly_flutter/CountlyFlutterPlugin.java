@@ -19,7 +19,6 @@ import ly.count.android.sdk.ExperimentInformation;
 import ly.count.android.sdk.FeedbackRatingCallback;
 import ly.count.android.sdk.ModuleFeedback.*;
 import ly.count.android.sdk.DeviceIdType;
-import ly.count.dart.countly_flutter.CountlyTestState;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -135,7 +134,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private Lifecycle lifecycle;
     static final int requestIDNoCallback = -1;
     static final int requestIDGlobalCallback = -2;
-    private CountlyTestState testState = new CountlyTestState();
 
     List<CountlyFeedbackWidget> retrievedWidgetList = null;
 
@@ -171,8 +169,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         this.context = context;
         methodChannel = new MethodChannel(messenger, "countly_flutter");
         methodChannel.setMethodCallHandler(this);
-        this.config.enableManualAppLoadedTrigger(); // TODO: will stay till future update
-
         log("onAttachedToEngineInternal", LogLevel.INFO);
     }
 
@@ -289,7 +285,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 } else {
                     this.config.setApplication(activity.getApplication());
                 }
-                testState.initConfig = config;
                 Countly.sharedInstance().init(this.config);
                 result.success("initialized!");
             } else if ("isInitialized".equals(call.method)) {
@@ -300,22 +295,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 } else {
                     result.success("false");
                 }
-            } else if ("getRequestQueue".equals(call.method)) {
-                CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
-                String[] requestQ = countlyStore.getRequests();
-                JSONArray requestArray = new JSONArray();
-                for (String request : requestQ) {
-                    requestArray.put(request);
-                }
-                result.success(requestArray.toString());
-            } else if ("getEventQueue".equals(call.method)) {
-                CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
-                String[] eventQ = countlyStore.getEvents();
-                JSONArray eventArray = new JSONArray();
-                for (String event : eventQ) {
-                    eventArray.put(event);
-                }
-                result.success(eventArray.toString());
             } else if ("getCurrentDeviceId".equals(call.method)) {
                 String deviceID = Countly.sharedInstance().deviceId().getID();
                 result.success(deviceID);
@@ -1261,8 +1240,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 }
                 result.success("recordNetworkTrace: success");
             } else if ("enableApm".equals(call.method)) {
-                // this.config.apm.enableAppStartTimeTracking();
-                testState.isAppStartTimeTracked = true;
+                this.config.setRecordAppStartTime(_config.getBoolean("recordAppStartTime"));
                 result.success("enableApm: success");
             } else if ("throwNativeException".equals(call.method)) {
                 throw new IllegalStateException("Native Exception Crashhh!");
@@ -1352,9 +1330,23 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } 
             
             //--------------Test Methods-------------------------------
-            else if ("getTestState".equals(call.method)) {
-                result.success(testState.getState().toString());
-            }
+            else if ("getRequestQueue".equals(call.method)) {
+                CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
+                String[] requestQ = countlyStore.getRequests();
+                JSONArray requestArray = new JSONArray();
+                for (String request : requestQ) {
+                    requestArray.put(request);
+                }
+                result.success(requestArray.toString());
+            } else if ("getEventQueue".equals(call.method)) {
+                CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
+                String[] eventQ = countlyStore.getEvents();
+                JSONArray eventArray = new JSONArray();
+                for (String event : eventQ) {
+                    eventArray.put(event);
+                }
+                result.success(eventArray.toString());
+            } 
             //------------------End------------------------------------
 
             else {
@@ -1569,21 +1561,21 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.setStarRatingTextDismiss(_config.getString("starRatingTextDismiss"));
         }
         // APM ------------------------------------------------
-        if (_config.has("recordAppStartTime")) {
+        if (_config.has("trackAppStartTime")) {
             this.config.apm.enableAppStartTimeTracking();
-            testState.isAppStartTimeTracked = true;
         }
         if (_config.has("enableForegroundBackground")) {
             this.config.apm.enableForegroundBackgroundTracking();
-            testState.isForegroundBackgroundEnabled = true;
         }
         if (_config.has("enableManualAppLoaded")) {
             this.config.apm.enableManualAppLoadedTrigger();
-            testState.isManualAppLoadedTriggerEnabled = true;
         }
         if (_config.has("startTSOverride")) {
             this.config.apm.setAppStartTimestampOverride(_config.getLong("startTSOverride"));
-            testState.isStartTSOverridden = true;
+        }
+        // legacy
+        if (_config.has("recordAppStartTime")) {
+            this.config.setRecordAppStartTime(_config.getBoolean("recordAppStartTime"));
         }
         // APM END --------------------------------------------
 

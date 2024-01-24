@@ -11,13 +11,6 @@ void main() {
     // set no apm config options
     await Countly.initWithConfig(config);
 
-    // get test state
-    Map<String, dynamic> state = await getTestState();
-
-    // check if all apm config options are set correctly
-    expect(state['isAppStartTimeTracked'], false);
-    expect(state['isForegroundBackgroundEnabled'], false);
-    expect(state['isManualAppLoadedTriggerEnabled'], false);
-    expect(state['isStartTSOverridden'], false);
+    // TODO: add new tests
   });
 }

@@ -2024,8 +2024,8 @@ class Countly {
       }
 
       /// APM ---------------------------
-      if (config.apm.recordAppStartTime) {
-        countlyConfig['recordAppStartTime'] = config.apm.recordAppStartTime;
+      if (config.apm.trackAppStartTime) {
+        countlyConfig['trackAppStartTime'] = config.apm.trackAppStartTime;
       }
       if (config.apm.enableForegroundBackground) {
         countlyConfig['enableForegroundBackground'] = config.apm.enableForegroundBackground;
@@ -2035,6 +2035,10 @@ class Countly {
       }
       if (config.apm.startTSOverride != 0) {
         countlyConfig['startTSOverride'] = config.apm.startTSOverride;
+      }
+      // legacy
+      if (config.recordAppStartTime != null) {
+        countlyConfig['recordAppStartTime'] = config.recordAppStartTime;
       }
 
       /// APM END ---------------------------

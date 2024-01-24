@@ -13,7 +13,7 @@ final String APP_KEY = 'YOUR_APP_KEY';
 /// Get request queue from native side
 Future<List> getRequestQueue() async {
   _channelTest.setMethodCallHandler((call) => Future.value(null));
-  String? rq = await _channelTest.invokeMethod('getRequestQueue');
+  String rq = await _channelTest.invokeMethod('getRequestQueue');
   List<dynamic> requestList = json.decode(rq!);
   return requestList;
 }
@@ -58,10 +58,4 @@ void creatServer(List requestArray) async {
     request.response.write(jsonEncode({'result': 'Success'}));
     request.response.close();
   });
-}
-
-/// Gives you the current state of the native plugin
-Future<Map<String, dynamic>> getTestState() async {
-  String state = await channelTest.invokeMethod('getTestState');
-  return jsonDecode(state) as Map<String, dynamic>;
 }

@@ -30,7 +30,10 @@ class CountlyConfiguration {
   };
 
   static CountlyConfig getConfig() {
-    return CountlyConfig(SERVER_URL, APP_KEY)..setLoggingEnabled(true) // Enable countly internal debugging logs
+    CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)..setLoggingEnabled(true);
+    config.apm.enableForegroundBackgroundTracking().enableManualAppLoadedTrigger().setAppStartTimestampOverride(123456789).enableAppStartTimeTracking();
+
+    return config // Enable countly internal debugging logs
 
         // Currently only logging is enabled for debugging purposes
         // Below you can see most of the methods that you can use to configure the Countly SDK
