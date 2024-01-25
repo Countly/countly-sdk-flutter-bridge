@@ -75,6 +75,8 @@ class CountlyConfig {
 
   Map<String, String>? get location => _location;
 
+  bool? get recordAppStartTime => _recordAppStartTime;
+
   int? get maxRequestQueueSize => _maxRequestQueueSize;
 
   bool? get manualSessionEnabled => _manualSessionEnabled;
@@ -223,9 +225,7 @@ class CountlyConfig {
   /// Enable the recording of the app start time. (disabled by default)
   /// This is now deprecated, use CountlyConfig.apm.enableAppStartTimeTracking() instead
   CountlyConfig setRecordAppStartTime(bool recordAppStartTime) {
-    if (recordAppStartTime) {
-      _countlyConfigApmInstance.enableAppStartTimeTracking();
-    }
+    _recordAppStartTime = recordAppStartTime;
     return this;
   }
 

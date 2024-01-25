@@ -1240,7 +1240,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 }
                 result.success("recordNetworkTrace: success");
             } else if ("enableApm".equals(call.method)) {
-                this.config.setRecordAppStartTime(_config.getBoolean("recordAppStartTime"));
+                this.config.setRecordAppStartTime(true);
                 result.success("enableApm: success");
             } else if ("throwNativeException".equals(call.method)) {
                 throw new IllegalStateException("Native Exception Crashhh!");
@@ -1332,21 +1332,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             //--------------Test Methods-------------------------------
             else if ("getRequestQueue".equals(call.method)) {
                 CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
-                String[] requestQ = countlyStore.getRequests();
-                JSONArray requestArray = new JSONArray();
-                for (String request : requestQ) {
-                    requestArray.put(request);
-                }
-                result.success(requestArray.toString());
+                result.success(new ArrayList<>(Arrays.asList(countlyStore.getRequests())));
             } else if ("getEventQueue".equals(call.method)) {
                 CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
-                String[] eventQ = countlyStore.getEvents();
-                JSONArray eventArray = new JSONArray();
-                for (String event : eventQ) {
-                    eventArray.put(event);
-                }
-                result.success(eventArray.toString());
-            } 
+                result.success(new ArrayList<>(Arrays.asList(countlyStore.getEvents())));
+            } else if ("halt".equals(call.method)) {
+                Countly.sharedInstance().halt();
+                result.success("halt: success");
+            }
             //------------------End------------------------------------
 
             else {
