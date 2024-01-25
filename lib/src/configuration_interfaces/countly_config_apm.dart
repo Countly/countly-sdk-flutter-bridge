@@ -34,6 +34,7 @@ class CountlyConfigApm {
   }
 
   /// Gives you the ability to override the automatic app start timestamp.
+  /// [timestamp] is the timestamp (in milliseconds)
   CountlyConfigApm setAppStartTimestampOverride(int timestamp) {
     if (timestamp > 0) {
       _startTSOverride = timestamp;
