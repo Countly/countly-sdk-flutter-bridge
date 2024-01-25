@@ -115,15 +115,21 @@ FlutterMethodChannel *_channel;
     } else if ([@"getRequestQueue" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
             NSMutableArray*  queuedRequests = [CountlyPersistency.sharedInstance queuedRequests];
-            NSString * queuedRequestsString = [queuedRequests componentsJoinedByString:@", "];
-            result(queuedRequestsString);
+            result(queuedRequests);
         });
         
     } else if ([@"getEventQueue" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
             NSMutableArray*  recordedEvents = [CountlyPersistency.sharedInstance recordedEvents];
-            NSString * recordedEventsString = [recordedEvents componentsJoinedByString:@", "];
-            result(recordedEventsString);
+            NSMutableArray *recordedEventsJSON = NSMutableArray.new;
+            
+            for (id event in recordedEvents.copy) {
+                NSString *eventJson = [self toJSON:[event dictionaryRepresentation]];
+                if (eventJson) {
+                    [recordedEventsJSON addObject:eventJson];
+                }
+            }
+            result(recordedEventsJSON);
         });
         
     }  else if ([@"recordEvent" isEqualToString:call.method]) {
@@ -1662,5 +1668,17 @@ void CountlyFlutterInternalLog(NSString *format, ...) {
     NSLog(@"[CountlyFlutterPlugin] %@", logString);
 
     va_end(args);
+}
+
+- (NSString *)toJSON:(NSObject *)json {
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:NSJSONWritingPrettyPrinted error:&error];
+    
+    if (!jsonData) {
+        return @"";
+    } else {
+        NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        return jsonString;
+    }
 }
 @end
