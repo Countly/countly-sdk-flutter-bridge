@@ -21,19 +21,20 @@ class CountlyConfigApm {
     return this;
   }
 
-  /// Enables the automatic tracking of app start time.
+  /// Enables the tracking of app start time. (For iOS after this call you will have to call [enableManualAppLoadedTrigger])
   CountlyConfigApm enableAppStartTimeTracking() {
     _trackAppStartTime = true;
     return this;
   }
 
-  /// Enables manual trigger of the moment when the app has finished loading.
+  /// Enables the usage of manual trigger [Countly.appLoadingFinished] to determine app start finish time.
   CountlyConfigApm enableManualAppLoadedTrigger() {
     _enableManualAppLoaded = true;
     return this;
   }
 
-  /// Gives you the ability to override the automatic app start timestamp.
+  /// Gives you the ability to override the app start initial timestamp.
+  ///
   /// [timestamp] is the timestamp (in milliseconds)
   CountlyConfigApm setAppStartTimestampOverride(int timestamp) {
     if (timestamp > 0) {

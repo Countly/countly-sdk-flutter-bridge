@@ -222,8 +222,8 @@ class CountlyConfig {
     return this;
   }
 
-  /// Enable the recording of the app start time. (disabled by default)
-  /// This is now deprecated, use CountlyConfig.apm.enableAppStartTimeTracking() instead
+  /// Enables the recording of the app start time.
+  /// This is now deprecated, use [CountlyConfig.apm.enableAppStartTimeTracking] instead
   CountlyConfig setRecordAppStartTime(bool recordAppStartTime) {
     _recordAppStartTime = recordAppStartTime;
     return this;
