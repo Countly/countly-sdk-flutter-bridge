@@ -1530,9 +1530,9 @@ FlutterMethodChannel *_channel;
         if (enableManualAppLoaded) {
             config.apm.enableManualAppLoadedTrigger = [enableManualAppLoaded boolValue];
         }
-        NSNumber *enableAppStartTime = _config[@"enableAppStartTime"];
-        if (enableAppStartTime) {
-            config.apm.enableAppStartTimeTracking = [enableForegroundBackground boolValue];
+        NSNumber *trackAppStartTime = _config[@"trackAppStartTime"];
+        if (trackAppStartTime) {
+            config.apm.enableAppStartTimeTracking = [trackAppStartTime boolValue];
         }
         NSNumber *startTSOverride = _config[@"startTSOverride"];
         if (startTSOverride) {
