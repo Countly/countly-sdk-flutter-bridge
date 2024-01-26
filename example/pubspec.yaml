@@ -7,7 +7,7 @@ environment:
   sdk: ">=2.15.0 <3.0.0"
 
 dependencies:
-  countly_flutter:
+  countly_flutter_np:
     path: ../
   # for no push variation use the line below instead of countly_flutter:
   # countly_flutter_np:
