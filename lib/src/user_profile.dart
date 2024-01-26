@@ -50,8 +50,8 @@ abstract class UserProfile {
   /// [String value] - value to add to array
   Future<void> pushUnique(String key, String value);
 
-  /// Create array property, if property does not exist and remove value from array
-  /// You can only use it on array properties or properties that do not exist yet
+  /// If a custom property exists and its value is an array, then this will remove the specified value from that array.
+  /// You can only use it on array properties that exist.
   /// [String key] - property name for array property
   /// [String value] - value to remove from array
   Future<void> pull(String key, String value);
