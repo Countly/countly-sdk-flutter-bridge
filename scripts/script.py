@@ -59,6 +59,7 @@ modPathExampleYaml = '../example/pubspec.yaml'
 packagePathExample = '../example/lib/'
 packagePathExampleIntegrationTest = '../example/integration_test/'
 packagePathExampleIntegrationTest_sc1 = '../example/integration_test/scenario_device_id_init/'
+packagePathExampleIntegrationTest_sc2 = '../example/integration_test/sc-AP-appPerformanceMonit/'
 packagePathLib = '../lib/'
 packagePathLibInternal = '../lib/src/'
 packagePathIntegrationTest = '../integration_test/'
@@ -227,6 +228,7 @@ def main():
     print(packagePathExample)
     print(packagePathExampleIntegrationTest)
     print(packagePathExampleIntegrationTest_sc1)
+    print(packagePathExampleIntegrationTest_sc2)
     print(packagePathLib)
     print(packagePathLibInternal)
     print(packagePathIntegrationTest)
@@ -247,6 +249,7 @@ def main():
         update_package(packagePathExample, packagePrefix, packagePrefixToChange)
         update_package(packagePathExampleIntegrationTest, packagePrefix, packagePrefixToChange)
         update_package(packagePathExampleIntegrationTest_sc1, packagePrefix, packagePrefixToChange)
+        update_package(packagePathExampleIntegrationTest_sc2, packagePrefix, packagePrefixToChange)
         update_package(packagePathLib, packagePrefix, packagePrefixToChange)
         update_package(packagePathLibInternal, packagePrefix, packagePrefixToChange)
         update_package(packagePathIntegrationTest, packagePrefix, packagePrefixToChange)
