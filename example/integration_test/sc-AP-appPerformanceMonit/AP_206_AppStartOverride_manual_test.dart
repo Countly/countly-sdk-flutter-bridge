@@ -7,7 +7,7 @@ import '../utils.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Check no apm configuration', (WidgetTester tester) async {
+  testWidgets('Check manual tracking overload', (WidgetTester tester) async {
     CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true);
     // get the ts of 1 hour ago in ms
     int ts = DateTime.now().subtract(Duration(hours: 1)).millisecondsSinceEpoch;

@@ -7,17 +7,16 @@ import '../utils.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Check no apm configuration', (WidgetTester tester) async {
+  testWidgets('Check automatic start time tracking override', (WidgetTester tester) async {
     CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true);
     // get the ts of 1 hour ago in ms
     int ts = DateTime.now().subtract(Duration(hours: 1)).millisecondsSinceEpoch;
     config.apm.setAppStartTimestampOverride(ts).enableAppStartTimeTracking();
     await Countly.initWithConfig(config);
 
-    // wait for 5 seconds. Go to background and come back to foreground manually.
-    // TODO(turtledreams): automate this
-    print('Waiting for 5 seconds...');
-    await tester.pump(Duration(seconds: 5));
+    // wait for 2 seconds.
+    print('Waiting for 2 seconds...');
+    await tester.pump(Duration(seconds: 2));
 
     // check if there is 1 apm related requests in the queue
     List<String> apmRequests = await getAndPrintWantedElementsWithParamFromAllQueues('apm');
