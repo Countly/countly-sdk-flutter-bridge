@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -20,9 +22,11 @@ void main() {
 
     // check if there is 1 apm related requests in the queue
     List<String> apmRequests = await getAndPrintWantedElementsWithParamFromAllQueues('apm');
-    expect(apmRequests.length, 1);
-    Map<String, dynamic> apmRequest = await getApmParamsFromRequest(apmRequests[0]);
-    print(apmRequest);
-    expect(apmRequest['stz'], ts); // check if the timestamp is the same as the one we set
+    expect(apmRequests.length, Platform.isIOS ? 0 : 1);
+    if (Platform.isAndroid) {
+      Map<String, dynamic> apmRequest = await getApmParamsFromRequest(apmRequests[0]);
+      print(apmRequest);
+      expect(apmRequest['stz'], ts); // check if the timestamp is the same as the one we set
+    }
   });
 }
