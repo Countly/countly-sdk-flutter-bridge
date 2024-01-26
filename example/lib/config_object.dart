@@ -32,7 +32,7 @@ class CountlyConfiguration {
   static CountlyConfig getConfig() {
 
     if(SERVER_URL == 'https://your.server.ly' || APP_KEY == 'YOUR_APP_KEY'){
-      throw new Exception('Please do not use default set of app key and server url');
+      print('Please do not use default set of app key and server url');
     }
 
     return CountlyConfig(SERVER_URL, APP_KEY)..setLoggingEnabled(true) // Enable countly internal debugging logs
