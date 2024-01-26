@@ -16,8 +16,8 @@ void main() {
     await Countly.instance.views.startAutoStoppedView('test2');
 
     // Get request and event queues from native side
-    List<dynamic> requestList = await getRequestQueue(); // List of strings
-    List<dynamic> eventList = await getEventQueue(); // List of json objects
+    List<String> requestList = await getRequestQueue(); // List of strings
+    List<String> eventList = await getEventQueue(); // List of json objects
 
     // Some logs for debugging
     print('RQ: $requestList');

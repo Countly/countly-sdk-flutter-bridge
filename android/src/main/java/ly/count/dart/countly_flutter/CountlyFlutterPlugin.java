@@ -66,7 +66,7 @@ import com.google.firebase.FirebaseApp;
  */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
     private static final String TAG = "CountlyFlutterPlugin";
-    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "23.12.1";
+    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "24.1.0";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterbnp-android";
 
@@ -169,8 +169,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         this.context = context;
         methodChannel = new MethodChannel(messenger, "countly_flutter");
         methodChannel.setMethodCallHandler(this);
-        this.config.enableManualAppLoadedTrigger();
-
         log("onAttachedToEngineInternal", LogLevel.INFO);
     }
 
@@ -297,22 +295,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 } else {
                     result.success("false");
                 }
-            } else if ("getRequestQueue".equals(call.method)) {
-                CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
-                String[] requestQ = countlyStore.getRequests();
-                JSONArray requestArray = new JSONArray();
-                for (String request : requestQ) {
-                    requestArray.put(request);
-                }
-                result.success(requestArray.toString());
-            } else if ("getEventQueue".equals(call.method)) {
-                CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
-                String[] eventQ = countlyStore.getEvents();
-                JSONArray eventArray = new JSONArray();
-                for (String event : eventQ) {
-                    eventArray.put(event);
-                }
-                result.success(eventArray.toString());
             } else if ("getCurrentDeviceId".equals(call.method)) {
                 String deviceID = Countly.sharedInstance().deviceId().getID();
                 result.success(deviceID);
@@ -1345,7 +1327,22 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("appLoadingFinished".equals(call.method)) {
                 Countly.sharedInstance().apm().setAppIsLoaded();
                 result.success("appLoadingFinished: success");
-            } else {
+            } 
+            
+            //--------------Test Methods-------------------------------
+            else if ("getRequestQueue".equals(call.method)) {
+                CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
+                result.success(Arrays.asList(countlyStore.getRequests()));
+            } else if ("getEventQueue".equals(call.method)) {
+                CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
+                result.success(Arrays.asList(countlyStore.getEvents()));
+            } else if ("halt".equals(call.method)) {
+                Countly.sharedInstance().halt();
+                result.success("halt: success");
+            }
+            //------------------End------------------------------------
+
+            else {
                 result.notImplemented();
             }
 
@@ -1556,9 +1553,25 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if (_config.has("starRatingTextDismiss")) {
             this.config.setStarRatingTextDismiss(_config.getString("starRatingTextDismiss"));
         }
+        // APM ------------------------------------------------
+        if (_config.has("trackAppStartTime")) {
+            this.config.apm.enableAppStartTimeTracking();
+        }
+        if (_config.has("enableForegroundBackground")) {
+            this.config.apm.enableForegroundBackgroundTracking();
+        }
+        if (_config.has("enableManualAppLoaded")) {
+            this.config.apm.enableManualAppLoadedTrigger();
+        }
+        if (_config.has("startTSOverride")) {
+            this.config.apm.setAppStartTimestampOverride(_config.getLong("startTSOverride"));
+        }
+        // legacy
         if (_config.has("recordAppStartTime")) {
             this.config.setRecordAppStartTime(_config.getBoolean("recordAppStartTime"));
         }
+        // APM END --------------------------------------------
+
         if (_config.has("enableUnhandledCrashReporting") && _config.getBoolean("enableUnhandledCrashReporting")) {
             this.config.enableCrashReporting();
         }

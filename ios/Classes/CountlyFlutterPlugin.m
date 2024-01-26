@@ -19,11 +19,16 @@
 + (CountlyFeedbackWidget *)createWithDictionary:(NSDictionary *)dictionary;
 @end
 
+@interface CountlyPersistency ()
+@property (nonatomic) NSMutableArray* queuedRequests;
+@property (nonatomic) NSMutableArray* recordedEvents;
+@end
+
 BOOL BUILDING_WITH_PUSH_DISABLED = false;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
 
-NSString *const kCountlyFlutterSDKVersion = @"23.12.1";
+NSString *const kCountlyFlutterSDKVersion = @"24.1.0";
 NSString *const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 NSString *const kCountlyFlutterSDKNameNoPush = @"dart-flutterbnp-ios";
 
@@ -107,7 +112,27 @@ FlutterMethodChannel *_channel;
         } else {
             result(@"false");
         }
-    } else if ([@"recordEvent" isEqualToString:call.method]) {
+    } else if ([@"getRequestQueue" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSMutableArray*  queuedRequests = [CountlyPersistency.sharedInstance queuedRequests];
+            result(queuedRequests);
+        });
+        
+    } else if ([@"getEventQueue" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSMutableArray*  recordedEvents = [CountlyPersistency.sharedInstance recordedEvents];
+            NSMutableArray *recordedEventsJSON = NSMutableArray.new;
+            
+            for (id event in recordedEvents.copy) {
+                NSString *eventJson = [self toJSON:[event dictionaryRepresentation]];
+                if (eventJson) {
+                    [recordedEventsJSON addObject:eventJson];
+                }
+            }
+            result(recordedEventsJSON);
+        });
+        
+    }  else if ([@"recordEvent" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *key = [command objectAtIndex:0];
           NSString *countString = [command objectAtIndex:1];
@@ -1497,6 +1522,23 @@ FlutterMethodChannel *_channel;
         if (recordAppStartTime) {
             config.enablePerformanceMonitoring = [recordAppStartTime boolValue];
         }
+        NSNumber *enableForegroundBackground = _config[@"enableForegroundBackground"];
+        if (enableForegroundBackground) {
+            config.apm.enableForegroundBackgroundTracking = [enableForegroundBackground boolValue];
+        }
+        NSNumber *enableManualAppLoaded = _config[@"enableManualAppLoaded"];
+        if (enableManualAppLoaded) {
+            config.apm.enableManualAppLoadedTrigger = [enableManualAppLoaded boolValue];
+        }
+        NSNumber *trackAppStartTime = _config[@"trackAppStartTime"];
+        if (trackAppStartTime) {
+            config.apm.enableAppStartTimeTracking = [trackAppStartTime boolValue];
+        }
+        NSNumber *startTSOverride = _config[@"startTSOverride"];
+        if (startTSOverride) {
+            [config.apm setAppStartTimestampOverride:[startTSOverride longLongValue]];
+        }
+        
         NSNumber *enableUnhandledCrashReporting = _config[@"enableUnhandledCrashReporting"];
         if (enableUnhandledCrashReporting && [enableUnhandledCrashReporting boolValue]) {
             [self addCountlyFeature:CLYCrashReporting];
@@ -1626,5 +1668,17 @@ void CountlyFlutterInternalLog(NSString *format, ...) {
     NSLog(@"[CountlyFlutterPlugin] %@", logString);
 
     va_end(args);
+}
+
+- (NSString *)toJSON:(NSObject *)json {
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:NSJSONWritingPrettyPrinted error:&error];
+    
+    if (!jsonData) {
+        return @"";
+    } else {
+        NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        return jsonString;
+    }
 }
 @end

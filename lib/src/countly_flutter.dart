@@ -1736,10 +1736,10 @@ class Countly {
 
   /// Enable APM features, which includes the recording of app start time.
   /// Should be call before Countly init
-  @Deprecated('Use setRecordAppStartTime of CountlyConfig instead')
+  @Deprecated('Use enableAppStartTimeTracking of CountlyConfig.apm instead')
   static Future<String?> enableApm() async {
     log('Calling "enableApm"');
-    log('enableApm is deprecated, use setRecordAppStartTime of CountlyConfig instead', logLevel: LogLevel.WARNING);
+    log('enableApm is deprecated, use enableAppStartTimeTracking of CountlyConfig.apm instead', logLevel: LogLevel.WARNING);
     final String? result = await _channel.invokeMethod('enableApm');
 
     return result;
@@ -1963,9 +1963,6 @@ class Countly {
       if (config.shouldRequireConsent != null) {
         countlyConfig['shouldRequireConsent'] = config.shouldRequireConsent;
       }
-      if (config.recordAppStartTime != null) {
-        countlyConfig['recordAppStartTime'] = config.recordAppStartTime;
-      }
       if (config.enableUnhandledCrashReporting != null) {
         countlyConfig['enableUnhandledCrashReporting'] = config.enableUnhandledCrashReporting;
       }
@@ -2025,6 +2022,26 @@ class Countly {
       if (config.requestDropAgeHours != null) {
         countlyConfig['requestDropAgeHours'] = config.requestDropAgeHours;
       }
+
+      /// APM ---------------------------
+      if (config.apm.trackAppStartTime) {
+        countlyConfig['trackAppStartTime'] = config.apm.trackAppStartTime;
+      }
+      if (config.apm.enableForegroundBackground) {
+        countlyConfig['enableForegroundBackground'] = config.apm.enableForegroundBackground;
+      }
+      if (config.apm.enableManualAppLoaded) {
+        countlyConfig['enableManualAppLoaded'] = config.apm.enableManualAppLoaded;
+      }
+      if (config.apm.startTSOverride != 0) {
+        countlyConfig['startTSOverride'] = config.apm.startTSOverride;
+      }
+      // legacy
+      if (config.recordAppStartTime != null) {
+        countlyConfig['recordAppStartTime'] = config.recordAppStartTime;
+      }
+
+      /// APM END ---------------------------
 
       countlyConfig['remoteConfigAutomaticTriggers'] = config.remoteConfigAutomaticTriggers;
 
