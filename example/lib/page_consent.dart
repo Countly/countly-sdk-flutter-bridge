@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 
 class ConsentPage extends StatelessWidget {
   void giveMultipleConsent() {
-    Countly.giveConsent(['events', 'views', 'star-rating', 'crashes']);
+    Countly.giveConsent([CountlyConsent.events, CountlyConsent.views, CountlyConsent.starRating, CountlyConsent.crashes]);
   }
 
   void removeMultipleConsent() {
-    Countly.removeConsent(['events', 'views', 'star-rating', 'crashes']);
+    Countly.removeConsent([CountlyConsent.events, CountlyConsent.views, CountlyConsent.starRating, CountlyConsent.crashes]);
   }
 
   void giveAllConsent() {
@@ -20,83 +20,83 @@ class ConsentPage extends StatelessWidget {
   }
 
   void giveConsentSessions() {
-    Countly.giveConsent(['sessions']);
+    Countly.giveConsent([CountlyConsent.sessions]);
   }
 
   void giveConsentEvents() {
-    Countly.giveConsent(['events']);
+    Countly.giveConsent([CountlyConsent.events]);
   }
 
   void giveConsentViews() {
-    Countly.giveConsent(['views']);
+    Countly.giveConsent([CountlyConsent.views]);
   }
 
   void giveConsentLocation() {
-    Countly.giveConsent(['location']);
+    Countly.giveConsent([CountlyConsent.location]);
   }
 
   void giveConsentCrashes() {
-    Countly.giveConsent(['crashes']);
+    Countly.giveConsent([CountlyConsent.crashes]);
   }
 
   void giveConsentAttribution() {
-    Countly.giveConsent(['attribution']);
+    Countly.giveConsent([CountlyConsent.attribution]);
   }
 
   void giveConsentUsers() {
-    Countly.giveConsent(['users']);
+    Countly.giveConsent([CountlyConsent.users]);
   }
 
   void giveConsentPush() {
-    Countly.giveConsent(['push']);
+    Countly.giveConsent([CountlyConsent.push]);
   }
 
   void giveConsentStarRating() {
-    Countly.giveConsent(['star-rating']);
+    Countly.giveConsent([CountlyConsent.starRating]);
   }
 
   void giveConsentAPM() {
-    Countly.giveConsent(['apm']);
+    Countly.giveConsent([CountlyConsent.apm]);
   }
 
   void removeConsentsessions() {
-    Countly.removeConsent(['sessions']);
+    Countly.removeConsent([CountlyConsent.sessions]);
   }
 
   void removeConsentEvents() {
-    Countly.removeConsent(['events']);
+    Countly.removeConsent([CountlyConsent.events]);
   }
 
   void removeConsentViews() {
-    Countly.removeConsent(['views']);
+    Countly.removeConsent([CountlyConsent.views]);
   }
 
   void removeConsentlocation() {
-    Countly.removeConsent(['location']);
+    Countly.removeConsent([CountlyConsent.location]);
   }
 
   void removeConsentcrashes() {
-    Countly.removeConsent(['crashes']);
+    Countly.removeConsent([CountlyConsent.crashes]);
   }
 
   void removeConsentattribution() {
-    Countly.removeConsent(['attribution']);
+    Countly.removeConsent([CountlyConsent.attribution]);
   }
 
   void removeConsentusers() {
-    Countly.removeConsent(['users']);
+    Countly.removeConsent([CountlyConsent.users]);
   }
 
   void removeConsentpush() {
-    Countly.removeConsent(['push']);
+    Countly.removeConsent([CountlyConsent.push]);
   }
 
   void removeConsentstarRating() {
-    Countly.removeConsent(['star-rating']);
+    Countly.removeConsent([CountlyConsent.starRating]);
   }
 
   void removeConsentAPM() {
-    Countly.removeConsent(['apm']);
+    Countly.removeConsent([CountlyConsent.apm]);
   }
 
   @override

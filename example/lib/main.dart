@@ -18,19 +18,16 @@ import 'package:countly_flutter_example/page_views.dart';
 import 'package:countly_flutter_example/style.dart';
 import 'package:flutter/material.dart';
 
-final navigatorKey = GlobalKey<NavigatorState>();
-
-/// This or a similar call needs to added to catch and report Dart Errors to Countly,
-/// You need to run the app inside a Zone
-/// and provide the [Countly.recordDartError] callback for [onError()]
 void main() {
-  runZonedGuarded<Future<void>>(() async {
+  /// This or a similar call needs to added to catch and report Dart Errors to Countly,
+  /// You need to run the app inside a Zone
+  /// and provide the [Countly.recordDartError] callback for [onError()]
+  runZonedGuarded<void>(() {
     runApp(
       MaterialApp(
         theme: AppTheme.countlyTheme(),
         debugShowCheckedModeBanner: false,
         home: const MyApp(),
-        navigatorKey: navigatorKey, // Setting a global key for navigator
       ),
     );
   }, Countly.recordDartError);
@@ -44,8 +41,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final _messangerKey = GlobalKey<ScaffoldMessengerState>();
-
   @override
   void initState() {
     super.initState();
@@ -76,92 +71,99 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      scaffoldMessengerKey: _messangerKey,
-      theme: AppTheme.countlyTheme(),
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        appBar: AppBar(
-          flexibleSpace: Image(
-            image: AssetImage('assets/banner.png'),
-            fit: BoxFit.cover,
-          ),
-          backgroundColor: Colors.transparent,
+    return Scaffold(
+      appBar: AppBar(
+        flexibleSpace: Image(
+          image: AssetImage('assets/banner.png'),
+          fit: BoxFit.cover,
         ),
-        body: Center(
-            child: SingleChildScrollView(
+        backgroundColor: Colors.transparent,
+      ),
+      body: Center(
+        child: SingleChildScrollView(
           padding: EdgeInsets.only(left: 15, right: 15),
           child: Column(
             children: <Widget>[
               MyButton(
-                  text: 'Sessions',
-                  color: 'green',
-                  onPressed: () {
-                    navigateToPage(context, SessionsPage());
-                  }),
+                text: 'Sessions',
+                color: 'green',
+                onPressed: () {
+                  navigateToPage(context, SessionsPage());
+                },
+              ),
               MyButton(
-                  text: 'Events',
-                  color: 'green',
-                  onPressed: () {
-                    navigateToPage(context, EventsPage());
-                  }),
+                text: 'Events',
+                color: 'green',
+                onPressed: () {
+                  navigateToPage(context, EventsPage());
+                },
+              ),
               MyButton(
-                  text: 'Views',
-                  color: 'green',
-                  onPressed: () {
-                    navigateToPage(context, ViewsPage());
-                  }),
+                text: 'Views',
+                color: 'green',
+                onPressed: () {
+                  navigateToPage(context, ViewsPage());
+                },
+              ),
               MyButton(
-                  text: 'Device ID Management',
-                  color: 'green',
-                  onPressed: () {
-                    navigateToPage(context, DeviceIDPage());
-                  }),
+                text: 'Device ID Management',
+                color: 'green',
+                onPressed: () {
+                  navigateToPage(context, DeviceIDPage());
+                },
+              ),
               MyButton(
-                  text: 'User Profiles',
-                  color: 'green',
-                  onPressed: () {
-                    navigateToPage(context, UserProfilesPage());
-                  }),
+                text: 'User Profiles',
+                color: 'green',
+                onPressed: () {
+                  navigateToPage(context, UserProfilesPage());
+                },
+              ),
               MyButton(
-                  text: 'Consent',
-                  color: 'green',
-                  onPressed: () {
-                    navigateToPage(context, ConsentPage());
-                  }),
+                text: 'Consent',
+                color: 'green',
+                onPressed: () {
+                  navigateToPage(context, ConsentPage());
+                },
+              ),
               MyButton(
-                  text: 'Feedback Widgets',
-                  color: 'green',
-                  onPressed: () {
-                    navigateToPage(context, FeedbackWidgetsPage());
-                  }),
+                text: 'Feedback Widgets',
+                color: 'green',
+                onPressed: () {
+                  navigateToPage(context, FeedbackWidgetsPage());
+                },
+              ),
               MyButton(
-                  text: 'Remote Config',
-                  color: 'green',
-                  onPressed: () {
-                    navigateToPage(context, RemoteConfigPage());
-                  }),
+                text: 'Remote Config',
+                color: 'green',
+                onPressed: () {
+                  navigateToPage(context, RemoteConfigPage());
+                },
+              ),
               MyButton(
-                  text: 'APM',
-                  color: 'green',
-                  onPressed: () {
-                    navigateToPage(context, APMPage());
-                  }),
+                text: 'APM',
+                color: 'green',
+                onPressed: () {
+                  navigateToPage(context, APMPage());
+                },
+              ),
               MyButton(
-                  text: 'Crash Reporting',
-                  color: 'green',
-                  onPressed: () {
-                    navigateToPage(context, CrashReportingPage());
-                  }),
+                text: 'Crash Reporting',
+                color: 'green',
+                onPressed: () {
+                  navigateToPage(context, CrashReportingPage());
+                },
+              ),
               MyButton(
-                  text: 'Other Features',
-                  color: 'green',
-                  onPressed: () {
-                    navigateToPage(context, OthersPage());
-                  }),
+                text: 'Other Features',
+                color: 'green',
+                onPressed: () {
+                  navigateToPage(context, OthersPage());
+                },
+              ),
             ],
           ),
-        )),
+        ),
       ),
     );
   }
