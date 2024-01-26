@@ -12,6 +12,20 @@
 * Updated underlying Android SDK version to 24.1.0
 * Updated underlying iOS SDK version to 24.1.0
 
+## 24.1.0-np
+* ! Minor breaking change ! Tracking of foreground and background time for APM is disabled by default
+
+* Added four new APM configuration options under the 'apm' interface of 'CountlyConfig':
+  * 'enableForegroundBackgroundTracking' for enabling automatic F/B time tracking
+  * 'enableAppStartTimeTracking' for enabling automatic app launch time tracking (Android only)
+  * 'enableManualAppLoadedTrigger' for enabling the manipulation of app load time finished timestamp
+  * 'setAppStartTimestampOverride' for enabling the manipulation of app load time starting timestamp
+
+* Deprecated 'setRecordAppStartTime' config option. Use instead 'apm.enableAppStartTimeTracking'. (for iOS also 'enableForegroundBackgroundTracking' must be used)
+
+* Updated underlying Android SDK version to 24.1.0
+* Updated underlying iOS SDK version to 24.1.0
+
 ## 23.12.1
 * Added s.swift_version = '5.0' in the podspec file to resolve an error related to the Flutter module.
 
