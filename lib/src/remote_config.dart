@@ -2,7 +2,8 @@ import 'experiment_information.dart';
 
 /// REMOTE CONFIG / AB TESTING
 class RCData {
-  Object? value; /// stores the RC value
+  /// stores the RC value
+  Object? value;
   bool isCurrentUsersData;
   RCData(this.value, this.isCurrentUsersData);
 
