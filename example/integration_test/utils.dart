@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/services.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const MethodChannel _channelTest = MethodChannel('countly_flutter');
@@ -107,4 +107,14 @@ Future<Map<String, dynamic>> getApmParamsFromRequest(String request) async {
   Map<String, List<String>> queryParams = Uri.parse("?" + request).queryParametersAll;
   Map<String, dynamic> apmParams = json.decode(queryParams['apm']![0]);
   return apmParams;
+}
+
+/// Go to background and foreground
+void goBackgroundAndForeground() {
+  FlutterForegroundTask.minimizeApp();
+  print('waiting for 2 seconds, go to background');
+  sleep(Duration(seconds: 2));
+  FlutterForegroundTask.launchApp();
+  print('waiting for 2 seconds, go to foreground');
+  sleep(Duration(seconds: 2));
 }
