@@ -1,6 +1,6 @@
 name: countly_flutter
 description: Countly is an innovative, real-time, open source mobile analytics and push notifications platform.
-version: 23.12.1
+version: 24.1.0
 homepage: https://support.count.ly/hc/en-us/articles/360037944212
 repository: https://github.com/Countly/countly-sdk-flutter-bridge
 issue_tracker: https://github.com/Countly/countly-sdk-flutter-bridge/issues
@@ -10,7 +10,7 @@ platforms:
   ios:
 
 environment:
-    sdk: ">=2.12.0 <3.0.0"
+    sdk: ">=2.12.0 <4.0.0"
     flutter: ">=2.0.0"
 
 dependencies:
