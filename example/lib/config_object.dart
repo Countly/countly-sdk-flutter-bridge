@@ -31,7 +31,7 @@ class CountlyConfiguration {
 
   static CountlyConfig getConfig() {
 
-    if(SERVER_URL == 'https://your.server.ly' || APP_KEY == 'YOUR_APP_KEY'){
+    if (SERVER_URL == 'https://your.server.ly' || APP_KEY == 'YOUR_APP_KEY') {
       print('Please do not use default set of app key and server url');
     }
 
