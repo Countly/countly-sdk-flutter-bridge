@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import '../utils.dart';
 
-//  Goal of this test is to check if no apm configuration is set, no requests are sent to the server regarding apm
+/// Goal of this test is to check if no apm configuration is set, no requests are sent to the server regarding apm
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
