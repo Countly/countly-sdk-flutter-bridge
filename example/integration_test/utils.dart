@@ -112,9 +112,22 @@ Future<Map<String, dynamic>> getApmParamsFromRequest(String request) async {
 /// Go to background and foreground
 void goBackgroundAndForeground() {
   FlutterForegroundTask.minimizeApp();
-  print('waiting for 2 seconds, go to background');
-  sleep(Duration(seconds: 2));
+  if (Platform.isIOS) {
+    printMessageMultipleTimes('waiting for 3 seconds, now go to background', 3);
+  }
+  sleep(Duration(seconds: 3));
   FlutterForegroundTask.launchApp();
-  print('waiting for 2 seconds, go to foreground');
-  sleep(Duration(seconds: 2));
+  if (Platform.isIOS) {
+    printMessageMultipleTimes('waiting for 3 seconds, now go to foreground', 3);
+  }
+  sleep(Duration(seconds: 3));
+}
+
+/// Print message x times
+/// [String message] - message
+/// [int times] - times
+void printMessageMultipleTimes(String message, int times) {
+  for (int i = 0; i < times; i++) {
+    print(message);
+  }
 }
