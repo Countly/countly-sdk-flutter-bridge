@@ -8,7 +8,7 @@ const MethodChannel _channelTest = MethodChannel('countly_flutter');
 
 // Base config options for tests
 final String SERVER_URL = 'https://xxx.count.ly';
-final String APP_KEY = 'YOUR_APP_KEY';
+final String APP_KEY = 'YOUR_APP_KEY'; // change this for ios tests
 
 /// Get request queue from native side (list of strings)
 Future<List<String>> getRequestQueue() async {
@@ -113,9 +113,9 @@ Future<Map<String, dynamic>> getApmParamsFromRequest(String request) async {
 void goBackgroundAndForeground() {
   FlutterForegroundTask.minimizeApp();
   if (Platform.isIOS) {
-    printMessageMultipleTimes('waiting for 3 seconds, now go to background', 3);
+    printMessageMultipleTimes('will now go to background, get ready to go foreground manually', 3);
   }
-  sleep(Duration(seconds: 3));
+  sleep(Duration(seconds: 2));
   FlutterForegroundTask.launchApp();
   if (Platform.isIOS) {
     printMessageMultipleTimes('waiting for 3 seconds, now go to foreground', 3);
