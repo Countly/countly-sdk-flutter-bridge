@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/services.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const MethodChannel _channelTest = MethodChannel('countly_flutter');
 
 // Base config options for tests
 final String SERVER_URL = 'https://xxx.count.ly';
-final String APP_KEY = 'YOUR_APP_KEY';
+final String APP_KEY = 'YOUR_APP_KEY'; // change this for ios tests
 
 /// Get request queue from native side (list of strings)
 Future<List<String>> getRequestQueue() async {
@@ -107,4 +107,27 @@ Future<Map<String, dynamic>> getApmParamsFromRequest(String request) async {
   Map<String, List<String>> queryParams = Uri.parse("?" + request).queryParametersAll;
   Map<String, dynamic> apmParams = json.decode(queryParams['apm']![0]);
   return apmParams;
+}
+
+/// Go to background and foreground
+void goBackgroundAndForeground() {
+  FlutterForegroundTask.minimizeApp();
+  if (Platform.isIOS) {
+    printMessageMultipleTimes('will now go to background, get ready to go foreground manually', 3);
+  }
+  sleep(Duration(seconds: 2));
+  FlutterForegroundTask.launchApp();
+  if (Platform.isIOS) {
+    printMessageMultipleTimes('waiting for 3 seconds, now go to foreground', 3);
+  }
+  sleep(Duration(seconds: 3));
+}
+
+/// Print message x times
+/// [String message] - message
+/// [int times] - times
+void printMessageMultipleTimes(String message, int times) {
+  for (int i = 0; i < times; i++) {
+    print(message);
+  }
 }

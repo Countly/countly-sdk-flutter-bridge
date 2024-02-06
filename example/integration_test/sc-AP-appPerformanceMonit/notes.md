@@ -1,5 +1,5 @@
 ## Test that needs manual interaction
-Currently as we don't have a way to trigger app foregraound/background action with code, the following tests need manual human interaction to go F/B when waiting log is printed:
+For iOS, currently as we don't have a way to trigger app foregraound action with code, the following tests need manual human interaction to go F/B when waiting log is printed:
 200, 204, 207A, 207B
 
 ## Legacy call (setRecordAppStartTime)
