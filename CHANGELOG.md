@@ -1,9 +1,9 @@
 ## 24.1.1
-* ADD ANDROID HINGE CHANELOG HERE
+* Added a new metric for detecting whether or not a device has a hinge for Android
 * Updated underlying Android SDK version to 24.1.1
 
 ## 24.1.1-np
-* ADD ANDROID HINGE CHANELOG HERE
+* Added a new metric for detecting whether or not a device has a hinge for Android
 * Updated underlying Android SDK version to 24.1.1
 
 ## 24.1.0
