@@ -1,10 +1,12 @@
 ## 24.1.1
 * Added a new metric for detecting whether or not a device has a hinge for Android
 * Updated underlying Android SDK version to 24.1.1
+* Underlying iOS SDK version is 24.1.0
 
 ## 24.1.1-np
 * Added a new metric for detecting whether or not a device has a hinge for Android
 * Updated underlying Android SDK version to 24.1.1
+* Underlying iOS SDK version is 24.1.0
 
 ## 24.1.0
 * ! Minor breaking change ! Tracking of foreground and background time for APM is disabled by default
