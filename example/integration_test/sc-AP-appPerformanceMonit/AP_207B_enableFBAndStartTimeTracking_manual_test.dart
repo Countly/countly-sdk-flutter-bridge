@@ -18,9 +18,9 @@ void main() {
     // trigger app loaded
     await Countly.appLoadingFinished();
 
-    // wait for 5 seconds. go to background manually
-    print('Waiting for 5 seconds...');
-    await tester.pump(Duration(seconds: 5));
+    // go foreground and background
+    // TODO: this automation is Android only, iOS automation is not supported yet
+    goBackgroundAndForeground();
 
     // check if there is 3 apm related requests in the queue
     List<String> apmRequests = await getAndPrintWantedElementsWithParamFromAllQueues('apm');

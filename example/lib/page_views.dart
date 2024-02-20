@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class ViewsPage extends StatelessWidget {
   final List<String> viewNames = ['viewName', 'viewName1'];
-  final List<String> viewIDs = ['temp_id_1', 'temp_id_2'];//set initial temporary values
+  final List<String> viewIDs = ['temp_id_1', 'temp_id_2']; //set initial temporary values
 
   Future<void> recordViewHome() async {
     Map<String, Object> segments = {'Cats': 123, 'Moons': 9.98, 'Moose': 'Deer'};
