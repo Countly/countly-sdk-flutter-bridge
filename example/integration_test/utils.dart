@@ -25,7 +25,7 @@ Future<List<String>> getEventQueue() async {
 /// Verify the common request queue parameters
 void testCommonRequestParams(Map<String, List<String>> requestObject) {
   expect(requestObject['app_key']?[0], APP_KEY);
-  expect(requestObject['sdk_name']?[0], "dart-flutterb-${Platform.isIOS ? "ios" : "android"}");
+  expect(requestObject['sdk_name']?[0], "dart-flutterbnp-${Platform.isIOS ? "ios" : "android"}");
   expect(requestObject['sdk_version']?[0], '24.1.1');
   expect(requestObject['av']?[0], Platform.isIOS ? '0.0.1' : '1.0.0');
   assert(requestObject['timestamp']?[0] != null);
