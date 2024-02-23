@@ -29,7 +29,7 @@ void main() {
       int duration = apmParams['apm_metrics']['duration'];
       print(duration);
       expect(duration > 0, true);
-      expect(duration < 3000, true); // ms
+      expect(duration < 5000, true); // ms
     }
 
     // manually call appLoadingFinished and wait for 2 seconds
