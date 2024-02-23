@@ -3,6 +3,7 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import '../utils.dart';
+import 'dart:io';
 
 /// Goal of this test is to check if F/B tracking is working correctly
 /// 2 apm requests should be sent
@@ -20,16 +21,20 @@ void main() {
     // go foreground and background
     // TODO: this automation is Android only, iOS automation is not supported yet
     FlutterForegroundTask.minimizeApp();
-    print('waiting for 2 seconds, go to background');
-    await tester.pump(Duration(seconds: 2));
+    if (Platform.isIOS) {
+      printMessageMultipleTimes('will now go to background, get ready to go foreground manually', 3);
+    }
+    await tester.pump(Duration(seconds: 3));
 
     // foreground apm request should be sent
     List<String> apmReqs = await getAndPrintWantedElementsWithParamFromAllQueues('apm');
     expect(apmReqs.length, 1);
 
     FlutterForegroundTask.launchApp();
-    print('waiting for 2 seconds, go to foreground');
-    await tester.pump(Duration(seconds: 2));
+    if (Platform.isIOS) {
+      printMessageMultipleTimes('waiting for 3 seconds, now go to foreground', 3);
+    }
+    await tester.pump(Duration(seconds: 3));
 
     // background apm request should be sent
     apmReqs = await getAndPrintWantedElementsWithParamFromAllQueues('apm');
