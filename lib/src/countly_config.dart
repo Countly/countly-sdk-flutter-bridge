@@ -261,7 +261,7 @@ class CountlyConfig {
     return this;
   }
 
-  @Deprecated('Use remoteConfigRegisterGlobalCallback instead')
+  @Deprecated('This function is deprecated, please use remoteConfigRegisterGlobalCallback instead')
 
   /// If enable, will automatically download newest remote config values.
   /// enabled set true for enabling it
