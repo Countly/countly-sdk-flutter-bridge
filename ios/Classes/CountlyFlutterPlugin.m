@@ -1542,15 +1542,15 @@ FlutterMethodChannel *_channel;
         // Internal Limits ---------------------
         NSNumber *maxKeyLength = _config[@"maxKeyLength"];
         if (maxKeyLength) {
-            [config.maxKeyLength = [maxKeyLength intValue]];
+            config.maxKeyLength = [maxKeyLength intValue];
         }
         NSNumber *maxValueSize = _config[@"maxValueSize"];
         if (maxValueSize) {
-            [config.maxValueLength = [maxValueSize intValue]];
+            config.maxValueLength = [maxValueSize intValue];
         }
         NSNumber *maxSegmentationValues = _config[@"maxSegmentationValues"];
         if (maxSegmentationValues) {
-            [config.maxSegmentationValues = [maxSegmentationValues intValue]];
+            config.maxSegmentationValues = [maxSegmentationValues intValue];
         }
         // Internal Limits End ---------------------
         
