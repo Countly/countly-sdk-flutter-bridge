@@ -224,8 +224,8 @@ FlutterMethodChannel *_channel;
               config.updateSessionPeriod = sessionInterval;
               result(@"updateSessionInterval Success!");
           } @catch (NSException *exception) {
-              COUNTLY_FLUTTER_LOG(@"Exception occurred at updateSessionInterval method: %@", exception);
               NSString *errorMessage = [NSString stringWithFormat:@"Exception occurred at updateSessionInterval method: %@", exception];
+              COUNTLY_FLUTTER_LOG(errorMessage);
               result(errorMessage);
           };
         });
@@ -236,8 +236,8 @@ FlutterMethodChannel *_channel;
               config.eventSendThreshold = limit;
               result(@"eventSendThreshold!");
           } @catch (NSException *exception) {
-              COUNTLY_FLUTTER_LOG(@"Exception occurred at eventSendThreshold method: %@", exception);
               NSString *errorMessage = [NSString stringWithFormat:@"Exception occurred at eventSendThreshold method: %@", exception];
+              COUNTLY_FLUTTER_LOG(errorMessage);
               result(errorMessage);
           };
         });
