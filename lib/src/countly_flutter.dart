@@ -2042,7 +2042,27 @@ class Countly {
       }
 
       /// APM END ---------------------------
+      /// Intenal Limits ---------------------------
+      if (config.limits.maxKeyLength != 0) {
+        countlyConfig['maxKeyLength'] = config.limits.maxKeyLength;
+      }
+      if (config.limits.maxValueSize != 0) {
+        countlyConfig['maxValueSize'] = config.limits.maxValueSize;
+      }
+      if (config.limits.maxSegmentationValues != 0) {
+        countlyConfig['maxSegmentationValues'] = config.limits.maxSegmentationValues;
+      }
+      if (config.limits.maxBreadcrumbCount != 0) {
+        countlyConfig['maxBreadcrumbCount'] = config.limits.maxBreadcrumbCount;
+      }
+      if (config.limits.maxStackTraceLineLength != 0) {
+        countlyConfig['maxStackTraceLineLength'] = config.limits.maxStackTraceLineLength;
+      }
+      if (config.limits.maxStackTraceLinesPerThread != 0) {
+        countlyConfig['maxStackTraceLinesPerThread'] = config.limits.maxStackTraceLinesPerThread;
+      }
 
+      /// Intenal Limits END ---------------------------
       countlyConfig['remoteConfigAutomaticTriggers'] = config.remoteConfigAutomaticTriggers;
 
       countlyConfig['remoteConfigValueCaching'] = config.remoteConfigValueCaching;

@@ -1571,6 +1571,26 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.setRecordAppStartTime(_config.getBoolean("recordAppStartTime"));
         }
         // APM END --------------------------------------------
+        // Internal Limits ------------------------------------
+        if (_config.has("maxKeyLength")) {
+            this.config.maxKeyLength(_config.getInt("maxKeyLength"));
+        }
+        if (_config.has("maxValueSize")) {
+            this.config.maxValueSize(_config.getInt("maxValueSize"));
+        }
+        if (_config.has("maxSegmentationValues")) {
+            this.config.maxSegmentationValues(_config.getInt("maxSegmentationValues"));
+        }
+        if (_config.has("maxBreadcrumbCount")) {
+            this.config.maxBreadcrumbCount(_config.getInt("maxBreadcrumbCount"));
+        }
+        if (_config.has("maxStackTraceLineLength")) {
+            this.config.maxStackTraceLineLength(_config.getInt("maxStackTraceLineLength"));
+        }
+        if (_config.has("maxStackTraceLinesPerThread")) {
+            this.config.maxStackTraceLinesPerThread(_config.getInt("maxStackTraceLinesPerThread"));
+        }        
+        // Internal Limits END --------------------------------
 
         if (_config.has("enableUnhandledCrashReporting") && _config.getBoolean("enableUnhandledCrashReporting")) {
             this.config.enableCrashReporting();
