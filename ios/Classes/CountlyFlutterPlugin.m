@@ -1538,6 +1538,21 @@ FlutterMethodChannel *_channel;
         if (startTSOverride) {
             [config.apm setAppStartTimestampOverride:[startTSOverride longLongValue]];
         }
+
+        // Internal Limits ---------------------
+        NSNumber *maxKeyLength = _config[@"maxKeyLength"];
+        if (maxKeyLength) {
+            [config.maxKeyLength = [maxKeyLength intValue]];
+        }
+        NSNumber *maxValueSize = _config[@"maxValueSize"];
+        if (maxValueSize) {
+            [config.maxValueLength = [maxValueSize intValue]];
+        }
+        NSNumber *maxSegmentationValues = _config[@"maxSegmentationValues"];
+        if (maxSegmentationValues) {
+            [config.maxSegmentationValues = [maxSegmentationValues intValue]];
+        }
+        // Internal Limits End ---------------------
         
         NSNumber *enableUnhandledCrashReporting = _config[@"enableUnhandledCrashReporting"];
         if (enableUnhandledCrashReporting && [enableUnhandledCrashReporting boolValue]) {

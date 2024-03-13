@@ -1,4 +1,5 @@
 import 'configuration_interfaces/countly_config_apm.dart';
+import 'configuration_interfaces/countly_config_limits.dart';
 import 'countly_flutter.dart';
 import 'remote_config.dart';
 
@@ -43,6 +44,9 @@ class CountlyConfig {
 
   /// instance of CountlyConfigApm
   final CountlyConfigApm _countlyConfigApmInstance = CountlyConfigApm();
+
+  /// instance of CountlyConfigLimits
+  final CountlyConfigLimits _countlyConfigLimitsInstance = CountlyConfigLimits();
 
   CountlyConfig(this._serverURL, this._appKey);
 
@@ -121,6 +125,9 @@ class CountlyConfig {
 
   /// getter for CountlyConfigApm instance that is used to access CountlyConfigApm methods
   CountlyConfigApm get apm => _countlyConfigApmInstance;
+
+  /// getter for CountlyConfigLimits instance that is used to access CountlyConfigLimits methods
+  CountlyConfigLimits get limits => _countlyConfigLimitsInstance;
 
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
