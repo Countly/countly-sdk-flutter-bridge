@@ -1117,6 +1117,7 @@ FlutterMethodChannel *_channel;
               result(errorMessage);
           } else {
               [feedbackWidget recordResult:widgetResult];
+              result(nil);
           }
         });
     } else if ([@"replaceAllAppKeysInQueueWithCurrentAppKey" isEqualToString:call.method]) {
