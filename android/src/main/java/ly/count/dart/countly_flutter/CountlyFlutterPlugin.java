@@ -1573,22 +1573,22 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         // APM END --------------------------------------------
         // Internal Limits ------------------------------------
         if (_config.has("maxKeyLength")) {
-            this.config.maxKeyLength(_config.getInt("maxKeyLength"));
+            this.config.sdkInternalLimits.maxKeyLength(_config.getInt("maxKeyLength"));
         }
         if (_config.has("maxValueSize")) {
-            this.config.maxValueSize(_config.getInt("maxValueSize"));
+            this.config.sdkInternalLimits.maxValueSize(_config.getInt("maxValueSize"));
         }
         if (_config.has("maxSegmentationValues")) {
-            this.config.maxSegmentationValues(_config.getInt("maxSegmentationValues"));
+            this.config.sdkInternalLimits.maxSegmentationValues(_config.getInt("maxSegmentationValues"));
         }
         if (_config.has("maxBreadcrumbCount")) {
-            this.config.maxBreadcrumbCount(_config.getInt("maxBreadcrumbCount"));
+            this.config.sdkInternalLimits.maxBreadcrumbCount(_config.getInt("maxBreadcrumbCount"));
         }
         if (_config.has("maxStackTraceLineLength")) {
-            this.config.maxStackTraceLineLength(_config.getInt("maxStackTraceLineLength"));
+            this.config.sdkInternalLimits.maxStackTraceLineLength(_config.getInt("maxStackTraceLineLength"));
         }
         if (_config.has("maxStackTraceLinesPerThread")) {
-            this.config.maxStackTraceLinesPerThread(_config.getInt("maxStackTraceLinesPerThread"));
+            this.config.sdkInternalLimits.maxStackTraceLinesPerThread(_config.getInt("maxStackTraceLinesPerThread"));
         }        
         // Internal Limits END --------------------------------
 

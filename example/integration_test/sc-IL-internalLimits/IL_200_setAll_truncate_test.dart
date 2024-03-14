@@ -10,7 +10,7 @@ void main() {
   testWidgets('Init SDK with internal limits as 1', (WidgetTester tester) async {
     // Initialize the SDK
     CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true);
-    config.limits.setMaxKeyLength(1).setMaxValueSize(1).setMaxSegmentationValues(1).setMaxBreadcrumbCount(1).setMaxStackTraceLineLength(1).setMaxStackTraceLinesPerThread(1);
+    config.sdkInternalLimits.setMaxKeyLength(1).setMaxValueSize(1).setMaxSegmentationValues(1).setMaxBreadcrumbCount(1).setMaxStackTraceLineLength(1).setMaxStackTraceLinesPerThread(1);
     await Countly.initWithConfig(config);
     // Create some events
     await Countly.instance.views.startAutoStoppedView('test');

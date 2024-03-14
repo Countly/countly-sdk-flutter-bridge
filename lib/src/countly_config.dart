@@ -46,7 +46,7 @@ class CountlyConfig {
   final CountlyConfigApm _countlyConfigApmInstance = CountlyConfigApm();
 
   /// instance of CountlyConfigLimits
-  final CountlyConfigLimits _countlyConfigLimitsInstance = CountlyConfigLimits();
+  final CountlyConfigSDKInternalLimits _countlyConfigSDKInternalLimitsInstance = CountlyConfigSDKInternalLimits();
 
   CountlyConfig(this._serverURL, this._appKey);
 
@@ -127,7 +127,7 @@ class CountlyConfig {
   CountlyConfigApm get apm => _countlyConfigApmInstance;
 
   /// getter for CountlyConfigLimits instance that is used to access CountlyConfigLimits methods
-  CountlyConfigLimits get limits => _countlyConfigLimitsInstance;
+  CountlyConfigSDKInternalLimits get sdkInternalLimits => _countlyConfigSDKInternalLimitsInstance;
 
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
