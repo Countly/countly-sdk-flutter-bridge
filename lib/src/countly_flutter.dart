@@ -193,7 +193,7 @@ class Countly {
 
           Countly.instance._remoteConfigInternal.notifyVariantCallbacks(requestResult, error, id);
         } catch (e) {
-          Countly.log(e.toString(), logLevel: LogLevel.ERROR);
+          Countly.log('[FMethodCallH] $e', logLevel: LogLevel.ERROR);
         }
         break;
     }
@@ -653,7 +653,7 @@ class Countly {
   @Deprecated('This functions is deprecated, please use "setLocation" of CountlyConfig instead')
   static Future<String?> setOptionalParametersForInitialization(Map<String, Object> options) async {
     int optionsCount = options.length;
-    log('Calling "storedRequestsLimit" with options count:[$optionsCount]');
+    log('Calling "setOptionalParametersForInitialization" with options count:[$optionsCount]');
     log('setOptionalParametersForInitialization is deprecated, use setLocation of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
 
@@ -843,7 +843,7 @@ class Countly {
       log('setLocation, $message', logLevel: LogLevel.ERROR);
       return message;
     }
-    log('Calling "setLocationInit" with latitude:[$latitude], longitude:[$longitude]');
+    log('Calling "setLocation" with latitude:[$latitude], longitude:[$longitude]');
     log('setLocation is deprecated, use setUserLocation instead', logLevel: LogLevel.WARNING);
     if (latitude.isEmpty) {
       String error = 'setLocation, latitude cannot be empty';
@@ -1156,7 +1156,7 @@ class Countly {
   @Deprecated('This function is deprecated, please use "setConsentEnabled" of CountlyConfig instead')
   static Future<String?> giveConsentInit(List<String> consents) async {
     String consentsString = consents.toString();
-    log('Calling "setRequiresConsent":[$consentsString]');
+    log('Calling "giveConsentInit":[$consentsString]');
     log('giveConsentInit is deprecated, use setConsentEnabled of CountlyConfig instead', logLevel: LogLevel.WARNING);
 
     if (consents.isEmpty) {
@@ -1406,8 +1406,8 @@ class Countly {
   /// Get a list of available feedback widgets for this device ID
   static Future<FeedbackWidgetsResponse> getAvailableFeedbackWidgets() async {
     if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "reportFeedbackWidgetManually"';
-      log('reportFeedbackWidgetManually, $message', logLevel: LogLevel.ERROR);
+      String message = '"initWithConfig" must be called before "getAvailableFeedbackWidgets"';
+      log('getAvailableFeedbackWidgets, $message', logLevel: LogLevel.ERROR);
       return FeedbackWidgetsResponse([], message);
     }
     log('Calling "getAvailableFeedbackWidgets"');
@@ -1465,7 +1465,7 @@ class Countly {
     Map<String, dynamic> widgetData = {};
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "getFeedbackWidgetData"';
-      log('reportFeedbackWidgetManually, $message', logLevel: LogLevel.ERROR);
+      log('getFeedbackWidgetData, $message', logLevel: LogLevel.ERROR);
       return [widgetData, message];
     }
     _feedbackWidgetDataCallback = onFinished;
@@ -1483,7 +1483,7 @@ class Countly {
       widgetData = Map<String, dynamic>.from(retrievedWidgetData);
     } on PlatformException catch (e) {
       error = e.message;
-      log('getAvailableFeedbackWidgets Error : $error');
+      log('getFeedbackWidgetData Error : $error');
     }
     return [widgetData, error];
   }
@@ -1500,7 +1500,7 @@ class Countly {
     }
     String widgetId = widgetInfo.widgetId;
     String widgetType = widgetInfo.type;
-    log('Calling "getFeedbackWidgetData":[$presentFeedbackWidget] with Type:[$widgetType]');
+    log('Calling "reportFeedbackWidgetManually":[$presentFeedbackWidget] with Type:[$widgetType]');
     List<String> widgetInfoList = [];
     widgetInfoList.add(widgetId);
     widgetInfoList.add(widgetType);
@@ -1548,7 +1548,7 @@ class Countly {
       return message;
     }
     String eventKey = options['key'] != null ? options['key'].toString() : '';
-    log('Calling "startEvent":[$eventKey]');
+    log('Calling "endEvent":[$eventKey]');
     List<String> args = [];
     var segmentation = {};
 
@@ -1803,9 +1803,9 @@ class Countly {
   /// }
   ///
   static Future<void> recordDartError(exception, StackTrace stack) async {
-    log('recordError, Error caught by Countly :');
+    log('recordDartError, Error caught by Countly :');
     if (!_enableCrashReportingFlag) {
-      log('recordError, Crash Reporting must be enabled to report crash on Countly', logLevel: LogLevel.WARNING);
+      log('recordDartError, Crash Reporting must be enabled to report crash on Countly', logLevel: LogLevel.WARNING);
       return;
     }
     unawaited(_internalRecordError(exception, stack));
@@ -1829,7 +1829,7 @@ class Countly {
     try {
       unawaited(logException('${exception.toString()}\n\n$stack', true));
     } catch (e) {
-      log('Sending crash report to Countly failed: $e');
+      log('_internalRecordError, Sending crash report to Countly failed: $e');
     }
   }
 
