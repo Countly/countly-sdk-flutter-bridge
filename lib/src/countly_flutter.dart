@@ -173,7 +173,7 @@ class Countly {
 
           Countly.instance._remoteConfigInternal.notifyDownloadCallbacks(requestResult, error, fullValueUpdate, downloadedValuesObject, id);
         } catch (e) {
-          Countly.log('Method call for remoteConfigDownloadCallback had a problem: $e', logLevel: LogLevel.ERROR);
+          log('Method call for remoteConfigDownloadCallback had a problem: $e', logLevel: LogLevel.ERROR);
         }
         break;
       case 'remoteConfigVariantCallback':
@@ -193,7 +193,7 @@ class Countly {
 
           Countly.instance._remoteConfigInternal.notifyVariantCallbacks(requestResult, error, id);
         } catch (e) {
-          Countly.log('[FMethodCallH] $e', logLevel: LogLevel.ERROR);
+          log('[FMethodCallH] $e', logLevel: LogLevel.ERROR);
         }
         break;
     }
@@ -222,17 +222,17 @@ class Countly {
     log('Calling "initWithConfig"');
     if (_instance._countlyState.isInitialized) {
       String msg = 'initWithConfig, SDK is already initialized';
-      Countly.log(msg, logLevel: LogLevel.ERROR);
+      log(msg, logLevel: LogLevel.ERROR);
       return msg;
     }
     if (config.serverURL.isEmpty) {
       String msg = 'initWithConfig, serverURL cannot be empty';
-      Countly.log(msg, logLevel: LogLevel.ERROR);
+      log(msg, logLevel: LogLevel.ERROR);
       return msg;
     }
     if (config.appKey.isEmpty) {
       String msg = 'initWithConfig, appKey cannot be empty';
-      Countly.log(msg, logLevel: LogLevel.ERROR);
+      log(msg, logLevel: LogLevel.ERROR);
       return msg;
     }
     if (config.manualSessionEnabled != null) {
