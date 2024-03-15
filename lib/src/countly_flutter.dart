@@ -173,7 +173,7 @@ class Countly {
 
           Countly.instance._remoteConfigInternal.notifyDownloadCallbacks(requestResult, error, fullValueUpdate, downloadedValuesObject, id);
         } catch (e) {
-          log('Method call for remoteConfigDownloadCallback had a problem: $e', logLevel: LogLevel.ERROR);
+          log('[FMethodCallH] Method call for remoteConfigDownloadCallback had a problem: $e', logLevel: LogLevel.ERROR);
         }
         break;
       case 'remoteConfigVariantCallback':
