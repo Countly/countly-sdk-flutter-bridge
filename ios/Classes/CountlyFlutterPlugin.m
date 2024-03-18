@@ -1042,9 +1042,8 @@ FlutterMethodChannel *_channel;
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *starRatingTextMessage = [command objectAtIndex:1];
           config.starRatingMessage = starRatingTextMessage;
-          result(nil);
+          result(@"setStarRatingDialogTexts: success");
         });
-        result(@"setStarRatingDialogTexts: success");
     } else if ([@"askForStarRating" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           [Countly.sharedInstance askForStarRating:^(NSInteger rating) {
