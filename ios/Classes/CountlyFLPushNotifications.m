@@ -67,6 +67,8 @@ CLYUserDefaultKey const CLYPushButtonIndexKey = @"notificationBtnIndexKey";
       if (lastStoredNotification != nil) {
           result([lastStoredNotification description]);
           lastStoredNotification = nil;
+      } else {
+          result(nil);
       }
     });
 }

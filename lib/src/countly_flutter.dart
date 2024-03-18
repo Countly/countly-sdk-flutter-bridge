@@ -503,7 +503,6 @@ class Countly {
     log('Calling "onNotification"');
     await _channel.invokeMethod('registerForNotification').then((value) {
       callback(value.toString());
-      onNotification(callback);
     }).catchError((error) {
       callback(error.toString());
     });

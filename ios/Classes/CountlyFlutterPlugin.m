@@ -481,7 +481,6 @@ FlutterMethodChannel *_channel;
         COUNTLY_FLUTTER_LOG(@"registerForNotification");
         [CountlyFLPushNotifications.sharedInstance registerForNotification:result];
 #endif
-        result(nil);
     } else if ([@"userData_setProperty" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *keyName = [command objectAtIndex:0];
