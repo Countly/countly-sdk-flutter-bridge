@@ -508,6 +508,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("startEvent".equals(call.method)) {
                 String startEvent = args.getString(0);
                 Countly.sharedInstance().events().startEvent(startEvent);
+                result.success("startEvent for: " + startEvent);
             } else if ("endEvent".equals(call.method)) {
                 String key = args.getString(0);
                 int count = Integer.parseInt(args.getString(1));
