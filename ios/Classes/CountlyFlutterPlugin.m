@@ -367,7 +367,7 @@ FlutterMethodChannel *_channel;
                   double latitudeDouble = [latitudeString doubleValue];
                   double longitudeDouble = [longitudeString doubleValue];
                   config.location = (CLLocationCoordinate2D){latitudeDouble, longitudeDouble};
-              } @catch (NSException *execption) {
+              } @catch (NSException *exception) {
                   COUNTLY_FLUTTER_LOG(@"Invalid latitude or longitude.");
               }
           }
@@ -421,9 +421,9 @@ FlutterMethodChannel *_channel;
 
     } else if ([@"logException" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          NSString *execption = [command objectAtIndex:0];
+          NSString *exception = [command objectAtIndex:0];
           NSString *nonfatal = [command objectAtIndex:1];
-          NSArray *nsException = [execption componentsSeparatedByString:@"\n"];
+          NSArray *nsException = [exception componentsSeparatedByString:@"\n"];
 
           NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
 
@@ -432,7 +432,7 @@ FlutterMethodChannel *_channel;
           }
           [dict setObject:nonfatal forKey:@"nonfatal"];
 
-          NSException *myException = [NSException exceptionWithName:@"Exception" reason:execption userInfo:dict];
+          NSException *myException = [NSException exceptionWithName:@"Exception" reason:exception userInfo:dict];
 
           [Countly.sharedInstance recordException:myException isFatal:NO stackTrace:nsException segmentation:nil];
           result(@"logException!");
@@ -778,7 +778,7 @@ FlutterMethodChannel *_channel;
                   double longitudeDouble = [longitudeString doubleValue];
 
                   location = (CLLocationCoordinate2D){latitudeDouble, longitudeDouble};
-              } @catch (NSException *execption) {
+              } @catch (NSException *exception) {
                   COUNTLY_FLUTTER_LOG(@"Invalid latitude or longitude.");
               }
           }
