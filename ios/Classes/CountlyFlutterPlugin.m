@@ -434,7 +434,8 @@ FlutterMethodChannel *_channel;
 
           NSException *myException = [NSException exceptionWithName:@"Exception" reason:execption userInfo:dict];
 
-          [Countly.sharedInstance recordException:myException isFatal:NO stackTrace:nsException segmentation:nil];
+          BOOL isFatal = ![nonfatal boolValue];
+          [Countly.sharedInstance recordException:myException isFatal:isFatal stackTrace:nsException segmentation:nil];
           result(@"logException!");
         });
 
