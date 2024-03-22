@@ -425,16 +425,16 @@ FlutterMethodChannel *_channel;
           NSString *nonfatal = [command objectAtIndex:1];
           NSArray *nsException = [exception componentsSeparatedByString:@"\n"];
 
-          NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
+          NSMutableDictionary *segmentation = [[NSMutableDictionary alloc] init];
 
           for (int i = 2, il = (int)command.count; i < il; i += 2) {
-              dict[[command objectAtIndex:i]] = [command objectAtIndex:i + 1];
+              segmentation[[command objectAtIndex:i]] = [command objectAtIndex:i + 1];
           }
-          [dict setObject:nonfatal forKey:@"nonfatal"];
 
-          NSException *myException = [NSException exceptionWithName:@"Exception" reason:exception userInfo:dict];
+          NSException *myException = [NSException exceptionWithName:@"Exception" reason:exception userInfo:nil];
 
-          [Countly.sharedInstance recordException:myException isFatal:NO stackTrace:nsException segmentation:nil];
+          BOOL isFatal = ![nonfatal boolValue];
+          [Countly.sharedInstance recordException:myException isFatal:isFatal stackTrace:nsException segmentation:segmentation];
           result(@"logException!");
         });
 

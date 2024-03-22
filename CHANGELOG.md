@@ -1,11 +1,13 @@
 ## xx.x.x
-* Fixed an issue where the 'reportFeedbackWidgetManually' function would await indefinitely on iOS.
+* Fixed an issue where the 'reportFeedbackWidgetManually' function would await indefinitely on iOS
+* Resolved an issue where nonfatal exceptions were treated as fatal and vice versa
 
 * Underlying Android SDK version is 24.1.1
 * Underlying iOS SDK version is 24.1.0
 
 ## xx.x.x-np
-* Fixed an issue where the 'reportFeedbackWidgetManually' function would await indefinitely on iOS.
+* Fixed an issue where the 'reportFeedbackWidgetManually' function would await indefinitely on iOS
+* Resolved an issue where nonfatal exceptions were treated as fatal and vice versa
 
 * Underlying Android SDK version is 24.1.1
 * Underlying iOS SDK version is 24.1.0
