@@ -1542,15 +1542,27 @@ FlutterMethodChannel *_channel;
         // Internal Limits ---------------------
         NSNumber *maxKeyLength = _config[@"maxKeyLength"];
         if (maxKeyLength) {
-            config.maxKeyLength = [maxKeyLength intValue];
+            [config.sdkInternalLimits setMaxKeyLength:[maxKeyLength intValue]];
         }
         NSNumber *maxValueSize = _config[@"maxValueSize"];
         if (maxValueSize) {
-            config.maxValueLength = [maxValueSize intValue];
+            [config.sdkInternalLimits setMaxValueSize:[maxValueSize intValue]];
         }
         NSNumber *maxSegmentationValues = _config[@"maxSegmentationValues"];
         if (maxSegmentationValues) {
-            config.maxSegmentationValues = [maxSegmentationValues intValue];
+            [config.sdkInternalLimits setMaxSegmentationValues:[maxSegmentationValues intValue]];
+        }
+        NSNumber *maxBreadcrumbCount = _config[@"maxBreadcrumbCount"];
+        if (maxBreadcrumbCount) {
+            [config.sdkInternalLimits setMaxBreadcrumbCount:[maxBreadcrumbCount intValue]];
+        }
+        NSNumber *maxStackTraceLineLength = _config[@"maxStackTraceLineLength"];
+        if (maxStackTraceLineLength) {
+            [config.sdkInternalLimits setMaxStackTraceLineLength:[maxStackTraceLineLength intValue]];
+        }
+        NSNumber *maxStackTraceLinesPerThread = _config[@"maxStackTraceLinesPerThread"];
+        if (maxStackTraceLineLength) {
+            [config.sdkInternalLimits setMaxStackTraceLinesPerThread:[maxStackTraceLinesPerThread intValue]];
         }
         // Internal Limits End ---------------------
         
