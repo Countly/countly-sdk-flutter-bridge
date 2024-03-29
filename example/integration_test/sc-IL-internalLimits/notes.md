@@ -1,6 +1,17 @@
-## sc-IL-internalLimits
-### IL_100_badValues_null
-### IL_101_badValues_0
-### IL_102_badValues_negativeInt
-### IL_200_setAll_truncate
-### IL_201_setAll_not_truncate
+## Some observations
+recordView records segmentation values as string (autoStoppedView does not)
+reportfeedbackwidgetmanually prints weird things
+
+## Platform issues
+Android:
+setMaxSegmentationValues key-value pairs not capped for:
+- Global view segmentation
+setMaxValueSize is not truncating for:
+- Anything except breadcrumbs
+setMacKeyLength is not truncating for:
+- Anything
+
+iOS:
+setMaxSegmentationValues key-value pairs not capped for:
+setMaxValueSize is not truncating for:
+setMacKeyLength is not truncating for:

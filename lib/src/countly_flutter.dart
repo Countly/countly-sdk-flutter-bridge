@@ -2043,22 +2043,23 @@ class Countly {
 
       /// APM END ---------------------------
       /// Internal Limits ---------------------------
-      if (config.sdkInternalLimits.maxKeyLength != 0) {
+      // Skipping logs for internal limits (change my mind)
+      if (config.sdkInternalLimits.maxKeyLength > 0) {
         countlyConfig['maxKeyLength'] = config.sdkInternalLimits.maxKeyLength;
       }
-      if (config.sdkInternalLimits.maxValueSize != 0) {
+      if (config.sdkInternalLimits.maxValueSize > 0) {
         countlyConfig['maxValueSize'] = config.sdkInternalLimits.maxValueSize;
       }
-      if (config.sdkInternalLimits.maxSegmentationValues != 0) {
+      if (config.sdkInternalLimits.maxSegmentationValues > 0) {
         countlyConfig['maxSegmentationValues'] = config.sdkInternalLimits.maxSegmentationValues;
       }
-      if (config.sdkInternalLimits.maxBreadcrumbCount != 0) {
+      if (config.sdkInternalLimits.maxBreadcrumbCount > 0) {
         countlyConfig['maxBreadcrumbCount'] = config.sdkInternalLimits.maxBreadcrumbCount;
       }
-      if (config.sdkInternalLimits.maxStackTraceLineLength != 0) {
+      if (config.sdkInternalLimits.maxStackTraceLineLength > 0) {
         countlyConfig['maxStackTraceLineLength'] = config.sdkInternalLimits.maxStackTraceLineLength;
       }
-      if (config.sdkInternalLimits.maxStackTraceLinesPerThread != 0) {
+      if (config.sdkInternalLimits.maxStackTraceLinesPerThread > 0) {
         countlyConfig['maxStackTraceLinesPerThread'] = config.sdkInternalLimits.maxStackTraceLinesPerThread;
       }
 

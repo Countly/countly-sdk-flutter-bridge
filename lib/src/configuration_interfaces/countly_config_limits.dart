@@ -23,9 +23,7 @@ class CountlyConfigSDKInternalLimits {
   ///
   /// [keyLengthLimit] is the maximum char size of all string keys (default 128 chars)
   CountlyConfigSDKInternalLimits setMaxKeyLength(int keyLengthLimit) {
-    if (keyLengthLimit > 0) {
-      _maxKeyLength = keyLengthLimit;
-    }
+    _maxKeyLength = keyLengthLimit;
     return this;
   }
 
@@ -33,9 +31,7 @@ class CountlyConfigSDKInternalLimits {
   ///
   /// [valueSizeLimit] is the maximum char size of all values in our key-value pairs (default 256 chars)
   CountlyConfigSDKInternalLimits setMaxValueSize(int valueSizeLimit) {
-    if (valueSizeLimit > 0) {
-      _maxValueSize = valueSizeLimit;
-    }
+    _maxValueSize = valueSizeLimit;
     return this;
   }
 
@@ -43,9 +39,7 @@ class CountlyConfigSDKInternalLimits {
   ///
   /// [segmentationAmountLimit] is the max amount of custom segmentation in one event (default 100 key-value pairs)
   CountlyConfigSDKInternalLimits setMaxSegmentationValues(int segmentationAmountLimit) {
-    if (segmentationAmountLimit > 0) {
-      _maxSegmentationValues = segmentationAmountLimit;
-    }
+    _maxSegmentationValues = segmentationAmountLimit;
     return this;
   }
 
@@ -53,9 +47,7 @@ class CountlyConfigSDKInternalLimits {
   ///
   /// [breadcrumbCountLimit] is the max amount of breadcrumbs that can be recorded before the oldest one is deleted (default 100)
   CountlyConfigSDKInternalLimits setMaxBreadcrumbCount(int breadcrumbCountLimit) {
-    if (breadcrumbCountLimit > 0) {
-      _maxBreadcrumbCount = breadcrumbCountLimit;
-    }
+    _maxBreadcrumbCount = breadcrumbCountLimit;
     return this;
   }
 
@@ -63,9 +55,7 @@ class CountlyConfigSDKInternalLimits {
   ///
   /// [stackTraceLinesPerThreadLimit] is the max amount of stack trace lines to be recorded per thread (default 30)
   CountlyConfigSDKInternalLimits setMaxStackTraceLinesPerThread(int stackTraceLinesPerThreadLimit) {
-    if (stackTraceLinesPerThreadLimit > 0) {
-      _maxStackTraceLinesPerThread = stackTraceLinesPerThreadLimit;
-    }
+    _maxStackTraceLinesPerThread = stackTraceLinesPerThreadLimit;
     return this;
   }
 
@@ -73,9 +63,7 @@ class CountlyConfigSDKInternalLimits {
   ///
   /// [stackTraceLineLengthLimit] is the max length of each stack trace line (default 200)
   CountlyConfigSDKInternalLimits setMaxStackTraceLineLength(int stackTraceLineLengthLimit) {
-    if (stackTraceLineLengthLimit > 0) {
-      _maxStackTraceLineLength = stackTraceLineLengthLimit;
-    }
+    _maxStackTraceLineLength = stackTraceLineLengthLimit;
     return this;
   }
 }
