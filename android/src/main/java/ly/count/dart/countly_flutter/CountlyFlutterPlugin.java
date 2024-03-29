@@ -390,16 +390,16 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success("addCrashLog success!");
             } else if ("logException".equals(call.method)) {
                 String exceptionString = args.getString(0);
-                boolean fatal = args.getBoolean(1);
+                boolean nonfatal = args.getBoolean(1);
                 Exception exception = new Exception(exceptionString);
                 Map<String, Object> segments = new HashMap<>();
                 for (int i = 2, il = args.length(); i < il; i += 2) {
                     segments.put(args.getString(i), args.getString(i + 1));
                 }
-                if (fatal) {
-                    Countly.sharedInstance().crashes().recordUnhandledException(exception, segments);
-                } else {
+                if (nonfatal) {
                     Countly.sharedInstance().crashes().recordHandledException(exception, segments);
+                } else {
+                    Countly.sharedInstance().crashes().recordUnhandledException(exception, segments);
                 }
 
                 result.success("logException success!");
@@ -443,7 +443,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                             @Override
                             public void onComplete(@NonNull Task<InstanceIdResult> task) {
                                 if (!task.isSuccessful()) {
-                                    log("getInstanceId failed", task.getException(), LogLevel.WARNING);
+                                    log("[askForNotificationPermission], getInstanceId failed", task.getException(), LogLevel.WARNING);
                                     return;
                                 }
                                 String token = task.getResult().getToken();
@@ -486,10 +486,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success("endSession!");
 
             } else if ("manualSessionHandling".equals(call.method)) {
-                result.success("deafult!");
+                result.success("manualSessionHandling!");
 
             } else if ("updateSessionPeriod".equals(call.method)) {
-                result.success("default!");
+                result.success("updateSessionPeriod!");
 
             } else if ("updateSessionInterval".equals(call.method)) {
                 int sessionInterval = Integer.parseInt(args.getString(0));
@@ -499,11 +499,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("eventSendThreshold".equals(call.method)) {
                 int queueSize = Integer.parseInt(args.getString(0));
                 this.config.setEventQueueSizeToSend(queueSize);
-                result.success("default!");
+                result.success("eventSendThreshold!");
 
             } else if ("storedRequestsLimit".equals(call.method)) {
                 int queueSize = Integer.parseInt(args.getString(0));
-                result.success("default!");
+                result.success("storedRequestsLimit!");
 
             } else if ("startEvent".equals(call.method)) {
                 String startEvent = args.getString(0);
@@ -709,7 +709,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     features[i] = args.getString(i);
                 }
                 this.config.setConsentEnabled(features);
-                result.success("giveConsent!");
+                result.success("giveConsentInit!");
 
             } else if ("giveConsent".equals(call.method)) {
                 String[] features = new String[args.length()];
@@ -1128,7 +1128,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
                 if (feedbackWidget == null) {
-                    String errorMessage = "No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
+                    String errorMessage = "[presentFeedbackWidget], No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
                     log(errorMessage, LogLevel.WARNING);
                     result.error("presentFeedbackWidget", errorMessage, null);
                 } else {
@@ -1153,7 +1153,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 String widgetId = args.getString(0);
                 CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
                 if (feedbackWidget == null) {
-                    String errorMessage = "No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
+                    String errorMessage = "[getFeedbackWidgetData], No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
                     log(errorMessage, LogLevel.WARNING);
                     result.error("getFeedbackWidgetData", errorMessage, null);
                     feedbackWidgetDataCallback(null, errorMessage);
@@ -1191,7 +1191,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 // TODO: for testing purposes we might want to bypass this check as it prevents us from using reportFeedbackWidgetManually directly
                 CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
                 if (feedbackWidget == null) {
-                    String errorMessage = "No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
+                    String errorMessage = "[reportFeedbackWidgetManually], No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
                     log(errorMessage, LogLevel.WARNING);
                     result.error("reportFeedbackWidgetManually", errorMessage, null);
                 } else {
@@ -1254,14 +1254,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     Countly.sharedInstance().attribution().recordIndirectAttribution(attributionMap);
                     result.success("recordIndirectAttribution: success");
                 } else {
-                    result.error("iaAttributionFailed", "recordIndirectAttribution: failure, no attribution values provided", null);
+                    result.error("recordIndirectAttribution Failed", "No attribution values provided", null);
                 }
             } else if ("recordDirectAttribution".equals(call.method)) {
                 String campaignType = args.getString(0);
                 String campaignData = args.getString(1);
 
                 Countly.sharedInstance().attribution().recordDirectAttribution(campaignType, campaignData);
-                result.success("recordIndirectAttribution: success");
+                result.success("recordDirectAttribution: success");
             } else if ("stopViewWithID".equals(call.method)) {
                 String viewId = args.getString(0);
                 Map<String, Object> segmentation = toMap(args.getJSONObject(1));

@@ -1,10 +1,18 @@
-## 24.1.2
-* Added six new configuration options under the 'limits' interface of 'CountlyConfig':
-* ...
-* ...
+## xx.x.x
+* Fixed an issue where the 'reportFeedbackWidgetManually' function would await indefinitely on iOS
+* Resolved an issue where nonfatal exceptions were treated as fatal and vice versa
+* Limts...
 
-* Underlying Android SDK version is 24.1.1
-* Underlying iOS SDK version is 24.1.0
+* Updated underlying Android SDK version to x
+* Updated underlying iOS SDK version to x
+
+## xx.x.x-np
+* Fixed an issue where the 'reportFeedbackWidgetManually' function would await indefinitely on iOS
+* Resolved an issue where nonfatal exceptions were treated as fatal and vice versa
+* Limits...
+
+* Updated underlying Android SDK version to x
+* Updated underlying iOS SDK version to x
 
 ## 24.1.1
 * Added a new metric for detecting whether or not a device has a hinge for Android

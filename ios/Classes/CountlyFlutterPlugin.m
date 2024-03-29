@@ -335,7 +335,7 @@ FlutterMethodChannel *_channel;
                   double longitudeDouble = [longitudeString doubleValue];
                   config.location = (CLLocationCoordinate2D){latitudeDouble, longitudeDouble};
               } @catch (NSException *exception) {
-                  COUNTLY_FLUTTER_LOG(@"Invalid location: %@", locationString);
+                  COUNTLY_FLUTTER_LOG(@"[setLocationInit], Invalid location: %@", locationString);
               }
           }
           if (city != nil && ![city isEqualToString:@"null"]) {
@@ -367,8 +367,8 @@ FlutterMethodChannel *_channel;
                   double latitudeDouble = [latitudeString doubleValue];
                   double longitudeDouble = [longitudeString doubleValue];
                   config.location = (CLLocationCoordinate2D){latitudeDouble, longitudeDouble};
-              } @catch (NSException *execption) {
-                  COUNTLY_FLUTTER_LOG(@"Invalid latitude or longitude.");
+              } @catch (NSException *exception) {
+                  COUNTLY_FLUTTER_LOG(@"[setLocation], Invalid latitude or longitude.");
               }
           }
           result(@"setLocation!");
@@ -421,20 +421,20 @@ FlutterMethodChannel *_channel;
 
     } else if ([@"logException" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          NSString *execption = [command objectAtIndex:0];
+          NSString *exception = [command objectAtIndex:0];
           NSString *nonfatal = [command objectAtIndex:1];
-          NSArray *nsException = [execption componentsSeparatedByString:@"\n"];
+          NSArray *nsException = [exception componentsSeparatedByString:@"\n"];
 
-          NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
+          NSMutableDictionary *segmentation = [[NSMutableDictionary alloc] init];
 
           for (int i = 2, il = (int)command.count; i < il; i += 2) {
-              dict[[command objectAtIndex:i]] = [command objectAtIndex:i + 1];
+              segmentation[[command objectAtIndex:i]] = [command objectAtIndex:i + 1];
           }
-          [dict setObject:nonfatal forKey:@"nonfatal"];
 
-          NSException *myException = [NSException exceptionWithName:@"Exception" reason:execption userInfo:dict];
+          NSException *myException = [NSException exceptionWithName:@"Exception" reason:exception userInfo:nil];
 
-          [Countly.sharedInstance recordException:myException isFatal:NO stackTrace:nsException segmentation:nil];
+          BOOL isFatal = ![nonfatal boolValue];
+          [Countly.sharedInstance recordException:myException isFatal:isFatal stackTrace:nsException segmentation:segmentation];
           result(@"logException!");
         });
 
@@ -778,8 +778,8 @@ FlutterMethodChannel *_channel;
                   double longitudeDouble = [longitudeString doubleValue];
 
                   location = (CLLocationCoordinate2D){latitudeDouble, longitudeDouble};
-              } @catch (NSException *execption) {
-                  COUNTLY_FLUTTER_LOG(@"Invalid latitude or longitude.");
+              } @catch (NSException *exception) {
+                  COUNTLY_FLUTTER_LOG(@"[setOptionalParametersForInitialization], Invalid latitude or longitude.");
               }
           }
           [Countly.sharedInstance recordLocation:location city:city ISOCountryCode:country IP:ipAddress];
@@ -1065,7 +1065,7 @@ FlutterMethodChannel *_channel;
           NSString *widgetId = [command objectAtIndex:0];
           CountlyFeedbackWidget *feedbackWidget = [self getFeedbackWidget:widgetId];
           if (feedbackWidget == nil) {
-              NSString *errorMessage = [NSString stringWithFormat:@"No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId];
+              NSString *errorMessage = [NSString stringWithFormat:@"[presentFeedbackWidget], No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId];
               COUNTLY_FLUTTER_LOG(errorMessage);
               result(errorMessage);
           } else {
@@ -1085,7 +1085,7 @@ FlutterMethodChannel *_channel;
           NSString *widgetId = [command objectAtIndex:0];
           CountlyFeedbackWidget *feedbackWidget = [self getFeedbackWidget:widgetId];
           if (feedbackWidget == nil) {
-              NSString *errorMessage = [NSString stringWithFormat:@"No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId];
+              NSString *errorMessage = [NSString stringWithFormat:@"[getFeedbackWidgetData], No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId];
               COUNTLY_FLUTTER_LOG(errorMessage);
               result(errorMessage);
               [self feedbackWidgetDataCallback:NULL error:errorMessage];
@@ -1112,23 +1112,24 @@ FlutterMethodChannel *_channel;
 
           CountlyFeedbackWidget *feedbackWidget = [self getFeedbackWidget:widgetId];
           if (feedbackWidget == nil) {
-              NSString *errorMessage = [NSString stringWithFormat:@"No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId];
+              NSString *errorMessage = [NSString stringWithFormat:@"[reportFeedbackWidgetManually], No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId];
               COUNTLY_FLUTTER_LOG(errorMessage);
               result(errorMessage);
           } else {
               [feedbackWidget recordResult:widgetResult];
+              result(nil);
           }
         });
     } else if ([@"replaceAllAppKeysInQueueWithCurrentAppKey" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           [Countly.sharedInstance replaceAllAppKeysInQueueWithCurrentAppKey];
         });
-        result(@"requestQueueOverwriteAppKeys: success");
+        result(@"replaceAllAppKeysInQueueWithCurrentAppKey: success");
     } else if ([@"removeDifferentAppKeysFromQueue" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           [Countly.sharedInstance removeDifferentAppKeysFromQueue];
         });
-        result(@"requestQueueEraseAppKeysRequests: success");
+        result(@"removeDifferentAppKeysFromQueue: success");
     } else if ([@"startTrace" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *traceKey = [command objectAtIndex:0];
@@ -1154,7 +1155,7 @@ FlutterMethodChannel *_channel;
               @try {
                   metrics[[command objectAtIndex:i]] = [command objectAtIndex:i + 1];
               } @catch (NSException *exception) {
-                  COUNTLY_FLUTTER_LOG(@"Exception occurred while parsing metric: %@", exception);
+                  COUNTLY_FLUTTER_LOG(@"[endTrace], Exception occurred while parsing metric: %@", exception);
               }
           }
           [Countly.sharedInstance endCustomTrace:traceKey metrics:metrics];
@@ -1363,7 +1364,7 @@ FlutterMethodChannel *_channel;
 }
 
 - (void)remoteConfigDownloadCallback:(NSNumber*)callbackID response:(CLYRequestResult _Nonnull)response fullValueUpdate:(BOOL)fullValueUpdate error:(NSError *__nullable)error downloadedValues:(NSDictionary<NSString *,CountlyRCData *> *_Nonnull)downloadedValues {
-    COUNTLY_FLUTTER_LOG(@"[RemoteConfigDownloadIOS], about to notify flutter side callback", callbackID);
+    COUNTLY_FLUTTER_LOG(@"[remoteConfigDownloadCallback], about to notify flutter side callback", callbackID);
     if([callbackID intValue] == -1) {
         return;
     }
@@ -1425,7 +1426,7 @@ FlutterMethodChannel *_channel;
             @try {
                 NSArray *locationArray = [gpsCoordinate componentsSeparatedByString:@","];
                 if (locationArray.count > 2) {
-                    COUNTLY_FLUTTER_LOG(@"Invalid location Coordinates:[%@], it should contains only two comma seperated values", gpsCoordinate);
+                    COUNTLY_FLUTTER_LOG(@"[getCoordinate], Invalid location Coordinates:[%@], it should contains only two comma seperated values", gpsCoordinate);
                 }
                 NSString *latitudeString = [locationArray objectAtIndex:0];
                 NSString *longitudeString = [locationArray objectAtIndex:1];
@@ -1433,14 +1434,14 @@ FlutterMethodChannel *_channel;
                 double latitudeDouble = [latitudeString doubleValue];
                 double longitudeDouble = [longitudeString doubleValue];
                 if (latitudeDouble == 0 || longitudeDouble == 0) {
-                    COUNTLY_FLUTTER_LOG(@"Invalid location Coordinates, One of the values parsed to a 0, double check that given coordinates are correct:[%@]", gpsCoordinate);
+                    COUNTLY_FLUTTER_LOG(@"[getCoordinate], Invalid location Coordinates, One of the values parsed to a 0, double check that given coordinates are correct:[%@]", gpsCoordinate);
                 }
                 locationCoordinate = (CLLocationCoordinate2D){latitudeDouble, longitudeDouble};
             } @catch (NSException *exception) {
-                COUNTLY_FLUTTER_LOG(@"Invalid location Coordinates:[%@], Exception occurred while parsing Coordinates:[%@]", gpsCoordinate, exception);
+                COUNTLY_FLUTTER_LOG(@"[getCoordinate], Invalid location Coordinates:[%@], Exception occurred while parsing Coordinates:[%@]", gpsCoordinate, exception);
             }
         } else {
-            COUNTLY_FLUTTER_LOG(@"Invalid location Coordinates:[%@], lat and long values should be comma separated", gpsCoordinate);
+            COUNTLY_FLUTTER_LOG(@"[getCoordinate], Invalid location Coordinates:[%@], lat and long values should be comma separated", gpsCoordinate);
         }
     }
     return locationCoordinate;
@@ -1647,7 +1648,7 @@ FlutterMethodChannel *_channel;
         }
 
     } @catch (NSException *exception) {
-        COUNTLY_FLUTTER_LOG(@"populateConfig, Unable to parse Config object: %@", exception);
+        COUNTLY_FLUTTER_LOG(@"[populateConfig], Unable to parse Config object: %@", exception);
     }
 }
 
