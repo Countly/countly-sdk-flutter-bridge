@@ -173,7 +173,7 @@ class Countly {
 
           Countly.instance._remoteConfigInternal.notifyDownloadCallbacks(requestResult, error, fullValueUpdate, downloadedValuesObject, id);
         } catch (e) {
-          Countly.log('Method call for remoteConfigDownloadCallback had a problem: $e', logLevel: LogLevel.ERROR);
+          log('[FMethodCallH] Method call for remoteConfigDownloadCallback had a problem: $e', logLevel: LogLevel.ERROR);
         }
         break;
       case 'remoteConfigVariantCallback':
@@ -193,18 +193,18 @@ class Countly {
 
           Countly.instance._remoteConfigInternal.notifyVariantCallbacks(requestResult, error, id);
         } catch (e) {
-          Countly.log(e.toString(), logLevel: LogLevel.ERROR);
+          log('[FMethodCallH] $e', logLevel: LogLevel.ERROR);
         }
         break;
     }
   }
 
-  @Deprecated('Use rcRegisterCallback instead')
+  @Deprecated('This function is deprecated, please use rcRegisterCallback instead')
   static void setRemoteConfigCallback(Function(String? error) callback) {
     _remoteConfigCallback = callback;
   }
 
-  @Deprecated('Use initWithConfig instead')
+  @Deprecated('This function is deprecated, please use initWithConfig instead')
   static Future<String?> init(String serverUrl, String appKey, [String? deviceId]) async {
     log('Calling "init" with serverURL: $serverUrl and appKey: $appKey');
     log('init is deprecated, use initWithConfig instead', logLevel: LogLevel.WARNING);
@@ -222,17 +222,17 @@ class Countly {
     log('Calling "initWithConfig"');
     if (_instance._countlyState.isInitialized) {
       String msg = 'initWithConfig, SDK is already initialized';
-      Countly.log(msg, logLevel: LogLevel.ERROR);
+      log(msg, logLevel: LogLevel.ERROR);
       return msg;
     }
     if (config.serverURL.isEmpty) {
       String msg = 'initWithConfig, serverURL cannot be empty';
-      Countly.log(msg, logLevel: LogLevel.ERROR);
+      log(msg, logLevel: LogLevel.ERROR);
       return msg;
     }
     if (config.appKey.isEmpty) {
       String msg = 'initWithConfig, appKey cannot be empty';
-      Countly.log(msg, logLevel: LogLevel.ERROR);
+      log(msg, logLevel: LogLevel.ERROR);
       return msg;
     }
     if (config.manualSessionEnabled != null) {
@@ -357,7 +357,7 @@ class Countly {
   /// [String view] - name of the view
   /// [Map<String, Object> segmentation] - allows to add optional segmentation,
   /// Supported data type for segmentation values are String, int, double and bool
-  @Deprecated('Use Countly.instance.views.startView instead')
+  @Deprecated('This function is deprecated, please use "startView" of Countly.instance.views instead')
   static Future<String?> recordView(String view, [Map<String, Object>? segmentation]) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "recordView"';
@@ -389,7 +389,7 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use "setUserProperties" instead')
+  @Deprecated('This function is deprecated, please use "setUserProperties" instead')
   static Future<String?> setUserData(Map<String, Object> options) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "setUserData"';
@@ -513,7 +513,7 @@ class Countly {
   /// Starts session for manual session handling.
   /// This method needs to be called for starting a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
 
-  @Deprecated('Use Countly.instance.sessions.beginSession instead')
+  @Deprecated('This function is deprecated, please use "beginSession" of Countly.instance.sessions instead')
   static Future<String?> beginSession() async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "beginSession"';
@@ -535,7 +535,7 @@ class Countly {
   /// Update session for manual session handling.
   /// This method needs to be called for updating a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
 
-  @Deprecated('Use Countly.instance.sessions.updateSession instead')
+  @Deprecated('This function is deprecated, please use "updateSession" of Countly.instance.sessions instead')
   static Future<String?> updateSession() async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "updateSession"';
@@ -557,7 +557,7 @@ class Countly {
   /// End session for manual session handling.
   /// This method needs to be called for ending a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
 
-  @Deprecated('Use Countly.instance.sessions.endSession instead')
+  @Deprecated('This function is deprecated, please use "endSession" of Countly.instance.sessions instead')
   static Future<String?> endSession() async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "endSession"';
@@ -583,7 +583,7 @@ class Countly {
     return msg;
   }
 
-  @Deprecated('Use enableManualSessionHandling of CountlyConfig instead')
+  @Deprecated('This functions is deprecated, please use "enableManualSessionHandling" of CountlyConfig instead')
   static Future<String?> manualSessionHandling() async {
     log('Calling "manualSessionHandling"');
     log('manualSessionHandling is deprecated, use enableManualSessionHandling of CountlyConfig instead', logLevel: LogLevel.WARNING);
@@ -599,7 +599,7 @@ class Countly {
     return msg;
   }
 
-  @Deprecated('Use setUpdateSessionTimerDelay of CountlyConfig instead')
+  @Deprecated('This functions is deprecated, please use "setUpdateSessionTimerDelay" of CountlyConfig instead')
   static Future<String?> updateSessionPeriod() async {
     log('Calling "updateSessionPeriod"');
     String msg = 'updateSessionPeriod is deprecated, use setUpdateSessionTimerDelay of CountlyConfig instead';
@@ -611,7 +611,7 @@ class Countly {
   /// min value 1 (1 second),
   /// max value 600 (10 minutes)
   /// [int sessionInterval]- delay in seconds
-  @Deprecated('Use setUpdateSessionTimerDelay of CountlyConfig instead')
+  @Deprecated('This functions is deprecated, please use "setUpdateSessionTimerDelay" of CountlyConfig instead')
   static Future<String?> updateSessionInterval(int sessionInterval) async {
     log('Calling "updateSessionInterval":[$sessionInterval]');
     log('updateSessionInterval is deprecated, use setUpdateSessionTimerDelay of CountlyConfig instead', logLevel: LogLevel.WARNING);
@@ -629,7 +629,7 @@ class Countly {
 
   /// Events get grouped together and are sent either every minute or after the unsent event count reaches a threshold. By default it is 10
   /// Should be call before Countly init
-  @Deprecated('Use setEventQueueSizeToSend of CountlyConfig instead')
+  @Deprecated('This functions is deprecated, please use "setEventQueueSizeToSend" of CountlyConfig instead')
   static Future<String?> eventSendThreshold(int limit) async {
     log('Calling "eventSendThreshold":[$limit]');
     log('eventSendThreshold is deprecated, use setEventQueueSizeToSend of CountlyConfig instead', logLevel: LogLevel.WARNING);
@@ -641,7 +641,7 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use setMaxRequestQueueSize of CountlyConfig instead')
+  @Deprecated('This functions is deprecated, please use "setMaxRequestQueueSize" of CountlyConfig instead')
   static Future<String?> storedRequestsLimit() async {
     log('Calling "storedRequestsLimit"');
     log('storedRequestsLimit is deprecated, use setMaxRequestQueueSize of CountlyConfig instead', logLevel: LogLevel.WARNING);
@@ -650,10 +650,10 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use setLocation of CountlyConfig instead')
+  @Deprecated('This functions is deprecated, please use "setLocation" of CountlyConfig instead')
   static Future<String?> setOptionalParametersForInitialization(Map<String, Object> options) async {
     int optionsCount = options.length;
-    log('Calling "storedRequestsLimit" with options count:[$optionsCount]');
+    log('Calling "setOptionalParametersForInitialization" with options count:[$optionsCount]');
     log('setOptionalParametersForInitialization is deprecated, use setLocation of CountlyConfig instead', logLevel: LogLevel.WARNING);
     List<String> args = [];
 
@@ -772,7 +772,7 @@ class Countly {
 
   /// Set to true if you want to enable countly internal debugging logs
   /// Should be call before Countly init
-  @Deprecated('Use setLoggingEnabled of CountlyConfig to enable/disable logging instead')
+  @Deprecated('This functions is deprecated, please use "setLoggingEnabled" of CountlyConfig to enable/disable logging instead')
   static Future<String?> setLoggingEnabled(bool flag) async {
     log('Calling "setLoggingEnabled":[$flag]');
     log('setLoggingEnabled is deprecated, use setLoggingEnabled of CountlyConfig to enable/disable logging', logLevel: LogLevel.WARNING);
@@ -787,7 +787,7 @@ class Countly {
 
   /// Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request, using the &checksum field
   /// Should be call before Countly init
-  @Deprecated('Use setParameterTamperingProtectionSalt of CountlyConfig instead')
+  @Deprecated('This functions is deprecated, please use "setParameterTamperingProtectionSalt" of CountlyConfig instead')
   static Future<String?> enableParameterTamperingProtection(String salt) async {
     log('Calling "enableParameterTamperingProtection":[$salt]');
     log('enableParameterTamperingProtection is deprecated, use setParameterTamperingProtectionSalt of CountlyConfig instead', logLevel: LogLevel.WARNING);
@@ -806,7 +806,7 @@ class Countly {
 
   /// Set to 'true' if you want HTTP POST to be used for all requests
   /// Should be call before Countly init
-  @Deprecated('Use setHttpPostForced of CountlyConfig instead')
+  @Deprecated('This functions is deprecated, please use "setHttpPostForced" of CountlyConfig instead')
   static Future<String?> setHttpPostForced(bool isEnabled) async {
     log('Calling "setHttpPostForced":[$isEnabled]');
     log('setHttpPostForced is deprecated, use setHttpPostForced of CountlyConfig instead', logLevel: LogLevel.WARNING);
@@ -820,7 +820,7 @@ class Countly {
 
   /// Set user initial location
   /// Should be call before init
-  @Deprecated('Use setLocation of CountlyConfig instead')
+  @Deprecated('This functions is deprecated, please use "setLocation" of CountlyConfig instead')
   static Future<String?> setLocationInit(String countryCode, String city, String gpsCoordinates, String ipAddress) async {
     log('Calling "setLocationInit" with countryCode:[$countryCode], city:[$city], gpsCoordinates:[$gpsCoordinates], ipAddress:[$ipAddress]');
     log('setLocationInit is deprecated, use setLocation of CountlyConfig instead', logLevel: LogLevel.WARNING);
@@ -836,14 +836,14 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use setUserLocation instead')
+  @Deprecated('This functions is deprecated, please use "setUserLocation" instead')
   static Future<String?> setLocation(String latitude, String longitude) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "setLocation"';
       log('setLocation, $message', logLevel: LogLevel.ERROR);
       return message;
     }
-    log('Calling "setLocationInit" with latitude:[$latitude], longitude:[$longitude]');
+    log('Calling "setLocation" with latitude:[$latitude], longitude:[$longitude]');
     log('setLocation is deprecated, use setUserLocation instead', logLevel: LogLevel.WARNING);
     if (latitude.isEmpty) {
       String error = 'setLocation, latitude cannot be empty';
@@ -893,7 +893,7 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use "Countly.instance.userProfile.setProperty" instead')
+  @Deprecated('This function is deprecated. Please use "setProperty" of "Countly.instance.userProfile" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> setProperty(String keyName, String keyValue) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "setProperty"';
@@ -920,7 +920,7 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use "Countly.instance.userProfile.increment" instead')
+  @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.increment" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> increment(String keyName) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "increment"';
@@ -941,7 +941,7 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use "Countly.instance.userProfile.incrementBy" instead')
+  @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.incrementBy" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> incrementBy(String keyName, int keyIncrement) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "incrementBy"';
@@ -963,7 +963,7 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use "Countly.instance.userProfile.multiply" instead')
+  @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.multiply" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> multiply(String keyName, int multiplyValue) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "multiply"';
@@ -985,7 +985,7 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use "Countly.instance.userProfile.saveMax" instead')
+  @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.saveMax" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> saveMax(String keyName, int saveMax) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "saveMax"';
@@ -1007,7 +1007,7 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use "Countly.instance.userProfile.saveMin" instead')
+  @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.saveMin" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> saveMin(String keyName, int saveMin) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "saveMin"';
@@ -1029,7 +1029,7 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use "Countly.instance.userProfile.setOnce" instead')
+  @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.setOnce" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> setOnce(String keyName, String setOnce) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "setOnce"';
@@ -1056,7 +1056,7 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use "Countly.instance.userProfile.pushUnique" instead')
+  @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.pushUnique" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> pushUniqueValue(String type, String pushUniqueValue) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "pushUniqueValue"';
@@ -1083,7 +1083,7 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use "Countly.instance.userProfile.push" instead')
+  @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.push" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> pushValue(String type, String pushValue) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "pushValue"';
@@ -1110,7 +1110,7 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use "Countly.instance.userProfile.pull" instead')
+  @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.pull" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> pullValue(String type, String pullValue) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "pullValue"';
@@ -1139,7 +1139,7 @@ class Countly {
 
   /// Set that consent should be required for features to work.
   /// Should be call before Countly init
-  @Deprecated('Use setRequiresConsent of CountlyConfig instead')
+  @Deprecated('This function is deprecated, please use "setRequiresConsent" of CountlyConfig instead')
   static Future<String?> setRequiresConsent(bool flag) async {
     log('Calling "setRequiresConsent":[$flag]');
     log('setRequiresConsent is deprecated, use setRequiresConsent of CountlyConfig instead', logLevel: LogLevel.WARNING);
@@ -1153,10 +1153,10 @@ class Countly {
 
   /// Give consent for specific features.
   /// Should be call before Countly init
-  @Deprecated('Use setConsentEnabled of CountlyConfig instead')
+  @Deprecated('This function is deprecated, please use "setConsentEnabled" of CountlyConfig instead')
   static Future<String?> giveConsentInit(List<String> consents) async {
     String consentsString = consents.toString();
-    log('Calling "setRequiresConsent":[$consentsString]');
+    log('Calling "giveConsentInit":[$consentsString]');
     log('giveConsentInit is deprecated, use setConsentEnabled of CountlyConfig instead', logLevel: LogLevel.WARNING);
 
     if (consents.isEmpty) {
@@ -1233,7 +1233,7 @@ class Countly {
 
   /// Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
   /// Should be call before Countly init
-  @Deprecated('Use remoteConfigRegisterDownloadCallback of CountlyConfig instead')
+  @Deprecated('This function is deprecated, please use "remoteConfigRegisterDownloadCallback" of CountlyConfig instead')
   static Future<String?> setRemoteConfigAutomaticDownload(Function(String?) callback) async {
     log('Calling "setRemoteConfigAutomaticDownload"');
     log('setRemoteConfigAutomaticDownload is deprecated, use setRemoteConfigAutomaticDownload of CountlyConfig instead', logLevel: LogLevel.WARNING);
@@ -1243,7 +1243,7 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use remoteConfigDownloadValues instead')
+  @Deprecated('This function is deprecated, please use "remoteConfigDownloadValues" instead')
   static Future<String?> remoteConfigUpdate(Function(String?) callback) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "remoteConfigUpdate"';
@@ -1257,7 +1257,7 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use remoteConfigDownloadSpecificValue instead')
+  @Deprecated('This function is deprecated, please use "remoteConfigDownloadSpecificValue" instead')
   static Future<String?> updateRemoteConfigForKeysOnly(List<String> keys, Function(String?) callback) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "updateRemoteConfigForKeysOnly"';
@@ -1277,7 +1277,7 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use remoteConfigDownloadOmittingValues instead')
+  @Deprecated('This function is deprecated, please use "remoteConfigDownloadOmittingValues" instead')
   static Future<String?> updateRemoteConfigExceptKeys(List<String> keys, Function(String?) callback) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "updateRemoteConfigExceptKeys"';
@@ -1297,7 +1297,7 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use remoteConfigClearAllValues instead')
+  @Deprecated('This function is deprecated, please use "remoteConfigClearAllValues" instead')
   static Future<String?> remoteConfigClearValues(Function(String?) callback) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "remoteConfigClearValues"';
@@ -1311,7 +1311,7 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use remoteConfigGetValue instead')
+  @Deprecated('This function is deprecated, please use "remoteConfigGetValue" instead')
   static Future<String?> getRemoteConfigValueForKey(String key, Function(String?) callback) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "getRemoteConfigValueForKey"';
@@ -1337,7 +1337,7 @@ class Countly {
   /// [String starRatingTextTitle] - dialog's title text (Only for Android)
   /// [String starRatingTextMessage] - dialog's message text
   /// [String starRatingTextDismiss] - dialog's dismiss buttons text (Only for Android)
-  @Deprecated('Use setStarRatingDialogTexts of CountlyConfig instead')
+  @Deprecated('This function is deprecated, please use "setStarRatingDialogTexts" of CountlyConfig instead')
   static Future<String?> setStarRatingDialogTexts(String starRatingTextTitle, String starRatingTextMessage, String starRatingTextDismiss) async {
     log('Calling "setStarRatingDialogTexts":[$starRatingTextTitle], message:[$starRatingTextMessage], dimiss:[$starRatingTextDismiss]');
     log('setStarRatingDialogTexts is deprecated, use setStarRatingDialogTexts of CountlyConfig instead', logLevel: LogLevel.WARNING);
@@ -1363,7 +1363,7 @@ class Countly {
     return result;
   }
 
-  @Deprecated('Use presentRatingWidgetWithID instead')
+  @Deprecated('This function is deprecated, please use "presentRatingWidgetWithID" instead')
   static Future<String?> askForFeedback(String widgetId, String? closeButtonText) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "askForFeedback"';
@@ -1406,8 +1406,8 @@ class Countly {
   /// Get a list of available feedback widgets for this device ID
   static Future<FeedbackWidgetsResponse> getAvailableFeedbackWidgets() async {
     if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "reportFeedbackWidgetManually"';
-      log('reportFeedbackWidgetManually, $message', logLevel: LogLevel.ERROR);
+      String message = '"initWithConfig" must be called before "getAvailableFeedbackWidgets"';
+      log('getAvailableFeedbackWidgets, $message', logLevel: LogLevel.ERROR);
       return FeedbackWidgetsResponse([], message);
     }
     log('Calling "getAvailableFeedbackWidgets"');
@@ -1465,7 +1465,7 @@ class Countly {
     Map<String, dynamic> widgetData = {};
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "getFeedbackWidgetData"';
-      log('reportFeedbackWidgetManually, $message', logLevel: LogLevel.ERROR);
+      log('getFeedbackWidgetData, $message', logLevel: LogLevel.ERROR);
       return [widgetData, message];
     }
     _feedbackWidgetDataCallback = onFinished;
@@ -1483,7 +1483,7 @@ class Countly {
       widgetData = Map<String, dynamic>.from(retrievedWidgetData);
     } on PlatformException catch (e) {
       error = e.message;
-      log('getAvailableFeedbackWidgets Error : $error');
+      log('getFeedbackWidgetData Error : $error');
     }
     return [widgetData, error];
   }
@@ -1500,7 +1500,7 @@ class Countly {
     }
     String widgetId = widgetInfo.widgetId;
     String widgetType = widgetInfo.type;
-    log('Calling "getFeedbackWidgetData":[$presentFeedbackWidget] with Type:[$widgetType]');
+    log('Calling "reportFeedbackWidgetManually":[$presentFeedbackWidget] with Type:[$widgetType]');
     List<String> widgetInfoList = [];
     widgetInfoList.add(widgetId);
     widgetInfoList.add(widgetType);
@@ -1548,7 +1548,7 @@ class Countly {
       return message;
     }
     String eventKey = options['key'] != null ? options['key'].toString() : '';
-    log('Calling "startEvent":[$eventKey]');
+    log('Calling "endEvent":[$eventKey]');
     List<String> args = [];
     var segmentation = {};
 
@@ -1589,7 +1589,7 @@ class Countly {
 
   /// Enable crash reporting to report uncaught errors to Countly.
   /// Should be call before Countly init
-  @Deprecated('Use enableCrashReporting of CountlyConfig instead')
+  @Deprecated('This function is deprecated, please use "enableCrashReporting" of CountlyConfig instead')
   static Future<String?> enableCrashReporting() async {
     log('Calling "enableCrashReporting"');
     log('enableCrashReporting is deprecated, use enableCrashReporting of CountlyConfig instead', logLevel: LogLevel.WARNING);
@@ -1634,7 +1634,7 @@ class Countly {
 
   /// Set optional key/value segment added for crash reports.
   /// Should be call before Countly init
-  @Deprecated('Use setCustomCrashSegment of CountlyConfig instead')
+  @Deprecated('This function is deprecated, please use "setCustomCrashSegment" of CountlyConfig instead')
   static Future<String?> setCustomCrashSegment(Map<String, Object> segments) async {
     int segCount = segments.length;
     log('Calling "setCustomCrashSegment" segmentation count:[$segCount]');
@@ -1736,7 +1736,7 @@ class Countly {
 
   /// Enable APM features, which includes the recording of app start time.
   /// Should be call before Countly init
-  @Deprecated('Use enableAppStartTimeTracking of CountlyConfig.apm instead')
+  @Deprecated('This function is deprecated, please use "enableAppStartTimeTracking" of CountlyConfig.apm instead')
   static Future<String?> enableApm() async {
     log('Calling "enableApm"');
     log('enableApm is deprecated, use enableAppStartTimeTracking of CountlyConfig.apm instead', logLevel: LogLevel.WARNING);
@@ -1803,9 +1803,9 @@ class Countly {
   /// }
   ///
   static Future<void> recordDartError(exception, StackTrace stack) async {
-    log('recordError, Error caught by Countly :');
+    log('recordDartError, Error caught by Countly :');
     if (!_enableCrashReportingFlag) {
-      log('recordError, Crash Reporting must be enabled to report crash on Countly', logLevel: LogLevel.WARNING);
+      log('recordDartError, Crash Reporting must be enabled to report crash on Countly', logLevel: LogLevel.WARNING);
       return;
     }
     unawaited(_internalRecordError(exception, stack));
@@ -1829,12 +1829,12 @@ class Countly {
     try {
       unawaited(logException('${exception.toString()}\n\n$stack', true));
     } catch (e) {
-      log('Sending crash report to Countly failed: $e');
+      log('_internalRecordError, Sending crash report to Countly failed: $e');
     }
   }
 
   /// Enable campaign attribution reporting to Countly.
-  @Deprecated('Use recordIndirectAttribution instead')
+  @Deprecated('This function is deprecated, please use "recordIndirectAttribution" instead')
   static Future<String?> enableAttribution() async {
     log('Calling enableAttribution');
     String error = 'enableAttribution is deprecated, use recordIndirectAttribution instead';
@@ -1845,7 +1845,7 @@ class Countly {
   /// set attribution Id for campaign attribution reporting.
   /// If this is call for iOS then 'attributionID' is IDFA
   /// If this is call for Android then 'attributionID' is ADID
-  @Deprecated('Use recordIndirectAttribution instead')
+  @Deprecated('This function is deprecated, please use "recordIndirectAttribution" instead')
   static Future<String?> recordAttributionID(String attributionID) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "recordAttributionID"';

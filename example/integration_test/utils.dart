@@ -8,7 +8,7 @@ const MethodChannel _channelTest = MethodChannel('countly_flutter');
 
 // Base config options for tests
 final String SERVER_URL = 'https://xxx.count.ly';
-final String APP_KEY = 'YOUR_APP_KEY'; // change this for ios tests
+final String APP_KEY = 'FOR_IOS_THIS_SHOULD_NOT_BE_YOUR_APP_KEY';
 
 /// Get request queue from native side (list of strings)
 Future<List<String>> getRequestQueue() async {
