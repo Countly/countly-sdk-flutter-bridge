@@ -224,7 +224,9 @@ FlutterMethodChannel *_channel;
               config.updateSessionPeriod = sessionInterval;
               result(@"updateSessionInterval Success!");
           } @catch (NSException *exception) {
-              COUNTLY_FLUTTER_LOG(@"Exception occurred at updateSessionInterval method: %@", exception);
+              NSString *errorMessage = [NSString stringWithFormat:@"Exception occurred at updateSessionInterval method: %@", exception];
+              COUNTLY_FLUTTER_LOG(errorMessage);
+              result(errorMessage);
           };
         });
     } else if ([@"eventSendThreshold" isEqualToString:call.method]) {
@@ -234,7 +236,9 @@ FlutterMethodChannel *_channel;
               config.eventSendThreshold = limit;
               result(@"eventSendThreshold!");
           } @catch (NSException *exception) {
-              COUNTLY_FLUTTER_LOG(@"Exception occurred at eventSendThreshold method: %@", exception);
+              NSString *errorMessage = [NSString stringWithFormat:@"Exception occurred at eventSendThreshold method: %@", exception];
+              COUNTLY_FLUTTER_LOG(errorMessage);
+              result(errorMessage);
           };
         });
 
@@ -1037,8 +1041,8 @@ FlutterMethodChannel *_channel;
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *starRatingTextMessage = [command objectAtIndex:1];
           config.starRatingMessage = starRatingTextMessage;
+          result(@"setStarRatingDialogTexts: success");
         });
-        result(@"setStarRatingDialogTexts: success");
     } else if ([@"askForStarRating" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           [Countly.sharedInstance askForStarRating:^(NSInteger rating) {
@@ -1197,6 +1201,7 @@ FlutterMethodChannel *_channel;
               config.campaignType = campaignType;
               config.campaignData = campaignData;
           }
+          result(nil);
         });
     } else if ([@"recordIndirectAttribution" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -1206,6 +1211,7 @@ FlutterMethodChannel *_channel;
           } else {
               config.indirectAttribution = attributionValues;
           }
+          result(nil);
         });
     } else if ([@"startView" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
