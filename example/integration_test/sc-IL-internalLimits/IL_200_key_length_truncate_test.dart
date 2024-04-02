@@ -37,8 +37,8 @@ void main() {
     print('RQ length: ${requestList.length}');
     print('EQ length: ${eventList.length}');
 
-    expect(7, requestList.length);
-    expect(0, eventList.length);
+    expect(requestList.length, Platform.isIOS ? 8 : 7); // user properties and custom user properties are separately sent in iOS
+    expect(eventList.length, 0);
 
     // TODO: refactor this part (mote to utils and make it more generic)
     // 0: begin session
@@ -111,6 +111,8 @@ void main() {
         checkUnchangingUserPropeties(userDetails);
         expect(userDetails['custom']['special_value'.substring(0, MAX_KEY_LENGTH)], 'something special');
         expect(userDetails['custom']['not_special_value'.substring(0, MAX_KEY_LENGTH)], 'something special cooking');
+
+        // TODO: this should be in a==7 for ios
         expect(userDetails['custom']['setProperty'.substring(0, MAX_KEY_LENGTH)], 'My Property');
       }
 
