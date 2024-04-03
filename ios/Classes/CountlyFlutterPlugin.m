@@ -1568,7 +1568,7 @@ FlutterMethodChannel *_channel;
             [config.sdkInternalLimits setMaxStackTraceLineLength:[maxStackTraceLineLength intValue]];
         }
         NSNumber *maxStackTraceLinesPerThread = _config[@"maxStackTraceLinesPerThread"];
-        if (maxStackTraceLineLength) {
+        if (maxStackTraceLinesPerThread) {
             [config.sdkInternalLimits setMaxStackTraceLinesPerThread:[maxStackTraceLinesPerThread intValue]];
         }
         // Internal Limits End ---------------------
