@@ -29,9 +29,13 @@ void main() {
     // Second begin session call should not work
     await Countly.instance.sessions.beginSession();
 
+    await tester.pump(Duration(seconds: 2));
+
     // Update calls now should work
     await Countly.instance.sessions.updateSession();
+    await tester.pump(Duration(seconds: 2));
     await Countly.instance.sessions.updateSession();
+    await tester.pump(Duration(seconds: 2));
 
     // End session call should work
     await Countly.instance.sessions.endSession();
@@ -66,10 +70,11 @@ void main() {
       if (i == 0) {
         expect(queryParams['begin_session']?[0], '1');
       } else if (i == 1 || i == 2) {
-        expect(queryParams['session_duration']?[0], '0');
+        expect(queryParams['session_duration']?[0], '2');
         expect(queryParams['end_session'], null);
       } else if (i == 3) {
         expect(queryParams['end_session']?[0], '1');
+        expect(queryParams['session_duration']?[0], '2');
       }
       print('RQ.$i: $queryParams');
       print('========================');
