@@ -1189,6 +1189,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 String widgetId = widgetInfo.getString(0);
 
+                // TODO: for testing purposes we might want to bypass this check as it prevents us from using reportFeedbackWidgetManually directly
                 CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
                 if (feedbackWidget == null) {
                     String errorMessage = "[reportFeedbackWidgetManually], No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
@@ -1572,6 +1573,26 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.setRecordAppStartTime(_config.getBoolean("recordAppStartTime"));
         }
         // APM END --------------------------------------------
+        // Internal Limits ------------------------------------
+        if (_config.has("maxKeyLength")) {
+            this.config.sdkInternalLimits.setMaxKeyLength(_config.getInt("maxKeyLength"));
+        }
+        if (_config.has("maxValueSize")) {
+            this.config.sdkInternalLimits.setMaxValueSize(_config.getInt("maxValueSize"));
+        }
+        if (_config.has("maxSegmentationValues")) {
+            this.config.sdkInternalLimits.setMaxSegmentationValues(_config.getInt("maxSegmentationValues"));
+        }
+        if (_config.has("maxBreadcrumbCount")) {
+            this.config.sdkInternalLimits.setMaxBreadcrumbCount(_config.getInt("maxBreadcrumbCount"));
+        }
+        if (_config.has("maxStackTraceLineLength")) {
+            this.config.sdkInternalLimits.setMaxStackTraceLineLength(_config.getInt("maxStackTraceLineLength"));
+        }
+        if (_config.has("maxStackTraceLinesPerThread")) {
+            this.config.sdkInternalLimits.setMaxStackTraceLinesPerThread(_config.getInt("maxStackTraceLinesPerThread"));
+        }        
+        // Internal Limits END --------------------------------
 
         if (_config.has("enableUnhandledCrashReporting") && _config.getBoolean("enableUnhandledCrashReporting")) {
             this.config.enableCrashReporting();
