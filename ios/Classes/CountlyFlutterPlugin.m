@@ -28,7 +28,7 @@ BOOL BUILDING_WITH_PUSH_DISABLED = true;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
 
-NSString *const kCountlyFlutterSDKVersion = @"24.1.1";
+NSString *const kCountlyFlutterSDKVersion = @"24.4.0";
 NSString *const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 NSString *const kCountlyFlutterSDKNameNoPush = @"dart-flutterbnp-ios";
 
@@ -1545,6 +1545,33 @@ FlutterMethodChannel *_channel;
         if (startTSOverride) {
             [config.apm setAppStartTimestampOverride:[startTSOverride longLongValue]];
         }
+
+        // Internal Limits ---------------------
+        NSNumber *maxKeyLength = _config[@"maxKeyLength"];
+        if (maxKeyLength) {
+            [config.sdkInternalLimits setMaxKeyLength:[maxKeyLength intValue]];
+        }
+        NSNumber *maxValueSize = _config[@"maxValueSize"];
+        if (maxValueSize) {
+            [config.sdkInternalLimits setMaxValueSize:[maxValueSize intValue]];
+        }
+        NSNumber *maxSegmentationValues = _config[@"maxSegmentationValues"];
+        if (maxSegmentationValues) {
+            [config.sdkInternalLimits setMaxSegmentationValues:[maxSegmentationValues intValue]];
+        }
+        NSNumber *maxBreadcrumbCount = _config[@"maxBreadcrumbCount"];
+        if (maxBreadcrumbCount) {
+            [config.sdkInternalLimits setMaxBreadcrumbCount:[maxBreadcrumbCount intValue]];
+        }
+        NSNumber *maxStackTraceLineLength = _config[@"maxStackTraceLineLength"];
+        if (maxStackTraceLineLength) {
+            [config.sdkInternalLimits setMaxStackTraceLineLength:[maxStackTraceLineLength intValue]];
+        }
+        NSNumber *maxStackTraceLinesPerThread = _config[@"maxStackTraceLinesPerThread"];
+        if (maxStackTraceLinesPerThread) {
+            [config.sdkInternalLimits setMaxStackTraceLinesPerThread:[maxStackTraceLinesPerThread intValue]];
+        }
+        // Internal Limits End ---------------------
         
         NSNumber *enableUnhandledCrashReporting = _config[@"enableUnhandledCrashReporting"];
         if (enableUnhandledCrashReporting && [enableUnhandledCrashReporting boolValue]) {

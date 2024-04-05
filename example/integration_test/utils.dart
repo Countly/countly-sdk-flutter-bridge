@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -26,7 +27,7 @@ Future<List<String>> getEventQueue() async {
 void testCommonRequestParams(Map<String, List<String>> requestObject) {
   expect(requestObject['app_key']?[0], APP_KEY);
   expect(requestObject['sdk_name']?[0], "dart-flutterbnp-${Platform.isIOS ? "ios" : "android"}");
-  expect(requestObject['sdk_version']?[0], '24.1.1');
+  expect(requestObject['sdk_version']?[0], '24.4.0');
   expect(requestObject['av']?[0], Platform.isIOS ? '0.0.1' : '1.0.0');
   assert(requestObject['timestamp']?[0] != null);
 
@@ -130,4 +131,102 @@ void printMessageMultipleTimes(String message, int times) {
   for (int i = 0; i < times; i++) {
     print(message);
   }
+}
+
+/// Creates truncable events (which covers all possible truncable situations)
+/// - Events with segmentation
+/// - Views with segmentation
+/// - Custom and Network APM traces with segmentation
+/// - Custom Crash logs with segmentation
+/// - Global View segmentation
+/// - Custom and Named User Properties and their modifications (with mul, push, pull, set, increment, etc)
+/// - Breadcrumb value
+/// - Manual Feedback and Rating Widgets reporting
+Future<void> createTruncableEvents() async {
+  // Set global view segmentation
+  Map<String, Object> viewSegmentation = {'Camel': 666, 'NotCamel': 'Deerz'};
+  await Countly.instance.views.setGlobalViewSegmentation(viewSegmentation);
+
+  // Create event with segmentation
+  var event = {'key': 'Event With Sum And Segment', 'count': 1, 'sum': '0.99'};
+  event['segmentation'] = {'Country': 'Turkey', 'Age': '28884'};
+  await Countly.recordEvent(event);
+
+  // Create a view with segmentation
+  Map<String, Object> segments = {'Cats': 12345, 'Moons': 9.9866, 'Moose': 'Deer'};
+  await Countly.recordView('HomePage', segments); // legacy code
+  await Countly.instance.views.startAutoStoppedView('hawk', segments);
+
+  // Create custom APM custom trace with segmentation
+  Map<String, int> customMetric = {'ABCDEF': 1233, 'C44CCC': 1337};
+  await Countly.startTrace('Trace');
+  await Countly.endTrace('Trace', customMetric);
+
+  // Create APM network trace
+  await Countly.recordNetworkTrace('Network Trace', 200, 500, 600, 100, 150);
+
+  // Log a crash with segmentation (fatal and non-fatal)
+  await Countly.addCrashLog('User Performed Step A'); // breadcrumb
+  await Countly.logException('This is a manually created exception', true, segments);
+  await Countly.addCrashLog('User Performed Step A'); // breadcrumb
+  await Countly.logException('But this is a manually created exception', false, segments);
+
+  // Set user properties
+  Map<String, Object> userProperties = {
+    'name': 'Nicola Tesla',
+    'username': 'nicola',
+    'email': 'info@nicola.tesla',
+    'organization': 'Trust Electric Ltd',
+    'phone': '+90 822 140 2546',
+    'picture': 'http://images2.fanpop.com/images/photos/3300000/Nikola-Tesla-nikola-tesla-3365940-600-738.jpg',
+    'picturePath': '',
+    'gender': 'M',
+    'byear': '1919',
+    'special_value': 'something special',
+    'not_special_value': 'something special cooking'
+  };
+  await Countly.instance.userProfile.setUserProperties(userProperties);
+  await Countly.instance.userProfile.setProperty('setProperty', 'My Property');
+  await Countly.instance.userProfile.increment('increment');
+  await Countly.instance.userProfile.incrementBy('incrementBy', 10);
+  await Countly.instance.userProfile.multiply('multiply', 20);
+  await Countly.instance.userProfile.saveMax('saveMax', 100);
+  await Countly.instance.userProfile.saveMin('saveMin', 50);
+  await Countly.instance.userProfile.setOnce('setOnce', '200');
+  await Countly.instance.userProfile.pushUnique('pushUniqueValue', 'morning');
+  await Countly.instance.userProfile.push('pushValue', 'morning');
+  await Countly.instance.userProfile.pull('pushValue', 'morning');
+
+  // TODO: Report feedback widgets manually (will need some extra work)
+//   Map<String, Object> surSeg = {};
+//   surSeg['answ-12'] = 'answ-12';
+//   surSeg['answ-13'] = 'answ-13';
+//   await Countly.reportFeedbackWidgetManually(new CountlyPresentableFeedback('1', 'survey', 'fake_survey'), {}, surSeg);
+//   Map<String, Object> npsSeg = {'rating': 2, 'comment': 'Filled out comment'};
+//   await Countly.reportFeedbackWidgetManually(new CountlyPresentableFeedback('1', 'nps', 'fake_nps'), {}, npsSeg);
+//   Map<String, Object> ratSeg = {'rating': 3, 'comment': 'Filled out comment', 'email': 'test@yahoo.com'};
+//   await Countly.reportFeedbackWidgetManually(new CountlyPresentableFeedback('1', 'rating', 'fake_rating'), {}, ratSeg);
+
+  await Countly.instance.userProfile.save();
+}
+
+/// Check if the user properties are as expected for internal limit tests
+/// [Map<String, dynamic>] [userDetails] - user details object parsed from the request
+void checkUnchangingUserPropeties(userDetails) {
+  expect(userDetails['name'], 'Nicola Tesla');
+  expect(userDetails['username'], 'nicola');
+  expect(userDetails['email'], 'info@nicola.tesla');
+  expect(userDetails['organization'], 'Trust Electric Ltd');
+  expect(userDetails['phone'], '+90 822 140 2546');
+  expect(userDetails['picture'], 'http:\/\/images2.fanpop.com\/images\/photos\/3300000\/Nikola-Tesla-nikola-tesla-3365940-600-738.jpg');
+  expect(userDetails['gender'], 'M');
+  expect(userDetails['byear'], 1919);
+  expect(userDetails['custom']['increment'], {'\$inc': 1});
+  expect(userDetails['custom']['multiply'], {'\$mul': 20});
+  expect(userDetails['custom']['setOnce'], {'\$setOnce': '200'});
+  expect(userDetails['custom']['saveMax'], {'\$max': 100});
+  expect(userDetails['custom']['saveMin'], {'\$min': 50});
+  expect(userDetails['custom']['pushUniqueValue'], {'\$addToSet': 'morning'});
+  expect(userDetails['custom']['incrementBy'], {'\$inc': 10});
+  expect(userDetails['custom']['pushValue'], {'\$push': 'morning', '\$pull': 'morning'});
 }

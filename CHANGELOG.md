@@ -1,16 +1,34 @@
-## xx.x.x
-* Fixed an issue where the 'reportFeedbackWidgetManually' function would await indefinitely on iOS
-* Resolved an issue where nonfatal exceptions were treated as fatal and vice versa
+## 24.4.0
+* Mitigated an issue where the 'reportFeedbackWidgetManually' function would await indefinitely on iOS
+* Mitigated an issue where nonfatal exceptions were treated as fatal and vice versa
+* Mitigated an issue that caused session duration inconsistencies
 
-* Underlying Android SDK version is 24.1.1
-* Underlying iOS SDK version is 24.1.0
+* Added six new configuration options under the 'sdkInternalLimits' interface of 'CountlyConfig':
+  * 'setMaxKeyLength' for limiting the maximum size of all user provided string keys
+  * 'setMaxValueSize' for limiting the size of all values in user provided segmentation key-value pairs
+  * 'setMaxSegmentationValues' for limiting the max amount of user provided segmentation key-value pair count in one event
+  * 'setMaxBreadcrumbCount' for limiting the max amount of breadcrumbs that can be recorded before the oldest one is deleted
+  * 'setMaxStackTraceLinesPerThread' for limiting the max amount of stack trace lines to be recorded per thread
+  * 'setMaxStackTraceLineLength' for limiting the max characters allowed per stack trace lines
 
-## xx.x.x-np
-* Fixed an issue where the 'reportFeedbackWidgetManually' function would await indefinitely on iOS
-* Resolved an issue where nonfatal exceptions were treated as fatal and vice versa
+* Updated underlying Android SDK version to 24.4.0
+* Updated underlying iOS SDK version to 24.4.0
 
-* Underlying Android SDK version is 24.1.1
-* Underlying iOS SDK version is 24.1.0
+## 24.4.0-np
+* Mitigated an issue where the 'reportFeedbackWidgetManually' function would await indefinitely on iOS
+* Mitigated an issue where nonfatal exceptions were treated as fatal and vice versa
+* Mitigated an issue that caused session duration inconsistencies
+
+* Added six new configuration options under the 'sdkInternalLimits' interface of 'CountlyConfig':
+  * 'setMaxKeyLength' for limiting the maximum size of all user provided string keys
+  * 'setMaxValueSize' for limiting the size of all values in user provided segmentation key-value pairs
+  * 'setMaxSegmentationValues' for limiting the max amount of user provided segmentation key-value pair count in one event
+  * 'setMaxBreadcrumbCount' for limiting the max amount of breadcrumbs that can be recorded before the oldest one is deleted
+  * 'setMaxStackTraceLinesPerThread' for limiting the max amount of stack trace lines to be recorded per thread
+  * 'setMaxStackTraceLineLength' for limiting the max characters allowed per stack trace lines
+  
+* Updated underlying Android SDK version to 24.4.0
+* Updated underlying iOS SDK version to 24.4.0
 
 ## 24.1.1
 * Added a new metric for detecting whether or not a device has a hinge for Android
