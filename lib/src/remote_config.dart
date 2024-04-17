@@ -28,14 +28,26 @@ typedef RCVariantInnerCallback = void Function(RequestResult rResult, String? er
 typedef RCVariantCallback = void Function(RequestResult rResult, String? error);
 
 abstract class RemoteConfig {
+  /// Register a callback to be called after remote config values are downloaded.
+  /// [RCDownloadCallback callback] - callback
   void registerDownloadCallback(RCDownloadCallback callback);
 
+  /// Remove a registered callback. This callback will not be called after remote config values are downloaded.
+  /// [RCDownloadCallback callback] - callback
   void removeDownloadCallback(RCDownloadCallback callback);
 
+  /// Trigger downloading of all remote config keys.
+  /// [RCDownloadCallback callback] - will be called after all keys are downloaded
   Future<void> downloadAllKeys([RCDownloadCallback? callback]);
 
+  /// Trigger downloading of specific remote config keys.
+  /// [List<String> key] - list of keys to be downloaded
+  /// [RCDownloadCallback callback] - will be called after all keys are downloaded
   Future<void> downloadSpecificKeys(List<String> keys, [RCDownloadCallback? callback]);
 
+  /// Trigger downloading of all remote config keys except omitted keys.
+  /// [List<String> key] - list of keys to be omitted
+  /// [RCDownloadCallback callback] - will be called after all keys are downloaded
   Future<void> downloadOmittingKeys(List<String> omittedKeys, [RCDownloadCallback? callback]);
 
   /// returns the value of a stored key.
@@ -54,6 +66,7 @@ abstract class RemoteConfig {
   /// make sure [downloadAllKeys] or [downloadSpecificKeys] is called to download all RC data before calling this method.
   Future<Map<String, RCData>> getAllValuesAndEnroll();
 
+  /// Clear all downloaded values
   Future<void> clearAll();
 
   /// Enroll into AB experiment (for all keys under that experiment) with experiment ID
@@ -66,20 +79,36 @@ abstract class RemoteConfig {
   /// You can get experiment ID from [testingDownloadExperimentInformation]
   Future<void> testingExitABExperiment(String experimentID);
 
+  /// Enroll into AB tests for the given keys
+  /// [List<String> keys] - List of keys
   Future<void> enrollIntoABTestsForKeys(List<String> keys);
 
+  /// Exit AB tests for the given keys
+  /// [List<String> keys] - List of keys
   Future<void> exitABTestsForKeys(List<String> keys);
 
+  /// returns variants for a specific key
   /// make sure [testingDownloadVariantInformation] is called to download variant info before calling this method.
+  /// [String key] - name of key
   Future<List<String>> testingGetVariantsForKey(String key);
 
+  /// returns all variants
   /// make sure [testingDownloadVariantInformation] is called to download variant info before calling this method.
   Future<Map<String, List<String>>> testingGetAllVariants();
 
+  /// fetch a map of all A/B testing parameters (keys) and variants associated with it
+  /// [RCVariantCallback rcVariantCallback] - called after all information is downloaded
   Future<void> testingDownloadVariantInformation(RCVariantCallback rcVariantCallback);
 
+  /// Enroll user into a specific variant
+  /// make sure [testingDownloadVariantInformation] is called to download variant info before calling this method.
+  /// [String keyName] - name of key
+  /// [String variantName] - name of variant
+  /// [RCVariantCallback rcVariantCallback] - called after enrollment
   Future<void> testingEnrollIntoVariant(String keyName, String variantName, RCVariantCallback? rcVariantCallback);
 
+  /// Fetch information about the A/B tests in your server including test name, description and the current variant
+  /// [RCVariantCallback rcVariantCallback] - called after all information is downloaded
   Future<void> testingDownloadExperimentInformation(RCVariantCallback rcVariantCallback);
 
   /// make sure [testingDownloadExperimentInformation] is called to download experiment info before calling this method.
