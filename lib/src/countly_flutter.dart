@@ -676,8 +676,8 @@ class Countly {
     return result;
   }
 
-  @Deprecated('This functions is deprecated, please use "setLocation" of CountlyConfig instead')
   /// returns the error or success message
+  @Deprecated('This functions is deprecated, please use "setLocation" of CountlyConfig instead')
   static Future<String?> setOptionalParametersForInitialization(Map<String, Object> options) async {
     int optionsCount = options.length;
     log('Calling "setOptionalParametersForInitialization" with options count:[$optionsCount]');
