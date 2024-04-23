@@ -526,7 +526,6 @@ class Countly {
   /// Starts session for manual session handling.
   /// This method needs to be called for starting a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
   /// returns the error or success message
-
   @Deprecated('This function is deprecated, please use "beginSession" of Countly.instance.sessions instead')
   static Future<String?> beginSession() async {
     if (!_instance._countlyState.isInitialized) {
@@ -549,7 +548,6 @@ class Countly {
   /// Update session for manual session handling.
   /// This method needs to be called for updating a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
   /// returns the error or success message
-
   @Deprecated('This function is deprecated, please use "updateSession" of Countly.instance.sessions instead')
   static Future<String?> updateSession() async {
     if (!_instance._countlyState.isInitialized) {
@@ -572,7 +570,6 @@ class Countly {
   /// End session for manual session handling.
   /// This method needs to be called for ending a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
   /// returns the error or success message
-
   @Deprecated('This function is deprecated, please use "endSession" of Countly.instance.sessions instead')
   static Future<String?> endSession() async {
     if (!_instance._countlyState.isInitialized) {
