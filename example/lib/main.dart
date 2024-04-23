@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter/src/scroll_tracking.dart';
 import 'package:countly_flutter_example/config_object.dart';
 
 import 'package:countly_flutter_example/helpers.dart';
@@ -15,6 +16,7 @@ import 'package:countly_flutter_example/page_remote_config.dart';
 import 'package:countly_flutter_example/page_sessions.dart';
 import 'package:countly_flutter_example/page_user_profiles.dart';
 import 'package:countly_flutter_example/page_views.dart';
+import 'package:countly_flutter_example/scroll_demo.dart';
 import 'package:countly_flutter_example/style.dart';
 import 'package:flutter/material.dart';
 
@@ -24,10 +26,12 @@ void main() {
   /// and provide the [Countly.recordDartError] callback for [onError()]
   runZonedGuarded<void>(() {
     runApp(
-      MaterialApp(
-        theme: AppTheme.countlyTheme(),
-        debugShowCheckedModeBanner: false,
-        home: const MyApp(),
+      CountlyScrollTracking(
+        child: MaterialApp(
+          theme: AppTheme.countlyTheme(),
+          debugShowCheckedModeBanner: false,
+          home: const MyApp(),
+        ),
       ),
     );
   }, Countly.recordDartError);
@@ -84,6 +88,14 @@ class _MyAppState extends State<MyApp> {
           padding: EdgeInsets.only(left: 15, right: 15),
           child: Column(
             children: <Widget>[
+              // Go to scroll demo page
+              MyButton(
+                text: 'Scroll Demo',
+                color: 'green',
+                onPressed: () {
+                  navigateToPage(context, ScrollDemo());
+                },
+              ),
               MyButton(
                 text: 'Sessions',
                 color: 'green',
@@ -161,6 +173,13 @@ class _MyAppState extends State<MyApp> {
                   navigateToPage(context, OthersPage());
                 },
               ),
+              // added below to make this page scrollable.
+              for (int i = 0; i < 30; i++)
+                MyButton(
+                  text: 'Button $i',
+                  color: 'green',
+                  onPressed: () {},
+                ),
             ],
           ),
         ),
