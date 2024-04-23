@@ -26,6 +26,7 @@ void main() {
   /// and provide the [Countly.recordDartError] callback for [onError()]
   runZonedGuarded<void>(() {
     runApp(
+      // Adding this widget adds scroll tracking across the application
       CountlyScrollTracking(
         child: MaterialApp(
           theme: AppTheme.countlyTheme(),
