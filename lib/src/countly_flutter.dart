@@ -199,11 +199,14 @@ class Countly {
     }
   }
 
+  /// For registering a callback that is called when a remote config download is completed
   @Deprecated('This function is deprecated, please use rcRegisterCallback instead')
   static void setRemoteConfigCallback(Function(String? error) callback) {
     _remoteConfigCallback = callback;
   }
 
+  /// Initialize the SDK
+  /// This should only be called once
   @Deprecated('This function is deprecated, please use initWithConfig instead')
   static Future<String?> init(String serverUrl, String appKey, [String? deviceId]) async {
     log('Calling "init" with serverURL: $serverUrl and appKey: $appKey');
@@ -215,6 +218,8 @@ class Countly {
     return await initWithConfig(config);
   }
 
+  /// Initialize the SDK
+  /// This should only be called once
   /// returns the error or success message
   static Future<String?> initWithConfig(CountlyConfig config) async {
     if (config.loggingEnabled != null) {
@@ -397,8 +402,10 @@ class Countly {
     return result;
   }
 
-  @Deprecated('This function is deprecated, please use "setUserProperties" instead')
+  /// Sets the user data.
+  /// Should be called after init.
   /// returns the error or success message
+  @Deprecated('This function is deprecated, please use "setUserProperties" instead')
   static Future<String?> setUserData(Map<String, Object> options) async {
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "setUserData"';
@@ -598,6 +605,9 @@ class Countly {
     return msg;
   }
 
+  /// Enable manual session handling
+  /// Should be called before init.
+  /// Only implemented for iOS platform.
   /// returns the error or success message
   @Deprecated('This functions is deprecated, please use "enableManualSessionHandling" of CountlyConfig instead')
   static Future<String?> manualSessionHandling() async {
@@ -663,6 +673,8 @@ class Countly {
     return result;
   }
 
+  /// Set the limit for stored requests
+  /// Should be called before init.
   /// returns the error or success message
   @Deprecated('This functions is deprecated, please use "setMaxRequestQueueSize" of CountlyConfig instead')
   static Future<String?> storedRequestsLimit() async {
@@ -673,6 +685,8 @@ class Countly {
     return result;
   }
 
+  /// Set user location
+  /// Should be called before init.
   /// returns the error or success message
   @Deprecated('This functions is deprecated, please use "setLocation" of CountlyConfig instead')
   static Future<String?> setOptionalParametersForInitialization(Map<String, Object> options) async {
@@ -934,6 +948,7 @@ class Countly {
     return result;
   }
 
+  /// Set custom user property
   /// returns the error or success message
   @Deprecated('This function is deprecated. Please use "setProperty" of "Countly.instance.userProfile" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> setProperty(String keyName, String keyValue) async {
@@ -962,6 +977,7 @@ class Countly {
     return result;
   }
 
+  /// Increment user property by 1
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.increment" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> increment(String keyName) async {
@@ -984,6 +1000,7 @@ class Countly {
     return result;
   }
 
+  /// Increment user property by provided value
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.incrementBy" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> incrementBy(String keyName, int keyIncrement) async {
@@ -1007,6 +1024,7 @@ class Countly {
     return result;
   }
 
+  /// Multiply user property by provided value
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.multiply" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> multiply(String keyName, int multiplyValue) async {
@@ -1030,6 +1048,7 @@ class Countly {
     return result;
   }
 
+  /// Save max of current value and provided value
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.saveMax" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> saveMax(String keyName, int saveMax) async {
@@ -1053,6 +1072,7 @@ class Countly {
     return result;
   }
 
+  /// Save min of current value and provided value
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.saveMin" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> saveMin(String keyName, int saveMin) async {
@@ -1076,6 +1096,7 @@ class Countly {
     return result;
   }
 
+  /// Set value to provided value if it does not exist
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.setOnce" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> setOnce(String keyName, String setOnce) async {
@@ -1104,6 +1125,7 @@ class Countly {
     return result;
   }
 
+  /// insert value to array if value does not exist
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.pushUnique" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> pushUniqueValue(String type, String pushUniqueValue) async {
@@ -1132,6 +1154,7 @@ class Countly {
     return result;
   }
 
+  /// insert value to array which can have duplicates
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.push" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> pushValue(String type, String pushValue) async {
@@ -1160,6 +1183,7 @@ class Countly {
     return result;
   }
 
+  /// remove value from array
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.pull" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> pullValue(String type, String pullValue) async {
@@ -1304,6 +1328,7 @@ class Countly {
     return result;
   }
 
+  /// Replace all stored remote config values with new ones from the server.
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "remoteConfigDownloadValues" instead')
   static Future<String?> remoteConfigUpdate(Function(String?) callback) async {
@@ -1319,6 +1344,7 @@ class Countly {
     return result;
   }
 
+  /// Replace specific remote config values with new ones from the server.
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "remoteConfigDownloadSpecificValue" instead')
   static Future<String?> updateRemoteConfigForKeysOnly(List<String> keys, Function(String?) callback) async {
@@ -1340,6 +1366,7 @@ class Countly {
     return result;
   }
 
+  /// Replace remote config values (except provided keys) with new ones from the server.
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "remoteConfigDownloadOmittingValues" instead')
   static Future<String?> updateRemoteConfigExceptKeys(List<String> keys, Function(String?) callback) async {
@@ -1361,6 +1388,7 @@ class Countly {
     return result;
   }
 
+  /// Clear all remote config values.
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "remoteConfigClearAllValues" instead')
   static Future<String?> remoteConfigClearValues(Function(String?) callback) async {
@@ -1376,6 +1404,7 @@ class Countly {
     return result;
   }
 
+  /// Clear all remote config values.
   /// returns the error message or remote config value
   @Deprecated('This function is deprecated, please use "remoteConfigGetValue" instead')
   static Future<String?> getRemoteConfigValueForKey(String key, Function(String?) callback) async {
@@ -1432,6 +1461,7 @@ class Countly {
     return result;
   }
 
+  /// Show feedback widget associated with provided ID.
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "presentRatingWidgetWithID" instead')
   static Future<String?> askForFeedback(String widgetId, String? closeButtonText) async {
