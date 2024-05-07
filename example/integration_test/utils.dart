@@ -181,7 +181,7 @@ Future<void> createTruncableEvents() async {
     'picture': 'http://images2.fanpop.com/images/photos/3300000/Nikola-Tesla-nikola-tesla-3365940-600-738.jpg',
     'picturePath': '',
     'gender': 'M',
-    'byear': '1919',
+    'byear': 1919,
     'special_value': 'something special',
     'not_special_value': 'something special cooking'
   };

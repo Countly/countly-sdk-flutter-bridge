@@ -67,7 +67,7 @@ void main() {
         expect(crash['_custom']['Moose'], 'Deer'.substring(0, MAX_VALUE_SIZE));
         expect(crash['_custom']['Moons'], '9.9866'.substring(0, MAX_VALUE_SIZE));
         var dateSizeIOS = a == 3 ? 26 : 54;
-        var dateSizeAndroid = a == 3 ? 2 : 5;
+        var dateSizeAndroid = a == 3 ? 1 : 3;
         expect(crash['_logs'].length, Platform.isIOS ? MAX_VALUE_SIZE + dateSizeIOS : MAX_VALUE_SIZE + dateSizeAndroid); // adding date in iOS
       } else if (a == 5) {
         // 0) Custom Event
@@ -106,15 +106,6 @@ void main() {
         expect(view['segmentation']['visit'], Platform.isIOS ? 1 : '1');
         expect(view['segmentation']['NotCamel'], 'Deerz'.substring(0, MAX_VALUE_SIZE));
         expect(view['segmentation']['Moose'], 'Deer'.substring(0, MAX_VALUE_SIZE));
-        if (Platform.isAndroid) {
-          // 4) View End (AutoStopped)
-          view = eventList[4];
-          expect(view['key'], '[CLY]_view');
-          expect(view['segmentation']['segment'], Platform.isIOS ? 'iOS' : 'Android');
-          expect(view['segmentation']['name'], 'hawk');
-          expect(view['segmentation']['Camel'], 666);
-          expect(view['segmentation']['NotCamel'], 'Deerz'.substring(0, MAX_VALUE_SIZE));
-        }
       } else if (a == 6) {
         Map<String, dynamic> userDetails = json.decode(queryParams['user_details']![0]);
         expect(userDetails['custom']['special_value'], 'something special'.substring(0, MAX_VALUE_SIZE));

@@ -241,7 +241,7 @@ class UserProfileInternal implements UserProfile {
       userProperties['gender'] = userProperties['gender'].toString();
     }
     if (userProperties.containsKey('byear')) {
-      userProperties['byear'] = userProperties['byear'].toString();
+      userProperties['byear'] = userProperties['byear']!;
     }
   }
 }

@@ -7,20 +7,12 @@ in ios breadcrumbs has an extra date added: "_logs":"<2024-04-02 15:09:21.483> U
 ## Platform issues
 Android:
 setMaxSegmentationValues:
-- Global view segmentation count not capped
+- custom user properties has no limit
 setMaxValueSize:
-- Only truncates breadcrumb
+- truncates user property `picture` (not picture path)
 setMaxKeyLength:
-- Not working
+- Network Trace name not truncated
 
 iOS:
-setMaxSegmentationValues:
-- Custom trace segmentation count not capped
-- Custom crash segmentation count not capped
-- View internal segmentation key/value pairs also included in capping
-- Custom user details count not capped
 setMaxValueSize:
-- Not truncating custom segmentation values
-- Not truncating breadcrumbs
-- Truncating internal view segmentation values (like 'iOS')
-- Not truncating userData operation values
+- Not truncating userData operation values (setOnce, push, pull, pushUnique)
