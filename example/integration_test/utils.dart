@@ -186,16 +186,16 @@ Future<void> createTruncableEvents() async {
     'not_special_value': 'something special cooking'
   };
   await Countly.instance.userProfile.setUserProperties(userProperties);
-  await Countly.instance.userProfile.setProperty('setProperty', 'My Property');
-  await Countly.instance.userProfile.increment('increment');
-  await Countly.instance.userProfile.incrementBy('incrementBy', 10);
-  await Countly.instance.userProfile.multiply('multiply', 20);
-  await Countly.instance.userProfile.saveMax('saveMax', 100);
-  await Countly.instance.userProfile.saveMin('saveMin', 50);
-  await Countly.instance.userProfile.setOnce('setOnce', '200');
-  await Countly.instance.userProfile.pushUnique('pushUniqueValue', 'morning');
-  await Countly.instance.userProfile.push('pushValue', 'morning');
-  await Countly.instance.userProfile.pull('pushValue', 'morning');
+  await Countly.instance.userProfile.setProperty('a12345', 'My Property');
+  await Countly.instance.userProfile.increment('b12345');
+  await Countly.instance.userProfile.incrementBy('c12345', 10);
+  await Countly.instance.userProfile.multiply('d12345', 20);
+  await Countly.instance.userProfile.saveMax('e12345', 100);
+  await Countly.instance.userProfile.saveMin('f12345', 50);
+  await Countly.instance.userProfile.setOnce('g12345', '200');
+  await Countly.instance.userProfile.pushUnique('h12345', 'morning');
+  await Countly.instance.userProfile.push('i12345', 'morning');
+  await Countly.instance.userProfile.pull('k12345', 'morning');
 
   // TODO: Report feedback widgets manually (will need some extra work)
 //   Map<String, Object> surSeg = {};
@@ -221,12 +221,19 @@ void checkUnchangingUserPropeties(userDetails) {
   expect(userDetails['picture'], 'http:\/\/images2.fanpop.com\/images\/photos\/3300000\/Nikola-Tesla-nikola-tesla-3365940-600-738.jpg');
   expect(userDetails['gender'], 'M');
   expect(userDetails['byear'], 1919);
-  expect(userDetails['custom']['increment'], {'\$inc': 1});
-  expect(userDetails['custom']['multiply'], {'\$mul': 20});
-  expect(userDetails['custom']['setOnce'], {'\$setOnce': '200'});
-  expect(userDetails['custom']['saveMax'], {'\$max': 100});
-  expect(userDetails['custom']['saveMin'], {'\$min': 50});
-  expect(userDetails['custom']['pushUniqueValue'], {'\$addToSet': 'morning'});
-  expect(userDetails['custom']['incrementBy'], {'\$inc': 10});
-  expect(userDetails['custom']['pushValue'], {'\$push': 'morning', '\$pull': 'morning'});
+}
+
+/// Check if the user data are as expected for internal limit tests
+/// [Map<String, dynamic>] [userDetails] - user details object parsed from the request
+void checkUnchangingUserData(userDetails, {int MAX_KEY_LENGTH = 128}) {
+  expect(userDetails['custom']['a12345'.substring(0, MAX_KEY_LENGTH)], 'My Property');
+  expect(userDetails['custom']['b12345'.substring(0, MAX_KEY_LENGTH)], {'\$inc': 1});
+  expect(userDetails['custom']['c12345'.substring(0, MAX_KEY_LENGTH)], {'\$inc': 10});
+  expect(userDetails['custom']['d12345'.substring(0, MAX_KEY_LENGTH)], {'\$mul': 20});
+  expect(userDetails['custom']['e12345'.substring(0, MAX_KEY_LENGTH)], {'\$max': 100});
+  expect(userDetails['custom']['f12345'.substring(0, MAX_KEY_LENGTH)], {'\$min': 50});
+  expect(userDetails['custom']['g12345'.substring(0, MAX_KEY_LENGTH)], {'\$setOnce': '200'});
+  expect(userDetails['custom']['h12345'.substring(0, MAX_KEY_LENGTH)], {'\$addToSet': 'morning'});
+  expect(userDetails['custom']['i12345'.substring(0, MAX_KEY_LENGTH)], {'\$push': 'morning'});
+  expect(userDetails['custom']['k12345'.substring(0, MAX_KEY_LENGTH)], {'\$pull': 'morning'});
 }

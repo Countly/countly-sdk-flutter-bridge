@@ -689,7 +689,7 @@ FlutterMethodChannel *_channel;
             NSString *key = [command objectAtIndex:0];
             NSString *value = [command objectAtIndex:1];
             
-            [Countly.user push:key value:value];
+            [Countly.user pull:key value:value];
             result(nil);
         });
         
