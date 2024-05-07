@@ -115,14 +115,14 @@ void main() {
         Map<String, dynamic> userDetails = json.decode(queryParams['user_details']![0]);
         expect(userDetails['custom']['special_value'.substring(0, MAX_KEY_LENGTH)], 'something special');
         expect(userDetails['custom']['not_special_value'.substring(0, MAX_KEY_LENGTH)], 'something special cooking');
-        checkUnchangingUserPropeties(userDetails);
+        checkUnchangingUserPropeties(userDetails, null);
 
         if (Platform.isAndroid) {
-          checkUnchangingUserData(userDetails, MAX_KEY_LENGTH: MAX_KEY_LENGTH);
+          checkUnchangingUserData(userDetails, MAX_KEY_LENGTH, null);
         }
       } else if (Platform.isIOS && a == 7) {
         Map<String, dynamic> userDetails = json.decode(queryParams['user_details']![0]);
-        checkUnchangingUserData(userDetails, MAX_KEY_LENGTH: MAX_KEY_LENGTH);
+        checkUnchangingUserData(userDetails, MAX_KEY_LENGTH, null);
       }
 
       // some logs for debugging

@@ -52,7 +52,7 @@ void main() {
       if (a == 1) {
         Map<String, dynamic> apm = json.decode(queryParams['apm']![0]);
         expect(apm['name'], 'Trace');
-        expect(apm['apm_metrics']['C44CCC'], 1337);
+        expect(apm['apm_metrics']['C44CCC'], null);
         expect(apm['apm_metrics']['ABCDEF'], 1233);
       } else if (a == 2) {
         Map<String, dynamic> apm = json.decode(queryParams['apm']![0]);
@@ -63,25 +63,27 @@ void main() {
         expect(crash['_custom']['Cats'], null);
         expect(crash['_custom']['Moose'], null);
         expect(crash['_custom']['Moons'], '9.9866');
-        expect(crash['_logs'], 'User Performed Step A' + '\n');
+        var dateSizeIOS = a == 3 ? 47 : 95;
+        var dateSizeAndroid = a == 3 ? 22 : 46;
+        expect(crash['_logs'].length, Platform.isIOS ? dateSizeIOS : dateSizeAndroid); // adding date in iOS
       } else if (a == 5) {
         // 0) Custom Event
         List<dynamic> eventList = json.decode(queryParams['events']![0]);
         var event = eventList[0];
         expect(event['key'], 'Event With Sum And Segment');
-        expect(event['segmentation']['Country'], null);
-        expect(event['segmentation']['Age'], '28884');
+        expect(event['segmentation']['Country'], 'Turkey');
+        expect(event['segmentation']['Age'], null);
         // 1) View Start (legacy)
         var view = eventList[1];
         expect(view['key'], '[CLY]_view');
         expect(view['segmentation']['Cats'], null);
-        expect(view['segmentation']['Moons'], '9.9866');
+        expect(view['segmentation']['Moons'], null);
         expect(view['segmentation']['segment'], Platform.isIOS ? 'iOS' : 'Android');
-        expect(view['segmentation']['start'], '1');
+        expect(view['segmentation']['start'], Platform.isIOS ? 1 : '1');
         expect(view['segmentation']['name'], 'HomePage');
         expect(view['segmentation']['Camel'], 666);
-        expect(view['segmentation']['visit'], '1');
-        expect(view['segmentation']['NotCamel'], 'Deerz');
+        expect(view['segmentation']['visit'], Platform.isIOS ? 1 : '1');
+        expect(view['segmentation']['NotCamel'], null);
         expect(view['segmentation']['Moose'], null);
         // 2) View End (legacy)
         view = eventList[2];
@@ -89,26 +91,30 @@ void main() {
         expect(view['segmentation']['segment'], Platform.isIOS ? 'iOS' : 'Android');
         expect(view['segmentation']['name'], 'HomePage');
         expect(view['segmentation']['Camel'], 666);
-        expect(view['segmentation']['NotCamel'], 'Deerz');
+        expect(view['segmentation']['NotCamel'], null);
         // 3) View Start (AutoStopped)
         view = eventList[3];
         expect(view['key'], '[CLY]_view');
         expect(view['segmentation']['Cats'], null);
-        expect(view['segmentation']['Moons'], 9.9866);
+        expect(view['segmentation']['Moons'], null);
         expect(view['segmentation']['segment'], Platform.isIOS ? 'iOS' : 'Android');
         expect(view['segmentation']['name'], 'hawk');
         expect(view['segmentation']['Camel'], 666);
-        expect(view['segmentation']['visit'], '1');
-        expect(view['segmentation']['NotCamel'], 'Deerz');
+        expect(view['segmentation']['visit'], Platform.isIOS ? 1 : '1');
+        expect(view['segmentation']['NotCamel'], null);
         expect(view['segmentation']['Moose'], null);
       } else if (a == 6) {
         Map<String, dynamic> userDetails = json.decode(queryParams['user_details']![0]);
-        checkUnchangingUserPropeties(userDetails);
         expect(userDetails['custom']['special_value'], 'something special');
-        expect(userDetails['custom']['not_special_value'], 'something special cooking');
+        expect(userDetails['custom']['not_special_value'], null);
+        checkUnchangingUserPropeties(userDetails, null);
 
-        // TODO: this should be in a==7 for ios
-        expect(userDetails['custom']['setProperty'], 'My Property');
+        if (Platform.isAndroid) {
+          checkUnchangingUserData(userDetails, null, null);
+        }
+      } else if (Platform.isIOS && a == 7) {
+        Map<String, dynamic> userDetails = json.decode(queryParams['user_details']![0]);
+        checkUnchangingUserData(userDetails, null, null);
       }
 
       // some logs for debugging

@@ -212,28 +212,35 @@ Future<void> createTruncableEvents() async {
 
 /// Check if the user properties are as expected for internal limit tests
 /// [Map<String, dynamic>] [userDetails] - user details object parsed from the request
-void checkUnchangingUserPropeties(userDetails, {int MAX_VALUE_SIZE = 256}) {
-  expect(userDetails['name'], 'Nicola Tesla'.substring(0, MAX_VALUE_SIZE));
-  expect(userDetails['username'], 'nicola'.substring(0, MAX_VALUE_SIZE));
-  expect(userDetails['email'], 'info@nicola.tesla'.substring(0, MAX_VALUE_SIZE));
-  expect(userDetails['organization'], 'Trust Electric Ltd'.substring(0, MAX_VALUE_SIZE));
-  expect(userDetails['phone'], '+90 822 140 2546'.substring(0, MAX_VALUE_SIZE));
+void checkUnchangingUserPropeties(userDetails, MAX_VALUE_SIZE) {
+  expect(userDetails['name'], truncate('Nicola Tesla', MAX_VALUE_SIZE));
+  expect(userDetails['username'], truncate('nicola', MAX_VALUE_SIZE));
+  expect(userDetails['email'], truncate('info@nicola.tesla', MAX_VALUE_SIZE));
+  expect(userDetails['organization'], truncate('Trust Electric Ltd', MAX_VALUE_SIZE));
+  expect(userDetails['phone'], truncate('+90 822 140 2546', MAX_VALUE_SIZE));
   expect(userDetails['picture'], 'http:\/\/images2.fanpop.com\/images\/photos\/3300000\/Nikola-Tesla-nikola-tesla-3365940-600-738.jpg');
-  expect(userDetails['gender'], 'M'.substring(0, MAX_VALUE_SIZE));
+  expect(userDetails['gender'], truncate('M', MAX_VALUE_SIZE));
   expect(userDetails['byear'], 1919);
 }
 
 /// Check if the user data are as expected for internal limit tests
 /// [Map<String, dynamic>] [userDetails] - user details object parsed from the request
-void checkUnchangingUserData(userDetails, {int MAX_KEY_LENGTH = 6, int MAX_VALUE_SIZE = 256}) {
-  expect(userDetails['custom']['a12345'.substring(0, MAX_KEY_LENGTH)], 'My Property'.substring(0, MAX_VALUE_SIZE));
-  expect(userDetails['custom']['b12345'.substring(0, MAX_KEY_LENGTH)], {'\$inc': 1});
-  expect(userDetails['custom']['c12345'.substring(0, MAX_KEY_LENGTH)], {'\$inc': 10});
-  expect(userDetails['custom']['d12345'.substring(0, MAX_KEY_LENGTH)], {'\$mul': 20});
-  expect(userDetails['custom']['e12345'.substring(0, MAX_KEY_LENGTH)], {'\$max': 100});
-  expect(userDetails['custom']['f12345'.substring(0, MAX_KEY_LENGTH)], {'\$min': 50});
-  expect(userDetails['custom']['g12345'.substring(0, MAX_KEY_LENGTH)], {'\$setOnce': '200'.substring(0, MAX_VALUE_SIZE)});
-  expect(userDetails['custom']['h12345'.substring(0, MAX_KEY_LENGTH)], {'\$addToSet': 'morning'.substring(0, MAX_VALUE_SIZE)});
-  expect(userDetails['custom']['i12345'.substring(0, MAX_KEY_LENGTH)], {'\$push': 'morning'.substring(0, MAX_VALUE_SIZE)});
-  expect(userDetails['custom']['k12345'.substring(0, MAX_KEY_LENGTH)], {'\$pull': 'morning'.substring(0, MAX_VALUE_SIZE)});
+void checkUnchangingUserData(userDetails, MAX_KEY_LENGTH, MAX_VALUE_SIZE) {
+  expect(userDetails['custom'][truncate('a12345', MAX_KEY_LENGTH)], truncate('My Property', MAX_VALUE_SIZE));
+  expect(userDetails['custom'][truncate('b12345', MAX_KEY_LENGTH)], {'\$inc': 1});
+  expect(userDetails['custom'][truncate('c12345', MAX_KEY_LENGTH)], {'\$inc': 10});
+  expect(userDetails['custom'][truncate('d12345', MAX_KEY_LENGTH)], {'\$mul': 20});
+  expect(userDetails['custom'][truncate('e12345', MAX_KEY_LENGTH)], {'\$max': 100});
+  expect(userDetails['custom'][truncate('f12345', MAX_KEY_LENGTH)], {'\$min': 50});
+  expect(userDetails['custom'][truncate('g12345', MAX_KEY_LENGTH)], {'\$setOnce': truncate('200', MAX_VALUE_SIZE)});
+  expect(userDetails['custom'][truncate('h12345', MAX_KEY_LENGTH)], {'\$addToSet': truncate('morning', MAX_VALUE_SIZE)});
+  expect(userDetails['custom'][truncate('i12345', MAX_KEY_LENGTH)], {'\$push': truncate('morning', MAX_VALUE_SIZE)});
+  expect(userDetails['custom'][truncate('k12345', MAX_KEY_LENGTH)], {'\$pull': truncate('morning', MAX_VALUE_SIZE)});
+}
+
+/// Truncate a string to a given limit
+String truncate(string, limit) {
+  var length = string.length;
+  limit = limit != null ? limit : length;
+  return string.substring(0, limit);
 }

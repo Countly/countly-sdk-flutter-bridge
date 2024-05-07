@@ -1,3 +1,17 @@
+## 24.4.1
+* Mitigated an issue where user data operation `pull` won't work
+* Mitigated an issue where custom apm metrics were cast to string
+
+* Updated underlying Android SDK version to 24.4.1
+* Updated underlying iOS SDK version to 24.4.1
+
+## 24.4.1-np
+* Mitigated an issue where user data operation `pull` won't work
+* Mitigated an issue where custom apm metrics were cast to string
+
+* Updated underlying Android SDK version to 24.4.1
+* Updated underlying iOS SDK version to 24.4.1
+
 ## 24.4.0
 * Mitigated an issue where the 'reportFeedbackWidgetManually' function would await indefinitely on iOS
 * Mitigated an issue where nonfatal exceptions were treated as fatal and vice versa
