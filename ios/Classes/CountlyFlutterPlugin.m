@@ -1153,16 +1153,20 @@ FlutterMethodChannel *_channel;
         result(@"clearAllTrace: success");
     } else if ([@"endTrace" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          NSString *traceKey = [command objectAtIndex:0];
-          NSMutableDictionary *metrics = [[NSMutableDictionary alloc] init];
-          for (int i = 1, il = (int)command.count; i < il; i += 2) {
-              @try {
-                  metrics[[command objectAtIndex:i]] = [command objectAtIndex:i + 1];
-              } @catch (NSException *exception) {
-                  COUNTLY_FLUTTER_LOG(@"[endTrace], Exception occurred while parsing metric: %@", exception);
-              }
-          }
-          [Countly.sharedInstance endCustomTrace:traceKey metrics:metrics];
+            NSString *traceKey = [command objectAtIndex:0];
+            NSMutableDictionary *metrics = [[NSMutableDictionary alloc] init];
+            for (int i = 1, il = (int)command.count; i < il; i += 2) {
+                @try {
+                    NSString *key = [command objectAtIndex:i];
+                    NSString *valueString = [command objectAtIndex:i + 1];
+                    // Convert value string to integer
+                    NSNumber *value = @([valueString intValue]);
+                    metrics[key] = value;
+                } @catch (NSException *exception) {
+                    COUNTLY_FLUTTER_LOG(@"[endTrace], Exception occurred while parsing metric: %@", exception);
+                }
+            }
+            [Countly.sharedInstance endCustomTrace:traceKey metrics:metrics];
         });
         result(@"endTrace: success");
     } else if ([@"recordNetworkTrace" isEqualToString:call.method]) {

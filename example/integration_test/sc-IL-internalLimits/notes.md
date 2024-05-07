@@ -24,8 +24,3 @@ setMaxValueSize:
 - Not truncating breadcrumbs
 - Truncating internal view segmentation values (like 'iOS')
 - Not truncating userData operation values
-setMaxKeyLength:
-- Truncating internal event keys (like '[CLY_view]')
-- Truncating internal view segmentation keys (like 'start')
-- userData operation keys not truncated
-- Custom crash segmentation keys not truncated
