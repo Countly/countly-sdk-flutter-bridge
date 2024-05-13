@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:countly_flutter/src/scroll_tracking.dart';
+import 'package:countly_flutter/src/visibility_tracking.dart';
 import 'package:countly_flutter_example/config_object.dart';
 
 import 'package:countly_flutter_example/helpers.dart';
@@ -90,12 +91,15 @@ class _MyAppState extends State<MyApp> {
           child: Column(
             children: <Widget>[
               // Go to scroll demo page
-              MyButton(
-                text: 'Scroll Demo',
-                color: 'green',
-                onPressed: () {
-                  navigateToPage(context, ScrollDemo());
-                },
+              CountlyVisibilityTracker(
+                name: 'test',
+                child: MyButton(
+                  text: 'Scroll Demo',
+                  color: 'green',
+                  onPressed: () {
+                    navigateToPage(context, ScrollDemo());
+                  },
+                ),
               ),
               MyButton(
                 text: 'Sessions',

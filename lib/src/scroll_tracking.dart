@@ -1,3 +1,4 @@
+import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter/material.dart';
 
 class CountlyScrollTracking extends StatelessWidget {
@@ -7,15 +8,7 @@ class CountlyScrollTracking extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        final metrics = notification.metrics;
-        print('Pixels: ${metrics.pixels}, total: ${metrics.extentTotal}, inside: ${metrics.extentInside}, before: ${metrics.extentBefore}, after: ${metrics.extentAfter}');
-
-        // locally store it in views
-        // Countly.instance.views.addScrollTrackingInfo(metrics);
-
-        return false;
-      },
+      onNotification: Countly.instance.views.trackScroll,
       child: child,
     );
   }

@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 abstract class Views {
   Future<String?> startAutoStoppedView(String viewName, [Map<String, Object> segmentation]);
 
@@ -20,4 +22,8 @@ abstract class Views {
   Future<void> addSegmentationToViewWithID(String viewID, Map<String, Object> segmentation);
 
   Future<void> addSegmentationToViewWithName(String viewName, Map<String, Object> segmentation);
+
+  void trackWidget();
+  void trackWidgetKey(GlobalKey key, String name);
+  bool trackScroll(ScrollNotification notification);
 }

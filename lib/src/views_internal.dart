@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
+
 import 'countly_flutter.dart';
 import 'countly_state.dart';
 import 'views.dart';
@@ -7,6 +9,46 @@ import 'views.dart';
 class ViewsInternal implements Views {
   ViewsInternal(this._countlyState);
   final CountlyState _countlyState;
+  final Map<String, GlobalKey> _widgetKeys = {};
+
+  @override
+  bool trackScroll(ScrollNotification notification) {
+    final metrics = notification.metrics;
+    print('Pixels: ${metrics.pixels}, total: ${metrics.extentTotal}, inside: ${metrics.extentInside}, before: ${metrics.extentBefore}, after: ${metrics.extentAfter}');
+
+    // track widget after scrolling.
+    trackWidget();
+
+    return false;
+  }
+
+  @override
+  void trackWidgetKey(GlobalKey key, String name) {
+    _widgetKeys.putIfAbsent(name, () => key);
+  }
+
+  @override
+  void trackWidget() {
+    if (_widgetKeys.isEmpty) {
+      return;
+    }
+
+    final view = WidgetsBinding.instance.platformDispatcher.views.first;
+
+    final size = view.physicalSize / view.devicePixelRatio;
+    // we can also check for width
+    final height = size.height;
+
+    _widgetKeys.forEach((name, key) {
+      final box = key.currentContext?.findRenderObject();
+      final yPos = (box as RenderBox?)?.localToGlobal(Offset.zero).dy ?? 0;
+      if (box != null && yPos > 0 &&  yPos < height) {
+        print('$name is visible in the viewport at position: $yPos');
+      } else {
+        print('$name is not visible.');
+      }
+    });
+  }
 
   @override
   Future<void> stopViewWithID(String viewID, [Map<String, Object> segmentation = const {}]) async {
