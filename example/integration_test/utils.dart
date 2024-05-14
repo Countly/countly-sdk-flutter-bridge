@@ -181,21 +181,21 @@ Future<void> createTruncableEvents() async {
     'picture': 'http://images2.fanpop.com/images/photos/3300000/Nikola-Tesla-nikola-tesla-3365940-600-738.jpg',
     'picturePath': '',
     'gender': 'M',
-    'byear': '1919',
+    'byear': 1919,
     'special_value': 'something special',
     'not_special_value': 'something special cooking'
   };
   await Countly.instance.userProfile.setUserProperties(userProperties);
-  await Countly.instance.userProfile.setProperty('setProperty', 'My Property');
-  await Countly.instance.userProfile.increment('increment');
-  await Countly.instance.userProfile.incrementBy('incrementBy', 10);
-  await Countly.instance.userProfile.multiply('multiply', 20);
-  await Countly.instance.userProfile.saveMax('saveMax', 100);
-  await Countly.instance.userProfile.saveMin('saveMin', 50);
-  await Countly.instance.userProfile.setOnce('setOnce', '200');
-  await Countly.instance.userProfile.pushUnique('pushUniqueValue', 'morning');
-  await Countly.instance.userProfile.push('pushValue', 'morning');
-  await Countly.instance.userProfile.pull('pushValue', 'morning');
+  await Countly.instance.userProfile.setProperty('a12345', 'My Property');
+  await Countly.instance.userProfile.increment('b12345');
+  await Countly.instance.userProfile.incrementBy('c12345', 10);
+  await Countly.instance.userProfile.multiply('d12345', 20);
+  await Countly.instance.userProfile.saveMax('e12345', 100);
+  await Countly.instance.userProfile.saveMin('f12345', 50);
+  await Countly.instance.userProfile.setOnce('g12345', '200');
+  await Countly.instance.userProfile.pushUnique('h12345', 'morning');
+  await Countly.instance.userProfile.push('i12345', 'morning');
+  await Countly.instance.userProfile.pull('k12345', 'morning');
 
   // TODO: Report feedback widgets manually (will need some extra work)
 //   Map<String, Object> surSeg = {};
@@ -212,21 +212,35 @@ Future<void> createTruncableEvents() async {
 
 /// Check if the user properties are as expected for internal limit tests
 /// [Map<String, dynamic>] [userDetails] - user details object parsed from the request
-void checkUnchangingUserPropeties(userDetails) {
-  expect(userDetails['name'], 'Nicola Tesla');
-  expect(userDetails['username'], 'nicola');
-  expect(userDetails['email'], 'info@nicola.tesla');
-  expect(userDetails['organization'], 'Trust Electric Ltd');
-  expect(userDetails['phone'], '+90 822 140 2546');
+void checkUnchangingUserPropeties(userDetails, MAX_VALUE_SIZE) {
+  expect(userDetails['name'], truncate('Nicola Tesla', MAX_VALUE_SIZE));
+  expect(userDetails['username'], truncate('nicola', MAX_VALUE_SIZE));
+  expect(userDetails['email'], truncate('info@nicola.tesla', MAX_VALUE_SIZE));
+  expect(userDetails['organization'], truncate('Trust Electric Ltd', MAX_VALUE_SIZE));
+  expect(userDetails['phone'], truncate('+90 822 140 2546', MAX_VALUE_SIZE));
   expect(userDetails['picture'], 'http:\/\/images2.fanpop.com\/images\/photos\/3300000\/Nikola-Tesla-nikola-tesla-3365940-600-738.jpg');
-  expect(userDetails['gender'], 'M');
+  expect(userDetails['gender'], truncate('M', MAX_VALUE_SIZE));
   expect(userDetails['byear'], 1919);
-  expect(userDetails['custom']['increment'], {'\$inc': 1});
-  expect(userDetails['custom']['multiply'], {'\$mul': 20});
-  expect(userDetails['custom']['setOnce'], {'\$setOnce': '200'});
-  expect(userDetails['custom']['saveMax'], {'\$max': 100});
-  expect(userDetails['custom']['saveMin'], {'\$min': 50});
-  expect(userDetails['custom']['pushUniqueValue'], {'\$addToSet': 'morning'});
-  expect(userDetails['custom']['incrementBy'], {'\$inc': 10});
-  expect(userDetails['custom']['pushValue'], {'\$push': 'morning', '\$pull': 'morning'});
+}
+
+/// Check if the user data are as expected for internal limit tests
+/// [Map<String, dynamic>] [userDetails] - user details object parsed from the request
+void checkUnchangingUserData(userDetails, MAX_KEY_LENGTH, MAX_VALUE_SIZE) {
+  expect(userDetails['custom'][truncate('a12345', MAX_KEY_LENGTH)], truncate('My Property', MAX_VALUE_SIZE));
+  expect(userDetails['custom'][truncate('b12345', MAX_KEY_LENGTH)], {'\$inc': 1});
+  expect(userDetails['custom'][truncate('c12345', MAX_KEY_LENGTH)], {'\$inc': 10});
+  expect(userDetails['custom'][truncate('d12345', MAX_KEY_LENGTH)], {'\$mul': 20});
+  expect(userDetails['custom'][truncate('e12345', MAX_KEY_LENGTH)], {'\$max': 100});
+  expect(userDetails['custom'][truncate('f12345', MAX_KEY_LENGTH)], {'\$min': 50});
+  expect(userDetails['custom'][truncate('g12345', MAX_KEY_LENGTH)], {'\$setOnce': truncate('200', MAX_VALUE_SIZE)});
+  expect(userDetails['custom'][truncate('h12345', MAX_KEY_LENGTH)], {'\$addToSet': truncate('morning', MAX_VALUE_SIZE)});
+  expect(userDetails['custom'][truncate('i12345', MAX_KEY_LENGTH)], {'\$push': truncate('morning', MAX_VALUE_SIZE)});
+  expect(userDetails['custom'][truncate('k12345', MAX_KEY_LENGTH)], {'\$pull': truncate('morning', MAX_VALUE_SIZE)});
+}
+
+/// Truncate a string to a given limit
+String truncate(string, limit) {
+  var length = string.length;
+  limit = limit != null ? limit : length;
+  return string.substring(0, limit);
 }

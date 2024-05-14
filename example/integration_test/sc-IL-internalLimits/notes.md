@@ -1,4 +1,8 @@
 ## Some observations
+in iOS segmentation truncation limit is applied only on string data types for both key and value not sure about Android
+in iOS segmentation values provided in events/views are converted to string but in startautostoppedview and global view segmentation its is not, it should be consistent for all cases
+in iOS for apm_metrics, if we provide an integer, it will convert it in to string
+in iOS view visit and start is convert to integer from string.
 recordView records segmentation values as string (autoStoppedView does not)
 reportfeedbackwidgetmanually prints/logs weird things
 in ios user profile and its manipulation is different requests
@@ -7,25 +11,12 @@ in ios breadcrumbs has an extra date added: "_logs":"<2024-04-02 15:09:21.483> U
 ## Platform issues
 Android:
 setMaxSegmentationValues:
-- Global view segmentation count not capped
+- custom user properties has no limit
 setMaxValueSize:
-- Only truncates breadcrumb
+- truncates user property `picture` (not picture path)
 setMaxKeyLength:
-- Not working
+- Network Trace name not truncated
 
 iOS:
-setMaxSegmentationValues:
-- Custom trace segmentation count not capped
-- Custom crash segmentation count not capped
-- View internal segmentation key/value pairs also included in capping
-- Custom user details count not capped
 setMaxValueSize:
-- Not truncating custom segmentation values
-- Not truncating breadcrumbs
-- Truncating internal view segmentation values (like 'iOS')
-- Not truncating userData operation values
-setMaxKeyLength:
-- Truncating internal event keys (like '[CLY_view]')
-- Truncating internal view segmentation keys (like 'start')
-- userData operation keys not truncated
-- Custom crash segmentation keys not truncated
+- Not truncating userData operation values (setOnce, push, pull, pushUnique)

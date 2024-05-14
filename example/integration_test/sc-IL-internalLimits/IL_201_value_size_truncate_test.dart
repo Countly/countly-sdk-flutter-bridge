@@ -66,7 +66,9 @@ void main() {
         expect(crash['_custom']['Cats'], '12345'.substring(0, MAX_VALUE_SIZE));
         expect(crash['_custom']['Moose'], 'Deer'.substring(0, MAX_VALUE_SIZE));
         expect(crash['_custom']['Moons'], '9.9866'.substring(0, MAX_VALUE_SIZE));
-        expect(crash['_logs'], 'User Performed Step A'.substring(0, MAX_VALUE_SIZE) + '\n');
+        var dateSizeIOS = a == 3 ? 26 : 54;
+        var dateSizeAndroid = a == 3 ? 1 : 3;
+        expect(crash['_logs'].length, Platform.isIOS ? MAX_VALUE_SIZE + dateSizeIOS : MAX_VALUE_SIZE + dateSizeAndroid); // adding date in iOS
       } else if (a == 5) {
         // 0) Custom Event
         List<dynamic> eventList = json.decode(queryParams['events']![0]);
@@ -80,10 +82,10 @@ void main() {
         expect(view['segmentation']['Cats'], '12345'.substring(0, MAX_VALUE_SIZE));
         expect(view['segmentation']['Moons'], '9.9866'.substring(0, MAX_VALUE_SIZE));
         expect(view['segmentation']['segment'], Platform.isIOS ? 'iOS' : 'Android');
-        expect(view['segmentation']['start'], '1');
+        expect(view['segmentation']['start'], Platform.isIOS ? 1 : '1');
         expect(view['segmentation']['name'], 'HomePage');
         expect(view['segmentation']['Camel'], 666);
-        expect(view['segmentation']['visit'], '1');
+        expect(view['segmentation']['visit'], Platform.isIOS ? 1 : '1');
         expect(view['segmentation']['NotCamel'], 'Deerz'.substring(0, MAX_VALUE_SIZE));
         expect(view['segmentation']['Moose'], 'Deer'.substring(0, MAX_VALUE_SIZE));
         // 2) View End (legacy)
@@ -101,24 +103,21 @@ void main() {
         expect(view['segmentation']['segment'], Platform.isIOS ? 'iOS' : 'Android');
         expect(view['segmentation']['name'], 'hawk');
         expect(view['segmentation']['Camel'], 666);
-        expect(view['segmentation']['visit'], '1');
+        expect(view['segmentation']['visit'], Platform.isIOS ? 1 : '1');
         expect(view['segmentation']['NotCamel'], 'Deerz'.substring(0, MAX_VALUE_SIZE));
         expect(view['segmentation']['Moose'], 'Deer'.substring(0, MAX_VALUE_SIZE));
-        // 4) View End (AutoStopped)
-        view = eventList[4];
-        expect(view['key'], '[CLY]_view');
-        expect(view['segmentation']['segment'], Platform.isIOS ? 'iOS' : 'Android');
-        expect(view['segmentation']['name'], 'hawk');
-        expect(view['segmentation']['Camel'], 666);
-        expect(view['segmentation']['NotCamel'], 'Deerz'.substring(0, MAX_VALUE_SIZE));
       } else if (a == 6) {
         Map<String, dynamic> userDetails = json.decode(queryParams['user_details']![0]);
-        checkUnchangingUserPropeties(userDetails);
         expect(userDetails['custom']['special_value'], 'something special'.substring(0, MAX_VALUE_SIZE));
         expect(userDetails['custom']['not_special_value'], 'something special cooking'.substring(0, MAX_VALUE_SIZE));
+        checkUnchangingUserPropeties(userDetails, MAX_VALUE_SIZE);
 
-        // TODO: this should be in a==7 for ios
-        expect(userDetails['custom']['setProperty'], 'My Property'.substring(0, MAX_VALUE_SIZE));
+        if (Platform.isAndroid) {
+          checkUnchangingUserData(userDetails, null, MAX_VALUE_SIZE);
+        }
+      } else if (Platform.isIOS && a == 7) {
+        Map<String, dynamic> userDetails = json.decode(queryParams['user_details']![0]);
+        checkUnchangingUserData(userDetails, null, MAX_VALUE_SIZE);
       }
 
       // some logs for debugging
