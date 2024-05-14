@@ -90,7 +90,7 @@ class _MyAppState extends State<MyApp> {
           padding: EdgeInsets.only(left: 15, right: 15),
           child: Column(
             children: <Widget>[
-              // Go to scroll demo page
+              // Second method
               CountlyVisibilityTracker(
                 name: 'test',
                 child: MyButton(
