@@ -1,5 +1,6 @@
-import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter/material.dart';
+
+import 'countly_flutter.dart';
 
 class CountlyVisibilityTracker extends StatefulWidget {
   const CountlyVisibilityTracker({required this.child, required this.name, Key? key}) : super(key: key);
