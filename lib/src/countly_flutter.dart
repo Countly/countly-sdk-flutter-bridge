@@ -596,6 +596,7 @@ class Countly {
     return result;
   }
 
+  /// Starts automatic session tracking.
   /// Does nothing
   /// returns the error message
   @Deprecated('Automatic sessions are handled by underlying SDK, this function will do nothing')
@@ -618,6 +619,7 @@ class Countly {
     return result;
   }
 
+  /// Stops automatic session tracking.
   /// Does nothing
   /// returns the error message
   @Deprecated('Automatic sessions are handled by underlying SDK, this function will do nothing')
@@ -627,6 +629,7 @@ class Countly {
     return msg;
   }
 
+  /// Sets the duration between session updates.
   /// Does nothing
   /// returns the error message
   @Deprecated('This functions is deprecated, please use "setUpdateSessionTimerDelay" of CountlyConfig instead')
@@ -1125,7 +1128,7 @@ class Countly {
     return result;
   }
 
-  /// insert value to array if value does not exist
+  /// insert value to custom property array if value does not exist
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "Countly.instance.userProfile.pushUnique" instead and do not forget to call "Countly.instance.userProfile.save"')
   static Future<String?> pushUniqueValue(String type, String pushUniqueValue) async {
