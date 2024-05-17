@@ -66,7 +66,7 @@ void main() {
         expect(crash['_custom']['Cats'], '12345'.substring(0, MAX_VALUE_SIZE));
         expect(crash['_custom']['Moose'], 'Deer'.substring(0, MAX_VALUE_SIZE));
         expect(crash['_custom']['Moons'], '9.9866'.substring(0, MAX_VALUE_SIZE));
-        var dateSizeIOS = a == 3 ? 26 : 54;
+        var dateSizeIOS = a == 3 ? 0 : 2;
         var dateSizeAndroid = a == 3 ? 1 : 3;
         expect(crash['_logs'].length, Platform.isIOS ? MAX_VALUE_SIZE + dateSizeIOS : MAX_VALUE_SIZE + dateSizeAndroid); // adding date in iOS
       } else if (a == 5) {

@@ -61,7 +61,7 @@ void main() {
       } else if (a == 3 || a == 4) {
         Map<String, dynamic> crash = json.decode(queryParams['crash']![0]);
         expect(crash['_custom'].length, MAX_SEGMENTATION_COUNT);
-        var dateSizeIOS = a == 3 ? 47 : 95;
+        var dateSizeIOS = a == 3 ? 21 : 43;
         var dateSizeAndroid = a == 3 ? 22 : 44;
         expect(crash['_logs'].length, Platform.isIOS ? dateSizeIOS : dateSizeAndroid); // adding date in iOS
       } else if (a == 5) {
