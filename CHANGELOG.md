@@ -1,14 +1,37 @@
 ## 24.4.1
+* Added support for Feedback Widget terms and conditions
+
+* Mitigated an issue where internal SDK limits did not apply
 * Mitigated an issue where user data operation `pull` won't work
 * Mitigated an issue where custom apm metrics were cast to string
 * Mitigated an issue where user property `byear` was cast to string
+
+* Mitigated an issue where SDK limits could affect internal keys in iOS
+* Mitigated an issue that enabled recording reserved events in iOS
+* Mitigated an issue where timed events could have no ID in iOS
+* Mitigated an issue where the request queue could overflow while sending a request in iOS
+
+* Mitigated an issue where the session duration could have been calculated wrongly after a device ID change without merge in Android
+* Mitigated an issue where a session could have continued after a device ID change without merge in Android
 
 * Updated underlying Android SDK version to 24.4.1
 * Updated underlying iOS SDK version to 24.4.1
 
 ## 24.4.1-np
+* Added support for Feedback Widget terms and conditions
+
+* Mitigated an issue where internal SDK limits did not apply
 * Mitigated an issue where user data operation `pull` won't work
 * Mitigated an issue where custom apm metrics were cast to string
+* Mitigated an issue where user property `byear` was cast to string
+
+* Mitigated an issue where SDK limits could affect internal keys in iOS
+* Mitigated an issue that enabled recording reserved events in iOS
+* Mitigated an issue where timed events could have no ID in iOS
+* Mitigated an issue where the request queue could overflow while sending a request in iOS
+
+* Mitigated an issue where the session duration could have been calculated wrongly after a device ID change without merge in Android
+* Mitigated an issue where a session could have continued after a device ID change without merge in Android
 
 * Updated underlying Android SDK version to 24.4.1
 * Updated underlying iOS SDK version to 24.4.1
