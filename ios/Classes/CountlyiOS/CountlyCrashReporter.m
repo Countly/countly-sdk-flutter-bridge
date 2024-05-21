@@ -218,7 +218,10 @@ NSString* const kCountlyCRKeyImageBuildUUID    = @"id";
     {
         NSMutableDictionary* userInfo = [NSMutableDictionary dictionaryWithDictionary:exception.userInfo];
         userInfo[kCountlyExceptionUserInfoBacktraceKey] = stackTrace;
-        userInfo[kCountlyExceptionUserInfoSegmentationOverrideKey] = segmentation;
+        if(segmentation) {
+            NSDictionary* truncatedSegmentation = [segmentation cly_truncated:@"Exception segmentation"];
+            userInfo[kCountlyExceptionUserInfoSegmentationOverrideKey] = [truncatedSegmentation cly_limited:@"Exception segmentation"];
+        }
         exception = [NSException exceptionWithName:exception.name reason:exception.reason userInfo:userInfo];
     }
 
@@ -350,21 +353,16 @@ void CountlySignalHandler(int signalCode)
 {
     if (!CountlyConsentManager.sharedInstance.consentForCrashReporting)
         return;
-
-    const NSInteger kCountlyCustomCrashLogLengthLimit = 1000;
-
-    if (log.length > kCountlyCustomCrashLogLengthLimit)
-        log = [log substringToIndex:kCountlyCustomCrashLogLengthLimit];
-
-    NSString* logWithDateTime = [NSString stringWithFormat:@"<%@> %@",[self.dateFormatter stringFromDate:NSDate.date], log];
+    
+    log = [log cly_truncatedValue:@"Custom Crash log"];
 
     if (self.shouldUsePLCrashReporter)
     {
-        [CountlyPersistency.sharedInstance writeCustomCrashLogToFile:logWithDateTime];
+        [CountlyPersistency.sharedInstance writeCustomCrashLogToFile:log];
     }
     else
     {
-        [self.customCrashLogs addObject:logWithDateTime];
+        [self.customCrashLogs addObject:log];
 
         if (self.customCrashLogs.count > self.crashLogLimit)
             [self.customCrashLogs removeObjectAtIndex:0];
@@ -476,6 +474,12 @@ void CountlySignalHandler(int signalCode)
         return NO;
 
     return YES;
+}
+
+-(void) setCrashSegmentation:(NSDictionary<NSString *, NSString *>*) crashSegmentation
+{
+    NSDictionary* truncatedSegmentation = [crashSegmentation cly_truncated:@"Crash segmentation"];
+    _crashSegmentation = [truncatedSegmentation cly_limited:@"Crash segmentation"];
 }
 
 @end
