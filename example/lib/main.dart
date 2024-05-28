@@ -18,6 +18,7 @@ import 'package:countly_flutter_example/page_sessions.dart';
 import 'package:countly_flutter_example/page_user_profiles.dart';
 import 'package:countly_flutter_example/page_views.dart';
 import 'package:countly_flutter_example/scroll_demo.dart';
+import 'package:countly_flutter_example/scroll_demo1.dart';
 import 'package:countly_flutter_example/style.dart';
 import 'package:flutter/material.dart';
 
@@ -92,7 +93,7 @@ class _MyAppState extends State<MyApp> {
             children: <Widget>[
               // Second method
               CountlyVisibilityTracker(
-                name: 'test',
+                name: 'Scroll Demo Homepage',
                 child: MyButton(
                   text: 'Scroll Demo',
                   color: 'green',
@@ -100,6 +101,13 @@ class _MyAppState extends State<MyApp> {
                     navigateToPage(context, ScrollDemo());
                   },
                 ),
+              ),
+              MyButton(
+                text: 'Scroll Demo 1',
+                color: 'green',
+                onPressed: () {
+                  navigateToPage(context, ScrollDemo1());
+                },
               ),
               MyButton(
                 text: 'Sessions',

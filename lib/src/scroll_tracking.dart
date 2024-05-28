@@ -12,7 +12,13 @@ class CountlyScrollTracking extends StatelessWidget {
   Widget build(BuildContext context) {
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
-        _debouncer.run(() => Countly.instance.views.trackScroll(notification));
+        // _debouncer.run(
+        //   () => Countly.instance.views.trackScroll(
+        //     notification,
+        //     widget.debugName,
+        //     context,
+        //   ),
+        // );
         return false;
       },
       child: child,
