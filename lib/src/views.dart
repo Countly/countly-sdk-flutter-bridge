@@ -23,7 +23,6 @@ abstract class Views {
 
   Future<void> addSegmentationToViewWithName(String viewName, Map<String, Object> segmentation);
 
-  void trackWidget();
-  void trackWidgetKey(GlobalKey key, String name);
-  bool trackScroll(ScrollNotification notification);
+  void trackWidget(String name, double visiblePercentage);
+  void trackScroll(ScrollNotification notification);
 }

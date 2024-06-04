@@ -9,45 +9,22 @@ import 'views.dart';
 class ViewsInternal implements Views {
   ViewsInternal(this._countlyState);
   final CountlyState _countlyState;
-  final Map<String, GlobalKey> _widgetKeys = {};
+  final Map<String, List<String>> _viewsIDAndWidgetVisibleMap = {};
+  final Map<String, String> _viewIDToViewNameMap = {};
 
   @override
-  bool trackScroll(ScrollNotification notification) {
+  void trackScroll(ScrollNotification notification) {
     final metrics = notification.metrics;
     print('Pixels: ${metrics.pixels}, total: ${metrics.extentTotal}, inside: ${metrics.extentInside}, before: ${metrics.extentBefore}, after: ${metrics.extentAfter}');
-
-    // track widget after scrolling.
-    trackWidget();
-
-    return false;
   }
 
   @override
-  void trackWidgetKey(GlobalKey key, String name) {
-    _widgetKeys.putIfAbsent(name, () => key);
-  }
-
-  @override
-  void trackWidget() {
-    if (_widgetKeys.isEmpty) {
-      return;
-    }
-
-    final view = WidgetsBinding.instance.platformDispatcher.views.first;
-
-    final size = view.physicalSize / view.devicePixelRatio;
-    // we can also check for width
-    final height = size.height;
-
-    _widgetKeys.forEach((name, key) {
-      final box = key.currentContext?.findRenderObject();
-      final yPos = (box as RenderBox?)?.localToGlobal(Offset.zero).dy ?? 0;
-      if (box != null && yPos > 0 &&  yPos < height) {
-        print('$name is visible in the viewport at position: $yPos');
-      } else {
-        print('$name is not visible.');
+  void trackWidget(String name, double visiblePercentage) {
+    if (visiblePercentage > 50) {
+      for (final key in _viewsIDAndWidgetVisibleMap.keys) {
+        _viewsIDAndWidgetVisibleMap[key]!.add(name);
       }
-    });
+    }
   }
 
   @override
@@ -61,6 +38,9 @@ class ViewsInternal implements Views {
     args.add(viewID);
     args.add(segmentation);
     await _countlyState.channel.invokeMethod('stopViewWithID', <String, dynamic>{'data': json.encode(args)});
+
+    final viewName = _viewIDToViewNameMap[viewID];
+    print('TestLog $viewName: ${_viewsIDAndWidgetVisibleMap[viewName]}');
   }
 
   @override
@@ -74,6 +54,8 @@ class ViewsInternal implements Views {
     args.add(viewName);
     args.add(segmentation);
     await _countlyState.channel.invokeMethod('stopViewWithName', <String, dynamic>{'data': json.encode(args)});
+
+    print('TestLog $viewName: ${_viewsIDAndWidgetVisibleMap[viewName]}');
   }
 
   @override
@@ -113,6 +95,10 @@ class ViewsInternal implements Views {
     args.add(viewName);
     args.add(segmentation);
     final String? viewId = await _countlyState.channel.invokeMethod('startView', <String, dynamic>{'data': json.encode(args)});
+    if (viewId is String) {
+      _viewsIDAndWidgetVisibleMap.putIfAbsent(viewName, () => []);
+      _viewIDToViewNameMap.putIfAbsent(viewId, () => viewName);
+    }
     return viewId;
   }
 
@@ -164,6 +150,9 @@ class ViewsInternal implements Views {
     final List<Object> args = [];
     args.add(segmentation);
     await _countlyState.channel.invokeMethod('stopAllViews', <String, dynamic>{'data': json.encode(args)});
+
+    print('TestLog $_viewsIDAndWidgetVisibleMap');
+    _viewIDToViewNameMap.clear();
   }
 
   @override

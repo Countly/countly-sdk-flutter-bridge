@@ -18,8 +18,8 @@ import 'package:countly_flutter_example/page_sessions.dart';
 import 'package:countly_flutter_example/page_user_profiles.dart';
 import 'package:countly_flutter_example/page_views.dart';
 import 'package:countly_flutter_example/scroll_demo.dart';
-import 'package:countly_flutter_example/scroll_demo1.dart';
 import 'package:countly_flutter_example/style.dart';
+import 'package:countly_flutter_example/tab_demo.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -103,10 +103,10 @@ class _MyAppState extends State<MyApp> {
                 ),
               ),
               MyButton(
-                text: 'Scroll Demo 1',
+                text: 'Tab Demo',
                 color: 'green',
                 onPressed: () {
-                  navigateToPage(context, ScrollDemo1());
+                  navigateToPage(context, TabBarDemo());
                 },
               ),
               MyButton(

@@ -18,8 +18,8 @@ class _ScrollDemoState extends State<ScrollDemo> {
     super.initState();
 
     // First method
-    Countly.instance.views.trackWidgetKey(key, 'Widget 0');
-    Countly.instance.views.trackWidgetKey(key1, 'Widget 29');
+    // Countly.instance.views.trackWidgetKey(key, 'Widget 0');
+    // Countly.instance.views.trackWidgetKey(key1, 'Widget 29');
   }
 
   @override

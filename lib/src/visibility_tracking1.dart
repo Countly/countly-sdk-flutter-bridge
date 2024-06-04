@@ -1,3 +1,4 @@
+import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -12,7 +13,7 @@ class CountlyVisibilityWidget extends StatelessWidget {
       key: GlobalKey(),
       onVisibilityChanged: (visibilityInfo) {
         final visiblePercentage = visibilityInfo.visibleFraction * 100;
-        print('$name is $visiblePercentage% visible');
+        Countly.instance.views.trackWidget(name, visiblePercentage);
       },
       child: child,
     );

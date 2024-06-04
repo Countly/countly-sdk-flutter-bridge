@@ -18,7 +18,7 @@ class _CountlyVisibilityTrackerState extends State<CountlyVisibilityTracker> {
   void initState() {
     super.initState();
 
-    Countly.instance.views.trackWidgetKey(key, widget.name);
+    // Countly.instance.views.trackWidgetKey(key, widget.name);
   }
 
   @override
