@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
 import 'countly_config.dart';
 import 'countly_state.dart';
+import 'device_id.dart';
+import 'device_id_internal.dart';
 import 'remote_config.dart';
 import 'remote_config_internal.dart';
 import 'sessions.dart';
@@ -52,6 +54,7 @@ abstract class CountlyConsent {
 class Countly {
   Countly._() {
     _countlyState = CountlyState(this);
+    _deviceIdInternal = DeviceIDInternal(_countlyState);
     _remoteConfigInternal = RemoteConfigInternal(_countlyState);
     _userProfileInternal = UserProfileInternal(_countlyState);
     _viewsInternal = ViewsInternal(_countlyState);
@@ -73,6 +76,9 @@ class Countly {
 
   late final SessionsInternal _sessionsInternal;
   Sessions get sessions => _sessionsInternal;
+
+  late final DeviceIDInternal _deviceIdInternal;
+  DeviceID get deviceId => _deviceIdInternal;
 
   /// ignore: constant_identifier_names
   static const bool BUILDING_WITH_PUSH_DISABLED = false;
@@ -682,8 +688,10 @@ class Countly {
 
   /// Get currently used device Id.
   /// Should be call after Countly init
+  @Deprecated('getCurrentDeviceId is deprecated, use getCurrentDeviceId of Countly.instance.deviceID instead')
   static Future<String?> getCurrentDeviceId() async {
     log('Calling "getCurrentDeviceId"');
+    log('getCurrentDeviceId is deprecated, use getCurrentDeviceId of Countly.instance.deviceID instead', logLevel: LogLevel.WARNING);
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "getCurrentDeviceId"';
       log('getCurrentDeviceId, $message', logLevel: LogLevel.ERROR);
@@ -696,8 +704,10 @@ class Countly {
 
   /// Get currently used device Id type.
   /// Should be call after Countly init
+  @Deprecated('getDeviceIDType is deprecated, use getDeviceIDType of Countly.instance.deviceID instead')
   static Future<DeviceIdType?> getDeviceIDType() async {
     log('Calling "getDeviceIDType"');
+    log('getDeviceIDType is deprecated, use getDeviceIDType of Countly.instance.deviceID instead', logLevel: LogLevel.WARNING);
     if (!_instance._countlyState.isInitialized) {
       log('getDeviceIDType, "initWithConfig" must be called before "getDeviceIDType"', logLevel: LogLevel.ERROR);
       return null;
@@ -723,7 +733,9 @@ class Countly {
     return deviceIdType;
   }
 
+  @Deprecated('changeDeviceId is deprecated, use changeDeviceIDWithoutMerge of Countly.instance.deviceID if onServer = false and changeDeviceIDWithMerge if onServer = true, instead')
   static Future<String?> changeDeviceId(String newDeviceID, bool onServer) async {
+    log('changeDeviceId is deprecated, use ${onServer ? 'changeDeviceIDWithMerge': 'changeDeviceIDWithoutMerge'} of Countly.instance.deviceID instead', logLevel: LogLevel.WARNING);
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "changeDeviceId"';
       log('changeDeviceId, $message', logLevel: LogLevel.ERROR);
