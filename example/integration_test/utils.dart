@@ -9,7 +9,9 @@ const MethodChannel _channelTest = MethodChannel('countly_flutter');
 
 // Base config options for tests
 final String SERVER_URL = 'https://xxx.count.ly';
+final String SERVER_URL_RC = 'https://xxx.count.ly';
 final String APP_KEY = 'FOR_IOS_THIS_SHOULD_NOT_BE_YOUR_APP_KEY';
+final String APP_KEY_RC = 'FOR_IOS_THIS_SHOULD_NOT_BE_YOUR_APP_KEY';
 
 /// Get request queue from native side (list of strings)
 Future<List<String>> getRequestQueue() async {
@@ -243,4 +245,14 @@ String truncate(string, limit) {
   var length = string.length;
   limit = limit != null ? limit : length;
   return string.substring(0, limit);
+}
+
+var rcCounter = 0;
+
+void rcCallback(rResult, error, fullValueUpdate, downloadedValues) {
+  rcCounter++;
+  print('RC callback: $rResult, $error, $fullValueUpdate, $downloadedValues, $rcCounter');
+  if (rResult == RequestResult.success) {
+    print('RC download success');
+  }
 }
