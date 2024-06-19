@@ -255,8 +255,10 @@ class CountlyConfig {
     return this;
   }
 
-  /// Set's the new maximum size for the request queue.
+  /// This flag limits the number of requests that can be stored in the request queue when the Countly server is unavailable or unreachable.
+  /// If the number of requests in the queue reaches the limit, the oldest requests in the queue will be dropped.
   /// [int maxSize] - Minimum value is "1".
+  /// [int maxSize] - Default value is 1,000.
   CountlyConfig setMaxRequestQueueSize(int maxSize) {
     _maxRequestQueueSize = maxSize;
     return this;
@@ -269,7 +271,6 @@ class CountlyConfig {
   }
 
   @Deprecated('This function is deprecated, please use remoteConfigRegisterGlobalCallback instead')
-
   /// If enable, will automatically download newest remote config values.
   /// enabled set true for enabling it
   /// callback callback called after the update was done

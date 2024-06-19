@@ -207,6 +207,7 @@ class Countly {
 
   /// Initialize the SDK
   /// This should only be called once
+  /// returns the error or success message
   @Deprecated('This function is deprecated, please use initWithConfig instead')
   static Future<String?> init(String serverUrl, String appKey, [String? deviceId]) async {
     log('Calling "init" with serverURL: $serverUrl and appKey: $appKey');
@@ -676,7 +677,8 @@ class Countly {
     return result;
   }
 
-  /// Set the limit for stored requests
+  /// This flag limits the number of requests that can be stored in the request queue when the Countly server is unavailable or unreachable.
+  /// If the number of requests in the queue reaches the limit, the oldest requests in the queue will be dropped.
   /// Should be called before init.
   /// returns the error or success message
   @Deprecated('This functions is deprecated, please use "setMaxRequestQueueSize" of CountlyConfig instead')
