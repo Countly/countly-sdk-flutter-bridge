@@ -248,6 +248,7 @@ String truncate(string, limit) {
 }
 
 var rcCounter = 0;
+var rcCounterInternal = 0;
 
 void rcCallback(rResult, error, fullValueUpdate, downloadedValues) {
   rcCounter++;
@@ -255,4 +256,31 @@ void rcCallback(rResult, error, fullValueUpdate, downloadedValues) {
   if (rResult == RequestResult.success) {
     print('RC download success');
   }
+}
+
+Future<void> getAndValidateAllRecordedRCValues({bool isEmpty = false, bool? isCurrentUsersData = true}) async {
+  var storedRCVals = await Countly.instance.remoteConfig.getAllValues();
+  expect(storedRCVals, isA<Map<String, RCData>>());
+  if (isEmpty) {
+    expect(storedRCVals.isEmpty, true);
+    return;
+  }
+  expect(storedRCVals.isNotEmpty, true);
+  expect(storedRCVals.length, 5);
+
+  expect(storedRCVals['rc_1']?.value, 'val_1');
+  expect(storedRCVals['rc_1']?.isCurrentUsersData, isCurrentUsersData);
+
+  expect(storedRCVals['rc_2']?.value, 'val_2');
+  expect(storedRCVals['rc_2']?.isCurrentUsersData, isCurrentUsersData);
+
+  expect(storedRCVals['rc_3']?.value, 'val_3');
+  expect(storedRCVals['rc_3']?.isCurrentUsersData, isCurrentUsersData);
+
+  expect(storedRCVals['rc_4']?.value, 'val_4');
+  expect(storedRCVals['rc_4']?.isCurrentUsersData, isCurrentUsersData);
+
+  expect(storedRCVals['key']?.isCurrentUsersData, isCurrentUsersData);
+
+  expect(rcCounter, rcCounterInternal);
 }
