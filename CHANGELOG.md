@@ -1,6 +1,6 @@
 ## 24.4.2
 * Added a new method `setID(newDeviceId)` which internally handles merge/non-merge selection while changing the device ID
-* Introduced a new `deviceID` interface for grouping device ID management releated methods:
+* Introduced a new `deviceID` interface for grouping device ID management related methods:
   * `setID()`
   * `changeDeviceIDWithMerge`
   * `changeDeviceIDWithoutMerge`
