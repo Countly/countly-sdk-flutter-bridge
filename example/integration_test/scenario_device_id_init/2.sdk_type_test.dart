@@ -20,4 +20,17 @@ void main() {
     expect(id!.length, Platform.isIOS ? 36 : 16);
     expect(id, isNot('test'));
   });
+
+  testWidgets('2.Test Device ID Type - SDK generates ID using Device ID Module', (WidgetTester tester) async {
+    // Initialize the SDK
+    CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true);
+    await Countly.initWithConfig(config);
+    // Get the device ID type
+    DeviceIdType? type = await Countly.instance.deviceId.getDeviceIDType();
+    String? id = await Countly.instance.deviceId.getCurrentDeviceID();
+    // Verify the device ID type
+    expect(type, DeviceIdType.SDK_GENERATED);
+    expect(id!.length, Platform.isIOS ? 36 : 16);
+    expect(id, isNot('test'));
+  });
 }

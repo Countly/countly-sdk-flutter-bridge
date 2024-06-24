@@ -17,4 +17,16 @@ void main() {
     expect(type, DeviceIdType.DEVELOPER_SUPPLIED);
     expect(id, 'test');
   });
+
+  testWidgets('1.Test Device ID Type - Developer sets the ID during init using Device ID Module', (WidgetTester tester) async {
+    // Initialize the SDK
+    CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true).setDeviceId('test');
+    await Countly.initWithConfig(config);
+    // Get the device ID type
+    DeviceIdType? type = await Countly.instance.deviceId.getDeviceIDType();
+    String? id = await Countly.instance.deviceId.getCurrentDeviceID();
+    // Verify the device ID type
+    expect(type, DeviceIdType.DEVELOPER_SUPPLIED);
+    expect(id, 'test');
+  });
 }
