@@ -28,6 +28,12 @@ void main() {
     await Countly.removeConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
     await getAndValidateAllRecordedRCValues(isEmpty: true);
 
+    // update for all rc values
+    await Countly.instance.remoteConfig.downloadAllKeys();
+    await Future.delayed(Duration(seconds: 3));
+    rcCounterInternal++;
+    await getAndValidateAllRecordedRCValues();
+
     // remove rc consent
     await Countly.removeConsent([CountlyConsent.remoteConfig]);
     await getAndValidateAllRecordedRCValues(isEmpty: true);
@@ -55,8 +61,12 @@ void main() {
 
     // remove rc consent
     await Countly.removeConsent([CountlyConsent.remoteConfig]);
-    // await getAndValidateAllRecordedRCValues();
-    // TODO: this is failing, seems like a bug
+    await getAndValidateAllRecordedRCValues(isEmpty: true);
+
+    // give all consent
+    await Countly.giveAllConsent();
+    await Future.delayed(Duration(seconds: 3));
+    await getAndValidateAllRecordedRCValues(isEmpty: true);
 
     // give all consent
     await Countly.giveAllConsent();
@@ -111,49 +121,47 @@ void main() {
     await Countly.instance.remoteConfig.exitABTestsForKeys(['key']);
     await Future.delayed(Duration(seconds: 3));
     await getAndValidateAllRecordedRCValues();
-    // TODO: this is failing, seems like a bug
 
     // opt in to remote config
     await Countly.instance.remoteConfig.enrollIntoABTestsForKeys(['key']);
     await Future.delayed(Duration(seconds: 3));
     await getAndValidateAllRecordedRCValues();
-    // TODO: this is failing, seems like a bug, no redownload after opt in
 
     // opt out of remote
     await Countly.instance.remoteConfig.exitABTestsForKeys(['key']);
     await Future.delayed(Duration(seconds: 3));
     await getAndValidateAllRecordedRCValues();
-    // TODO: no redownload still
 
     // opt in to remote config
     await Countly.instance.remoteConfig.enrollIntoABTestsForKeys(['key']);
     await Future.delayed(Duration(seconds: 3));
     await getAndValidateAllRecordedRCValues();
-    // TODO: no redownload still
 
     await Countly.instance.remoteConfig.testingEnrollIntoABExperiment('test_periment');
     await Future.delayed(Duration(seconds: 3));
     await getAndValidateAllRecordedRCValues();
-    // TODO: no redownload still
 
     await Countly.instance.remoteConfig.testingEnrollIntoVariant('key', 'Variant A', ((rResult, error) => {expect(rResult, RequestResult.success)}));
     await Future.delayed(Duration(seconds: 3));
-    // await getAndValidateAllRecordedRCValues(); // TODO: rc erased here
+    await getAndValidateAllRecordedRCValues(isCurrentUsersData: false); // TODO: rc erased here
+
+    // update for all rc values
+    await Countly.instance.remoteConfig.downloadAllKeys();
+    await Future.delayed(Duration(seconds: 3));
+    rcCounterInternal++;
+    await getAndValidateAllRecordedRCValues();
 
     await Countly.instance.remoteConfig.testingExitABExperiment('test_periment');
     await Future.delayed(Duration(seconds: 3));
-    // await getAndValidateAllRecordedRCValues(); // TODO: rc still erased
-    // TODO: no redownload still
+    await getAndValidateAllRecordedRCValues();
 
     await Countly.instance.remoteConfig.getAllValuesAndEnroll();
     await Future.delayed(Duration(seconds: 3));
-    // await getAndValidateAllRecordedRCValues(); // TODO: rc still erased
-    // TODO: no redownload still
+    await getAndValidateAllRecordedRCValues();
 
     await Countly.instance.remoteConfig.getValueAndEnroll('key');
     await Future.delayed(Duration(seconds: 3));
-    // await getAndValidateAllRecordedRCValues(); // TODO: rc still erased
-    // TODO: no redownload still
+    await getAndValidateAllRecordedRCValues();
 
     // ========= Device ID Tests =========
     // ========= Device ID Tests =========
@@ -178,6 +186,9 @@ void main() {
     await Future.delayed(Duration(seconds: 3));
     await getAndValidateAllRecordedRCValues(isCurrentUsersData: false);
 
+    Countly.changeDeviceId(Countly.deviceIDType["TemporaryDeviceID"]!, false);
+    await getAndValidateAllRecordedRCValues(isCurrentUsersData: false);
+
     // change device id with out~ merge
     Countly.changeDeviceId("non_merge_id", false);
     await Future.delayed(Duration(seconds: 3));
@@ -187,11 +198,17 @@ void main() {
     await Countly.giveConsent([CountlyConsent.remoteConfig]);
     await Future.delayed(Duration(seconds: 3));
     await getAndValidateAllRecordedRCValues(isCurrentUsersData: false);
+
+    // update for all rc values
+    await Countly.instance.remoteConfig.downloadAllKeys();
+    await Future.delayed(Duration(seconds: 3));
+    rcCounterInternal++;
+    await getAndValidateAllRecordedRCValues();
 
     // change device id with merge
     Countly.changeDeviceId("merge_id", true);
     await Future.delayed(Duration(seconds: 3));
-    await getAndValidateAllRecordedRCValues(isCurrentUsersData: false);
+    await getAndValidateAllRecordedRCValues();
 
     // change device id with out~ merge
     Countly.changeDeviceId("non_merge_id", false);
@@ -202,6 +219,10 @@ void main() {
     await Countly.giveConsent([CountlyConsent.remoteConfig]);
     await Future.delayed(Duration(seconds: 3));
     await getAndValidateAllRecordedRCValues(isCurrentUsersData: false);
+
+    // clear all stored rc values
+    await Countly.instance.remoteConfig.clearAll();
+    await getAndValidateAllRecordedRCValues(isEmpty: true);
 
     // ========= Variant and Experiment Tests =========
     // ========= Variant and Experiment Tests =========

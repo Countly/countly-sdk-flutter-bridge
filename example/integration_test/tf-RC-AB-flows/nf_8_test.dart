@@ -56,8 +56,7 @@ void main() {
 
     // remove rc consent
     await Countly.removeConsent([CountlyConsent.remoteConfig]);
-    // await getAndValidateAllRecordedRCValues();
-    // TODO: this is failing, seems like a bug
+    await getAndValidateAllRecordedRCValues(isEmpty: true);
 
     // ========= Manual Calls Tests =========
     // ========= Manual Calls Tests =========
@@ -155,6 +154,11 @@ void main() {
 
     // change device id with merge
     Countly.changeDeviceId("merge_id", true);
+    await Future.delayed(Duration(seconds: 3));
+    await getAndValidateAllRecordedRCValues(isEmpty: true);
+
+    // enter temp id mode
+    Countly.changeDeviceId(Countly.deviceIDType["TemporaryDeviceID"]!, true);
     await Future.delayed(Duration(seconds: 3));
     await getAndValidateAllRecordedRCValues(isEmpty: true);
 
