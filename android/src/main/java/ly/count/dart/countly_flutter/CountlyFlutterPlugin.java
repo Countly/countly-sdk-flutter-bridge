@@ -314,6 +314,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         break;
                 }
                 result.success(deviceIDTypeString);
+            } else if ("setID".equals(call.method)) {
+                // Countly.sharedInstance().deviceId().setID();
+                // result.success("SetID success!");
             } else if ("changeDeviceId".equals(call.method)) {
                 String newDeviceID = args.getString(0);
                 String onServerString = args.getString(1);
