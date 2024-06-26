@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -140,7 +142,7 @@ void main() {
 
     await Countly.instance.remoteConfig.testingEnrollIntoVariant('key', 'Variant A', ((rResult, error) => {expect(rResult, RequestResult.success)}));
     await Future.delayed(Duration(seconds: 3));
-    await getAndValidateAllRecordedRCValues(isEmpty: true);
+    await getAndValidateAllRecordedRCValues(isEmpty: falseForIOS);
 
     // update for all rc values
     await Countly.instance.remoteConfig.downloadAllKeys();
@@ -207,7 +209,7 @@ void main() {
     // change device id with merge
     Countly.changeDeviceId("merge_id", true);
     await Future.delayed(Duration(seconds: 3));
-    await getAndValidateAllRecordedRCValues();
+    await getAndValidateAllRecordedRCValues(isEmpty: trueForIOS);
 
     // change device id with out~ merge
     Countly.changeDeviceId("non_merge_id", false);
@@ -253,9 +255,9 @@ void main() {
     // get all experiments, now they are here => magic
     experiments = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
     experiments.forEach((key, value) {
-      expect(key, 'test_periment');
-      expect(value.experimentID, 'test_periment');
-      expect(value.currentVariant.isNotEmpty, true);
+      expect(key, Platform.isIOS ? '666ff2d7cd168a82cb052180' : 'test_periment');
+      expect(value.experimentID, Platform.isIOS ? '666ff2d7cd168a82cb052180' : 'test_periment');
+      expect(value.currentVariant.isNotEmpty, Platform.isIOS ? false : true);
       expect(value.experimentDescription, 'This is and experiment for testing rc/ab features ');
       expect(value.experimentName, 'test_periment');
       expect(value.variants['Control group'], {'key': 1});

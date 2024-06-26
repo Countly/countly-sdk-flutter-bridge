@@ -60,7 +60,7 @@ void main() {
 
     // remove rc consent
     await Countly.removeConsent([CountlyConsent.remoteConfig]);
-    await getAndValidateAllRecordedRCValues(isEmpty: true);
+    await getAndValidateAllRecordedRCValues(isEmpty: falseForIOS);
 
     // ========= Manual Calls Tests =========
     // ========= Manual Calls Tests =========

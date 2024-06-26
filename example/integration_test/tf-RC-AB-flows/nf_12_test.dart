@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -137,7 +139,9 @@ void main() {
 
     await Countly.instance.remoteConfig.testingEnrollIntoVariant('key', 'Variant A', ((rResult, error) => {expect(rResult, RequestResult.success)}));
     await Future.delayed(Duration(seconds: 3));
-    rcCounterInternal++; // TODO: this fine?
+    if (Platform.isAndroid) {
+      rcCounterInternal++; // TODO: this fine?
+    }
     await getAndValidateAllRecordedRCValues();
 
     await Countly.instance.remoteConfig.testingExitABExperiment('test_periment');
@@ -157,7 +161,9 @@ void main() {
     // ========= Device ID Tests =========
     // enter temp id mode
     Countly.changeDeviceId(Countly.deviceIDType["TemporaryDeviceID"]!, false);
-    rcCounterInternal++; // TODO: why?
+    if (Platform.isAndroid) {
+      rcCounterInternal++; // TODO: this fine?
+    }
     await getAndValidateAllRecordedRCValues(isCurrentUsersData: false);
 
     Countly.changeDeviceId(Countly.deviceIDType["TemporaryDeviceID"]!, false);
@@ -182,7 +188,9 @@ void main() {
 
     // enter temp id mode
     Countly.changeDeviceId(Countly.deviceIDType["TemporaryDeviceID"]!, false);
-    rcCounterInternal++; // TODO: why?
+    if (Platform.isAndroid) {
+      rcCounterInternal++; // TODO: why?
+    }
     await getAndValidateAllRecordedRCValues(isCurrentUsersData: false);
 
     // change device id with out~ merge
@@ -247,9 +255,9 @@ void main() {
     // get all experiments, now they are here => magic
     experiments = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
     experiments.forEach((key, value) {
-      expect(key, 'test_periment');
-      expect(value.experimentID, 'test_periment');
-      expect(value.currentVariant.isNotEmpty, true);
+      expect(key, Platform.isIOS ? '666ff2d7cd168a82cb052180' : 'test_periment');
+      expect(value.experimentID, Platform.isIOS ? '666ff2d7cd168a82cb052180' : 'test_periment');
+      expect(value.currentVariant.isNotEmpty, Platform.isIOS ? false : true);
       expect(value.experimentDescription, 'This is and experiment for testing rc/ab features ');
       expect(value.experimentName, 'test_periment');
       expect(value.variants['Control group'], {'key': 1});

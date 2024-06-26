@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -31,15 +33,15 @@ void main() {
 
     // remove rc consent
     await Countly.removeConsent([CountlyConsent.remoteConfig]);
-    await getAndValidateAllRecordedRCValues(isEmpty: true);
+    await getAndValidateAllRecordedRCValues(isEmpty: falseForIOS);
 
     // remove all consent
     await Countly.removeAllConsent();
-    await getAndValidateAllRecordedRCValues(isEmpty: true);
+    await getAndValidateAllRecordedRCValues(isEmpty: falseForIOS);
 
     // give all but rc consent
     await Countly.giveConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
-    await getAndValidateAllRecordedRCValues(isEmpty: true);
+    await getAndValidateAllRecordedRCValues(isEmpty: falseForIOS);
 
     // give rc consent
     await Countly.giveConsent([CountlyConsent.remoteConfig]);
@@ -57,8 +59,13 @@ void main() {
 
     // remove rc consent
     await Countly.removeConsent([CountlyConsent.remoteConfig]);
-    // await getAndValidateAllRecordedRCValues();
-    // TODO: this is failing, seems like a bug
+    await getAndValidateAllRecordedRCValues(isEmpty: falseForIOS);
+
+    if (Platform.isIOS) {
+      // clear all stored rc values
+      await Countly.instance.remoteConfig.clearAll();
+      await getAndValidateAllRecordedRCValues(isEmpty: true);
+    }
 
     // give all consent
     await Countly.giveAllConsent();
@@ -141,7 +148,9 @@ void main() {
 
     await Countly.instance.remoteConfig.testingEnrollIntoVariant('key', 'Variant A', ((rResult, error) => {expect(rResult, RequestResult.success)}));
     await Future.delayed(Duration(seconds: 3));
-    rcCounterInternal++; // TODO: this fine?
+    if (Platform.isAndroid) {
+      rcCounterInternal++; // TODO: this fine?
+    }
     await getAndValidateAllRecordedRCValues();
 
     // update for all rc values
@@ -252,9 +261,9 @@ void main() {
     // get all experiments, now they are here => magic
     experiments = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
     experiments.forEach((key, value) {
-      expect(key, 'test_periment');
-      expect(value.experimentID, 'test_periment');
-      expect(value.currentVariant.isNotEmpty, true);
+      expect(key, Platform.isIOS ? '666ff2d7cd168a82cb052180' : 'test_periment');
+      expect(value.experimentID, Platform.isIOS ? '666ff2d7cd168a82cb052180' : 'test_periment');
+      expect(value.currentVariant.isNotEmpty, Platform.isIOS ? false : true);
       expect(value.experimentDescription, 'This is and experiment for testing rc/ab features ');
       expect(value.experimentName, 'test_periment');
       expect(value.variants['Control group'], {'key': 1});

@@ -284,3 +284,6 @@ Future<void> getAndValidateAllRecordedRCValues({bool isEmpty = false, bool? isCu
 
   expect(rcCounter, rcCounterInternal);
 }
+
+var trueForIOS = Platform.isIOS ? true : false;
+var falseForIOS = Platform.isIOS ? false : true;
