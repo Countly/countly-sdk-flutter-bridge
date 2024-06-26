@@ -186,15 +186,15 @@ void main() {
     await getAndValidateAllRecordedRCValues();
 
     Countly.changeDeviceId(Countly.deviceIDType["TemporaryDeviceID"]!, true);
-    rcCounterInternal++;
+    if (Platform.isAndroid) {
+      rcCounterInternal++;
+    }
     await getAndValidateAllRecordedRCValues(isEmpty: true);
 
     // change device id with out~ merge
     Countly.changeDeviceId("non_merge_id", false);
     await Future.delayed(Duration(seconds: 3));
-    if (Platform.isAndroid) {
-      rcCounterInternal++;
-    }
+    rcCounterInternal++;
     await getAndValidateAllRecordedRCValues();
 
     // give consent
