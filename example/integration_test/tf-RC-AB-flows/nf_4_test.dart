@@ -251,8 +251,8 @@ void main() {
     // get all experiments, now they are here => magic
     experiments = await Countly.instance.remoteConfig.testingGetAllExperimentInfo();
     experiments.forEach((key, value) {
-      expect(key, Platform.isIOS ? '666ff2d7cd168a82cb052180' : 'test_periment');
-      expect(value.experimentID, Platform.isIOS ? '666ff2d7cd168a82cb052180' : 'test_periment');
+      expect(key, '666ff2d7cd168a82cb052180');
+      expect(value.experimentID, '666ff2d7cd168a82cb052180');
       expect(value.currentVariant.isNotEmpty, Platform.isIOS ? false : true);
       expect(value.experimentDescription, 'This is and experiment for testing rc/ab features ');
       expect(value.experimentName, 'test_periment');
