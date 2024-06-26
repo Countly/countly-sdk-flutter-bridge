@@ -160,7 +160,9 @@ void main() {
     // ========= Device ID Tests =========
     // enter temp id mode
     Countly.changeDeviceId(Countly.deviceIDType["TemporaryDeviceID"]!, false);
-    rcCounterInternal++; // TODO: why?
+    if (Platform.isAndroid) {
+      rcCounterInternal++;
+    }
     await getAndValidateAllRecordedRCValues(isEmpty: true);
 
     Countly.changeDeviceId(Countly.deviceIDType["TemporaryDeviceID"]!, false);
@@ -180,9 +182,7 @@ void main() {
     // change device id with merge
     Countly.changeDeviceId("merge_id", true);
     await Future.delayed(Duration(seconds: 3));
-    if (Platform.isAndroid) {
-      rcCounterInternal++;
-    }
+    rcCounterInternal++;
     await getAndValidateAllRecordedRCValues();
 
     Countly.changeDeviceId(Countly.deviceIDType["TemporaryDeviceID"]!, true);

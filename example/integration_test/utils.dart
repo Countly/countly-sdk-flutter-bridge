@@ -11,7 +11,7 @@ const MethodChannel _channelTest = MethodChannel('countly_flutter');
 final String SERVER_URL = 'https://xxx.count.ly';
 final String SERVER_URL_RC = 'https://xxx.count.ly';
 final String APP_KEY = 'FOR_IOS_THIS_SHOULD_NOT_BE_YOUR_APP_KEY';
-final String APP_KEY_RC = 'FOR_IOS_THIS_SHOULD_NOT_BE_YOUR_APP_KEY';
+final String APP_KEY_RC = 'dte_rc_ab_test';
 
 /// Get request queue from native side (list of strings)
 Future<List<String>> getRequestQueue() async {
@@ -263,6 +263,7 @@ Future<void> getAndValidateAllRecordedRCValues({bool isEmpty = false, bool? isCu
   expect(storedRCVals, isA<Map<String, RCData>>());
   if (isEmpty) {
     expect(storedRCVals.isEmpty, true);
+    expect(rcCounter, rcCounterInternal);
     return;
   }
   expect(storedRCVals.isNotEmpty, true);
