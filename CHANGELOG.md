@@ -1,13 +1,30 @@
-## 24.4.2
+## 24.x.x
 * Added a new method `setID(newDeviceId)` which internally handles merge/non-merge selection while changing the device ID
 * Introduced a new `deviceID` interface for grouping device ID management related methods:
-  * `setID()`
+  * `setID`
   * `changeDeviceIDWithMerge`
   * `changeDeviceIDWithoutMerge`
   * `getCurrentDeviceID`
   * `getDeviceIDType`
 
-* Deprecated...
+* Deprecated the following methods:
+  * `getCurrentDeviceId`
+  * `getDeviceIDType`
+  * `changeDeviceId`
+
+## 24.x.x-np
+* Added a new method `setID(newDeviceId)` which internally handles merge/non-merge selection while changing the device ID
+* Introduced a new `deviceID` interface for grouping device ID management related methods:
+  * `setID`
+  * `changeDeviceIDWithMerge`
+  * `changeDeviceIDWithoutMerge`
+  * `getCurrentDeviceID`
+  * `getDeviceIDType`
+
+* Deprecated the following methods:
+  * `getCurrentDeviceId`
+  * `getDeviceIDType`
+  * `changeDeviceId`
 
 ## 24.4.1
 * Added support for Feedback Widget terms and conditions
