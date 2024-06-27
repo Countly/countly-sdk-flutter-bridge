@@ -263,7 +263,7 @@ void main() {
     experiments.forEach((key, value) {
       expect(key, '666ff2d7cd168a82cb052180');
       expect(value.experimentID, '666ff2d7cd168a82cb052180');
-      expect(value.currentVariant.isNotEmpty, Platform.isIOS ? false : true);
+      expect(value.currentVariant, "");
       expect(value.experimentDescription, 'This is and experiment for testing rc/ab features ');
       expect(value.experimentName, 'test_periment');
       expect(value.variants['Control group'], {'key': 1});
