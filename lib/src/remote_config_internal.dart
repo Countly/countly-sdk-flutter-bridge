@@ -413,6 +413,7 @@ class RemoteConfigInternal implements RemoteConfig {
     }
 
     final List<dynamic> experimentsInfo = await _countlyState.channel.invokeMethod('testingGetAllExperimentInfo');
+    Countly.log('"testingGetAllExperimentInfo" returned values:[$experimentsInfo]', logLevel: LogLevel.DEBUG);
     final List<ExperimentInformation> experimentsInfoList = experimentsInfo.map((e) => ExperimentInformation.fromJson(e)).toList();
     final Map<String, ExperimentInformation> experimentsInfoMap = {for (final e in experimentsInfoList) e.experimentID: e};
     return experimentsInfoMap;

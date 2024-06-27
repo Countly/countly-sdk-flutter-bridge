@@ -1022,10 +1022,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 for (Map.Entry<String, ExperimentInformation> entry : experimentInfoMap.entrySet()) {
                     ExperimentInformation experimentInfo = entry.getValue();
                     Map<String, Object> experimentInfoValue = new HashMap<>();
-                    experimentInfoValue.put("experimentID", experimentInfo.experimentName);
+                    experimentInfoValue.put("experimentID", experimentInfo.experimentID);
                     experimentInfoValue.put("experimentName", experimentInfo.experimentName);
                     experimentInfoValue.put("experimentDescription", experimentInfo.experimentDescription);
-                    experimentInfoValue.put("currentVariant", experimentInfo.currentVariant);
+                    experimentInfoValue.put("currentVariant", experimentInfo.currentVariant == "null" ? "" : experimentInfo.currentVariant ); // equating to iOS behavior
                     experimentInfoValue.put("variants", experimentInfo.variants);
                     experimentInfoArray.add(experimentInfoValue);
                 }
