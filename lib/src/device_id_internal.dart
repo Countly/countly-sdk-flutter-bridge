@@ -9,49 +9,49 @@ class DeviceIDInternal implements DeviceID {
   final CountlyState _countlyState;
 
   @override
-  Future<void> changeDeviceIDWithMerge(String newDeviceID) async {
+  Future<String?> changeDeviceIDWithMerge(String newDeviceID) async {
     if (!_countlyState.isInitialized) {
       const message = '"initWithConfig" must be called before "changeDeviceIDWithMerge"';
       Countly.log('changeDeviceIDWithMerge, $message', logLevel: LogLevel.ERROR);
-      return;
+      return message;
     }
     Countly.log('Calling "changeDeviceIDWithMerge":[$newDeviceID]');
     if (newDeviceID.isEmpty) {
       const error = 'changeDeviceIDWithMerge, deviceId cannot be null or empty';
       Countly.log(error);
-      return;
+      return error;
     }
     final args = [];
     const onServerString = '1';
     args.add(newDeviceID);
     args.add(onServerString);
 
-    await _countlyState.channel.invokeMethod('changeDeviceId', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _countlyState.channel.invokeMethod('changeDeviceId', <String, dynamic>{'data': json.encode(args)});
 
-    return;
+    return result;
   }
 
   @override
-  Future<void> changeDeviceIDWithoutMerge(String newDeviceID) async {
+  Future<String?> changeDeviceIDWithoutMerge(String newDeviceID) async {
     if (!_countlyState.isInitialized) {
       const message = '"initWithConfig" must be called before "changeDeviceIDWithoutMerge"';
       Countly.log('changeDeviceIDWithoutMerge, $message', logLevel: LogLevel.ERROR);
-      return;
+      return message;
     }
     Countly.log('Calling "changeDeviceIDWithoutMerge":[$newDeviceID]');
     if (newDeviceID.isEmpty) {
       const error = 'changeDeviceIDWithoutMerge, deviceId cannot be null or empty';
       Countly.log(error);
-      return;
+      return error;
     }
     final args = [];
     const onServerString = '0';
     args.add(newDeviceID);
     args.add(onServerString);
 
-    await _countlyState.channel.invokeMethod('changeDeviceId', <String, dynamic>{'data': json.encode(args)});
+    final String? result = await _countlyState.channel.invokeMethod('changeDeviceId', <String, dynamic>{'data': json.encode(args)});
 
-    return;
+    return result;
   }
 
   @override

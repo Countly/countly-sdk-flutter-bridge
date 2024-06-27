@@ -697,7 +697,7 @@ class Countly {
       log('getCurrentDeviceId, $message', logLevel: LogLevel.ERROR);
       return message;
     }
-    final String? result = await _channel.invokeMethod('getCurrentDeviceId');
+    String? result = await _instance.deviceId.getCurrentDeviceID();
 
     return result;
   }
@@ -712,54 +712,24 @@ class Countly {
       log('getDeviceIDType, "initWithConfig" must be called before "getDeviceIDType"', logLevel: LogLevel.ERROR);
       return null;
     }
-    final String? result = await _channel.invokeMethod('getDeviceIDType');
-    if (result == null) {
-      log('getDeviceIDType, unexpected null value from native side', logLevel: LogLevel.ERROR);
-      return null;
-    }
-    return _getDeviceIdType(result);
-  }
-
-  static DeviceIdType _getDeviceIdType(String givenDeviceIDType) {
-    DeviceIdType deviceIdType = DeviceIdType.SDK_GENERATED;
-    switch (givenDeviceIDType) {
-      case 'DS':
-        deviceIdType = DeviceIdType.DEVELOPER_SUPPLIED;
-        break;
-      case 'TID':
-        deviceIdType = DeviceIdType.TEMPORARY_ID;
-        break;
-    }
-    return deviceIdType;
+    return await _instance.deviceId.getDeviceIDType();
   }
 
   @Deprecated('changeDeviceId is deprecated, use changeDeviceIDWithoutMerge of Countly.instance.deviceID if onServer = false and changeDeviceIDWithMerge if onServer = true, instead')
   static Future<String?> changeDeviceId(String newDeviceID, bool onServer) async {
-    log('changeDeviceId is deprecated, use ${onServer ? 'changeDeviceIDWithMerge': 'changeDeviceIDWithoutMerge'} of Countly.instance.deviceID instead', logLevel: LogLevel.WARNING);
+    log('changeDeviceId is deprecated, use ${onServer ? 'changeDeviceIDWithMerge' : 'changeDeviceIDWithoutMerge'} of Countly.instance.deviceID instead', logLevel: LogLevel.WARNING);
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "changeDeviceId"';
       log('changeDeviceId, $message', logLevel: LogLevel.ERROR);
       return message;
     }
     log('Calling "changeDeviceId":[$newDeviceID] with onServer:[$onServer]');
-    if (newDeviceID.isEmpty) {
-      String error = 'changeDeviceId, deviceId cannot be null or empty';
-      log(error);
-      return 'Error : $error';
-    }
-    List<String> args = [];
-    String onServerString;
-    if (onServer == false) {
-      onServerString = '0';
+
+    if (onServer) {
+      return await _instance.deviceId.changeDeviceIDWithMerge(newDeviceID);
     } else {
-      onServerString = '1';
+      return await _instance.deviceId.changeDeviceIDWithoutMerge(newDeviceID);
     }
-    args.add(newDeviceID);
-    args.add(onServerString);
-
-    final String? result = await _channel.invokeMethod('changeDeviceId', <String, dynamic>{'data': json.encode(args)});
-
-    return result;
   }
 
   static Future<String?> addCrashLog(String logs) async {
