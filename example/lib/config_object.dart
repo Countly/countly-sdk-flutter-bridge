@@ -29,9 +29,9 @@ class CountlyConfiguration {
     print(message);
   };
   static final GlobalCrashFilterCallback globalCrashFilterCallback = (CrashData crashData) {
-    // your logic to determine if crash should be ignored.
-    // return filtered crash data.
+    // your logic to determine if crashData should be manipulated.
     if (crashData.exception.contains('sensitive-data')) {
+      // return an updated crashData or null if you want the crash data to be ignored.
       return crashData.copyWith(exception: 'filtered-data');
     }
 

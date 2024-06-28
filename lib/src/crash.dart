@@ -1,4 +1,4 @@
-typedef GlobalCrashFilterCallback = CrashData Function(CrashData crashData);
+typedef GlobalCrashFilterCallback = CrashData? Function(CrashData crashData);
 
 class CrashData {
   CrashData(this.exception, this.nonFatal, this.segmentation);

@@ -348,6 +348,7 @@ class CountlyConfig {
   }
 
   /// For registering a callback that is called everytime there is a crash
+  /// If the callback returns null, the crash is ignored.
   CountlyConfig setGlobalCrashFilterCallback(GlobalCrashFilterCallback callback) {
     _globalCrashFilterCallback = callback;
     return this;

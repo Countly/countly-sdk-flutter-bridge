@@ -1743,6 +1743,11 @@ class Countly {
 
     final crashData = CrashData(exception, nonfatal, segmentation);
     final filteredCrashData = _crashFilterCheck(crashData);
+    if (filteredCrashData == null) {
+      String message = '"logException" globalCrashFilterCallback returned null. Ignoring crash.';
+      log('logException, $message', logLevel: LogLevel.INFO);
+      return message;
+    }
 
     List<String> args = [];
     args.add(filteredCrashData.exception);
@@ -1759,11 +1764,10 @@ class Countly {
     return result;
   }
 
-  /// Checks if crash matches the global crash filter
-  /// If it does, the crash should be ignored
+  /// Calls globalCrashFilterCallback on the crashData and returns the manipulated crashData
   /// param CrashData crashData object to check
   /// return CrashData filtered crash data
-  static CrashData _crashFilterCheck(CrashData crashData) {
+  static CrashData? _crashFilterCheck(CrashData crashData) {
     log('Calling "crashFilterCheck": crashData:[$crashData]');
     if (_globalCrashFilterCallback == null) {
       return crashData;
