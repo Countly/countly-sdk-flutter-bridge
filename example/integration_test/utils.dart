@@ -9,7 +9,9 @@ const MethodChannel _channelTest = MethodChannel('countly_flutter');
 
 // Base config options for tests
 final String SERVER_URL = 'https://xxx.count.ly';
-final String APP_KEY = 'FOR_IOS_THIS_SHOULD_NOT_BE_YOUR_APP_KEY';
+final String SERVER_URL_RC = 'https://xxx.count.ly';
+final String APP_KEY = 'SHOULD_BE_YOUR_APP_KEY';
+final String APP_KEY_RC = 'SHOULD_BE_YOUR_APP_KEY';
 
 /// Get request queue from native side (list of strings)
 Future<List<String>> getRequestQueue() async {
@@ -244,3 +246,45 @@ String truncate(string, limit) {
   limit = limit != null ? limit : length;
   return string.substring(0, limit);
 }
+
+var rcCounter = 0;
+var rcCounterInternal = 0;
+
+void rcCallback(rResult, error, fullValueUpdate, downloadedValues) {
+  rcCounter++;
+  print('RC callback: $rResult, $error, $fullValueUpdate, $downloadedValues, $rcCounter');
+  if (rResult == RequestResult.success) {
+    print('RC download success');
+  }
+}
+
+Future<void> getAndValidateAllRecordedRCValues({bool isEmpty = false, bool? isCurrentUsersData = true}) async {
+  var storedRCVals = await Countly.instance.remoteConfig.getAllValues();
+  expect(storedRCVals, isA<Map<String, RCData>>());
+  if (isEmpty) {
+    expect(storedRCVals.isEmpty, true);
+    expect(rcCounter, rcCounterInternal);
+    return;
+  }
+  expect(storedRCVals.isNotEmpty, true);
+  expect(storedRCVals.length, 5);
+
+  expect(storedRCVals['rc_1']?.value, 'val_1');
+  expect(storedRCVals['rc_1']?.isCurrentUsersData, isCurrentUsersData);
+
+  expect(storedRCVals['rc_2']?.value, 'val_2');
+  expect(storedRCVals['rc_2']?.isCurrentUsersData, isCurrentUsersData);
+
+  expect(storedRCVals['rc_3']?.value, 'val_3');
+  expect(storedRCVals['rc_3']?.isCurrentUsersData, isCurrentUsersData);
+
+  expect(storedRCVals['rc_4']?.value, 'val_4');
+  expect(storedRCVals['rc_4']?.isCurrentUsersData, isCurrentUsersData);
+
+  expect(storedRCVals['key']?.isCurrentUsersData, isCurrentUsersData);
+
+  expect(rcCounter, rcCounterInternal);
+}
+
+var trueForIOS = Platform.isIOS ? true : false;
+var falseForIOS = Platform.isIOS ? false : true;
