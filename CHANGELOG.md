@@ -1,3 +1,17 @@
+## 24.x.x
+* Added a new configuration option to 'CountlyConfig':
+  * 'setGlobalCrashFilterCallback' register a callback that is called everytime there is a crash and can manipulate the crash data
+
+* Updated underlying Android SDK version to 24.x.x
+* Updated underlying iOS SDK version to 24.x.x
+
+## 24.x.x-np
+* Added a new configuration option to 'CountlyConfig':
+  * 'setGlobalCrashFilterCallback' register a callback that is called everytime there is a crash and can manipulate the crash data
+
+* Updated underlying Android SDK version to 24.x.x
+* Updated underlying iOS SDK version to 24.x.x
+
 ## 24.4.1
 * Added support for Feedback Widget terms and conditions
 

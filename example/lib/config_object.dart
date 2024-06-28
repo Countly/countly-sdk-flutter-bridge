@@ -28,6 +28,15 @@ class CountlyConfiguration {
     String message = 'Manual Download, Result:[${rResult}, updatedAll:[${fullValueUpdate}], downloadedValues:[\n${downloadedValuesString}]';
     print(message);
   };
+  static final GlobalCrashFilterCallback globalCrashFilterCallback = (CrashData crashData) {
+    // your logic to determine if crash should be ignored.
+    // return filtered crash data.
+    if (crashData.exception.contains('sensitive-data')) {
+      return crashData.copyWith(exception: 'filtered-data');
+    }
+
+    return crashData;
+  };
 
   static CountlyConfig getConfig() {
 
@@ -67,6 +76,7 @@ class CountlyConfiguration {
         //   ..enableManualSessionHandling() // Enable manual session handling
         //   ..setHttpPostForced(false) // Set to 'true' if you want HTTP POST to be used for all requests
         // ..disableLocation() // Call if you want to disable location tracking
+        // ..setGlobalCrashFilterCallback(globalCrashFilterCallback) // Call if you want to filter crash data
         ;
   }
 }

@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
 import 'countly_config.dart';
 import 'countly_state.dart';
+import 'crash.dart';
 import 'remote_config.dart';
 import 'remote_config_internal.dart';
 import 'sessions.dart';
@@ -110,6 +111,7 @@ class Countly {
   static VoidCallback? _widgetShown;
   static VoidCallback? _widgetClosed;
   static Function(String? error)? _remoteConfigCallback;
+  static GlobalCrashFilterCallback? _globalCrashFilterCallback;
   static int lastUsedRCID = 0;
   static Function(String? error)? _ratingWidgetCallback;
   static Function(Map<String, dynamic> widgetData, String? error)? _feedbackWidgetDataCallback;
@@ -250,6 +252,9 @@ class Countly {
     }
     if (config.enableUnhandledCrashReporting != null) {
       _enableCrashReportingFlag = config.enableUnhandledCrashReporting!;
+    }
+    if (config.globalCrashFilterCallback != null) {
+      _globalCrashFilterCallback = config.globalCrashFilterCallback!;
     }
     _channel.setMethodCallHandler(_methodCallHandler);
 
@@ -1735,18 +1740,38 @@ class Countly {
     }
     int segCount = segmentation != null ? segmentation.length : 0;
     log('Calling "logException":[$exception] nonfatal:[$nonfatal]: with segmentation count:[$segCount]');
+
+    final crashData = CrashData(exception, nonfatal, segmentation);
+    final filteredCrashData = _crashFilterCheck(crashData);
+
     List<String> args = [];
-    args.add(exception);
-    args.add(nonfatal.toString());
-    if (segmentation != null) {
-      segmentation.forEach((k, v) {
+    args.add(filteredCrashData.exception);
+    args.add(filteredCrashData.nonFatal.toString());
+    if (filteredCrashData.segmentation != null) {
+      filteredCrashData.segmentation!.forEach((k, v) {
         args.add(k.toString());
         args.add(v.toString());
       });
     }
+
     final String? result = await _channel.invokeMethod('logException', <String, dynamic>{'data': json.encode(args)});
 
     return result;
+  }
+
+  /// Checks if crash matches the global crash filter
+  /// If it does, the crash should be ignored
+  /// param CrashData crashData object to check
+  /// return CrashData filtered crash data
+  static CrashData _crashFilterCheck(CrashData crashData) {
+    log('Calling "crashFilterCheck": crashData:[$crashData]');
+    if (_globalCrashFilterCallback == null) {
+      return crashData;
+    }
+
+    final filteredCrashData = _globalCrashFilterCallback!(crashData);
+    log('crashFilterCheck, filteredCrashData:[$filteredCrashData]');
+    return filteredCrashData;
   }
 
   /// Set optional key/value segment added for crash reports.
