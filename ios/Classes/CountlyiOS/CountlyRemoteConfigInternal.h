@@ -42,6 +42,7 @@
 - (NSDictionary<NSString*, CountlyExperimentInformation*> *) testingGetAllExperimentInfo;
 
 - (void)enrollIntoABTestsForKeys:(NSArray *)keys;
+// It should redownlaod the RC values when exiting
 - (void)exitABTestsForKeys:(NSArray *)keys;
 
 - (void)registerDownloadCallback:(RCDownloadCallback) callback;
