@@ -23,50 +23,7 @@ void main() {
     await getAndValidateAllRecordedRCValues();
 
     // ========= Consent Tests =========
-    // ========= Consent Tests =========
-    // ========= Consent Tests =========
-    // remove all but rc consent
-    await Countly.removeConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
-    await getAndValidateAllRecordedRCValues();
-
-    // remove rc consent
-    await Countly.removeConsent([CountlyConsent.remoteConfig]);
-    await getAndValidateAllRecordedRCValues();
-
-    // remove all consent
-    await Countly.removeAllConsent();
-    await getAndValidateAllRecordedRCValues();
-
-    // give all but rc consent
-    await Countly.giveConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
-    await getAndValidateAllRecordedRCValues();
-
-    // give rc consent
-    await Countly.giveConsent([CountlyConsent.remoteConfig]);
-    await Future.delayed(Duration(seconds: 3));
-    await getAndValidateAllRecordedRCValues();
-
-    // get one key
-    var rcVal = await Countly.instance.remoteConfig.getValue('rc_1');
-    expect(rcVal.value, 'val_1');
-
-    // remove all but rc consent~
-    await Countly.removeConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
-    await getAndValidateAllRecordedRCValues();
-
-    // remove rc consent
-    await Countly.removeConsent([CountlyConsent.remoteConfig]);
-    await getAndValidateAllRecordedRCValues();
-
-    // give all consent
-    await Countly.giveAllConsent();
-    await Future.delayed(Duration(seconds: 3));
-    await getAndValidateAllRecordedRCValues();
-
-    // give all consent
-    await Countly.giveAllConsent();
-    await Future.delayed(Duration(seconds: 3));
-    await getAndValidateAllRecordedRCValues();
+    await testConsentForRC(isCNR: true);
 
     // ========= Manual Calls Tests =========
     // ========= Manual Calls Tests =========
@@ -160,9 +117,6 @@ void main() {
     // ========= Device ID Tests =========
     // enter temp id mode
     Countly.changeDeviceId(Countly.deviceIDType["TemporaryDeviceID"]!, false);
-    if (Platform.isAndroid) {
-      rcCounterInternal++;
-    }
     await getAndValidateAllRecordedRCValues(isEmpty: true);
 
     Countly.changeDeviceId(Countly.deviceIDType["TemporaryDeviceID"]!, false);
@@ -186,9 +140,6 @@ void main() {
     await getAndValidateAllRecordedRCValues();
 
     Countly.changeDeviceId(Countly.deviceIDType["TemporaryDeviceID"]!, true);
-    if (Platform.isAndroid) {
-      rcCounterInternal++;
-    }
     await getAndValidateAllRecordedRCValues(isEmpty: true);
 
     // change device id with out~ merge
