@@ -286,9 +286,6 @@ Future<void> getAndValidateAllRecordedRCValues({bool isEmpty = false, bool? isCu
   expect(rcCounter, rcCounterInternal);
 }
 
-var trueForIOS = Platform.isIOS ? true : false;
-var falseForIOS = Platform.isIOS ? false : true;
-
 Future<void> testConsentForRC({bool isAT = false, bool isCG = true, bool isCNR = false}) async {
   var storedRCVals = await Countly.instance.remoteConfig.getAllValues();
   if (storedRCVals.isNotEmpty) {

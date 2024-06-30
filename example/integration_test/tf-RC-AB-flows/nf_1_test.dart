@@ -93,7 +93,7 @@ void main() {
 
     await Countly.instance.remoteConfig.testingEnrollIntoVariant('key', 'Variant A', ((rResult, error) => {expect(rResult, RequestResult.success)}));
     await Future.delayed(Duration(seconds: 3));
-    await getAndValidateAllRecordedRCValues(isEmpty: falseForIOS); // TODO: rc erased here
+    await getAndValidateAllRecordedRCValues(isEmpty: true);
 
     // update for all rc values
     await Countly.instance.remoteConfig.downloadAllKeys();
