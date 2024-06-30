@@ -141,14 +141,15 @@ FlutterMethodChannel *_channel;
           float sum = [sumString floatValue];
           NSString *durationString = [command objectAtIndex:3];
           int duration = [durationString intValue];
-          NSMutableDictionary *segmentation = [[NSMutableDictionary alloc] init];
-
+          NSDictionary *segmentation;
           if ((int)command.count > 4) {
-              for (int i = 4, il = (int)command.count; i < il; i += 2) {
-                  segmentation[[command objectAtIndex:i]] = [command objectAtIndex:i + 1];
-              }
+            segmentation = [command objectAtIndex:4];
+          } else {
+            segmentation = nil;
           }
+
           [[Countly sharedInstance] recordEvent:key segmentation:segmentation count:count sum:sum duration:duration];
+
           NSString *resultString = @"recordEvent for: ";
           resultString = [resultString stringByAppendingString:key];
           result(resultString);
