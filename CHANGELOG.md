@@ -1,3 +1,6 @@
+## 24.6.0
+* Mitigated an issue where `currentVariant` of a dowloaded `experimentInfo` could be represented differently on Android if user have not erolled an experiment yet
+
 ## 24.4.1
 * Added support for Feedback Widget terms and conditions
 
