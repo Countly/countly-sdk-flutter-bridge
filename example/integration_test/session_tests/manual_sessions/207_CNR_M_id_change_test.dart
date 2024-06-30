@@ -46,25 +46,24 @@ void main() {
     // - device ID change
     // - begin session
     // - end session
-    // - device ID change
     // - begin session
     // - end session
-    // - device ID change
-    expect(requestList.length, 7);
+    expect(requestList.length, 5);
 
     var i = 0;
     for (var element in requestList) {
       Map<String, List<String>> queryParams = Uri.parse("?" + element).queryParametersAll;
       testCommonRequestParams(queryParams); // tests
-      if (i == 0 || i == 3 || i == 6) {
-        expect(queryParams['device_id']?[0], i == 0 ? 'newID' : (i == 3 ? 'newID_2' : 'newID_3'));
-        expect(queryParams['session_duration'], null);
-      } else if (i == 1 || i == 4) {
+      if (i == 0) {
+        expect(queryParams['device_id']?[0], 'newID');
+        expect(queryParams['old_device_id']?[0].isNotEmpty, true);
+      } else if (i == 1 || i == 3) {
         expect(queryParams['begin_session']?[0], '1');
-      } else if (i == 2 || i == 5) {
+        expect(queryParams['device_id']?[0], i == 1 ? 'newID' : 'newID_2');
+      } else if (i == 2 || i == 4) {
         expect(queryParams['end_session']?[0], '1');
         expect(queryParams['session_duration']?[0], '2');
-        expect(queryParams['override_id']?[0], i == 5 ? 'newID_2' : null);
+        expect(queryParams['device_id']?[0], i == 2 ? 'newID' : 'newID_2');
       }
 
       print('RQ.$i: $queryParams');
