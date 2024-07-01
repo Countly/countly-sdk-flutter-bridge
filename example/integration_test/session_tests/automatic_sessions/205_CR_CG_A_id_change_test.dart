@@ -84,8 +84,7 @@ void main() {
         expect(queryParams['session_duration']?[0].isNotEmpty, true);
         expect(queryParams['device_id']?[0], 'newID');
       } else if (Platform.isAndroid && (i == 5)) {
-        // expect(queryParams['events']?[0][0].contains('[CLY]_orientation'), true);
-        print('events: ${queryParams['events']?[0]}');
+        expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
         expect(queryParams['device_id']?[0], 'newID');
       } else if (Platform.isAndroid && (i == 7)) {
         expect(queryParams['location'], ['']);
