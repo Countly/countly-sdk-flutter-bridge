@@ -17,3 +17,4 @@ Android:
 iOS:
 - Change ID without merge does not end a session (CNR_M)
 - no location req (203)
+- no orientation req (205)

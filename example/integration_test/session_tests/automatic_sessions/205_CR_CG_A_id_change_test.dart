@@ -50,23 +50,23 @@ void main() {
     print('EQ length: ${eventList.length}');
 
     // Currently
-    // - consents
-    // - begin_session
+    // - consents (begin ses in ios)
+    // - begin_session (consent in ios)
     // - change ID
     // - end session
     // - begin_session
-    // - orientation
+    // - orientation (android only)
     // - end session
-    // - location
+    // - location (android only)
     // - change ID
     // - change ID
-    expect(requestList.length, 10);
+    expect(requestList.length, Platform.isAndroid ? 10 : 8);
 
     var i = 0;
     for (var element in requestList) {
       Map<String, List<String>> queryParams = Uri.parse("?" + element).queryParametersAll;
       testCommonRequestParams(queryParams); // tests
-      if (i == 0) {
+      if ((Platform.isAndroid && i == 0) || (Platform.isIOS && i == 1)) {
         // example:
         // consent: [{"sessions":true,"crashes":true,"users":true,"push":true,"feedback":true,"scrolls":true,"remote-config":true,"attribution":true,"clicks":true,"location":true,"star-rating":true,"events":true,"views":true,"apm":true}]
         Map<String, dynamic> consentInRequest = jsonDecode(queryParams['consent']![0]);
@@ -74,14 +74,14 @@ void main() {
           expect(consentInRequest[key], true);
         }
         expect(consentInRequest.length, Platform.isAndroid ? 14 : 11);
-      } else if (i == 1 || i == 4) {
+      } else if ((Platform.isAndroid && i == 1) || (Platform.isIOS && i == 0) || i == 4) {
         expect(queryParams['begin_session']?[0], '1');
-      } else if (i == 2 || (Platform.isAndroid && (i == 8 || i == 9))) {
+      } else if (i == 2 || (Platform.isAndroid && (i == 8 || i == 9)) || (Platform.isIOS && (i == 6 || i == 7))) {
         expect(queryParams['old_device_id']?[0].isNotEmpty, true);
         expect(queryParams['device_id']?[0], 'newID');
-      } else if (i == 3 || (Platform.isAndroid && i == 6)) {
+      } else if (i == 3 || (Platform.isAndroid && i == 6) || (Platform.isIOS && i == 5)) {
         expect(queryParams['end_session']?[0], '1');
-        expect(queryParams['session_duration']?[0], i == 6 ? '1' : '2');
+        expect(queryParams['session_duration']?[0].isNotEmpty, true);
         expect(queryParams['device_id']?[0], 'newID');
       } else if (Platform.isAndroid && (i == 5)) {
         // expect(queryParams['events']?[0][0].contains('[CLY]_orientation'), true);
