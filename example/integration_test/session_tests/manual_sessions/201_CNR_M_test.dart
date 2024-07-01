@@ -1,7 +1,7 @@
 import 'package:countly_flutter_np/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import '../utils.dart';
+import '../../utils.dart';
 
 /// Check if manual end_session calls are:
 /// -  not send if there is no session ongoing
@@ -11,7 +11,7 @@ import '../utils.dart';
 /// -  not send if there is a session ongoing
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  testWidgets('Manual session tests', (WidgetTester tester) async {
+  testWidgets('201_CNR_M_test', (WidgetTester tester) async {
     // Initialize the SDK
     CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true).enableManualSessionHandling();
     await Countly.initWithConfig(config);
@@ -24,12 +24,15 @@ void main() {
     await Countly.instance.sessions.updateSession();
     await Countly.instance.sessions.updateSession();
 
+    await tester.pump(Duration(seconds: 2));
+
     // Begin session call should work
-    await Countly.instance.sessions.beginSession();
-    // Second begin session call should not work
     await Countly.instance.sessions.beginSession();
 
     await tester.pump(Duration(seconds: 2));
+
+    // Second begin session call should not work
+    await Countly.instance.sessions.beginSession();
 
     // Update calls now should work
     await Countly.instance.sessions.updateSession();
@@ -39,6 +42,9 @@ void main() {
 
     // End session call should work
     await Countly.instance.sessions.endSession();
+
+    await tester.pump(Duration(seconds: 2));
+
     // Second end session call should not work
     await Countly.instance.sessions.endSession();
 
