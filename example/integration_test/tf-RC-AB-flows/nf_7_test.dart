@@ -21,46 +21,7 @@ void main() {
     await getAndValidateAllRecordedRCValues(isEmpty: true);
 
     // ========= Consent Tests =========
-    // ========= Consent Tests =========
-    // ========= Consent Tests =========
-    // remove all but rc consent
-    await Countly.removeConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
-    await getAndValidateAllRecordedRCValues(isEmpty: true);
-
-    // remove rc consent
-    await Countly.removeConsent([CountlyConsent.remoteConfig]);
-    await getAndValidateAllRecordedRCValues(isEmpty: true);
-
-    // remove all consent
-    await Countly.removeAllConsent();
-    await getAndValidateAllRecordedRCValues(isEmpty: true);
-
-    // give all but rc consent
-    await Countly.giveConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
-    await getAndValidateAllRecordedRCValues(isEmpty: true);
-
-    // give rc consent
-    await Countly.giveConsent([CountlyConsent.remoteConfig]);
-    await Future.delayed(Duration(seconds: 3));
-    await getAndValidateAllRecordedRCValues(isEmpty: true);
-
-    // get one key
-    var rcVal = await Countly.instance.remoteConfig.getValue('rc_1');
-    expect(rcVal.value, null);
-
-    // remove all but rc consent~
-    await Countly.removeConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
-    await getAndValidateAllRecordedRCValues(isEmpty: true);
-
-    // update for all rc values
-    await Countly.instance.remoteConfig.downloadAllKeys();
-    await Future.delayed(Duration(seconds: 3));
-    rcCounterInternal++;
-    await getAndValidateAllRecordedRCValues();
-
-    // remove rc consent
-    await Countly.removeConsent([CountlyConsent.remoteConfig]);
-    await getAndValidateAllRecordedRCValues(isEmpty: falseForIOS);
+    await testConsentForRC(isCG: false);
 
     // ========= Manual Calls Tests =========
     // ========= Manual Calls Tests =========

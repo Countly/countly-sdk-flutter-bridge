@@ -332,7 +332,7 @@ class Countly {
       log('recordEvent, $message', logLevel: LogLevel.ERROR);
       return message;
     }
-    List<String> args = [];
+    List<Object> args = [];
     options['key'] ??= '';
     String eventKey = options['key'].toString();
     log('Calling "recordEvent":[$eventKey]');
@@ -353,11 +353,7 @@ class Countly {
     args.add(options['duration'].toString());
 
     if (options['segmentation'] != null) {
-      var segmentation = options['segmentation'] as Map;
-      segmentation.forEach((k, v) {
-        args.add(k.toString());
-        args.add(v.toString());
-      });
+      args.add(options['segmentation']!);
     }
 
     final String? result = await _channel.invokeMethod('recordEvent', <String, dynamic>{'data': json.encode(args)});

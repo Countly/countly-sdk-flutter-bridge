@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -21,56 +19,7 @@ void main() {
     await getAndValidateAllRecordedRCValues(isEmpty: true);
 
     // ========= Consent Tests =========
-    // ========= Consent Tests =========
-    // ========= Consent Tests =========
-    // remove all but rc consent
-    await Countly.removeConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
-    await getAndValidateAllRecordedRCValues(isEmpty: true);
-
-    // remove rc consent
-    await Countly.removeConsent([CountlyConsent.remoteConfig]);
-    await getAndValidateAllRecordedRCValues(isEmpty: true);
-
-    // remove all consent
-    await Countly.removeAllConsent();
-    await getAndValidateAllRecordedRCValues(isEmpty: true);
-
-    // give all but rc consent
-    await Countly.giveConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
-    await getAndValidateAllRecordedRCValues(isEmpty: true);
-
-    // give rc consent
-    await Countly.giveConsent([CountlyConsent.remoteConfig]);
-    await Future.delayed(Duration(seconds: 3));
-    await getAndValidateAllRecordedRCValues(isEmpty: true);
-
-    // get one key
-    var rcVal = await Countly.instance.remoteConfig.getValue('rc_1');
-    expect(rcVal.value, null);
-
-    // remove all but rc consent~
-    await Countly.removeConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
-    await getAndValidateAllRecordedRCValues(isEmpty: true);
-
-    // update for all rc values
-    await Countly.instance.remoteConfig.downloadAllKeys();
-    await Future.delayed(Duration(seconds: 3));
-    rcCounterInternal++;
-    await getAndValidateAllRecordedRCValues();
-
-    // remove rc consent
-    await Countly.removeConsent([CountlyConsent.remoteConfig]);
-    await getAndValidateAllRecordedRCValues();
-
-    // give all consent
-    await Countly.giveAllConsent();
-    await Future.delayed(Duration(seconds: 3));
-    await getAndValidateAllRecordedRCValues();
-
-    // give all consent
-    await Countly.giveAllConsent();
-    await Future.delayed(Duration(seconds: 3));
-    await getAndValidateAllRecordedRCValues();
+    await testConsentForRC(isCNR: true);
 
     // ========= Manual Calls Tests =========
     // ========= Manual Calls Tests =========
@@ -142,7 +91,7 @@ void main() {
 
     await Countly.instance.remoteConfig.testingEnrollIntoVariant('key', 'Variant A', ((rResult, error) => {expect(rResult, RequestResult.success)}));
     await Future.delayed(Duration(seconds: 3));
-    await getAndValidateAllRecordedRCValues(isEmpty: falseForIOS);
+    await getAndValidateAllRecordedRCValues(isEmpty: true);
 
     // update for all rc values
     await Countly.instance.remoteConfig.downloadAllKeys();
@@ -209,7 +158,7 @@ void main() {
     // change device id with merge
     Countly.changeDeviceId("merge_id", true);
     await Future.delayed(Duration(seconds: 3));
-    await getAndValidateAllRecordedRCValues(isEmpty: trueForIOS);
+    await getAndValidateAllRecordedRCValues(isEmpty: true);
 
     // change device id with out~ merge
     Countly.changeDeviceId("non_merge_id", false);

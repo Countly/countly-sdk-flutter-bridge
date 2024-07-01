@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,14 +36,8 @@ void main() {
     await tester.pump(Duration(seconds: 1));
     await Countly.changeDeviceId('newID_2', false);
 
-    FlutterForegroundTask.minimizeApp();
     await tester.pump(Duration(seconds: 1));
-    FlutterForegroundTask.launchApp();
     await Countly.changeDeviceId('newID', true);
-    FlutterForegroundTask.minimizeApp();
-    await tester.pump(Duration(seconds: 1));
-    FlutterForegroundTask.launchApp();
-    await tester.pump(Duration(seconds: 1));
 
     // Get request and event queues from native side
     List<String> requestList = await getRequestQueue(); // List of strings
@@ -53,24 +50,47 @@ void main() {
     print('EQ length: ${eventList.length}');
 
     // Currently
-    // - consents
-    // - begin_session
+    // - consents (begin ses in ios)
+    // - begin_session (consent in ios)
     // - change ID
     // - end session
     // - begin_session
-    // - orientation
+    // - orientation (android only)
     // - end session
-    // - location
-    // - consents
+    // - location (android only)
     // - change ID
     // - change ID
-    // seems plausible due to known issues
-    // expect(requestList.length, 1);
+    expect(requestList.length, Platform.isAndroid ? 10 : 8);
 
     var i = 0;
     for (var element in requestList) {
       Map<String, List<String>> queryParams = Uri.parse("?" + element).queryParametersAll;
-      // TODO: write these after RQ migration
+      testCommonRequestParams(queryParams); // tests
+      if ((Platform.isAndroid && i == 0) || (Platform.isIOS && i == 1)) {
+        // example:
+        // consent: [{"sessions":true,"crashes":true,"users":true,"push":true,"feedback":true,"scrolls":true,"remote-config":true,"attribution":true,"clicks":true,"location":true,"star-rating":true,"events":true,"views":true,"apm":true}]
+        Map<String, dynamic> consentInRequest = jsonDecode(queryParams['consent']![0]);
+        for (var key in ['push', 'feedback', 'crashes', 'attribution', 'users', 'events', 'remote-config', 'sessions', 'location', 'views', 'apm']) {
+          expect(consentInRequest[key], true);
+        }
+        expect(consentInRequest.length, Platform.isAndroid ? 14 : 11);
+      } else if ((Platform.isAndroid && i == 1) || (Platform.isIOS && i == 0) || i == 4) {
+        expect(queryParams['begin_session']?[0], '1');
+      } else if (i == 2 || (Platform.isAndroid && (i == 8 || i == 9)) || (Platform.isIOS && (i == 6 || i == 7))) {
+        expect(queryParams['old_device_id']?[0].isNotEmpty, true);
+        expect(queryParams['device_id']?[0], 'newID');
+      } else if (i == 3 || (Platform.isAndroid && i == 6) || (Platform.isIOS && i == 5)) {
+        expect(queryParams['end_session']?[0], '1');
+        expect(queryParams['session_duration']?[0].isNotEmpty, true);
+        expect(queryParams['device_id']?[0], 'newID');
+      } else if (Platform.isAndroid && (i == 5)) {
+        expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
+        expect(queryParams['device_id']?[0], 'newID');
+      } else if (Platform.isAndroid && (i == 7)) {
+        expect(queryParams['location'], ['']);
+        expect(queryParams['device_id']?[0], 'newID');
+      }
+
       print('RQ.$i: $queryParams');
       print('========================');
       i++;

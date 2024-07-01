@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -25,58 +23,7 @@ void main() {
     await getAndValidateAllRecordedRCValues();
 
     // ========= Consent Tests =========
-    // ========= Consent Tests =========
-    // ========= Consent Tests =========
-    // remove all but rc consent
-    await Countly.removeConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
-    await getAndValidateAllRecordedRCValues();
-
-    // remove rc consent
-    await Countly.removeConsent([CountlyConsent.remoteConfig]);
-    await getAndValidateAllRecordedRCValues(isEmpty: falseForIOS);
-
-    // remove all consent
-    await Countly.removeAllConsent();
-    await getAndValidateAllRecordedRCValues(isEmpty: falseForIOS);
-
-    // give all but rc consent
-    await Countly.giveConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
-    await getAndValidateAllRecordedRCValues(isEmpty: falseForIOS);
-
-    // give rc consent
-    await Countly.giveConsent([CountlyConsent.remoteConfig]);
-    await Future.delayed(Duration(seconds: 3));
-    rcCounterInternal++;
-    await getAndValidateAllRecordedRCValues();
-
-    // get one key
-    var rcVal = await Countly.instance.remoteConfig.getValue('rc_1');
-    expect(rcVal.value, 'val_1');
-
-    // remove all but rc consent~
-    await Countly.removeConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
-    await getAndValidateAllRecordedRCValues();
-
-    // remove rc consent
-    await Countly.removeConsent([CountlyConsent.remoteConfig]);
-    await getAndValidateAllRecordedRCValues(isEmpty: falseForIOS);
-
-    if (Platform.isIOS) {
-      // clear all stored rc values
-      await Countly.instance.remoteConfig.clearAll();
-      await getAndValidateAllRecordedRCValues(isEmpty: true);
-    }
-
-    // give all consent
-    await Countly.giveAllConsent();
-    await Future.delayed(Duration(seconds: 3));
-    rcCounterInternal++;
-    await getAndValidateAllRecordedRCValues();
-
-    // give all consent
-    await Countly.giveAllConsent();
-    await Future.delayed(Duration(seconds: 3));
-    await getAndValidateAllRecordedRCValues();
+    await testConsentForRC(isCG: true, isAT: true);
 
     // ========= Manual Calls Tests =========
     // ========= Manual Calls Tests =========
@@ -148,9 +95,7 @@ void main() {
 
     await Countly.instance.remoteConfig.testingEnrollIntoVariant('key', 'Variant A', ((rResult, error) => {expect(rResult, RequestResult.success)}));
     await Future.delayed(Duration(seconds: 3));
-    if (Platform.isAndroid) {
-      rcCounterInternal++; // TODO: this fine?
-    }
+    rcCounterInternal++; // TODO: this fine?
     await getAndValidateAllRecordedRCValues();
 
     // update for all rc values

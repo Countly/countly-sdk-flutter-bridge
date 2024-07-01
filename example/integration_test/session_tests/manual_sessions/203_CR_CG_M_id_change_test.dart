@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -50,57 +51,41 @@ void main() {
     print('RQ length: ${requestList.length}');
     print('EQ length: ${eventList.length}');
 
-    // There should be:
+    // Currently:
     // - consent information, true
     // - device ID change
     // - begin session
     // - end session
-    // - device ID change
-    // - location
-    // - consent information, false
+    // - location (android only)
     // - consent information, true
     // - begin session
-    // - end session, with override ID
-    // - change device ID
-    // - location
-    // - consent information, false
-    expect(requestList.length, 12);
+    // - end session (android only)
+    // - location (android only)
+    expect(requestList.length, Platform.isAndroid ? 9 : 6);
 
     var i = 0;
     for (var element in requestList) {
       Map<String, List<String>> queryParams = Uri.parse("?" + element).queryParametersAll;
       testCommonRequestParams(queryParams); // tests
-      if (i == 0) {
+      if (i == 0 || (Platform.isAndroid && i == 5) || (Platform.isIOS && i == 4)) {
         // example:
         // consent: [{"sessions":true,"crashes":true,"users":true,"push":true,"feedback":true,"scrolls":true,"remote-config":true,"attribution":true,"clicks":true,"location":true,"star-rating":true,"events":true,"views":true,"apm":true}]
         Map<String, dynamic> consentInRequest = jsonDecode(queryParams['consent']![0]);
-        for (var key in ['push', 'feedback', 'scrolls', 'crashes', 'attribution', 'users', 'events', 'clicks', 'remote-config', 'sessions', 'location', 'star-rating', 'views', 'apm']) {
+        for (var key in ['push', 'feedback', 'crashes', 'attribution', 'users', 'events', 'remote-config', 'sessions', 'location', 'views', 'apm']) {
           expect(consentInRequest[key], true);
         }
-        expect(consentInRequest.length, 14);
-      } else if (i == 1 || i == 7) {
+        expect(consentInRequest.length, Platform.isAndroid ? 14 : 11);
+      } else if (i == 1) {
         expect(queryParams['device_id']?[0], 'newID');
-        expect(queryParams['session_duration'], null);
-      } else if (i == 2 || i == 8) {
+        expect(queryParams['old_device_id']?[0].isNotEmpty, true);
+      } else if (i == 2 || (Platform.isAndroid && i == 6) || (Platform.isIOS && i == 5)) {
         expect(queryParams['begin_session']?[0], '1');
-      } else if (i == 3 || i == 9) {
+      } else if (i == 3 || (Platform.isAndroid && i == 7)) {
         expect(queryParams['end_session']?[0], '1');
         expect(queryParams['session_duration']?[0], '2');
-        expect(queryParams['override_id']?[0], i == 9 ? 'newID_2' : null);
-      } else if (i == 4) {
-        expect(queryParams['device_id']?[0], 'newID_2');
-        expect(queryParams['session_duration'], null);
-      } else if (i == 5 || i == 11) {
+      } else if (Platform.isAndroid && (i == 4 || i == 8)) {
         expect(queryParams['location'], ['']);
-      } else if (i == 6 || i == 12) {
-        Map<String, dynamic> consentInRequest = jsonDecode(queryParams['consent']![0]);
-        for (var key in ['push', 'feedback', 'scrolls', 'crashes', 'attribution', 'users', 'events', 'clicks', 'remote-config', 'sessions', 'location', 'star-rating', 'views', 'apm']) {
-          expect(consentInRequest[key], false);
-        }
-        expect(consentInRequest.length, 14);
-      } else if (i == 10) {
-        expect(queryParams['device_id']?[0], 'newID_3');
-        expect(queryParams['session_duration'], null);
+        expect(queryParams['device_id']?[0], i == 4 ? 'newID' : 'newID_2');
       }
 
       print('RQ.$i: $queryParams');

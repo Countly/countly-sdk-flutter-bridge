@@ -251,9 +251,9 @@ var rcCounter = 0;
 var rcCounterInternal = 0;
 
 void rcCallback(rResult, error, fullValueUpdate, downloadedValues) {
-  rcCounter++;
   print('RC callback: $rResult, $error, $fullValueUpdate, $downloadedValues, $rcCounter');
   if (rResult == RequestResult.success) {
+    rcCounter++;
     print('RC download success');
   }
 }
@@ -286,5 +286,62 @@ Future<void> getAndValidateAllRecordedRCValues({bool isEmpty = false, bool? isCu
   expect(rcCounter, rcCounterInternal);
 }
 
-var trueForIOS = Platform.isIOS ? true : false;
-var falseForIOS = Platform.isIOS ? false : true;
+Future<void> testConsentForRC({bool isAT = false, bool isCG = true, bool isCNR = false}) async {
+  var storedRCVals = await Countly.instance.remoteConfig.getAllValues();
+  if (storedRCVals.isNotEmpty) {
+    await Countly.instance.remoteConfig.clearAll();
+    await getAndValidateAllRecordedRCValues(isEmpty: true);
+  }
+
+  await Countly.removeConsent([CountlyConsent.remoteConfig]);
+  await getAndValidateAllRecordedRCValues(isEmpty: true);
+
+  if (isCNR) {
+    await Countly.giveAllConsent();
+    await Countly.giveAllConsent();
+    await Countly.removeConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
+    await Countly.removeConsent([CountlyConsent.remoteConfig]);
+    await Countly.removeAllConsent();
+    await Countly.giveConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
+    await Countly.giveAllConsent();
+    await Countly.giveAllConsent();
+    await Future.delayed(Duration(seconds: 3));
+    await getAndValidateAllRecordedRCValues(isEmpty: true);
+    return;
+  }
+
+  // give all consent
+  await Countly.giveAllConsent();
+  await Future.delayed(Duration(seconds: 3));
+  if (isAT) {
+    rcCounterInternal++;
+  }
+  await getAndValidateAllRecordedRCValues(isEmpty: !isAT);
+
+  // give all consent
+  await Countly.giveAllConsent();
+  await Future.delayed(Duration(seconds: 3));
+  await getAndValidateAllRecordedRCValues(isEmpty: !isAT);
+
+  // update for all rc values
+  await Countly.instance.remoteConfig.downloadAllKeys();
+  await Future.delayed(Duration(seconds: 3));
+  rcCounterInternal++;
+  await getAndValidateAllRecordedRCValues();
+
+  await Countly.removeConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
+  await Countly.removeConsent([CountlyConsent.remoteConfig]);
+  await Countly.removeAllConsent();
+  await Countly.giveConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
+  await getAndValidateAllRecordedRCValues();
+
+  if (isCG) {
+    // give all consent
+    await Countly.giveAllConsent();
+    await Future.delayed(Duration(seconds: 3));
+    if (isAT) {
+      rcCounterInternal++;
+    }
+    await getAndValidateAllRecordedRCValues();
+  }
+}

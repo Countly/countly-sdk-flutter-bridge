@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,36 +13,24 @@ void main() {
     CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true);
     await Countly.initWithConfig(config);
 
-    await tester.pump(Duration(seconds: 1));
+    await Future.delayed(Duration(seconds: 1));
     await Countly.changeDeviceId('newID', true);
     await Countly.instance.sessions.beginSession();
     await Countly.instance.sessions.updateSession();
     await Countly.instance.sessions.endSession();
 
-    FlutterForegroundTask.minimizeApp();
-    await tester.pump(Duration(seconds: 1));
-    FlutterForegroundTask.launchApp();
-
-    await tester.pump(Duration(seconds: 1));
+    await Future.delayed(Duration(seconds: 2));
     await Countly.changeDeviceId('newID_2', false);
     await Countly.instance.sessions.beginSession();
     await Countly.instance.sessions.updateSession();
     await Countly.instance.sessions.endSession();
 
-    await tester.pump(Duration(seconds: 1));
-    await Countly.changeDeviceId('newID', true);
-
-    await tester.pump(Duration(seconds: 1));
-    await Countly.changeDeviceId('newID_2', false);
-
     FlutterForegroundTask.minimizeApp();
-    await tester.pump(Duration(seconds: 1));
+    await tester.pump(Duration(seconds: 2));
     FlutterForegroundTask.launchApp();
+
+    await Future.delayed(Duration(seconds: 1));
     await Countly.changeDeviceId('newID', true);
-    FlutterForegroundTask.minimizeApp();
-    await tester.pump(Duration(seconds: 1));
-    FlutterForegroundTask.launchApp();
-    await tester.pump(Duration(seconds: 1));
 
     // Get request and event queues from native side
     List<String> requestList = await getRequestQueue(); // List of strings
@@ -57,20 +47,32 @@ void main() {
     // - change ID
     // - end session
     // - begin_session
-    // - orientation
-    // - end session
+    // - end session (ios only)
     // - change ID
-    // - change ID
-    // - begin_session
-    // - end session
-    // - begin session
-    // seems plausible due to known issues
-    // expect(requestList.length, 1);
+    // EQ: orientation (android only)
+    expect(requestList.length, Platform.isAndroid ? 5 : 6);
 
     var i = 0;
     for (var element in requestList) {
       Map<String, List<String>> queryParams = Uri.parse("?" + element).queryParametersAll;
-      // TODO: write these after RQ migration
+      testCommonRequestParams(queryParams); // tests
+      if (i == 0 || i == 3) {
+        expect(queryParams['begin_session']?[0], '1');
+        if (i == 3) {
+          expect(queryParams['device_id']?[0], 'newID_2');
+        }
+      } else if (i == 1 || (Platform.isAndroid && i == 4) || (Platform.isIOS && i == 5)) {
+        expect(queryParams['old_device_id']?[0].isNotEmpty, true);
+        if (i == 5) {
+          expect(queryParams['old_device_id']?[0], 'newID_2');
+        }
+        expect(queryParams['device_id']?[0], 'newID');
+      } else if (i == 2 || (Platform.isIOS && i == 4)) {
+        expect(queryParams['end_session']?[0].isNotEmpty, true);
+        expect(queryParams['session_duration']?[0].isNotEmpty, true);
+        expect(queryParams['device_id']?[0], i == 4 ? 'newID_2' : 'newID');
+      }
+
       print('RQ.$i: $queryParams');
       print('========================');
       i++;
