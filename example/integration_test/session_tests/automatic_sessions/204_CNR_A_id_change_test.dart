@@ -26,7 +26,7 @@ void main() {
     await Countly.instance.sessions.endSession();
 
     FlutterForegroundTask.minimizeApp();
-    await Future.delayed(Duration(seconds: 2));
+    await tester.pump(Duration(seconds: 2));
     FlutterForegroundTask.launchApp();
 
     await Future.delayed(Duration(seconds: 1));
@@ -50,7 +50,7 @@ void main() {
     // - end session (ios only)
     // - change ID
     // EQ: orientation (android only)
-    // expect(requestList.length, 5);
+    expect(requestList.length, Platform.isAndroid ? 5 : 6);
 
     var i = 0;
     for (var element in requestList) {
