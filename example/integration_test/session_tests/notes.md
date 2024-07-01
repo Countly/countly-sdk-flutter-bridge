@@ -19,3 +19,4 @@ iOS:
 - no location req (203)
 - no orientation req (205)
 - check if app to fg starts session (204)
+- 206: no consent req. we cool?

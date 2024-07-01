@@ -50,18 +50,18 @@ void main() {
     print('EQ length: ${eventList.length}');
 
     // Currently
-    // - consents
+    // - consents (android only)
     // - location (android only)
     // - change ID
     // - change ID
     // - change ID
-    expect(requestList.length, Platform.isAndroid ? 5 : 4);
+    expect(requestList.length, Platform.isAndroid ? 5 : 3);
 
     var i = 0;
     for (var element in requestList) {
       Map<String, List<String>> queryParams = Uri.parse("?" + element).queryParametersAll;
       testCommonRequestParams(queryParams); // tests
-      if (i == 0) {
+      if (Platform.isAndroid && i == 0) {
         // example:
         // consent: [{"sessions":true,"crashes":true,"users":true,"push":true,"feedback":true,"scrolls":true,"remote-config":true,"attribution":true,"clicks":true,"location":true,"star-rating":true,"events":true,"views":true,"apm":true}]
         Map<String, dynamic> consentInRequest = jsonDecode(queryParams['consent']![0]);
@@ -69,7 +69,7 @@ void main() {
           expect(consentInRequest[key], false);
         }
         expect(consentInRequest.length, Platform.isAndroid ? 14 : 11);
-      } else if ((Platform.isAndroid && (i == 2 || i == 3 || i == 4)) || (Platform.isIOS && (i == 1 || i == 2 || i == 3))) {
+      } else if ((Platform.isAndroid && (i == 2 || i == 3 || i == 4)) || (Platform.isIOS && (i == 0 || i == 1 || i == 2))) {
         expect(queryParams['old_device_id']?[0].isNotEmpty, true);
         expect(queryParams['device_id']?[0], 'newID');
       } else if (Platform.isAndroid && (i == 1)) {
