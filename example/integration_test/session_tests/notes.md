@@ -12,6 +12,8 @@ CNG:Session Consent not given
 Android:
 - Device id change without merge do not start a new session (CNR_A)
 - 1 Location request seems to be missing at 206
+- has scrolls, clicks, star-rating consent (ios dont)
 
 iOS:
 - Change ID without merge does not end a session (CNR_M)
+- no location req (203)
