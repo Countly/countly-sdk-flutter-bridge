@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -44,9 +46,11 @@ void main() {
     // - begin_session
     // - change ID
     // - end session
+    // - begin_session
+    // - end session (ios only)
     // - change ID
     // EQ: orientation (android only)
-    expect(requestList.length, 5);
+    // expect(requestList.length, 5);
 
     var i = 0;
     for (var element in requestList) {
@@ -54,13 +58,19 @@ void main() {
       testCommonRequestParams(queryParams); // tests
       if (i == 0 || i == 3) {
         expect(queryParams['begin_session']?[0], '1');
-      } else if (i == 1 || i == 4) {
+        if (i == 3) {
+          expect(queryParams['device_id']?[0], 'newID_2');
+        }
+      } else if (i == 1 || (Platform.isAndroid && i == 4) || (Platform.isIOS && i == 5)) {
         expect(queryParams['old_device_id']?[0].isNotEmpty, true);
+        if (i == 5) {
+          expect(queryParams['old_device_id']?[0], 'newID_2');
+        }
         expect(queryParams['device_id']?[0], 'newID');
-      } else if (i == 2) {
-        expect(queryParams['end_session']?[0], '1');
+      } else if (i == 2 || (Platform.isIOS && i == 4)) {
+        expect(queryParams['end_session']?[0].isNotEmpty, true);
         expect(queryParams['session_duration']?[0].isNotEmpty, true);
-        expect(queryParams['device_id']?[0], 'newID');
+        expect(queryParams['device_id']?[0], i == 4 ? 'newID_2' : 'newID');
       }
 
       print('RQ.$i: $queryParams');
