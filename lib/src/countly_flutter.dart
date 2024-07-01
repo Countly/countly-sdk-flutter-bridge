@@ -117,7 +117,7 @@ class Countly {
   static Function(Map<String, dynamic> widgetData, String? error)? _feedbackWidgetDataCallback;
 
   /// Callback handler to handle function calls from native iOS/Android to Dart.
-  static Future<void> _methodCallHandler(MethodCall call) async {
+  static Future<dynamic> _methodCallHandler(MethodCall call) async {
     log('[FMethodCallH] ${call.method}', logLevel: LogLevel.VERBOSE);
     switch (call.method) {
       case 'widgetShown':
@@ -194,6 +194,46 @@ class Countly {
           final int id = argumentsMap['id'];
 
           Countly.instance._remoteConfigInternal.notifyVariantCallbacks(requestResult, error, id);
+        } catch (e) {
+          log('[FMethodCallH] $e', logLevel: LogLevel.ERROR);
+        }
+        break;
+      case 'globalCrashFilterCallback':
+        try {
+          final Map<String, dynamic> argumentsMap = Map<String, dynamic>.from(call.arguments);
+          final crashData = CrashData(breadcrumbs: argumentsMap['breadcrumbs'], crashMetrics: argumentsMap['crashMetrics'], crashSegmentation: argumentsMap['crashSegmentation'], fatal: argumentsMap['fatal'], stackTrace: argumentsMap['stackTrace']);
+          final filteredCrashData = _crashFilterCheck(crashData);
+          if (filteredCrashData == null) {
+            String message = '[FMethodCallH] "globalCrashFilterCallback" globalCrashFilterCallback returned null. Ignoring crash.';
+            log('logException, $message', logLevel: LogLevel.INFO);
+            return ['true'];
+          }
+
+          List<dynamic> args = [];
+          args.add(filteredCrashData.breadcrumbs);
+          args.add(filteredCrashData.fatal);
+          args.add(filteredCrashData.stackTrace);
+          args.add(filteredCrashData.crashMetrics.length);
+          args.add(filteredCrashData.crashSegmentation.length);
+          filteredCrashData.crashMetrics.forEach((k, v) {
+            // TODO: pass non-strings
+            args.add(k.toString());
+            args.add(v.toString());
+          });
+          // know when metrics has finished
+          filteredCrashData.crashSegmentation.forEach((k, v) {
+            // TODO: pass non-strings
+            args.add(k.toString());
+            args.add(v.toString());
+          });
+
+          // Map<String, dynamic> args = {};
+          // args.putIfAbsent('b', () => filteredCrashData.breadcrumbs ?? '');
+          // args.putIfAbsent('m', () => filteredCrashData.crashMetrics ?? {});
+          // args.putIfAbsent('cs', () => filteredCrashData.crashSegmentation ?? {});
+          // args.putIfAbsent('f', () => filteredCrashData.fatal ?? false);
+          // args.putIfAbsent('s', () => filteredCrashData.stackTrace ?? '');
+          return args;
         } catch (e) {
           log('[FMethodCallH] $e', logLevel: LogLevel.ERROR);
         }
@@ -1741,7 +1781,7 @@ class Countly {
     int segCount = segmentation != null ? segmentation.length : 0;
     log('Calling "logException":[$exception] nonfatal:[$nonfatal]: with segmentation count:[$segCount]');
 
-    final crashData = CrashData(exception, nonfatal, segmentation);
+    final crashData = CrashData(breadcrumbs: [], crashMetrics: {}, crashSegmentation: segmentation ?? {}, fatal: !nonfatal, stackTrace: exception);
     final filteredCrashData = _crashFilterCheck(crashData);
     if (filteredCrashData == null) {
       String message = '"logException" globalCrashFilterCallback returned null. Ignoring crash.';
@@ -1749,15 +1789,20 @@ class Countly {
       return message;
     }
 
-    List<String> args = [];
-    args.add(filteredCrashData.exception);
-    args.add(filteredCrashData.nonFatal.toString());
-    if (filteredCrashData.segmentation != null) {
-      filteredCrashData.segmentation!.forEach((k, v) {
-        args.add(k.toString());
-        args.add(v.toString());
-      });
-    }
+    List<dynamic> args = [];
+    args.add(filteredCrashData.breadcrumbs);
+    args.add(filteredCrashData.fatal);
+    args.add(filteredCrashData.stackTrace);
+    args.add(filteredCrashData.crashMetrics.length);
+    args.add(filteredCrashData.crashSegmentation.length);
+    filteredCrashData.crashMetrics.forEach((k, v) {
+      args.add(k.toString());
+      args.add(v.toString());
+    });
+    filteredCrashData.crashSegmentation.forEach((k, v) {
+      args.add(k.toString());
+      args.add(v.toString());
+    });
 
     final String? result = await _channel.invokeMethod('logException', <String, dynamic>{'data': json.encode(args)});
 

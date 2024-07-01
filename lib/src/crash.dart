@@ -1,19 +1,23 @@
 typedef GlobalCrashFilterCallback = CrashData? Function(CrashData crashData);
 
 class CrashData {
-  CrashData(this.exception, this.nonFatal, this.segmentation);
+  CrashData({required this.breadcrumbs, required this.crashMetrics, required this.crashSegmentation, required this.fatal, required this.stackTrace});
 
-  String exception;
-  bool nonFatal;
-  Map<String, Object>? segmentation;
+  List<String> breadcrumbs;
+  Map<String, dynamic> crashMetrics;
+  Map<String, dynamic> crashSegmentation;
+  bool fatal;
+  String stackTrace;
 
   /// Convience method provided for easy manipulation of CrashData.
   /// This will return a new instance of CrashData and change only the data passed
-  CrashData copyWith({String? exception, bool? nonFatal, Map<String, Object>? segmentation}) {
+  CrashData copyWith({List<String>? breadcrumbs, Map<String,dynamic>? crashMetrics, Map<String, Object>? crashSegmentation, bool? fatal, String? stackTrace}) {
     return CrashData(
-      exception ?? this.exception,
-      nonFatal ?? this.nonFatal,
-      segmentation ?? this.segmentation,
+      breadcrumbs: breadcrumbs ?? this.breadcrumbs,
+      crashMetrics: crashMetrics ?? this.crashMetrics,
+      fatal: fatal ?? this.fatal,
+      stackTrace: stackTrace ?? this.stackTrace,
+      crashSegmentation: crashSegmentation ?? this.crashSegmentation,
     );
   }
 }
