@@ -94,7 +94,7 @@ void main() {
         expect(view['segmentation'].length, MAX_SEGMENTATION_COUNT + 3);
       } else if (a == 6) {
         Map<String, dynamic> userDetails = json.decode(queryParams['user_details']![0]);
-        expect(userDetails['custom'].length, Platform.isAndroid ? MAX_SEGMENTATION_COUNT + 10 : MAX_SEGMENTATION_COUNT);
+        expect(userDetails['custom'].length, Platform.isAndroid ? 10 : MAX_SEGMENTATION_COUNT); // Android does not filter custom mods
         checkUnchangingUserPropeties(userDetails, null);
 
         if (Platform.isAndroid) {
