@@ -21,7 +21,7 @@ class _DeviceIDPageState extends State<DeviceIDPage> {
   }
 
   Future<void> getDeviceIDType() async {
-    DeviceIdType? deviceIdType = await Countly.getDeviceIDType();
+    DeviceIdType? deviceIdType = await Countly.instance.deviceId.getDeviceIDType();
     if (deviceIdType != null) {
       setState(() {
         _deviceIdType = deviceIdType.toString();
@@ -30,15 +30,15 @@ class _DeviceIDPageState extends State<DeviceIDPage> {
   }
 
   void changeDeviceIdWithMerge() {
-    Countly.changeDeviceId('123456', true);
+    Countly.instance.deviceId.changeDeviceIDWithMerge('123456');
   }
 
   void changeDeviceIdWithoutMerge() {
-    Countly.changeDeviceId(makeid(), false);
+    Countly.instance.deviceId.changeDeviceIDWithoutMerge(makeid());
   }
 
   void enableTemporaryIdMode() {
-    Countly.changeDeviceId(Countly.deviceIDType['TemporaryDeviceID']!, false);
+    Countly.instance.deviceId.changeDeviceIDWithoutMerge(Countly.deviceIDType['TemporaryDeviceID']!);
   }
 
   @override
