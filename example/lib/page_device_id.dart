@@ -41,6 +41,10 @@ class _DeviceIDPageState extends State<DeviceIDPage> {
     Countly.instance.deviceId.changeDeviceIDWithoutMerge(Countly.deviceIDType['TemporaryDeviceID']!);
   }
 
+  void setID() {
+    Countly.instance.deviceId.setID(makeid());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,15 +54,17 @@ class _DeviceIDPageState extends State<DeviceIDPage> {
       body: SingleChildScrollView(
         padding: EdgeInsets.all(15),
         child: Center(
-            child: Column(
-          children: [
-            Text(_deviceIdType, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
-            MyButton(text: 'Get Device Id Type', color: 'green', onPressed: getDeviceIDType),
-            MyButton(text: 'Enable Temporary ID Mode', color: 'orange', onPressed: enableTemporaryIdMode),
-            MyButton(text: 'Change Device ID With Merge', color: 'yellow', onPressed: changeDeviceIdWithMerge),
-            MyButton(text: 'Change Device ID Without Merge', color: 'teal', onPressed: changeDeviceIdWithoutMerge),
-          ],
-        )),
+          child: Column(
+            children: [
+              Text(_deviceIdType, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
+              MyButton(text: 'Get Device Id Type', color: 'green', onPressed: getDeviceIDType),
+              MyButton(text: 'Enable Temporary ID Mode', color: 'orange', onPressed: enableTemporaryIdMode),
+              MyButton(text: 'Change Device ID With Merge', color: 'yellow', onPressed: changeDeviceIdWithMerge),
+              MyButton(text: 'Change Device ID Without Merge', color: 'teal', onPressed: changeDeviceIdWithoutMerge),
+              MyButton(text: 'Set ID', color: 'brown', onPressed: setID),
+            ],
+          ),
+        ),
       ),
     );
   }
