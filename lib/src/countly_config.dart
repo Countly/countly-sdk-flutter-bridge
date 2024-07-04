@@ -1,4 +1,5 @@
 import 'configuration_interfaces/countly_config_apm.dart';
+import 'configuration_interfaces/countly_config_limits.dart';
 import 'countly_flutter.dart';
 import 'remote_config.dart';
 
@@ -43,6 +44,9 @@ class CountlyConfig {
 
   /// instance of CountlyConfigApm
   final CountlyConfigApm _countlyConfigApmInstance = CountlyConfigApm();
+
+  /// instance of CountlyConfigLimits
+  final CountlyConfigSDKInternalLimits _countlyConfigSDKInternalLimitsInstance = CountlyConfigSDKInternalLimits();
 
   CountlyConfig(this._serverURL, this._appKey);
 
@@ -121,6 +125,9 @@ class CountlyConfig {
 
   /// getter for CountlyConfigApm instance that is used to access CountlyConfigApm methods
   CountlyConfigApm get apm => _countlyConfigApmInstance;
+
+  /// getter for CountlyConfigLimits instance that is used to access CountlyConfigLimits methods
+  CountlyConfigSDKInternalLimits get sdkInternalLimits => _countlyConfigSDKInternalLimitsInstance;
 
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
@@ -248,8 +255,10 @@ class CountlyConfig {
     return this;
   }
 
-  /// Set's the new maximum size for the request queue.
+  /// This flag limits the number of requests that can be stored in the request queue when the Countly server is unavailable or unreachable.
+  /// If the number of requests in the queue reaches the limit, the oldest requests in the queue will be dropped.
   /// [int maxSize] - Minimum value is "1".
+  /// [int maxSize] - Default value is 1,000.
   CountlyConfig setMaxRequestQueueSize(int maxSize) {
     _maxRequestQueueSize = maxSize;
     return this;
@@ -261,8 +270,7 @@ class CountlyConfig {
     return this;
   }
 
-  @Deprecated('Use remoteConfigRegisterGlobalCallback instead')
-
+  @Deprecated('This function is deprecated, please use remoteConfigRegisterGlobalCallback instead')
   /// If enable, will automatically download newest remote config values.
   /// enabled set true for enabling it
   /// callback callback called after the update was done

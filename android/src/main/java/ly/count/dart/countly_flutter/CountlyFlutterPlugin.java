@@ -60,7 +60,7 @@ import ly.count.android.sdk.messaging.CountlyPush;
  */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
     private static final String TAG = "CountlyFlutterPlugin";
-    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "24.1.1";
+    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "24.7.0";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterbnp-android";
 
@@ -375,25 +375,23 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success("disableLocation success!");
             } else if ("enableCrashReporting".equals(call.method)) {
                 this.config.enableCrashReporting();
-                // Countly.sharedInstance().enableCrashReporting();
                 result.success("enableCrashReporting success!");
             } else if ("addCrashLog".equals(call.method)) {
                 String record = args.getString(0);
                 Countly.sharedInstance().crashes().addCrashBreadcrumb(record);
-                // Countly.sharedInstance().addCrashBreadcrumb(record);
                 result.success("addCrashLog success!");
             } else if ("logException".equals(call.method)) {
                 String exceptionString = args.getString(0);
-                boolean fatal = args.getBoolean(1);
+                boolean nonfatal = args.getBoolean(1);
                 Exception exception = new Exception(exceptionString);
                 Map<String, Object> segments = new HashMap<>();
                 for (int i = 2, il = args.length(); i < il; i += 2) {
                     segments.put(args.getString(i), args.getString(i + 1));
                 }
-                if (fatal) {
-                    Countly.sharedInstance().crashes().recordUnhandledException(exception, segments);
-                } else {
+                if (nonfatal) {
                     Countly.sharedInstance().crashes().recordHandledException(exception, segments);
+                } else {
+                    Countly.sharedInstance().crashes().recordUnhandledException(exception, segments);
                 }
 
                 result.success("logException success!");
@@ -467,10 +465,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success("endSession!");
 
             } else if ("manualSessionHandling".equals(call.method)) {
-                result.success("deafult!");
+                result.success("manualSessionHandling!");
 
             } else if ("updateSessionPeriod".equals(call.method)) {
-                result.success("default!");
+                result.success("updateSessionPeriod!");
 
             } else if ("updateSessionInterval".equals(call.method)) {
                 int sessionInterval = Integer.parseInt(args.getString(0));
@@ -480,19 +478,20 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("eventSendThreshold".equals(call.method)) {
                 int queueSize = Integer.parseInt(args.getString(0));
                 this.config.setEventQueueSizeToSend(queueSize);
-                result.success("default!");
+                result.success("eventSendThreshold!");
 
             } else if ("storedRequestsLimit".equals(call.method)) {
                 int queueSize = Integer.parseInt(args.getString(0));
-                result.success("default!");
+                result.success("storedRequestsLimit!");
 
             } else if ("startEvent".equals(call.method)) {
                 String startEvent = args.getString(0);
                 Countly.sharedInstance().events().startEvent(startEvent);
+                result.success("startEvent for: " + startEvent);
             } else if ("endEvent".equals(call.method)) {
                 String key = args.getString(0);
                 int count = Integer.parseInt(args.getString(1));
-                float sum = Float.parseFloat(args.getString(2)); // new Float(args.getString(2)).floatValue();
+                float sum = Float.parseFloat(args.getString(2));
                 HashMap<String, Object> segmentation = new HashMap<>();
                 if (args.length() > 3) {
                     for (int i = 3, il = args.length(); i < il; i += 2) {
@@ -504,20 +503,20 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("recordEvent".equals(call.method)) {
                 String key = args.getString(0);
                 int count = Integer.parseInt(args.getString(1));
-                float sum = Float.parseFloat(args.getString(2)); // new Float(args.getString(2)).floatValue();
+                float sum = Float.parseFloat(args.getString(2));
                 int duration = Integer.parseInt(args.getString(3));
-                HashMap<String, Object> segmentation = new HashMap<>();
+                Map<String, Object> segmentation;
                 if (args.length() > 4) {
-                    for (int i = 4, il = args.length(); i < il; i += 2) {
-                        segmentation.put(args.getString(i), args.getString(i + 1));
-                    }
+                    segmentation = toMap(args.getJSONObject(4));
+                } else {
+                    segmentation = null;
                 }
+                // Map<String, Object> segmentation = toMap(args.getJSONObject(4));
+                
                 Countly.sharedInstance().events().recordEvent(key, segmentation, count, sum, duration);
                 result.success("recordEvent for: " + key);
             } else if ("setLoggingEnabled".equals(call.method)) {
                 String loggingEnable = args.getString(0);
-                // Countly.sharedInstance().setLoggingEnabled(true);
-                // Countly.sharedInstance().setLoggingEnabled(false);
                 this.config.setLoggingEnabled(loggingEnable.equals("true"));
                 result.success("setLoggingEnabled success!");
             } else if ("setuserdata".equals(call.method)) {
@@ -677,10 +676,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("userProfile_clear".equals(call.method)) {
                 Countly.sharedInstance().userProfile().clear();
                 result.success(null);
-            }
-
-            //setRequiresConsent
-            else if ("setRequiresConsent".equals(call.method)) {
+            } else if ("setRequiresConsent".equals(call.method)) {
                 boolean consentFlag = args.getBoolean(0);
                 this.config.setRequiresConsent(consentFlag);
                 result.success("setRequiresConsent!");
@@ -690,7 +686,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     features[i] = args.getString(i);
                 }
                 this.config.setConsentEnabled(features);
-                result.success("giveConsent!");
+                result.success("giveConsentInit!");
 
             } else if ("giveConsent".equals(call.method)) {
                 String[] features = new String[args.length()];
@@ -1009,10 +1005,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 for (Map.Entry<String, ExperimentInformation> entry : experimentInfoMap.entrySet()) {
                     ExperimentInformation experimentInfo = entry.getValue();
                     Map<String, Object> experimentInfoValue = new HashMap<>();
-                    experimentInfoValue.put("experimentID", experimentInfo.experimentName);
+                    experimentInfoValue.put("experimentID", experimentInfo.experimentID);
                     experimentInfoValue.put("experimentName", experimentInfo.experimentName);
                     experimentInfoValue.put("experimentDescription", experimentInfo.experimentDescription);
-                    experimentInfoValue.put("currentVariant", experimentInfo.currentVariant);
+                    experimentInfoValue.put("currentVariant", experimentInfo.currentVariant == "null" ? "" : experimentInfo.currentVariant ); // equating to iOS behavior
                     experimentInfoValue.put("variants", experimentInfo.variants);
                     experimentInfoArray.add(experimentInfoValue);
                 }
@@ -1109,7 +1105,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
                 if (feedbackWidget == null) {
-                    String errorMessage = "No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
+                    String errorMessage = "[presentFeedbackWidget], No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
                     log(errorMessage, LogLevel.WARNING);
                     result.error("presentFeedbackWidget", errorMessage, null);
                 } else {
@@ -1134,7 +1130,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 String widgetId = args.getString(0);
                 CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
                 if (feedbackWidget == null) {
-                    String errorMessage = "No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
+                    String errorMessage = "[getFeedbackWidgetData], No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
                     log(errorMessage, LogLevel.WARNING);
                     result.error("getFeedbackWidgetData", errorMessage, null);
                     feedbackWidgetDataCallback(null, errorMessage);
@@ -1169,9 +1165,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 String widgetId = widgetInfo.getString(0);
 
+                // TODO: for testing purposes we might want to bypass this check as it prevents us from using reportFeedbackWidgetManually directly
                 CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
                 if (feedbackWidget == null) {
-                    String errorMessage = "No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
+                    String errorMessage = "[reportFeedbackWidgetManually], No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
                     log(errorMessage, LogLevel.WARNING);
                     result.error("reportFeedbackWidgetManually", errorMessage, null);
                 } else {
@@ -1225,8 +1222,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success("enableApm: success");
             } else if ("throwNativeException".equals(call.method)) {
                 throw new IllegalStateException("Native Exception Crashhh!");
-//            throw new RuntimeException("Native Exception Crash!");
-
             } else if ("recordIndirectAttribution".equals(call.method)) {
                 JSONObject attributionValues = args.getJSONObject(0);
                 if (attributionValues != null && attributionValues.length() > 0) {
@@ -1234,14 +1229,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     Countly.sharedInstance().attribution().recordIndirectAttribution(attributionMap);
                     result.success("recordIndirectAttribution: success");
                 } else {
-                    result.error("iaAttributionFailed", "recordIndirectAttribution: failure, no attribution values provided", null);
+                    result.error("recordIndirectAttribution Failed", "No attribution values provided", null);
                 }
             } else if ("recordDirectAttribution".equals(call.method)) {
                 String campaignType = args.getString(0);
                 String campaignData = args.getString(1);
 
                 Countly.sharedInstance().attribution().recordDirectAttribution(campaignType, campaignData);
-                result.success("recordIndirectAttribution: success");
+                result.success("recordDirectAttribution: success");
             } else if ("stopViewWithID".equals(call.method)) {
                 String viewId = args.getString(0);
                 Map<String, Object> segmentation = toMap(args.getJSONObject(1));
@@ -1552,6 +1547,26 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.setRecordAppStartTime(_config.getBoolean("recordAppStartTime"));
         }
         // APM END --------------------------------------------
+        // Internal Limits ------------------------------------
+        if (_config.has("maxKeyLength")) {
+            this.config.sdkInternalLimits.setMaxKeyLength(_config.getInt("maxKeyLength"));
+        }
+        if (_config.has("maxValueSize")) {
+            this.config.sdkInternalLimits.setMaxValueSize(_config.getInt("maxValueSize"));
+        }
+        if (_config.has("maxSegmentationValues")) {
+            this.config.sdkInternalLimits.setMaxSegmentationValues(_config.getInt("maxSegmentationValues"));
+        }
+        if (_config.has("maxBreadcrumbCount")) {
+            this.config.sdkInternalLimits.setMaxBreadcrumbCount(_config.getInt("maxBreadcrumbCount"));
+        }
+        if (_config.has("maxStackTraceLineLength")) {
+            this.config.sdkInternalLimits.setMaxStackTraceLineLength(_config.getInt("maxStackTraceLineLength"));
+        }
+        if (_config.has("maxStackTraceLinesPerThread")) {
+            this.config.sdkInternalLimits.setMaxStackTraceLinesPerThread(_config.getInt("maxStackTraceLinesPerThread"));
+        }        
+        // Internal Limits END --------------------------------
 
         if (_config.has("enableUnhandledCrashReporting") && _config.getBoolean("enableUnhandledCrashReporting")) {
             this.config.enableCrashReporting();
