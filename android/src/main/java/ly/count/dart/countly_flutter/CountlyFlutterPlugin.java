@@ -66,7 +66,7 @@ import com.google.firebase.FirebaseApp;
  */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
     private static final String TAG = "CountlyFlutterPlugin";
-    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "24.4.1";
+    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "24.7.0";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterbnp-android";
 
@@ -527,12 +527,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 int count = Integer.parseInt(args.getString(1));
                 float sum = Float.parseFloat(args.getString(2));
                 int duration = Integer.parseInt(args.getString(3));
-                HashMap<String, Object> segmentation = new HashMap<>();
+                Map<String, Object> segmentation;
                 if (args.length() > 4) {
-                    for (int i = 4, il = args.length(); i < il; i += 2) {
-                        segmentation.put(args.getString(i), args.getString(i + 1));
-                    }
+                    segmentation = toMap(args.getJSONObject(4));
+                } else {
+                    segmentation = null;
                 }
+                // Map<String, Object> segmentation = toMap(args.getJSONObject(4));
+                
                 Countly.sharedInstance().events().recordEvent(key, segmentation, count, sum, duration);
                 result.success("recordEvent for: " + key);
             } else if ("setLoggingEnabled".equals(call.method)) {
@@ -1025,10 +1027,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 for (Map.Entry<String, ExperimentInformation> entry : experimentInfoMap.entrySet()) {
                     ExperimentInformation experimentInfo = entry.getValue();
                     Map<String, Object> experimentInfoValue = new HashMap<>();
-                    experimentInfoValue.put("experimentID", experimentInfo.experimentName);
+                    experimentInfoValue.put("experimentID", experimentInfo.experimentID);
                     experimentInfoValue.put("experimentName", experimentInfo.experimentName);
                     experimentInfoValue.put("experimentDescription", experimentInfo.experimentDescription);
-                    experimentInfoValue.put("currentVariant", experimentInfo.currentVariant);
+                    experimentInfoValue.put("currentVariant", experimentInfo.currentVariant == "null" ? "" : experimentInfo.currentVariant ); // equating to iOS behavior
                     experimentInfoValue.put("variants", experimentInfo.variants);
                     experimentInfoArray.add(experimentInfoValue);
                 }
