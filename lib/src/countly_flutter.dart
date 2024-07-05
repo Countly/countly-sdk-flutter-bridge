@@ -771,10 +771,11 @@ class Countly {
     log('Calling "changeDeviceId":[$newDeviceID] with onServer:[$onServer]');
 
     if (onServer) {
-      return await _instance.deviceId.changeDeviceIDWithMerge(newDeviceID);
+      await _instance.deviceId.changeDeviceIDWithMerge(newDeviceID);
     } else {
-      return await _instance.deviceId.changeDeviceIDWithoutMerge(newDeviceID);
+      await _instance.deviceId.changeDeviceIDWithoutMerge(newDeviceID);
     }
+    return 'changeDeviceId Success';
   }
 
   /// add logs to your crash report.

@@ -17,9 +17,13 @@ abstract class DeviceID {
   /// Changes the device ID with merge
   /// This would merge the current user with the new user given
   /// This is a costly operation and should be used only once!
-  Future<String?> changeDeviceIDWithMerge(String newDeviceID);
+  Future<void> changeDeviceIDWithMerge(String newDeviceID);
 
   /// Changes the device ID without merge
   /// This would create a new user and reset sessions and consent
-  Future<String?> changeDeviceIDWithoutMerge(String newDeviceID);
+  Future<void> changeDeviceIDWithoutMerge(String newDeviceID);
+
+  /// Enables temporary ID mode
+  /// All requests created under this mode would be keep on hold till a real device ID is set later.
+  Future<void> enableTemporaryIDMode();
 }
