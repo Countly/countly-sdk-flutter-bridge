@@ -28,7 +28,7 @@ BOOL BUILDING_WITH_PUSH_DISABLED = false;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
 
-NSString *const kCountlyFlutterSDKVersion = @"24.4.0";
+NSString *const kCountlyFlutterSDKVersion = @"24.7.0";
 NSString *const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 NSString *const kCountlyFlutterSDKNameNoPush = @"dart-flutterbnp-ios";
 
@@ -141,14 +141,15 @@ FlutterMethodChannel *_channel;
           float sum = [sumString floatValue];
           NSString *durationString = [command objectAtIndex:3];
           int duration = [durationString intValue];
-          NSMutableDictionary *segmentation = [[NSMutableDictionary alloc] init];
-
+          NSDictionary *segmentation;
           if ((int)command.count > 4) {
-              for (int i = 4, il = (int)command.count; i < il; i += 2) {
-                  segmentation[[command objectAtIndex:i]] = [command objectAtIndex:i + 1];
-              }
+            segmentation = [command objectAtIndex:4];
+          } else {
+            segmentation = nil;
           }
+
           [[Countly sharedInstance] recordEvent:key segmentation:segmentation count:count sum:sum duration:duration];
+
           NSString *resultString = @"recordEvent for: ";
           resultString = [resultString stringByAppendingString:key];
           result(resultString);
@@ -689,7 +690,7 @@ FlutterMethodChannel *_channel;
             NSString *key = [command objectAtIndex:0];
             NSString *value = [command objectAtIndex:1];
             
-            [Countly.user push:key value:value];
+            [Countly.user pull:key value:value];
             result(nil);
         });
         
@@ -1153,16 +1154,20 @@ FlutterMethodChannel *_channel;
         result(@"clearAllTrace: success");
     } else if ([@"endTrace" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          NSString *traceKey = [command objectAtIndex:0];
-          NSMutableDictionary *metrics = [[NSMutableDictionary alloc] init];
-          for (int i = 1, il = (int)command.count; i < il; i += 2) {
-              @try {
-                  metrics[[command objectAtIndex:i]] = [command objectAtIndex:i + 1];
-              } @catch (NSException *exception) {
-                  COUNTLY_FLUTTER_LOG(@"[endTrace], Exception occurred while parsing metric: %@", exception);
-              }
-          }
-          [Countly.sharedInstance endCustomTrace:traceKey metrics:metrics];
+            NSString *traceKey = [command objectAtIndex:0];
+            NSMutableDictionary *metrics = [[NSMutableDictionary alloc] init];
+            for (int i = 1, il = (int)command.count; i < il; i += 2) {
+                @try {
+                    NSString *key = [command objectAtIndex:i];
+                    NSString *valueString = [command objectAtIndex:i + 1];
+                    // Convert value string to integer
+                    NSNumber *value = @([valueString intValue]);
+                    metrics[key] = value;
+                } @catch (NSException *exception) {
+                    COUNTLY_FLUTTER_LOG(@"[endTrace], Exception occurred while parsing metric: %@", exception);
+                }
+            }
+            [Countly.sharedInstance endCustomTrace:traceKey metrics:metrics];
         });
         result(@"endTrace: success");
     } else if ([@"recordNetworkTrace" isEqualToString:call.method]) {

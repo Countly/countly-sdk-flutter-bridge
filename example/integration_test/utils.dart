@@ -9,7 +9,9 @@ const MethodChannel _channelTest = MethodChannel('countly_flutter');
 
 // Base config options for tests
 final String SERVER_URL = 'https://xxx.count.ly';
-final String APP_KEY = 'FOR_IOS_THIS_SHOULD_NOT_BE_YOUR_APP_KEY';
+final String SERVER_URL_RC = 'https://xxx.count.ly';
+final String APP_KEY = 'SHOULD_BE_YOUR_APP_KEY';
+final String APP_KEY_RC = 'SHOULD_BE_YOUR_APP_KEY';
 
 /// Get request queue from native side (list of strings)
 Future<List<String>> getRequestQueue() async {
@@ -27,7 +29,7 @@ Future<List<String>> getEventQueue() async {
 void testCommonRequestParams(Map<String, List<String>> requestObject) {
   expect(requestObject['app_key']?[0], APP_KEY);
   expect(requestObject['sdk_name']?[0], "dart-flutterb-${Platform.isIOS ? "ios" : "android"}");
-  expect(requestObject['sdk_version']?[0], '24.4.0');
+  expect(requestObject['sdk_version']?[0], '24.7.0');
   expect(requestObject['av']?[0], Platform.isIOS ? '0.0.1' : '1.0.0');
   assert(requestObject['timestamp']?[0] != null);
 
@@ -181,21 +183,21 @@ Future<void> createTruncableEvents() async {
     'picture': 'http://images2.fanpop.com/images/photos/3300000/Nikola-Tesla-nikola-tesla-3365940-600-738.jpg',
     'picturePath': '',
     'gender': 'M',
-    'byear': '1919',
+    'byear': 1919,
     'special_value': 'something special',
     'not_special_value': 'something special cooking'
   };
   await Countly.instance.userProfile.setUserProperties(userProperties);
-  await Countly.instance.userProfile.setProperty('setProperty', 'My Property');
-  await Countly.instance.userProfile.increment('increment');
-  await Countly.instance.userProfile.incrementBy('incrementBy', 10);
-  await Countly.instance.userProfile.multiply('multiply', 20);
-  await Countly.instance.userProfile.saveMax('saveMax', 100);
-  await Countly.instance.userProfile.saveMin('saveMin', 50);
-  await Countly.instance.userProfile.setOnce('setOnce', '200');
-  await Countly.instance.userProfile.pushUnique('pushUniqueValue', 'morning');
-  await Countly.instance.userProfile.push('pushValue', 'morning');
-  await Countly.instance.userProfile.pull('pushValue', 'morning');
+  await Countly.instance.userProfile.setProperty('a12345', 'My Property');
+  await Countly.instance.userProfile.increment('b12345');
+  await Countly.instance.userProfile.incrementBy('c12345', 10);
+  await Countly.instance.userProfile.multiply('d12345', 20);
+  await Countly.instance.userProfile.saveMax('e12345', 100);
+  await Countly.instance.userProfile.saveMin('f12345', 50);
+  await Countly.instance.userProfile.setOnce('g12345', '200');
+  await Countly.instance.userProfile.pushUnique('h12345', 'morning');
+  await Countly.instance.userProfile.push('i12345', 'morning');
+  await Countly.instance.userProfile.pull('k12345', 'morning');
 
   // TODO: Report feedback widgets manually (will need some extra work)
 //   Map<String, Object> surSeg = {};
@@ -212,21 +214,134 @@ Future<void> createTruncableEvents() async {
 
 /// Check if the user properties are as expected for internal limit tests
 /// [Map<String, dynamic>] [userDetails] - user details object parsed from the request
-void checkUnchangingUserPropeties(userDetails) {
-  expect(userDetails['name'], 'Nicola Tesla');
-  expect(userDetails['username'], 'nicola');
-  expect(userDetails['email'], 'info@nicola.tesla');
-  expect(userDetails['organization'], 'Trust Electric Ltd');
-  expect(userDetails['phone'], '+90 822 140 2546');
+void checkUnchangingUserPropeties(userDetails, MAX_VALUE_SIZE) {
+  expect(userDetails['name'], truncate('Nicola Tesla', MAX_VALUE_SIZE));
+  expect(userDetails['username'], truncate('nicola', MAX_VALUE_SIZE));
+  expect(userDetails['email'], truncate('info@nicola.tesla', MAX_VALUE_SIZE));
+  expect(userDetails['organization'], truncate('Trust Electric Ltd', MAX_VALUE_SIZE));
+  expect(userDetails['phone'], truncate('+90 822 140 2546', MAX_VALUE_SIZE));
   expect(userDetails['picture'], 'http:\/\/images2.fanpop.com\/images\/photos\/3300000\/Nikola-Tesla-nikola-tesla-3365940-600-738.jpg');
-  expect(userDetails['gender'], 'M');
+  expect(userDetails['gender'], truncate('M', MAX_VALUE_SIZE));
   expect(userDetails['byear'], 1919);
-  expect(userDetails['custom']['increment'], {'\$inc': 1});
-  expect(userDetails['custom']['multiply'], {'\$mul': 20});
-  expect(userDetails['custom']['setOnce'], {'\$setOnce': '200'});
-  expect(userDetails['custom']['saveMax'], {'\$max': 100});
-  expect(userDetails['custom']['saveMin'], {'\$min': 50});
-  expect(userDetails['custom']['pushUniqueValue'], {'\$addToSet': 'morning'});
-  expect(userDetails['custom']['incrementBy'], {'\$inc': 10});
-  expect(userDetails['custom']['pushValue'], {'\$push': 'morning', '\$pull': 'morning'});
+}
+
+/// Check if the user data are as expected for internal limit tests
+/// [Map<String, dynamic>] [userDetails] - user details object parsed from the request
+void checkUnchangingUserData(userDetails, MAX_KEY_LENGTH, MAX_VALUE_SIZE) {
+  expect(userDetails['custom'][truncate('a12345', MAX_KEY_LENGTH)], truncate('My Property', MAX_VALUE_SIZE));
+  expect(userDetails['custom'][truncate('b12345', MAX_KEY_LENGTH)], {'\$inc': 1});
+  expect(userDetails['custom'][truncate('c12345', MAX_KEY_LENGTH)], {'\$inc': 10});
+  expect(userDetails['custom'][truncate('d12345', MAX_KEY_LENGTH)], {'\$mul': 20});
+  expect(userDetails['custom'][truncate('e12345', MAX_KEY_LENGTH)], {'\$max': 100});
+  expect(userDetails['custom'][truncate('f12345', MAX_KEY_LENGTH)], {'\$min': 50});
+  expect(userDetails['custom'][truncate('g12345', MAX_KEY_LENGTH)], {'\$setOnce': truncate('200', MAX_VALUE_SIZE)});
+  expect(userDetails['custom'][truncate('h12345', MAX_KEY_LENGTH)], {'\$addToSet': truncate('morning', MAX_VALUE_SIZE)});
+  expect(userDetails['custom'][truncate('i12345', MAX_KEY_LENGTH)], {'\$push': truncate('morning', MAX_VALUE_SIZE)});
+  expect(userDetails['custom'][truncate('k12345', MAX_KEY_LENGTH)], {'\$pull': truncate('morning', MAX_VALUE_SIZE)});
+}
+
+/// Truncate a string to a given limit
+String truncate(string, limit) {
+  var length = string.length;
+  limit = limit != null ? limit : length;
+  return string.substring(0, limit);
+}
+
+var rcCounter = 0;
+var rcCounterInternal = 0;
+
+void rcCallback(rResult, error, fullValueUpdate, downloadedValues) {
+  print('RC callback: $rResult, $error, $fullValueUpdate, $downloadedValues, $rcCounter');
+  if (rResult == RequestResult.success) {
+    rcCounter++;
+    print('RC download success');
+  }
+}
+
+Future<void> getAndValidateAllRecordedRCValues({bool isEmpty = false, bool? isCurrentUsersData = true}) async {
+  var storedRCVals = await Countly.instance.remoteConfig.getAllValues();
+  expect(storedRCVals, isA<Map<String, RCData>>());
+  if (isEmpty) {
+    expect(storedRCVals.isEmpty, true);
+    expect(rcCounter, rcCounterInternal);
+    return;
+  }
+  expect(storedRCVals.isNotEmpty, true);
+  expect(storedRCVals.length, 5);
+
+  expect(storedRCVals['rc_1']?.value, 'val_1');
+  expect(storedRCVals['rc_1']?.isCurrentUsersData, isCurrentUsersData);
+
+  expect(storedRCVals['rc_2']?.value, 'val_2');
+  expect(storedRCVals['rc_2']?.isCurrentUsersData, isCurrentUsersData);
+
+  expect(storedRCVals['rc_3']?.value, 'val_3');
+  expect(storedRCVals['rc_3']?.isCurrentUsersData, isCurrentUsersData);
+
+  expect(storedRCVals['rc_4']?.value, 'val_4');
+  expect(storedRCVals['rc_4']?.isCurrentUsersData, isCurrentUsersData);
+
+  expect(storedRCVals['key']?.isCurrentUsersData, isCurrentUsersData);
+
+  expect(rcCounter, rcCounterInternal);
+}
+
+Future<void> testConsentForRC({bool isAT = false, bool isCG = true, bool isCNR = false}) async {
+  var storedRCVals = await Countly.instance.remoteConfig.getAllValues();
+  if (storedRCVals.isNotEmpty) {
+    await Countly.instance.remoteConfig.clearAll();
+    await getAndValidateAllRecordedRCValues(isEmpty: true);
+  }
+
+  await Countly.removeConsent([CountlyConsent.remoteConfig]);
+  await getAndValidateAllRecordedRCValues(isEmpty: true);
+
+  if (isCNR) {
+    await Countly.giveAllConsent();
+    await Countly.giveAllConsent();
+    await Countly.removeConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
+    await Countly.removeConsent([CountlyConsent.remoteConfig]);
+    await Countly.removeAllConsent();
+    await Countly.giveConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
+    await Countly.giveAllConsent();
+    await Countly.giveAllConsent();
+    await Future.delayed(Duration(seconds: 3));
+    await getAndValidateAllRecordedRCValues(isEmpty: true);
+    return;
+  }
+
+  // give all consent
+  await Countly.giveAllConsent();
+  await Future.delayed(Duration(seconds: 3));
+  if (isAT) {
+    rcCounterInternal++;
+  }
+  await getAndValidateAllRecordedRCValues(isEmpty: !isAT);
+
+  // give all consent
+  await Countly.giveAllConsent();
+  await Future.delayed(Duration(seconds: 3));
+  await getAndValidateAllRecordedRCValues(isEmpty: !isAT);
+
+  // update for all rc values
+  await Countly.instance.remoteConfig.downloadAllKeys();
+  await Future.delayed(Duration(seconds: 3));
+  rcCounterInternal++;
+  await getAndValidateAllRecordedRCValues();
+
+  await Countly.removeConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
+  await Countly.removeConsent([CountlyConsent.remoteConfig]);
+  await Countly.removeAllConsent();
+  await Countly.giveConsent([CountlyConsent.apm, CountlyConsent.crashes, CountlyConsent.events, CountlyConsent.location, CountlyConsent.sessions, CountlyConsent.views]);
+  await getAndValidateAllRecordedRCValues();
+
+  if (isCG) {
+    // give all consent
+    await Countly.giveAllConsent();
+    await Future.delayed(Duration(seconds: 3));
+    if (isAT) {
+      rcCounterInternal++;
+    }
+    await getAndValidateAllRecordedRCValues();
+  }
 }

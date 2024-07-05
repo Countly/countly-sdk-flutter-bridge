@@ -1,19 +1,16 @@
+import 'dart:convert';
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import '../utils.dart';
+import '../../utils.dart';
 
-/// Check if manual end_session calls are:
-/// -  not send if there is no session ongoing
-/// Check if manual update_session calls are:
-/// -  not send if there is no session ongoing
-/// Check if begin_session calls are:
-/// -  not send if there is a session ongoing
+/// Manual session obeys no consent rules or not
+/// expected requests are below
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  testWidgets('Manual session tests', (WidgetTester tester) async {
+  testWidgets('200_CR_CG_M_test', (WidgetTester tester) async {
     // Initialize the SDK
-    CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true).enableManualSessionHandling();
+    CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true).enableManualSessionHandling().setRequiresConsent(true).giveAllConsents();
     await Countly.initWithConfig(config);
 
     // End session calls should not work
@@ -24,12 +21,15 @@ void main() {
     await Countly.instance.sessions.updateSession();
     await Countly.instance.sessions.updateSession();
 
+    await tester.pump(Duration(seconds: 2));
+
     // Begin session call should work
-    await Countly.instance.sessions.beginSession();
-    // Second begin session call should not work
     await Countly.instance.sessions.beginSession();
 
     await tester.pump(Duration(seconds: 2));
+
+    // Second begin session call should not work
+    await Countly.instance.sessions.beginSession();
 
     // Update calls now should work
     await Countly.instance.sessions.updateSession();
@@ -39,6 +39,9 @@ void main() {
 
     // End session call should work
     await Countly.instance.sessions.endSession();
+
+    await tester.pump(Duration(seconds: 2));
+
     // Second end session call should not work
     await Countly.instance.sessions.endSession();
 
@@ -57,22 +60,31 @@ void main() {
     print('EQ length: ${eventList.length}');
 
     // There should be:
+    // - consent information
     // - begin_session
     // - update_session
     // - update_session
     // - end_session
-    expect(requestList.length, 4);
+    expect(requestList.length, 5);
 
     var i = 0;
     for (var element in requestList) {
       Map<String, List<String>> queryParams = Uri.parse("?" + element).queryParametersAll;
       testCommonRequestParams(queryParams); // tests
       if (i == 0) {
+        // example:
+        // consent: [{"sessions":true,"crashes":true,"users":true,"push":true,"feedback":true,"scrolls":true,"remote-config":true,"attribution":true,"clicks":true,"location":true,"star-rating":true,"events":true,"views":true,"apm":true}]
+        Map<String, dynamic> consentInRequest = jsonDecode(queryParams['consent']![0]);
+        for (var key in ['push', 'feedback', 'scrolls', 'crashes', 'attribution', 'users', 'events', 'clicks', 'remote-config', 'sessions', 'location', 'star-rating', 'views', 'apm']) {
+          expect(consentInRequest[key], true);
+        }
+        expect(consentInRequest.length, 14);
+      } else if (i == 1) {
         expect(queryParams['begin_session']?[0], '1');
-      } else if (i == 1 || i == 2) {
+      } else if (i == 2 || i == 3) {
         expect(queryParams['session_duration']?[0], '2');
         expect(queryParams['end_session'], null);
-      } else if (i == 3) {
+      } else if (i == 4) {
         expect(queryParams['end_session']?[0], '1');
         expect(queryParams['session_duration']?[0], '2');
       }

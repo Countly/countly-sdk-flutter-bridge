@@ -66,7 +66,7 @@ import com.google.firebase.FirebaseApp;
  */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
     private static final String TAG = "CountlyFlutterPlugin";
-    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "24.4.0";
+    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "24.7.0";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterbnp-android";
 
@@ -381,12 +381,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success("disableLocation success!");
             } else if ("enableCrashReporting".equals(call.method)) {
                 this.config.enableCrashReporting();
-                // Countly.sharedInstance().enableCrashReporting();
                 result.success("enableCrashReporting success!");
             } else if ("addCrashLog".equals(call.method)) {
                 String record = args.getString(0);
                 Countly.sharedInstance().crashes().addCrashBreadcrumb(record);
-                // Countly.sharedInstance().addCrashBreadcrumb(record);
                 result.success("addCrashLog success!");
             } else if ("logException".equals(call.method)) {
                 String exceptionString = args.getString(0);
@@ -512,7 +510,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("endEvent".equals(call.method)) {
                 String key = args.getString(0);
                 int count = Integer.parseInt(args.getString(1));
-                float sum = Float.parseFloat(args.getString(2)); // new Float(args.getString(2)).floatValue();
+                float sum = Float.parseFloat(args.getString(2));
                 HashMap<String, Object> segmentation = new HashMap<>();
                 if (args.length() > 3) {
                     for (int i = 3, il = args.length(); i < il; i += 2) {
@@ -524,20 +522,20 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("recordEvent".equals(call.method)) {
                 String key = args.getString(0);
                 int count = Integer.parseInt(args.getString(1));
-                float sum = Float.parseFloat(args.getString(2)); // new Float(args.getString(2)).floatValue();
+                float sum = Float.parseFloat(args.getString(2));
                 int duration = Integer.parseInt(args.getString(3));
-                HashMap<String, Object> segmentation = new HashMap<>();
+                Map<String, Object> segmentation;
                 if (args.length() > 4) {
-                    for (int i = 4, il = args.length(); i < il; i += 2) {
-                        segmentation.put(args.getString(i), args.getString(i + 1));
-                    }
+                    segmentation = toMap(args.getJSONObject(4));
+                } else {
+                    segmentation = null;
                 }
+                // Map<String, Object> segmentation = toMap(args.getJSONObject(4));
+                
                 Countly.sharedInstance().events().recordEvent(key, segmentation, count, sum, duration);
                 result.success("recordEvent for: " + key);
             } else if ("setLoggingEnabled".equals(call.method)) {
                 String loggingEnable = args.getString(0);
-                // Countly.sharedInstance().setLoggingEnabled(true);
-                // Countly.sharedInstance().setLoggingEnabled(false);
                 this.config.setLoggingEnabled(loggingEnable.equals("true"));
                 result.success("setLoggingEnabled success!");
             } else if ("setuserdata".equals(call.method)) {
@@ -697,10 +695,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("userProfile_clear".equals(call.method)) {
                 Countly.sharedInstance().userProfile().clear();
                 result.success(null);
-            }
-
-            //setRequiresConsent
-            else if ("setRequiresConsent".equals(call.method)) {
+            } else if ("setRequiresConsent".equals(call.method)) {
                 boolean consentFlag = args.getBoolean(0);
                 this.config.setRequiresConsent(consentFlag);
                 result.success("setRequiresConsent!");
@@ -1029,10 +1024,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 for (Map.Entry<String, ExperimentInformation> entry : experimentInfoMap.entrySet()) {
                     ExperimentInformation experimentInfo = entry.getValue();
                     Map<String, Object> experimentInfoValue = new HashMap<>();
-                    experimentInfoValue.put("experimentID", experimentInfo.experimentName);
+                    experimentInfoValue.put("experimentID", experimentInfo.experimentID);
                     experimentInfoValue.put("experimentName", experimentInfo.experimentName);
                     experimentInfoValue.put("experimentDescription", experimentInfo.experimentDescription);
-                    experimentInfoValue.put("currentVariant", experimentInfo.currentVariant);
+                    experimentInfoValue.put("currentVariant", experimentInfo.currentVariant == "null" ? "" : experimentInfo.currentVariant ); // equating to iOS behavior
                     experimentInfoValue.put("variants", experimentInfo.variants);
                     experimentInfoArray.add(experimentInfoValue);
                 }
@@ -1246,8 +1241,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success("enableApm: success");
             } else if ("throwNativeException".equals(call.method)) {
                 throw new IllegalStateException("Native Exception Crashhh!");
-//            throw new RuntimeException("Native Exception Crash!");
-
             } else if ("recordIndirectAttribution".equals(call.method)) {
                 JSONObject attributionValues = args.getJSONObject(0);
                 if (attributionValues != null && attributionValues.length() > 0) {

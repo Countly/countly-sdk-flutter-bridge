@@ -1,3 +1,77 @@
+## 24.7.0
+* Added support for the automatic sending of user properties to the server without requiring an explicit call to the `save` method to enhance data fidelity.
+* Added support for `List` values in user given segmentations for events and views.
+
+* Mitigated an issue where `currentVariant` of a dowloaded `experimentInfo` could be represented differently on Android if user have not erolled an experiment yet
+* Mitigated web view caching issue for widgets in iOS
+* Mitigated an issue where the terms and conditions URL (`tc` key) was sent without double quotes in iOS
+* Mitigated an issue where remote config values are not updated after enrolling to a variant in iOS
+* Mitigated an issue where remote config values caching was changed by device id change in Android
+* Mitigated an issue related to the device ID by creating an internal migration.
+* Mitigated an issue where revoked consents were sent after the device ID changes without merging in Android
+* Mitigated an issue that caused the device ID to be incorrectly set after changes with merging in Android
+* Mitigated an issue where on consent revoke, remote config values were cleared in Android
+* Mitigated an issue where device id change with merge was reporting session duration in Android
+
+* Updated underlying Android SDK version to 24.7.0
+* Updated underlying iOS SDK version to 24.7.0
+
+## 24.7.0-np
+* Added support for the automatic sending of user properties to the server without requiring an explicit call to the `save` method to enhance data fidelity.
+* Added support for `List` values in user given segmentations for events and views.
+
+* Mitigated an issue where `currentVariant` of a dowloaded `experimentInfo` could be represented differently on Android if user have not erolled an experiment yet
+* Mitigated web view caching issue for widgets in iOS
+* Mitigated an issue where the terms and conditions URL (`tc` key) was sent without double quotes in iOS
+* Mitigated an issue where remote config values are not updated after enrolling to a variant in iOS
+* Mitigated an issue where remote config values caching was changed by device id change in Android
+* Mitigated an issue related to the device ID by creating an internal migration.
+* Mitigated an issue where revoked consents were sent after the device ID changes without merging in Android
+* Mitigated an issue that caused the device ID to be incorrectly set after changes with merging in Android
+* Mitigated an issue where on consent revoke, remote config values were cleared in Android
+* Mitigated an issue where device id change with merge was reporting session duration in Android
+
+* Updated underlying Android SDK version to 24.7.0
+* Updated underlying iOS SDK version to 24.7.0
+
+## 24.4.1
+* Added support for Feedback Widget terms and conditions
+
+* Mitigated an issue where internal SDK limits did not apply
+* Mitigated an issue where user data operation `pull` won't work
+* Mitigated an issue where custom apm metrics were cast to string
+* Mitigated an issue where user property `byear` was cast to string
+
+* Mitigated an issue where SDK limits could affect internal keys in iOS
+* Mitigated an issue that enabled recording reserved events in iOS
+* Mitigated an issue where timed events could have no ID in iOS
+* Mitigated an issue where the request queue could overflow while sending a request in iOS
+
+* Mitigated an issue where the session duration could have been calculated wrongly after a device ID change without merge in Android
+* Mitigated an issue where a session could have continued after a device ID change without merge in Android
+
+* Updated underlying Android SDK version to 24.4.1
+* Updated underlying iOS SDK version to 24.4.1
+
+## 24.4.1-np
+* Added support for Feedback Widget terms and conditions
+
+* Mitigated an issue where internal SDK limits did not apply
+* Mitigated an issue where user data operation `pull` won't work
+* Mitigated an issue where custom apm metrics were cast to string
+* Mitigated an issue where user property `byear` was cast to string
+
+* Mitigated an issue where SDK limits could affect internal keys in iOS
+* Mitigated an issue that enabled recording reserved events in iOS
+* Mitigated an issue where timed events could have no ID in iOS
+* Mitigated an issue where the request queue could overflow while sending a request in iOS
+
+* Mitigated an issue where the session duration could have been calculated wrongly after a device ID change without merge in Android
+* Mitigated an issue where a session could have continued after a device ID change without merge in Android
+
+* Updated underlying Android SDK version to 24.4.1
+* Updated underlying iOS SDK version to 24.4.1
+
 ## 24.4.0
 * Mitigated an issue where the 'reportFeedbackWidgetManually' function would await indefinitely on iOS
 * Mitigated an issue where nonfatal exceptions were treated as fatal and vice versa
