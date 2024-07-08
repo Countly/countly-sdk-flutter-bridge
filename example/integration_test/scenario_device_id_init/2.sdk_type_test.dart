@@ -26,8 +26,8 @@ void main() {
     CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true);
     await Countly.initWithConfig(config);
     // Get the device ID type
-    DeviceIdType? type = await Countly.instance.deviceId.getDeviceIDType();
-    String? id = await Countly.instance.deviceId.getCurrentDeviceID();
+    DeviceIdType? type = await Countly.instance.deviceId.getIDType();
+    String? id = await Countly.instance.deviceId.getID();
     // Verify the device ID type
     expect(type, DeviceIdType.SDK_GENERATED);
     expect(id!.length, Platform.isIOS ? 36 : 16);

@@ -149,6 +149,12 @@ class CountlyConfig {
     return this;
   }
 
+  /// enable temporary ID mode
+  CountlyConfig enableTemporaryDeviceIDMode() {
+    _deviceID = Countly.deviceIDType['TemporaryDeviceID']!;
+    return this;
+  }
+
   /// Set to true of you want to enable countly internal debugging logs
   /// those logs will be printed to the console
   CountlyConfig setLoggingEnabled(bool enabled) {

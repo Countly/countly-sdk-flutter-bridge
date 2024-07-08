@@ -295,10 +295,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 } else {
                     result.success("false");
                 }
-            } else if ("getCurrentDeviceId".equals(call.method)) {
+            } else if ("getID".equals(call.method)) {
                 String deviceID = Countly.sharedInstance().deviceId().getID();
                 result.success(deviceID);
-            } else if ("getDeviceIDType".equals(call.method)) {
+            } else if ("getIDType".equals(call.method)) {
                 DeviceIdType deviceIDType = Countly.sharedInstance().deviceId().getType();
                 String deviceIDTypeString = null;
                 switch (deviceIDType) {
@@ -331,17 +331,17 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     }
                 }
                 result.success("changeDeviceId success!");
-            } else if ("changeDeviceIDWithMerge".equals(call.method)) {
+            } else if ("changeWithMerge".equals(call.method)) {
                 String newDeviceID = args.getString(0);
                 Countly.sharedInstance().deviceId().changeWithMerge(newDeviceID);
-                result.success("changeDeviceIDWithMerge success!");
-            } else if ("changeDeviceIDWithoutMerge".equals(call.method)) {
+                result.success("changeWithMerge success!");
+            } else if ("changeWithoutMerge".equals(call.method)) {
                 String newDeviceID = args.getString(0);
                 Countly.sharedInstance().deviceId().changeWithoutMerge(newDeviceID);
-                result.success("changeDeviceIDWithoutMerge success!");
-            } else if ("enableTemporaryIdMode".equals(call.method)) {
+                result.success("changeWithoutMerge success!");
+            } else if ("enableTemporaryIDMode".equals(call.method)) {
                 Countly.sharedInstance().deviceId().enableTemporaryIdMode();
-                result.success("enableTemporaryIdMode This method doesn't exists!");
+                result.success("enableTemporaryIDMode success");
             } else if ("setHttpPostForced".equals(call.method)) {
                 boolean isEnabled = args.getBoolean(0);
                 this.config.setHttpPostForced(isEnabled);

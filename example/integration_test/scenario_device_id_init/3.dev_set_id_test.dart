@@ -13,12 +13,12 @@ void main() {
     await Countly.instance.deviceId.setID('test1');
 
     // Get the device ID type
-    DeviceIdType? type = await Countly.instance.deviceId.getDeviceIDType();
+    DeviceIdType? type = await Countly.instance.deviceId.getIDType();
     // Verify the device ID type
     expect(type, DeviceIdType.DEVELOPER_SUPPLIED);
 
     // Get the device ID
-    String? id = await Countly.instance.deviceId.getCurrentDeviceID();
+    String? id = await Countly.instance.deviceId.getID();
     // Verify the device ID
     expect(id, 'test1');
   });

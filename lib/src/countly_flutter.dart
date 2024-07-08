@@ -728,16 +728,16 @@ class Countly {
   /// Get currently used device Id.
   /// Should be call after Countly init
   /// returns the error message or deviceID
-  @Deprecated('getCurrentDeviceId is deprecated, use getCurrentDeviceId of Countly.instance.deviceID instead')
+  @Deprecated('getCurrentDeviceId is deprecated, use getID of Countly.instance.deviceID instead')
   static Future<String?> getCurrentDeviceId() async {
     log('Calling "getCurrentDeviceId"');
-    log('getCurrentDeviceId is deprecated, use getCurrentDeviceId of Countly.instance.deviceID instead', logLevel: LogLevel.WARNING);
+    log('getCurrentDeviceId is deprecated, use getID of Countly.instance.deviceID instead', logLevel: LogLevel.WARNING);
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "getCurrentDeviceId"';
       log('getCurrentDeviceId, $message', logLevel: LogLevel.ERROR);
       return message;
     }
-    String? result = await _instance.deviceId.getCurrentDeviceID();
+    String? result = await _instance.deviceId.getID();
 
     return result;
   }
@@ -745,24 +745,24 @@ class Countly {
   /// Get currently used device Id type.
   /// Should be call after Countly init
   /// returns the error message or deviceID type
-  @Deprecated('getDeviceIDType is deprecated, use getDeviceIDType of Countly.instance.deviceID instead')
+  @Deprecated('getDeviceIDType is deprecated, use getIDType of Countly.instance.deviceID instead')
   static Future<DeviceIdType?> getDeviceIDType() async {
     log('Calling "getDeviceIDType"');
-    log('getDeviceIDType is deprecated, use getDeviceIDType of Countly.instance.deviceID instead', logLevel: LogLevel.WARNING);
+    log('getDeviceIDType is deprecated, use getIDType of Countly.instance.deviceID instead', logLevel: LogLevel.WARNING);
     if (!_instance._countlyState.isInitialized) {
       log('getDeviceIDType, "initWithConfig" must be called before "getDeviceIDType"', logLevel: LogLevel.ERROR);
       return null;
     }
-    return await _instance.deviceId.getDeviceIDType();
+    return await _instance.deviceId.getIDType();
   }
 
   /// change the device ID
   /// if onServer is true, the old device ID is replaced with the new one and all data associated with the old device ID will be merged automatically.
   /// if onServer is false, the new device ID will be counted as a new device on the server.
   /// returns the error or success message
-  @Deprecated('changeDeviceId is deprecated, use changeDeviceIDWithoutMerge of Countly.instance.deviceID if onServer = false and changeDeviceIDWithMerge if onServer = true, instead')
+  @Deprecated('changeDeviceId is deprecated, use changeWithoutMerge of Countly.instance.deviceID if onServer = false and changeWithMerge if onServer = true, instead')
   static Future<String?> changeDeviceId(String newDeviceID, bool onServer) async {
-    log('changeDeviceId is deprecated, use ${onServer ? 'changeDeviceIDWithMerge' : 'changeDeviceIDWithoutMerge'} of Countly.instance.deviceID instead', logLevel: LogLevel.WARNING);
+    log('changeDeviceId is deprecated, use ${onServer ? 'changeWithMerge' : 'changeWithoutMerge'} of Countly.instance.deviceID instead', logLevel: LogLevel.WARNING);
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "changeDeviceId"';
       log('changeDeviceId, $message', logLevel: LogLevel.ERROR);
@@ -771,9 +771,9 @@ class Countly {
     log('Calling "changeDeviceId":[$newDeviceID] with onServer:[$onServer]');
 
     if (onServer) {
-      await _instance.deviceId.changeDeviceIDWithMerge(newDeviceID);
+      await _instance.deviceId.changeWithMerge(newDeviceID);
     } else {
-      await _instance.deviceId.changeDeviceIDWithoutMerge(newDeviceID);
+      await _instance.deviceId.changeWithoutMerge(newDeviceID);
     }
     return 'changeDeviceId Success';
   }

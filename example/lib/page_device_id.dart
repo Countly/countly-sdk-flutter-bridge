@@ -11,6 +11,7 @@ class DeviceIDPage extends StatefulWidget {
 
 class _DeviceIDPageState extends State<DeviceIDPage> {
   /// To Show the device id type in UI, when user tap on 'Get Device Id Type' button
+  String _deviceId = '';
   String _deviceIdType = '';
 
   String makeid() {
@@ -20,8 +21,17 @@ class _DeviceIDPageState extends State<DeviceIDPage> {
     return random;
   }
 
-  Future<void> getDeviceIDType() async {
-    DeviceIdType? deviceIdType = await Countly.instance.deviceId.getDeviceIDType();
+  Future<void> getID() async {
+    String? deviceId = await Countly.instance.deviceId.getID();
+    if (deviceId != null) {
+      setState(() {
+        _deviceId = deviceId.toString();
+      });
+    }
+  }
+
+  Future<void> getIDType() async {
+    DeviceIdType? deviceIdType = await Countly.instance.deviceId.getIDType();
     if (deviceIdType != null) {
       setState(() {
         _deviceIdType = deviceIdType.toString();
@@ -29,16 +39,16 @@ class _DeviceIDPageState extends State<DeviceIDPage> {
     }
   }
 
-  void changeDeviceIdWithMerge() {
-    Countly.instance.deviceId.changeDeviceIDWithMerge('123456');
+  void changeWithMerge() {
+    Countly.instance.deviceId.changeWithMerge('123456');
   }
 
-  void changeDeviceIdWithoutMerge() {
-    Countly.instance.deviceId.changeDeviceIDWithoutMerge(makeid());
+  void changeWithoutMerge() {
+    Countly.instance.deviceId.changeWithoutMerge(makeid());
   }
 
-  void enableTemporaryIdMode() {
-    Countly.instance.deviceId.changeDeviceIDWithoutMerge(Countly.deviceIDType['TemporaryDeviceID']!);
+  void enableTemporaryIDMode() {
+    Countly.instance.deviceId.enableTemporaryIDMode();
   }
 
   void setID() {
@@ -56,11 +66,14 @@ class _DeviceIDPageState extends State<DeviceIDPage> {
         child: Center(
           child: Column(
             children: [
+              Text(_deviceId, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
+              SizedBox(height: 10),
               Text(_deviceIdType, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
-              MyButton(text: 'Get Device Id Type', color: 'green', onPressed: getDeviceIDType),
-              MyButton(text: 'Enable Temporary ID Mode', color: 'orange', onPressed: enableTemporaryIdMode),
-              MyButton(text: 'Change Device ID With Merge', color: 'yellow', onPressed: changeDeviceIdWithMerge),
-              MyButton(text: 'Change Device ID Without Merge', color: 'teal', onPressed: changeDeviceIdWithoutMerge),
+              MyButton(text: 'Get Device Id', color: 'olive', onPressed: getID),
+              MyButton(text: 'Get Device Id Type', color: 'green', onPressed: getIDType),
+              MyButton(text: 'Enable Temporary ID Mode', color: 'orange', onPressed: enableTemporaryIDMode),
+              MyButton(text: 'Change Device ID With Merge', color: 'yellow', onPressed: changeWithMerge),
+              MyButton(text: 'Change Device ID Without Merge', color: 'teal', onPressed: changeWithoutMerge),
               MyButton(text: 'Set ID', color: 'brown', onPressed: setID),
             ],
           ),
