@@ -22,11 +22,9 @@ class DeviceIDInternal implements DeviceID {
       return;
     }
     final args = [];
-    const onServerString = '1';
     args.add(newDeviceID);
-    args.add(onServerString);
 
-    await _countlyState.channel.invokeMethod('changeDeviceId', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('changeDeviceIDWithMerge', <String, dynamic>{'data': json.encode(args)});
   }
 
   @override
@@ -43,11 +41,9 @@ class DeviceIDInternal implements DeviceID {
       return;
     }
     final args = [];
-    const onServerString = '0';
     args.add(newDeviceID);
-    args.add(onServerString);
 
-    await _countlyState.channel.invokeMethod('changeDeviceId', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('changeDeviceIDWithoutMerge', <String, dynamic>{'data': json.encode(args)});
   }
 
   @override

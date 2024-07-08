@@ -293,6 +293,20 @@ FlutterMethodChannel *_channel;
           result(@"changeDeviceId!");
         });
 
+    }  else if ([@"changeDeviceIDWithMerge" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSString *newDeviceID = [command objectAtIndex:0];
+          [Countly.sharedInstance changeDeviceIDWithMerge:newDeviceID];
+          result(@"changeDeviceIDWithMerge!");
+        });
+
+    }  else if ([@"changeDeviceIDWithoutMerge" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSString *newDeviceID = [command objectAtIndex:0];
+          [Countly.sharedInstance changeDeviceIDWithoutMerge:newDeviceID];
+          result(@"changeDeviceIDWithoutMerge!");
+        });
+
     } else if ([@"setHttpPostForced" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           BOOL boolean = [[command objectAtIndex:0] boolValue];
