@@ -295,7 +295,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 } else {
                     result.success("false");
                 }
-            } else if ("getID".equals(call.method)) {
+            } 
+
+            // START DEVICE ID METHODS
+            else if ("getID".equals(call.method)) {
                 String deviceID = Countly.sharedInstance().deviceId().getID();
                 result.success(deviceID);
             } else if ("getIDType".equals(call.method)) {
@@ -342,7 +345,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("enableTemporaryIDMode".equals(call.method)) {
                 Countly.sharedInstance().deviceId().enableTemporaryIdMode();
                 result.success("enableTemporaryIDMode success");
-            } else if ("setHttpPostForced".equals(call.method)) {
+            } // END DEVICE ID METHODS
+
+            else if ("setHttpPostForced".equals(call.method)) {
                 boolean isEnabled = args.getBoolean(0);
                 this.config.setHttpPostForced(isEnabled);
                 result.success("setHttpPostForced");
