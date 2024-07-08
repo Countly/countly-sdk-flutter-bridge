@@ -309,6 +309,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         deviceIDTypeString = "TID";
                         break;
                     default:
+                        // OPEN_UDID is also software generated SG
                         deviceIDTypeString = "SG";
                         break;
                 }
