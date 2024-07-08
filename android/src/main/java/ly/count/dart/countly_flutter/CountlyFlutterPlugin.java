@@ -305,12 +305,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     case DEVELOPER_SUPPLIED:
                         deviceIDTypeString = "DS";
                         break;
-                    case OPEN_UDID:
-                    default:
-                        deviceIDTypeString = "SG";
-                        break;
                     case TEMPORARY_ID:
                         deviceIDTypeString = "TID";
+                        break;
+                    default:
+                        deviceIDTypeString = "SG";
                         break;
                 }
                 result.success(deviceIDTypeString);
