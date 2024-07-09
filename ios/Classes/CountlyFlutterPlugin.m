@@ -281,7 +281,7 @@ FlutterMethodChannel *_channel;
           NSString *newDeviceID = [command objectAtIndex:0];
           NSString *onServerString = [command objectAtIndex:1];
 
-          if ([newDeviceID isEqual:@"TemporaryDeviceID"]) {
+          if ([newDeviceID isEqual:@"CLYTemporaryDeviceID"]) {
               [Countly.sharedInstance enableTemporaryIDMode];
           } else {
               if ([onServerString isEqual:@"1"]) {
@@ -1494,7 +1494,7 @@ FlutterMethodChannel *_channel;
         }
         NSString *deviceID = _config[@"deviceID"];
         if (deviceID) {
-            if ([@"TemporaryDeviceID" isEqualToString:deviceID]) {
+            if ([@"CLYTemporaryDeviceID" isEqualToString:deviceID]) {
                 [config enableTemporaryIDMode];
             } else {
                 config.deviceID = deviceID;

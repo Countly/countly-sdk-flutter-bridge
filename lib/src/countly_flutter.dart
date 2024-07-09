@@ -102,7 +102,7 @@ class Countly {
 
   static Map<String, String> messagingMode = Platform.isAndroid ? {'TEST': '2', 'PRODUCTION': '0'} : {'TEST': '1', 'PRODUCTION': '0', 'ADHOC': '2'};
 
-  static Map<String, String> deviceIDType = {'TemporaryDeviceID': 'TemporaryDeviceID'};
+  static Map<String, String> deviceIDType = {'TemporaryDeviceID': 'CLYTemporaryDeviceID'};
 
   static void log(String? message, {LogLevel logLevel = LogLevel.DEBUG}) {
     String logLevelStr = describeEnum(logLevel);

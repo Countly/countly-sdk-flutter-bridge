@@ -324,7 +324,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("changeDeviceId".equals(call.method)) {
                 String newDeviceID = args.getString(0);
                 String onServerString = args.getString(1);
-                if (newDeviceID.equals("TemporaryDeviceID")) {
+                if (newDeviceID.equals("CLYTemporaryDeviceID")) {
                     Countly.sharedInstance().deviceId().enableTemporaryIdMode();
                 } else {
                     if ("1".equals(onServerString)) {
@@ -1514,9 +1514,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
         if (_config.has("deviceID")) {
             String deviceID = _config.getString("deviceID");
-            if (deviceID.equals("TemporaryDeviceID")) {
+            if (deviceID.equals("CLYTemporaryDeviceID")) {
                 this.config.enableTemporaryDeviceIdMode();
-
             } else {
                 this.config.setDeviceId(deviceID);
             }
