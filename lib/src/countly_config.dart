@@ -145,7 +145,9 @@ class CountlyConfig {
 
   /// unique ID for the device the app is running on.
   CountlyConfig setDeviceId(String deviceID) {
-    _deviceID = deviceID;
+    if (deviceID.isNotEmpty) {
+      _deviceID = deviceID;
+    }
     return this;
   }
 

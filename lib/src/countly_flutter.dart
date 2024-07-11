@@ -769,8 +769,9 @@ class Countly {
       return message;
     }
     log('Calling "changeDeviceId":[$newDeviceID] with onServer:[$onServer]');
-
-    if (onServer) {
+    if (newDeviceID == Countly.deviceIDType['TemporaryDeviceID']) {
+      await _instance.deviceId.enableTemporaryIDMode();
+    } else if (onServer) {
       await _instance.deviceId.changeWithMerge(newDeviceID);
     } else {
       await _instance.deviceId.changeWithoutMerge(newDeviceID);
