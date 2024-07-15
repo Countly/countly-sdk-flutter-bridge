@@ -2034,8 +2034,11 @@ class Countly {
       countlyConfig['appKey'] = config.appKey;
       countlyConfig['serverURL'] = config.serverURL;
 
-      if (config.deviceID != null) {
+      if (config.deviceID != null && config.deviceID!.isNotEmpty) {
         countlyConfig['deviceID'] = config.deviceID;
+        log('"_configToJson", Device ID provided: [${config.deviceID}]', logLevel: LogLevel.INFO);
+      } else {
+        log('"_configToJson", invalid device ID provided: [${config.deviceID}]', logLevel: LogLevel.WARNING);
       }
 
       if (config.customCrashSegment != null) {

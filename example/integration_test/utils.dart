@@ -38,6 +38,34 @@ void testCommonRequestParams(Map<String, List<String>> requestObject) {
   expect(requestObject['tz']?[0], DateTime.now().timeZoneOffset.inMinutes.toString());
 }
 
+/// Verify custom request queue parameters
+/// This method checks if the provided parameter key matches the parameter value in the request queue
+Future<void> testCustomRequestParams(Map<String, dynamic> params) async {
+  print('params: $params');
+
+  // Get request and event queues from native side
+  final requestList = await getRequestQueue(); // List of strings
+
+  // Some logs for debugging
+  print('RQ: $requestList');
+  print('RQ length: ${requestList.length}');
+
+  // Verify the request queue for a single request
+  if (requestList.length > 0) {
+    final queryParams = Uri.parse('?' + requestList.last).queryParametersAll;
+    print('queryParams: $queryParams');
+    testCommonRequestParams(queryParams);
+    for (final param in params.keys) {
+      expect(queryParams[param]?[0], params[param]);
+    }
+  } else {
+    if (params.isNotEmpty) {
+      // test failed.
+      expect(requestList.length, 'Test failed because request queue should not be empty');
+    }
+  }
+}
+
 /// Start a server to receive the requests from the SDK and store them in a provided List
 /// Use http://0.0.0.0:8080 as the server url
 void creatServer(List requestArray) async {
