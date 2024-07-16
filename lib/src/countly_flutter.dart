@@ -103,7 +103,7 @@ class Countly {
   static Map<String, String> messagingMode = Platform.isAndroid ? {'TEST': '2', 'PRODUCTION': '0'} : {'TEST': '1', 'PRODUCTION': '0', 'ADHOC': '2'};
 
   static const temporaryDeviceID = 'CLYTemporaryDeviceID';
-  @Deprecated('This variable is deprecated, please use "Countly.temporaryDeviceID" instead')
+  @Deprecated('This variable is deprecated, please use "Countly.instance.deviceId.enableTemporaryDeviceID()" instead')
   static Map<String, String> deviceIDType = {'TemporaryDeviceID': temporaryDeviceID};
 
   static void log(String? message, {LogLevel logLevel = LogLevel.DEBUG}) {
