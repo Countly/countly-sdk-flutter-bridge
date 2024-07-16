@@ -151,7 +151,7 @@ class CountlyConfig {
 
   /// enable temporary ID mode
   CountlyConfig enableTemporaryDeviceIDMode() {
-    _deviceID = Countly.deviceIDType['TemporaryDeviceID']!;
+    _deviceID = Countly.temporaryDeviceID;
     return this;
   }
 

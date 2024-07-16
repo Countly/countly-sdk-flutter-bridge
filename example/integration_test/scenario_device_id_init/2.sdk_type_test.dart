@@ -14,10 +14,18 @@ void main() {
     await Countly.initWithConfig(config);
     // Get the device ID type
     DeviceIdType? type = await Countly.getDeviceIDType();
+    DeviceIdType? newModuleType = await Countly.instance.deviceId.getIDType();
     String? id = await Countly.getCurrentDeviceId();
+    String? newModuleId = await Countly.instance.deviceId.getID();
     // Verify the device ID type
     expect(type, DeviceIdType.SDK_GENERATED);
+    expect(newModuleType, DeviceIdType.SDK_GENERATED);
     expect(id!.length, Platform.isIOS ? 36 : 16);
+    expect(newModuleId!.length, Platform.isIOS ? 36 : 16);
     expect(id, isNot('test'));
+    expect(newModuleId, isNot('test'));
+    expect(id, newModuleId);
+
+    await testLastRequestParams({'device_id': id});
   });
 }

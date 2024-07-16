@@ -276,23 +276,6 @@ FlutterMethodChannel *_channel;
           [Countly.sharedInstance enableTemporaryDeviceIDMode];
           result(@"enableTemporaryIDMode success!");
         });
-    } else if ([@"changeDeviceId" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          NSString *newDeviceID = [command objectAtIndex:0];
-          NSString *onServerString = [command objectAtIndex:1];
-
-          if ([newDeviceID isEqual:@"CLYTemporaryDeviceID"]) {
-              [Countly.sharedInstance enableTemporaryDeviceIDMode];
-          } else {
-              if ([onServerString isEqual:@"1"]) {
-                  [Countly.sharedInstance changeDeviceIDWithMerge:newDeviceID];
-              } else {
-                  [Countly.sharedInstance changeDeviceIDWithoutMerge:newDeviceID];
-              }
-          }
-          result(@"changeDeviceId!");
-        });
-
     }  else if ([@"changeWithMerge" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *newDeviceID = [command objectAtIndex:0];

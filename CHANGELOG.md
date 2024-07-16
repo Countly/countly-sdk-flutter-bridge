@@ -1,6 +1,5 @@
 ## 24.7.x
-* Added a new configuration option `enableTemporaryDeviceIDMode` and `setDeviceID` to 'CountlyConfig' interface
-* Added a new method `setID(newDeviceId)` which internally handles merge/non-merge selection while changing the device ID
+* Added a new configuration option `enableTemporaryDeviceIDMode` to 'CountlyConfig' interface
 * Introduced a new `deviceID` interface for grouping device ID management related methods:
   * `setID`
   * `changeWithMerge`
@@ -14,8 +13,7 @@
   * `changeDeviceId`
 
 ## 24.7.x-np
-* Added a new configuration option `enableTemporaryDeviceIDMode` and `setDeviceID` to 'CountlyConfig' interface
-* Added a new method `setID(newDeviceId)` which internally handles merge/non-merge selection while changing the device ID
+* Added a new configuration option `enableTemporaryDeviceIDMode` to 'CountlyConfig' interface
 * Introduced a new `deviceID` interface for grouping device ID management related methods:
   * `setID`
   * `changeWithMerge`

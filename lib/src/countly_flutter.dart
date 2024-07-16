@@ -102,7 +102,9 @@ class Countly {
 
   static Map<String, String> messagingMode = Platform.isAndroid ? {'TEST': '2', 'PRODUCTION': '0'} : {'TEST': '1', 'PRODUCTION': '0', 'ADHOC': '2'};
 
-  static Map<String, String> deviceIDType = {'TemporaryDeviceID': 'CLYTemporaryDeviceID'};
+  static const temporaryDeviceID = 'CLYTemporaryDeviceID';
+  @Deprecated('This variable is deprecated, please use "Countly.temporaryDeviceID" instead')
+  static Map<String, String> deviceIDType = {'TemporaryDeviceID': temporaryDeviceID};
 
   static void log(String? message, {LogLevel logLevel = LogLevel.DEBUG}) {
     String logLevelStr = describeEnum(logLevel);
@@ -769,7 +771,8 @@ class Countly {
       return message;
     }
     log('Calling "changeDeviceId":[$newDeviceID] with onServer:[$onServer]');
-    if (newDeviceID == Countly.deviceIDType['TemporaryDeviceID']) {
+
+    if (newDeviceID == Countly.temporaryDeviceID) {
       await _instance.deviceId.enableTemporaryIDMode();
     } else if (onServer) {
       await _instance.deviceId.changeWithMerge(newDeviceID);

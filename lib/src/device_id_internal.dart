@@ -10,15 +10,15 @@ class DeviceIDInternal implements DeviceID {
 
   @override
   Future<void> changeWithMerge(String newDeviceID) async {
-    Countly.log('[DeviceIDInternal] Calling "changeWithMerge":[$newDeviceID]', logLevel: LogLevel.INFO);
+    Countly.log('[DeviceIDModule] Calling "changeWithMerge":[$newDeviceID]', logLevel: LogLevel.INFO);
 
     if (!_countlyState.isInitialized) {
-      Countly.log('[DeviceIDInternal] changeWithMerge, "initWithConfig" must be called before "changeWithMerge"', logLevel: LogLevel.WARNING);
+      Countly.log('[DeviceIDModule] changeWithMerge, "initWithConfig" must be called before "changeWithMerge"', logLevel: LogLevel.WARNING);
       return;
     }
 
     if (newDeviceID.isEmpty) {
-      Countly.log('[DeviceIDInternal] changeWithMerge, deviceId cannot be empty', logLevel: LogLevel.WARNING);
+      Countly.log('[DeviceIDModule] changeWithMerge, provided device ID cannot be empty', logLevel: LogLevel.WARNING);
       return;
     }
     final args = [];
@@ -29,15 +29,15 @@ class DeviceIDInternal implements DeviceID {
 
   @override
   Future<void> changeWithoutMerge(String newDeviceID) async {
-    Countly.log('[DeviceIDInternal] Calling "changeWithoutMerge":[$newDeviceID]', logLevel: LogLevel.INFO);
+    Countly.log('[DeviceIDModule] Calling "changeWithoutMerge":[$newDeviceID]', logLevel: LogLevel.INFO);
 
     if (!_countlyState.isInitialized) {
-      Countly.log('[DeviceIDInternal] changeWithoutMerge, "initWithConfig" must be called before "changeWithoutMerge"', logLevel: LogLevel.WARNING);
+      Countly.log('[DeviceIDModule] changeWithoutMerge, "initWithConfig" must be called before "changeWithoutMerge"', logLevel: LogLevel.WARNING);
       return;
     }
 
     if (newDeviceID.isEmpty) {
-      Countly.log('[DeviceIDInternal] changeWithoutMerge, deviceId cannot be empty', logLevel: LogLevel.WARNING);
+      Countly.log('[DeviceIDModule] changeWithoutMerge, provided device ID cannot be empty', logLevel: LogLevel.WARNING);
       return;
     }
     final args = [];
@@ -48,10 +48,10 @@ class DeviceIDInternal implements DeviceID {
 
   @override
   Future<String?> getID() async {
-    Countly.log('[DeviceIDInternal] Calling "getID"', logLevel: LogLevel.INFO);
+    Countly.log('[DeviceIDModule] Calling "getID"', logLevel: LogLevel.INFO);
 
     if (!_countlyState.isInitialized) {
-      Countly.log('[DeviceIDInternal] getID, "initWithConfig" must be called before "getID"', logLevel: LogLevel.WARNING);
+      Countly.log('[DeviceIDModule] getID, "initWithConfig" must be called before "getID"', logLevel: LogLevel.WARNING);
       return null;
     }
     final String? result = await _countlyState.channel.invokeMethod('getID');
@@ -61,22 +61,18 @@ class DeviceIDInternal implements DeviceID {
 
   @override
   Future<DeviceIdType?> getIDType() async {
-    Countly.log('[DeviceIDInternal] Calling "getIDType"', logLevel: LogLevel.INFO);
+    Countly.log('[DeviceIDModule] Calling "getIDType"', logLevel: LogLevel.INFO);
 
     if (!_countlyState.isInitialized) {
-      Countly.log('[DeviceIDInternal] getIDType, "initWithConfig" must be called before "getIDType"', logLevel: LogLevel.WARNING);
+      Countly.log('[DeviceIDModule] getIDType, "initWithConfig" must be called before "getIDType"', logLevel: LogLevel.WARNING);
       return null;
     }
-    final String? result = await _countlyState.channel.invokeMethod('getIDType');
-    if (result == null) {
-      Countly.log('[DeviceIDInternal] getIDType, unexpected null value from native side', logLevel: LogLevel.WARNING);
-      return null;
-    }
+    final String result = await _countlyState.channel.invokeMethod('getIDType');
     return _getDeviceIdType(result);
   }
 
   static DeviceIdType _getDeviceIdType(String givenDeviceIDType) {
-    Countly.log('[DeviceIDInternal] Calling "_getDeviceIdType":[$givenDeviceIDType]', logLevel: LogLevel.INFO);
+    Countly.log('[DeviceIDModule] Calling "getDeviceIdType":[$givenDeviceIDType]', logLevel: LogLevel.INFO);
 
     DeviceIdType deviceIdType = DeviceIdType.SDK_GENERATED;
     switch (givenDeviceIDType) {
@@ -92,15 +88,15 @@ class DeviceIDInternal implements DeviceID {
 
   @override
   Future<void> setID(String newDeviceID) async {
-    Countly.log('[DeviceIDInternal] Calling "setID":[$newDeviceID]', logLevel: LogLevel.INFO);
+    Countly.log('[DeviceIDModule] Calling "setID":[$newDeviceID]', logLevel: LogLevel.INFO);
 
     if (!_countlyState.isInitialized) {
-      Countly.log('[DeviceIDInternal] setID, "initWithConfig" must be called before "setID"', logLevel: LogLevel.WARNING);
+      Countly.log('[DeviceIDModule] setID, "initWithConfig" must be called before "setID"', logLevel: LogLevel.WARNING);
       return;
     }
 
     if (newDeviceID.isEmpty) {
-      Countly.log('[DeviceIDInternal] setID, deviceId cannot be empty', logLevel: LogLevel.WARNING);
+      Countly.log('[DeviceIDModule] setID, provided device ID cannot be empty', logLevel: LogLevel.WARNING);
       return;
     }
 
@@ -111,10 +107,10 @@ class DeviceIDInternal implements DeviceID {
 
   @override
   Future<void> enableTemporaryIDMode() async {
-    Countly.log('[DeviceIDInternal] Calling "enableTemporaryIDMode"', logLevel: LogLevel.INFO);
+    Countly.log('[DeviceIDModule] Calling "enableTemporaryIDMode"', logLevel: LogLevel.INFO);
 
     if (!_countlyState.isInitialized) {
-      Countly.log('[DeviceIDInternal] enableTemporaryIDMode, "initWithConfig" must be called before "enableTemporaryIDMode"', logLevel: LogLevel.WARNING);
+      Countly.log('[DeviceIDModule] enableTemporaryIDMode, "initWithConfig" must be called before "enableTemporaryIDMode" or you can use the config method "enableTemporaryDeviceIDMode" to enter temporary device ID mode during init.', logLevel: LogLevel.WARNING);
       return;
     }
 
