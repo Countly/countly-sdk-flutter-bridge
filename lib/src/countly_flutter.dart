@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
 import 'countly_config.dart';
 import 'countly_state.dart';
+import 'device_id.dart';
+import 'device_id_internal.dart';
 import 'remote_config.dart';
 import 'remote_config_internal.dart';
 import 'sessions.dart';
@@ -52,6 +54,7 @@ abstract class CountlyConsent {
 class Countly {
   Countly._() {
     _countlyState = CountlyState(this);
+    _deviceIdInternal = DeviceIDInternal(_countlyState);
     _remoteConfigInternal = RemoteConfigInternal(_countlyState);
     _userProfileInternal = UserProfileInternal(_countlyState);
     _viewsInternal = ViewsInternal(_countlyState);
@@ -73,6 +76,9 @@ class Countly {
 
   late final SessionsInternal _sessionsInternal;
   Sessions get sessions => _sessionsInternal;
+
+  late final DeviceIDInternal _deviceIdInternal;
+  DeviceID get deviceId => _deviceIdInternal;
 
   /// ignore: constant_identifier_names
   static const bool BUILDING_WITH_PUSH_DISABLED = false;
@@ -96,7 +102,9 @@ class Countly {
 
   static Map<String, String> messagingMode = Platform.isAndroid ? {'TEST': '2', 'PRODUCTION': '0'} : {'TEST': '1', 'PRODUCTION': '0', 'ADHOC': '2'};
 
-  static Map<String, String> deviceIDType = {'TemporaryDeviceID': 'TemporaryDeviceID'};
+  static const temporaryDeviceID = 'CLYTemporaryDeviceID';
+  @Deprecated('This variable is deprecated, please use "Countly.instance.deviceId.enableTemporaryDeviceID()" instead')
+  static Map<String, String> deviceIDType = {'TemporaryDeviceID': temporaryDeviceID};
 
   static void log(String? message, {LogLevel logLevel = LogLevel.DEBUG}) {
     String logLevelStr = describeEnum(logLevel);
@@ -722,14 +730,16 @@ class Countly {
   /// Get currently used device Id.
   /// Should be call after Countly init
   /// returns the error message or deviceID
+  @Deprecated('getCurrentDeviceId is deprecated, use getID of Countly.instance.deviceID instead')
   static Future<String?> getCurrentDeviceId() async {
     log('Calling "getCurrentDeviceId"');
+    log('getCurrentDeviceId is deprecated, use getID of Countly.instance.deviceID instead', logLevel: LogLevel.WARNING);
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "getCurrentDeviceId"';
       log('getCurrentDeviceId, $message', logLevel: LogLevel.ERROR);
       return message;
     }
-    final String? result = await _channel.invokeMethod('getCurrentDeviceId');
+    String? result = await _instance.deviceId.getID();
 
     return result;
   }
@@ -737,62 +747,39 @@ class Countly {
   /// Get currently used device Id type.
   /// Should be call after Countly init
   /// returns the error message or deviceID type
+  @Deprecated('getDeviceIDType is deprecated, use getIDType of Countly.instance.deviceID instead')
   static Future<DeviceIdType?> getDeviceIDType() async {
     log('Calling "getDeviceIDType"');
+    log('getDeviceIDType is deprecated, use getIDType of Countly.instance.deviceID instead', logLevel: LogLevel.WARNING);
     if (!_instance._countlyState.isInitialized) {
       log('getDeviceIDType, "initWithConfig" must be called before "getDeviceIDType"', logLevel: LogLevel.ERROR);
       return null;
     }
-    final String? result = await _channel.invokeMethod('getDeviceIDType');
-    if (result == null) {
-      log('getDeviceIDType, unexpected null value from native side', logLevel: LogLevel.ERROR);
-      return null;
-    }
-    return _getDeviceIdType(result);
-  }
-
-  static DeviceIdType _getDeviceIdType(String givenDeviceIDType) {
-    DeviceIdType deviceIdType = DeviceIdType.SDK_GENERATED;
-    switch (givenDeviceIDType) {
-      case 'DS':
-        deviceIdType = DeviceIdType.DEVELOPER_SUPPLIED;
-        break;
-      case 'TID':
-        deviceIdType = DeviceIdType.TEMPORARY_ID;
-        break;
-    }
-    return deviceIdType;
+    return await _instance.deviceId.getIDType();
   }
 
   /// change the device ID
   /// if onServer is true, the old device ID is replaced with the new one and all data associated with the old device ID will be merged automatically.
   /// if onServer is false, the new device ID will be counted as a new device on the server.
   /// returns the error or success message
+  @Deprecated('changeDeviceId is deprecated, use changeWithoutMerge of Countly.instance.deviceID if onServer = false and changeWithMerge if onServer = true, instead')
   static Future<String?> changeDeviceId(String newDeviceID, bool onServer) async {
+    log('changeDeviceId is deprecated, use ${onServer ? 'changeWithMerge' : 'changeWithoutMerge'} of Countly.instance.deviceID instead', logLevel: LogLevel.WARNING);
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "changeDeviceId"';
       log('changeDeviceId, $message', logLevel: LogLevel.ERROR);
       return message;
     }
     log('Calling "changeDeviceId":[$newDeviceID] with onServer:[$onServer]');
-    if (newDeviceID.isEmpty) {
-      String error = 'changeDeviceId, deviceId cannot be null or empty';
-      log(error);
-      return 'Error : $error';
-    }
-    List<String> args = [];
-    String onServerString;
-    if (onServer == false) {
-      onServerString = '0';
+
+    if (newDeviceID == Countly.temporaryDeviceID) {
+      await _instance.deviceId.enableTemporaryIDMode();
+    } else if (onServer) {
+      await _instance.deviceId.changeWithMerge(newDeviceID);
     } else {
-      onServerString = '1';
+      await _instance.deviceId.changeWithoutMerge(newDeviceID);
     }
-    args.add(newDeviceID);
-    args.add(onServerString);
-
-    final String? result = await _channel.invokeMethod('changeDeviceId', <String, dynamic>{'data': json.encode(args)});
-
-    return result;
+    return 'changeDeviceId Success';
   }
 
   /// add logs to your crash report.
@@ -2050,8 +2037,11 @@ class Countly {
       countlyConfig['appKey'] = config.appKey;
       countlyConfig['serverURL'] = config.serverURL;
 
-      if (config.deviceID != null) {
+      if (config.deviceID != null && config.deviceID!.isNotEmpty) {
         countlyConfig['deviceID'] = config.deviceID;
+        log('"_configToJson", Device ID provided: [${config.deviceID}]', logLevel: LogLevel.INFO);
+      } else {
+        log('"_configToJson", invalid device ID provided: [${config.deviceID}]', logLevel: LogLevel.WARNING);
       }
 
       if (config.customCrashSegment != null) {

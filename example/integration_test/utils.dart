@@ -38,6 +38,66 @@ void testCommonRequestParams(Map<String, List<String>> requestObject) {
   expect(requestObject['tz']?[0], DateTime.now().timeZoneOffset.inMinutes.toString());
 }
 
+/// Verify custom request queue parameters
+/// This method checks if the provided parameter key matches the parameter value in the request queue
+Future<void> testLastRequestParams(Map<String, dynamic> params) async {
+  print('params: $params');
+
+  // Get request and event queues from native side
+  final requestList = await getRequestQueue(); // List of strings
+
+  // Some logs for debugging
+  print('RQ: $requestList');
+  print('RQ length: ${requestList.length}');
+
+  // Verify the request queue for a single request
+  if (requestList.length > 0) {
+    final queryParams = Uri.parse('?' + requestList.last).queryParametersAll;
+    print('queryParams: $queryParams');
+    testCommonRequestParams(queryParams);
+    for (final param in params.keys) {
+      expect(queryParams[param]?[0], params[param]);
+    }
+  } else {
+    if (params.isNotEmpty) {
+      // test failed.
+      expect(requestList.length, 'Test failed because request queue should not be empty');
+    }
+  }
+}
+
+/// Verify custom request queue parameters
+/// This method checks if the provided parameter key matches the parameter value in the request queue
+Future<String> testDeviceID(dynamic deviceIDMatcher) async {
+  // Get the device ID
+  String? id = await Countly.getCurrentDeviceId();
+  String? newModuleId = await Countly.instance.deviceId.getID();
+  // Verify the device ID
+  expect(id, deviceIDMatcher);
+  expect(newModuleId, deviceIDMatcher);
+  expect(id, newModuleId);
+  return id!;
+}
+
+/// Verify custom request queue parameters
+/// This method checks if the provided parameter key matches the parameter value in the request queue
+Future<DeviceIdType> testDeviceIDType(DeviceIdType givenType) async {
+  // Get the device ID type
+  DeviceIdType? type = await Countly.getDeviceIDType();
+  DeviceIdType? newModuleType = await Countly.instance.deviceId.getIDType();
+  // Verify the device ID type
+  expect(type, givenType);
+  expect(newModuleType, givenType);
+  if (givenType == DeviceIdType.SDK_GENERATED) {
+    String? id = await Countly.getCurrentDeviceId();
+    String? newModuleId = await Countly.instance.deviceId.getID();
+    expect(id!.length, Platform.isIOS ? 36 : 16);
+    expect(newModuleId!.length, Platform.isIOS ? 36 : 16);
+    expect(id, newModuleId);
+  }
+  return type!;
+}
+
 /// Start a server to receive the requests from the SDK and store them in a provided List
 /// Use http://0.0.0.0:8080 as the server url
 void creatServer(List requestArray) async {
