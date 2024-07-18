@@ -2051,125 +2051,161 @@ class Countly {
       countlyConfig['serverURL'] = config.serverURL;
 
       if (config.deviceID != null) {
+        log('"_configToJson", deviceID provided: [${config.deviceID}]', logLevel: LogLevel.INFO);
         countlyConfig['deviceID'] = config.deviceID;
+      } else {
+        log('"_configToJson", invalid deviceID provided: [${config.deviceID}]', logLevel: LogLevel.WARNING);
       }
 
       if (config.customCrashSegment != null) {
+        log('"_configToJson", customCrashSegment provided: [${config.customCrashSegment}]', logLevel: LogLevel.INFO);
         countlyConfig['customCrashSegment'] = config.customCrashSegment;
       }
 
       if (config.providedUserProperties != null) {
+        log('"_configToJson", providedUserProperties: [${config.providedUserProperties}]', logLevel: LogLevel.INFO);
         countlyConfig['providedUserProperties'] = config.providedUserProperties;
       }
 
       if (config.consents != null) {
+        log('"_configToJson", consents provided: [${config.consents}]', logLevel: LogLevel.INFO);
         countlyConfig['consents'] = config.consents;
       }
       if (config.tamperingProtectionSalt != null) {
+        log('"_configToJson", tamperingProtectionSalt provided: [${config.tamperingProtectionSalt}]', logLevel: LogLevel.INFO);
         countlyConfig['tamperingProtectionSalt'] = config.tamperingProtectionSalt;
       }
       if (config.eventQueueSizeThreshold != null) {
+        log('"_configToJson", eventQueueSizeThreshold provided: [${config.eventQueueSizeThreshold}]', logLevel: LogLevel.INFO);
         countlyConfig['eventQueueSizeThreshold'] = config.eventQueueSizeThreshold;
       }
       if (config.sessionUpdateTimerDelay != null) {
+        log('"_configToJson", sessionUpdateTimerDelay provided: [${config.sessionUpdateTimerDelay}]', logLevel: LogLevel.INFO);
         countlyConfig['sessionUpdateTimerDelay'] = config.sessionUpdateTimerDelay;
       }
       if (config.starRatingTextTitle != null) {
+        log('"_configToJson", starRatingTextTitle provided: [${config.starRatingTextTitle}]', logLevel: LogLevel.INFO);
         countlyConfig['starRatingTextTitle'] = config.starRatingTextTitle;
       }
       if (config.starRatingTextMessage != null) {
+        log('"_configToJson", starRatingTextMessage provided: [${config.starRatingTextMessage}]', logLevel: LogLevel.INFO);
         countlyConfig['starRatingTextMessage'] = config.starRatingTextMessage;
       }
       if (config.starRatingTextDismiss != null) {
+        log('"_configToJson", starRatingTextDismiss provided: [${config.starRatingTextDismiss}]', logLevel: LogLevel.INFO);
         countlyConfig['starRatingTextDismiss'] = config.starRatingTextDismiss;
       }
       if (config.loggingEnabled != null) {
+        log('"_configToJson", loggingEnabled provided: [${config.loggingEnabled}]', logLevel: LogLevel.INFO);
         countlyConfig['loggingEnabled'] = config.loggingEnabled;
       }
       if (config.locationDisabled) {
+        log('"_configToJson", locationDisabled provided: [${config.locationDisabled}]', logLevel: LogLevel.INFO);
         countlyConfig['locationDisabled'] = config.locationDisabled;
       }
       if (config.httpPostForced != null) {
+        log('"_configToJson", httpPostForced provided: [${config.httpPostForced}]', logLevel: LogLevel.INFO);
         countlyConfig['httpPostForced'] = config.httpPostForced;
       }
       if (config.shouldRequireConsent != null) {
+        log('"_configToJson", shouldRequireConsent provided: [${config.shouldRequireConsent}]', logLevel: LogLevel.INFO);
         countlyConfig['shouldRequireConsent'] = config.shouldRequireConsent;
       }
       if (config.enableUnhandledCrashReporting != null) {
+        log('"_configToJson", enableUnhandledCrashReporting provided: [${config.enableUnhandledCrashReporting}]', logLevel: LogLevel.INFO);
         countlyConfig['enableUnhandledCrashReporting'] = config.enableUnhandledCrashReporting;
       }
 
       if (config.manualSessionEnabled != null) {
+        log('"_configToJson", manualSessionEnabled provided: [${config.manualSessionEnabled}]', logLevel: LogLevel.INFO);
         countlyConfig['manualSessionEnabled'] = config.manualSessionEnabled;
       }
 
       if (config.maxRequestQueueSize != null) {
+        log('"_configToJson", maxRequestQueueSize provided: [${config.maxRequestQueueSize}]', logLevel: LogLevel.INFO);
         countlyConfig['maxRequestQueueSize'] = config.maxRequestQueueSize;
       }
 
       if (config.locationCity != null) {
+        log('"_configToJson", locationCity provided: [${config.locationCity}]', logLevel: LogLevel.INFO);
         countlyConfig['locationCity'] = config.locationCity;
       }
 
       if (config.locationCountryCode != null) {
+        log('"_configToJson", locationCountryCode provided: [${config.locationCountryCode}]', logLevel: LogLevel.INFO);
         countlyConfig['locationCountryCode'] = config.locationCountryCode;
       }
 
       if (config.locationGpsCoordinates != null) {
+        log('"_configToJson", locationGpsCoordinates provided: [${config.locationGpsCoordinates}]', logLevel: LogLevel.INFO);
         countlyConfig['locationGpsCoordinates'] = config.locationGpsCoordinates;
       }
 
       if (config.locationIpAddress != null) {
+        log('"_configToJson", locationIpAddress provided: [${config.locationIpAddress}]', logLevel: LogLevel.INFO);
         countlyConfig['locationIpAddress'] = config.locationIpAddress;
       }
 
       if (config.enableRemoteConfigAutomaticDownload != null) {
+        log('"_configToJson", enableRemoteConfigAutomaticDownload provided: [${config.enableRemoteConfigAutomaticDownload}]', logLevel: LogLevel.INFO);
         countlyConfig['enableRemoteConfigAutomaticDownload'] = config.enableRemoteConfigAutomaticDownload;
       }
 
       if (config.daCampaignType != null) {
+        log('"_configToJson", campaignType provided: [${config.daCampaignType}]', logLevel: LogLevel.INFO);
         countlyConfig['campaignType'] = config.daCampaignType;
       }
 
       if (config.daCampaignData != null) {
+        log('"_configToJson", campaignData provided: [${config.daCampaignData}]', logLevel: LogLevel.INFO);
         countlyConfig['campaignData'] = config.daCampaignData;
       }
 
       if (config.iaAttributionValues != null) {
+        log('"_configToJson", attributionValues provided: [${config.iaAttributionValues}]', logLevel: LogLevel.INFO);
         countlyConfig['attributionValues'] = config.iaAttributionValues;
       }
 
       if (config.globalViewSegmentation != null) {
+        log('"_configToJson", globalViewSegmentation provided: [${config.globalViewSegmentation}]', logLevel: LogLevel.INFO);
         countlyConfig['globalViewSegmentation'] = config.globalViewSegmentation;
       }
 
       if (config.enableAllConsents) {
+        log('"_configToJson", enableAllConsents provided: [${config.enableAllConsents}]', logLevel: LogLevel.INFO);
         countlyConfig['enableAllConsents'] = config.enableAllConsents;
       }
 
       if (config.autoEnrollABOnDownload) {
+        log('"_configToJson", autoEnrollABOnDownload provided: [${config.autoEnrollABOnDownload}]', logLevel: LogLevel.INFO);
         countlyConfig['autoEnrollABOnDownload'] = config.autoEnrollABOnDownload;
       }
 
       if (config.requestDropAgeHours != null) {
+        log('"_configToJson", requestDropAgeHours provided: [${config.requestDropAgeHours}]', logLevel: LogLevel.INFO);
         countlyConfig['requestDropAgeHours'] = config.requestDropAgeHours;
       }
 
       /// APM ---------------------------
       if (config.apm.trackAppStartTime) {
+        log('"_configToJson", trackAppStartTime provided: [${config.apm.trackAppStartTime}]', logLevel: LogLevel.INFO);
         countlyConfig['trackAppStartTime'] = config.apm.trackAppStartTime;
       }
       if (config.apm.enableForegroundBackground) {
+        log('"_configToJson", enableForegroundBackground provided: [${config.apm.enableForegroundBackground}]', logLevel: LogLevel.INFO);
         countlyConfig['enableForegroundBackground'] = config.apm.enableForegroundBackground;
       }
       if (config.apm.enableManualAppLoaded) {
+        log('"_configToJson", enableManualAppLoaded provided: [${config.apm.enableManualAppLoaded}]', logLevel: LogLevel.INFO);
         countlyConfig['enableManualAppLoaded'] = config.apm.enableManualAppLoaded;
       }
       if (config.apm.startTSOverride != 0) {
+        log('"_configToJson", startTSOverride provided: [${config.apm.startTSOverride}]', logLevel: LogLevel.INFO);
         countlyConfig['startTSOverride'] = config.apm.startTSOverride;
       }
       // legacy
       if (config.recordAppStartTime != null) {
+        log('"_configToJson", recordAppStartTime provided: [${config.recordAppStartTime}]', logLevel: LogLevel.INFO);
         countlyConfig['recordAppStartTime'] = config.recordAppStartTime;
       }
 
@@ -2177,30 +2213,38 @@ class Countly {
       /// Internal Limits ---------------------------
       // Skipping logs for internal limits (change my mind)
       if (config.sdkInternalLimits.maxKeyLength > 0) {
+        log('"_configToJson", maxKeyLength provided: [${config.sdkInternalLimits.maxKeyLength}]', logLevel: LogLevel.INFO);
         countlyConfig['maxKeyLength'] = config.sdkInternalLimits.maxKeyLength;
       }
       if (config.sdkInternalLimits.maxValueSize > 0) {
+        log('"_configToJson", maxValueSize provided: [${config.sdkInternalLimits.maxValueSize}]', logLevel: LogLevel.INFO);
         countlyConfig['maxValueSize'] = config.sdkInternalLimits.maxValueSize;
       }
       if (config.sdkInternalLimits.maxSegmentationValues > 0) {
+        log('"_configToJson", maxSegmentationValues provided: [${config.sdkInternalLimits.maxSegmentationValues}]', logLevel: LogLevel.INFO);
         countlyConfig['maxSegmentationValues'] = config.sdkInternalLimits.maxSegmentationValues;
       }
       if (config.sdkInternalLimits.maxBreadcrumbCount > 0) {
+        log('"_configToJson", maxBreadcrumbCount provided: [${config.sdkInternalLimits.maxBreadcrumbCount}]', logLevel: LogLevel.INFO);
         countlyConfig['maxBreadcrumbCount'] = config.sdkInternalLimits.maxBreadcrumbCount;
       }
       if (config.sdkInternalLimits.maxStackTraceLineLength > 0) {
+        log('"_configToJson", maxStackTraceLineLength provided: [${config.sdkInternalLimits.maxStackTraceLineLength}]', logLevel: LogLevel.INFO);
         countlyConfig['maxStackTraceLineLength'] = config.sdkInternalLimits.maxStackTraceLineLength;
       }
       if (config.sdkInternalLimits.maxStackTraceLinesPerThread > 0) {
+        log('"_configToJson", maxStackTraceLinesPerThread provided: [${config.sdkInternalLimits.maxStackTraceLinesPerThread}]', logLevel: LogLevel.INFO);
         countlyConfig['maxStackTraceLinesPerThread'] = config.sdkInternalLimits.maxStackTraceLinesPerThread;
       }
 
       /// Internal Limits END ---------------------------
+      log('"_configToJson", remoteConfigAutomaticTriggers provided: [${config.remoteConfigAutomaticTriggers}]', logLevel: LogLevel.INFO);
       countlyConfig['remoteConfigAutomaticTriggers'] = config.remoteConfigAutomaticTriggers;
 
+      log('"_configToJson", remoteConfigValueCaching provided: [${config.remoteConfigValueCaching}]', logLevel: LogLevel.INFO);
       countlyConfig['remoteConfigValueCaching'] = config.remoteConfigValueCaching;
     } catch (e) {
-      log('_configToJson, Exception occur during converting config to json: $e');
+      log('"_configToJson", Exception occur during converting config to json: $e');
     }
     return countlyConfig;
   }
