@@ -249,10 +249,10 @@ FlutterMethodChannel *_channel;
           result(@"storedRequestsLimit!");
         });
 
-    } else if ([@"getCurrentDeviceId" isEqualToString:call.method]) {
+    } else if ([@"getID" isEqualToString:call.method]) {
         NSString *deviceId = [Countly.sharedInstance deviceID];
         result(deviceId);
-    } else if ([@"getDeviceIDType" isEqualToString:call.method]) {
+    } else if ([@"getIDType" isEqualToString:call.method]) {
         CLYDeviceIDType deviceIDType = [Countly.sharedInstance deviceIDType];
         NSString *deviceIDTypeString = NULL;
         if ([deviceIDType isEqualToString:CLYDeviceIDTypeCustom]) {
@@ -265,22 +265,29 @@ FlutterMethodChannel *_channel;
             deviceIDTypeString = @"SG";
         }
         result(deviceIDTypeString);
-
-    } else if ([@"changeDeviceId" isEqualToString:call.method]) {
+    } else if ([@"setID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *newDeviceID = [command objectAtIndex:0];
-          NSString *onServerString = [command objectAtIndex:1];
+          [Countly.sharedInstance setID:newDeviceID];
+          result(@"setID success!");
+        });
+    } else if ([@"enableTemporaryIDMode" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          [Countly.sharedInstance enableTemporaryDeviceIDMode];
+          result(@"enableTemporaryIDMode success!");
+        });
+    }  else if ([@"changeWithMerge" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSString *newDeviceID = [command objectAtIndex:0];
+          [Countly.sharedInstance changeDeviceIDWithMerge:newDeviceID];
+          result(@"changeWithMerge!");
+        });
 
-          if ([newDeviceID isEqual:@"TemporaryDeviceID"]) {
-              [Countly.sharedInstance changeDeviceIDWithoutMerge:CLYTemporaryDeviceID];
-          } else {
-              if ([onServerString isEqual:@"1"]) {
-                  [Countly.sharedInstance changeDeviceIDWithMerge:newDeviceID];
-              } else {
-                  [Countly.sharedInstance changeDeviceIDWithoutMerge:newDeviceID];
-              }
-          }
-          result(@"changeDeviceId!");
+    }  else if ([@"changeWithoutMerge" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSString *newDeviceID = [command objectAtIndex:0];
+          [Countly.sharedInstance changeDeviceIDWithoutMerge:newDeviceID];
+          result(@"changeWithoutMerge!");
         });
 
     } else if ([@"setHttpPostForced" isEqualToString:call.method]) {
@@ -1470,8 +1477,8 @@ FlutterMethodChannel *_channel;
         }
         NSString *deviceID = _config[@"deviceID"];
         if (deviceID) {
-            if ([@"TemporaryDeviceID" isEqualToString:deviceID]) {
-                config.deviceID = CLYTemporaryDeviceID;
+            if ([@"CLYTemporaryDeviceID" isEqualToString:deviceID]) {
+                [config enableTemporaryDeviceIDMode];
             } else {
                 config.deviceID = deviceID;
             }
