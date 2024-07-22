@@ -14,6 +14,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 import ly.count.android.sdk.Countly;
 import ly.count.android.sdk.CountlyConfig;
 import ly.count.android.sdk.CountlyStore;
+import ly.count.android.sdk.CrashData;
 import ly.count.android.sdk.ModuleLog;
 import ly.count.android.sdk.ExperimentInformation;
 import ly.count.android.sdk.FeedbackRatingCallback;
@@ -55,6 +56,8 @@ import ly.count.android.sdk.RequestResult;
 import ly.count.android.sdk.StarRatingCallback;
 import ly.count.android.sdk.messaging.CountlyPush;
 
+import com.google.android.gms.tasks.TaskCompletionSource;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 import com.google.android.gms.tasks.Task;
@@ -83,6 +86,74 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
         log("notifyPublicChannelRCDL, downloaded values: " + downloadedValues + ", error: " + error + ", fullValueUpdate: " + fullValueUpdate + ", requestID: " + requestID, LogLevel.VERBOSE);
         methodChannel.invokeMethod("remoteConfigDownloadCallback", data);
+    }
+
+    private Task<Boolean> notifyPublicChannelGCFC(CrashData crash) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("breadcrumbs", crash.getBreadcrumbs());
+        data.put("crashMetrics", crash.getCrashMetrics());
+        data.put("crashSegmentation", crash.getCrashSegmentation());
+        data.put("fatal", crash.getFatal());
+        data.put("stackTrace", crash.getStackTrace());
+
+        log("notifyPublicChannelGCFC, CrashData: [" + crash + "], data: [" + data + "]", LogLevel.VERBOSE);
+
+        TaskCompletionSource<Boolean> future = new TaskCompletionSource<Boolean>();
+        methodChannel.invokeMethod("globalCrashFilterCallback", data, new MethodChannel.Result() {
+            @Override
+            public void success(Object result) {
+                try {
+//                    JSONObject args = new JSONObject((String) result);
+//                    boolean ignore = args.getBoolean("i");
+//                    if (ignore) return;
+//                    crash.setBreadcrumbs(toListString(args.getJSONArray("b")));
+//                    crash.setFatal(args.getBoolean("f"));
+//                    crash.setStackTrace(args.getString("s"));
+//                    crash.setCrashSegmentation(toMap(args.getJSONObject("cs")));
+//                    crash.setCrashMetrics(toMap(args.getJSONObject("m")));
+
+                    JSONArray args = new JSONArray((String) result);
+                    boolean ignore = args.getBoolean(0);
+                    if (ignore) {
+                        future.setResult(true);
+                        return;
+                    }
+
+                    crash.setBreadcrumbs(toListString(args.getJSONArray(1)));
+                    crash.setFatal(args.getBoolean(2));
+                    crash.setStackTrace(args.getString(3));
+                    int crashSegLen = args.getInt(4);
+                    int crashMetricsLen = args.getInt(5) + crashSegLen;
+                    Map<String, Object> crashSegmentation = new HashMap<>();
+                    for (int i = 6; i < crashSegLen; i += 2) {
+                        crashSegmentation.put(args.getString(i), args.getString(i + 1));
+                    }
+                    crash.setCrashSegmentation(crashSegmentation);
+                    Map<String, Object> crashMetrics = new HashMap<>();
+                    for (int i = 6 + crashSegLen; i < crashMetricsLen; i += 2) {
+                        crashMetrics.put(args.getString(i), args.getString(i + 1));
+                    }
+                    crash.setCrashMetrics(crashMetrics);
+                    future.setResult(false);
+                } catch (JSONException jsonException) {
+                    log("notifyPublicChannelGCFC, jsonException: [" + jsonException.toString() + "]", LogLevel.ERROR);
+                    future.setResult(false);
+                }
+            }
+
+            @Override
+            public void error(String errorCode, String errorMessage, Object errorDetails) {
+                log("notifyPublicChannelGCFC, errorCode: [" + errorCode + "], errorMessage: [" + errorMessage + "], errorDetails: [" + errorDetails + "]", LogLevel.ERROR);
+                future.setResult(false);
+            }
+
+            @Override
+            public void notImplemented() {
+                log("notifyPublicChannelGCFC, Method notImplemented error", LogLevel.ERROR);
+                future.setResult(false);
+            }
+        });
+        return future.getTask();
     }
 
     public final Map<String, Object> transformMapIntoSendableForm(Map<String, RCData> map) {
@@ -278,6 +349,17 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
                         notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestIDGlobalCallback);
                     }
+                });
+
+                this.config.crashes.setGlobalCrashFilterCallback(crash -> {
+                    return true;
+                    // try {
+                    //     Task<Boolean> task = notifyPublicChannelGCFC(crash);
+                    //     return Tasks.await(task);
+                    // } catch (Exception e) {
+                    //     log("Error while notifying public channel: " + e, LogLevel.ERROR);
+                    // }
+                    // return false;
                 });
 
                 if (activity == null) {
@@ -1456,6 +1538,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         return map;
     }
 
+    public static List<String> toListString(JSONArray array) throws JSONException {
+        List<String> list = new ArrayList<>();
+        for (int i = 0; i < array.length(); i++) {
+            String value = array.getString(i);
+            list.add(value);
+        }
+        return list;
+    }
+
     public static List<Object> toList(JSONArray array) throws JSONException {
         List<Object> list = new ArrayList<>();
         for (int i = 0; i < array.length(); i++) {
@@ -1664,6 +1755,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
         if (_config.has("enableAllConsents") && _config.getBoolean("enableAllConsents")) {
              this.config.giveAllConsents();
+        }
+
+        if (_config.has("autoEnrollABOnDownload") && _config.getBoolean("autoEnrollABOnDownload")) {
+             this.config.enrollABOnRCDownload();
         }
 
         if (_config.has("autoEnrollABOnDownload") && _config.getBoolean("autoEnrollABOnDownload")) {
