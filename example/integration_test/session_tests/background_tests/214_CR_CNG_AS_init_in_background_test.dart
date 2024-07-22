@@ -6,7 +6,7 @@ import '../../utils.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  testWidgets('214_CR_CNG_init_in_background_test', (WidgetTester tester) async {
+  testWidgets('214_CR_CNG_AS_init_in_background_test', (WidgetTester tester) async {
     FlutterForegroundTask.minimizeApp();
     await Future.delayed(const Duration(seconds: 1));
 
