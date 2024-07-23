@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
 import 'countly_config.dart';
 import 'countly_state.dart';
+import 'crash.dart';
 import 'device_id.dart';
 import 'device_id_internal.dart';
 import 'remote_config.dart';
@@ -118,6 +119,7 @@ class Countly {
   static VoidCallback? _widgetShown;
   static VoidCallback? _widgetClosed;
   static Function(String? error)? _remoteConfigCallback;
+  static GlobalCrashFilterCallback? _globalCrashFilterCallback;
   static int lastUsedRCID = 0;
   static Function(String? error)? _ratingWidgetCallback;
   static Function(Map<String, dynamic> widgetData, String? error)? _feedbackWidgetDataCallback;
@@ -258,6 +260,9 @@ class Countly {
     }
     if (config.enableUnhandledCrashReporting != null) {
       _enableCrashReportingFlag = config.enableUnhandledCrashReporting!;
+    }
+    if (config.globalCrashFilterCallback != null) {
+      _globalCrashFilterCallback = config.globalCrashFilterCallback!;
     }
     _channel.setMethodCallHandler(_methodCallHandler);
 
@@ -1718,18 +1723,43 @@ class Countly {
     }
     int segCount = segmentation != null ? segmentation.length : 0;
     log('Calling "logException":[$exception] nonfatal:[$nonfatal]: with segmentation count:[$segCount]');
-    List<String> args = [];
-    args.add(exception);
-    args.add(nonfatal.toString());
-    if (segmentation != null) {
-      segmentation.forEach((k, v) {
-        args.add(k.toString());
-        args.add(v.toString());
+
+    final crashData = CrashData(segmentation: segmentation, nonfatal: nonfatal, exception: exception);
+    final filteredCrashData = _crashFilterCheck(crashData);
+    if (filteredCrashData == null) {
+      String message = '"logException" globalCrashFilterCallback returned null. Ignoring crash.';
+      log('logException, $message', logLevel: LogLevel.INFO);
+      return message;
+    }
+
+    List<dynamic> args = [];
+    args.add(filteredCrashData.exception);
+    args.add(filteredCrashData.nonfatal);
+    final crashSegmentation = filteredCrashData.segmentation;
+    if (crashSegmentation != null) {
+      crashSegmentation.forEach((k, v) {
+        args.add(k);
+        args.add(v);
       });
     }
+
     final String? result = await _channel.invokeMethod('logException', <String, dynamic>{'data': json.encode(args)});
 
     return result;
+  }
+
+  /// Calls globalCrashFilterCallback on the crashData and returns the manipulated crashData
+  /// param CrashData crashData object to check
+  /// return CrashData filtered crash data
+  static CrashData? _crashFilterCheck(CrashData crashData) {
+    log('Calling "crashFilterCheck": crashData:[$crashData]');
+    if (_globalCrashFilterCallback == null) {
+      return crashData;
+    }
+
+    final filteredCrashData = _globalCrashFilterCallback!(crashData);
+    log('crashFilterCheck, filteredCrashData:[$filteredCrashData]');
+    return filteredCrashData;
   }
 
   /// Set optional key/value segment added for crash reports.
