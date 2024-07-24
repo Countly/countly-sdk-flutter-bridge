@@ -12,6 +12,8 @@
   * `getDeviceIDType`
   * `changeDeviceId`
 
+* Mitigated an issue where some crash reports are not automatically sent when you `enableCrashReporting` from config.
+
 ## 24.7.x-np
 * Added a new configuration option `enableTemporaryDeviceIDMode` to 'CountlyConfig' interface
 * Introduced a new `deviceID` interface for grouping device ID management related methods:
@@ -25,6 +27,8 @@
   * `getCurrentDeviceId`
   * `getDeviceIDType`
   * `changeDeviceId`
+
+* Mitigated an issue where some crash reports are not automatically sent when you `enableCrashReporting` from config.
 
 ## 24.7.0
 * Added support for the automatic sending of user properties to the server without requiring an explicit call to the `save` method to enhance data fidelity.
