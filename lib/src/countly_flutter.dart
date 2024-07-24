@@ -257,6 +257,13 @@ class Countly {
       }
     }
     if (config.enableUnhandledCrashReporting != null) {
+      FlutterError.onError = (e) {
+        _recordFlutterError(e);
+      };
+      PlatformDispatcher.instance.onError = (error, stack) {
+        recordDartError(error, stack);
+        return true;
+      };
       _enableCrashReportingFlag = config.enableUnhandledCrashReporting!;
     }
     _channel.setMethodCallHandler(_methodCallHandler);
