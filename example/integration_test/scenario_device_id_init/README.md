@@ -23,3 +23,8 @@ CR:Consent Required
 CNR:Consent not Required
 CG:Session Consent given
 CNG:Session Consent not given
+
+## Anomalies
+
+Android:
+- enableTempID and setRequiresConsent. has 2 requests in event queue. iOS has none.
