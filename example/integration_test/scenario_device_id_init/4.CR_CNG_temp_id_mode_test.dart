@@ -25,7 +25,7 @@ void main() {
 
     // Get request and event queues from native side
     List<String> requestList = await getRequestQueue(); // List of strings
-    expect(requestList.length, 0);
+    expect(requestList.length, 2); // consent and location
     List<String> eventList = await getEventQueue(); // List of strings
     expect(eventList.length, 0);
   });
