@@ -15,8 +15,7 @@ void main() {
     await testDeviceIDType(DeviceIdType.TEMPORARY_ID);
     // Get request and event queues from native side
     List<String> requestList = await getRequestQueue(); // List of strings
-    expect(requestList.length, 0);
-    // Android has 2 items in requestQueue, iOS 0.
+    expect(requestList.length, 2); // consent and location
     List<String> eventList = await getEventQueue(); // List of strings
     expect(eventList.length, 0);
   });
