@@ -174,7 +174,7 @@ class CountlyConfig {
     return this;
   }
 
-  /// Set the threshold for event grouping. Event count that is bellow the
+  /// Set the threshold for event grouping. Event count that is below the
   /// threshold will be sent on update ticks.
   CountlyConfig setEventQueueSizeToSend(int threshold) {
     _eventQueueSizeThreshold = threshold;
