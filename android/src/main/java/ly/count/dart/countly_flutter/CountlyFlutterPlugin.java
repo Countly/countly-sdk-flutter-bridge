@@ -14,6 +14,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 import ly.count.android.sdk.Countly;
 import ly.count.android.sdk.CountlyConfig;
 import ly.count.android.sdk.CountlyStore;
+import ly.count.android.sdk.CrashData;
 import ly.count.android.sdk.ModuleLog;
 import ly.count.android.sdk.ExperimentInformation;
 import ly.count.android.sdk.FeedbackRatingCallback;
@@ -246,6 +247,18 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         log("CountlyFlutterPlugin", LogLevel.INFO);
     }
 
+    private void notifyPublicChannelGCFC(CrashData crash) {
+         Map<String, Object> data = new HashMap<>();
+         data.put("b", crash.getBreadcrumbs());
+         data.put("m", crash.getCrashMetrics());
+         data.put("cs", crash.getCrashSegmentation());
+         data.put("f", crash.getFatal());
+         data.put("s", crash.getStackTrace());
+
+         log("notifyPublicChannelGCFC, CrashData: [" + data + "]", LogLevel.INFO);
+         methodChannel.invokeMethod("globalCrashFilterCallback", data);
+    }
+
     //-------------METHOD CALL HANDLER------------------
     @Override
     public void onMethodCall(MethodCall call, final Result result) {
@@ -279,6 +292,18 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestIDGlobalCallback);
                     }
                 });
+
+                if (config.has("globalCrashFilterCallback")) {
+                    this.config.crashes.setGlobalCrashFilterCallback(crash -> {
+                        Map<String, Object> segmentation = crash.getCrashSegmentation();
+                        if (segmentation.containsKey("__cs__")) {
+                            log("setGlobalCrashFilterCallback crash already filtered. Sending to server.", LogLevel.INFO);
+                            return false;
+                        }
+                        notifyPublicChannelGCFC(crash);
+                        return true;
+                    });
+                }
 
                 if (activity == null) {
                     log("Activity is 'null' during init, cannot set Application", LogLevel.WARNING);
