@@ -43,25 +43,27 @@ void main() {
     print('EQ length: ${eventList.length}');
 
     // Currently
-    // - begin_session
-    // - change ID
-    // - end session
-    // - begin_session
-    // - end session (ios only)
-    // - change ID
+    // 0- begin_session
+    // 1- change ID
+    // 2- end session
+    // 3- begin_session
+    // 4- end session
+    // 5- begin_session
+    // 6- change ID
     // EQ: orientation (android only)
-    expect(requestList.length, Platform.isAndroid ? 5 : 6);
+    expect(requestList.length, Platform.isAndroid ? 7 : 6);
+    expect(eventList.length, 1);
 
     var i = 0;
     for (var element in requestList) {
       Map<String, List<String>> queryParams = Uri.parse("?" + element).queryParametersAll;
       testCommonRequestParams(queryParams); // tests
-      if (i == 0 || i == 3) {
+      if (i == 0 || i == 3 || i == 5) {
         expect(queryParams['begin_session']?[0], '1');
         if (i == 3) {
           expect(queryParams['device_id']?[0], 'newID_2');
         }
-      } else if (i == 1 || (Platform.isAndroid && i == 4) || (Platform.isIOS && i == 5)) {
+      } else if (i == 1 || (Platform.isAndroid && i == 6) || (Platform.isIOS && i == 5)) {
         expect(queryParams['old_device_id']?[0].isNotEmpty, true);
         if (i == 5) {
           expect(queryParams['old_device_id']?[0], 'newID_2');
