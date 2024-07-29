@@ -283,6 +283,7 @@ static dispatch_once_t onceToken;
     if (consentForUserDetails)
     {
         CLY_LOG_D(@"Consent for UserDetails is given.");
+        [CountlyCommon.sharedInstance recordOrientation];
         [Countly.user save];
     }
     else
@@ -350,6 +351,8 @@ static dispatch_once_t onceToken;
     else
     {
         CLY_LOG_D(@"Consent for Location is cancelled.");
+        
+        [CountlyConnectionManager.sharedInstance sendLocationInfo];
     }
 }
 
