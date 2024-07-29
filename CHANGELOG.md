@@ -12,8 +12,8 @@
   * `getDeviceIDType`
   * `changeDeviceId`
 
-* Underlying Android SDK version is 24.7.0
-* Underlying iOS SDK version is 24.7.0
+* Updated underlying Android SDK version to 24.7.1
+* Updated underlying iOS SDK version to 24.7.1
 
 ## 24.7.1-np
 * Added a new configuration option `enableTemporaryDeviceIDMode` to 'CountlyConfig' interface
@@ -29,8 +29,8 @@
   * `getDeviceIDType`
   * `changeDeviceId`
 
-* Underlying Android SDK version is 24.7.0
-* Underlying iOS SDK version is 24.7.0
+* Updated underlying Android SDK version to 24.7.1
+* Updated underlying iOS SDK version to 24.7.1
 
 ## 24.7.0
 * Added support for the automatic sending of user properties to the server without requiring an explicit call to the `save` method to enhance data fidelity.
