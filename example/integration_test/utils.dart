@@ -417,8 +417,10 @@ void checkBeginSession(Map<String, List<String>> queryParams, {String deviceID =
 void checkMerge(Map<String, List<String>> queryParams, {String deviceID = '', String oldDeviceID = ''}) {
   expect(queryParams['old_device_id']?[0].isNotEmpty, true);
   if (deviceID.isNotEmpty) {
-    expect(queryParams['old_device_id']?[0], oldDeviceID);
     expect(queryParams['device_id']?[0], deviceID);
+  }
+  if (oldDeviceID.isNotEmpty) {
+    expect(queryParams['old_device_id']?[0], oldDeviceID);
   }
 }
 

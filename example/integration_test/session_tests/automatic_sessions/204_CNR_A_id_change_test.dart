@@ -84,9 +84,9 @@ void main() {
       if ((Platform.isAndroid && androidBeginSession.contains(i)) || (Platform.isIOS && iosBeginSession.contains(i))) {
         checkBeginSession(queryParams);
       } else if ((Platform.isAndroid && androidMerge.contains(i)) || (Platform.isIOS && iosMerge.contains(i))) {
-        checkMerge(queryParams);
+        checkMerge(queryParams, deviceID: 'newID', oldDeviceID: i != 1 ? 'newID_2' : '');
       } else if ((Platform.isAndroid && androidEndSession.contains(i)) || (Platform.isIOS && iosEndSession.contains(i))) {
-        checkEndSession(queryParams);
+        checkEndSession(queryParams, deviceID: i == 3 || i == 2 ? 'newID' : 'newID_2');
       } else if ((Platform.isIOS && i == 2)) {
         expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
       }
