@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:countly_flutter/countly_flutter.dart';
@@ -11,26 +12,37 @@ void main() {
   testWidgets('204_CNR_A_id_change', (WidgetTester tester) async {
     // Initialize the SDK
     CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true);
-    await Countly.initWithConfig(config);
+    await Countly.initWithConfig(config); // generates 0.begin_session
 
     await Future.delayed(Duration(seconds: 1));
-    await Countly.changeDeviceId('newID', true);
+    await Countly.instance.deviceId.changeWithMerge('newID'); // generates 1.change_id
+
+    // useless manual calls
     await Countly.instance.sessions.beginSession();
     await Countly.instance.sessions.updateSession();
     await Countly.instance.sessions.endSession();
 
     await Future.delayed(Duration(seconds: 2));
-    await Countly.changeDeviceId('newID_2', false);
+    await Countly.instance.deviceId.changeWithoutMerge('newID_2');
+    // generates 2.end_session, 3.begin_session
+
+    // useless manual calls
     await Countly.instance.sessions.beginSession();
     await Countly.instance.sessions.updateSession();
     await Countly.instance.sessions.endSession();
 
-    FlutterForegroundTask.minimizeApp();
-    await tester.pump(Duration(seconds: 2));
-    FlutterForegroundTask.launchApp();
+    FlutterForegroundTask.minimizeApp(); // generates 4.end_session
+    if (Platform.isIOS) {
+      printMessageMultipleTimes('will now go to background, get ready to go foreground manually', 3);
+    }
+    await tester.pump(Duration(seconds: 3));
+    FlutterForegroundTask.launchApp(); // generates 5.begin_session
+    if (Platform.isIOS) {
+      printMessageMultipleTimes('waiting for 3 seconds, now go to foreground', 3);
+    }
+    await tester.pump(Duration(seconds: 3));
 
-    await Future.delayed(Duration(seconds: 1));
-    await Countly.changeDeviceId('newID', true);
+    await Countly.instance.deviceId.changeWithMerge('newID'); // generates 6.change_id
 
     // Get request and event queues from native side
     List<String> requestList = await getRequestQueue(); // List of strings
@@ -54,29 +66,31 @@ void main() {
     expect(requestList.length, Platform.isAndroid ? 7 : 8);
     expect(eventList.length, Platform.isAndroid ? 1 : 0);
 
+    if (Platform.isAndroid) {
+      Map<String, dynamic> event = json.decode(eventList[0]);
+      expect("[CLY]_orientation", event['key']);
+    }
+
     var i = 0;
+    var androidBeginSession = [0, 3, 5];
+    var iosBeginSession = [0, 4, 6];
+    var androidMerge = [1, 6];
+    var iosMerge = [1, 4];
+    var androidEndSession = [2, 4];
+    var iosEndSession = [3, 5];
     for (var element in requestList) {
       Map<String, List<String>> queryParams = Uri.parse("?" + element).queryParametersAll;
       testCommonRequestParams(queryParams); // tests
-      if (i == 0 || (Platform.isAndroid && (i == 3 || i == 5)) || (Platform.isIOS && (i == 4 || i == 6))) {
-        expect(queryParams['begin_session']?[0], '1');
-        if (i == 3 || i == 4 || i == 6) {
-          expect(queryParams['device_id']?[0], 'newID_2');
-        }
-      } else if (i == 1 || (Platform.isAndroid && i == 6) || (Platform.isIOS && i == 7)) {
-        expect(queryParams['old_device_id']?[0].isNotEmpty, true);
-        if (i == 7) {
-          expect(queryParams['old_device_id']?[0], 'newID_2');
-        }
-        expect(queryParams['device_id']?[0], 'newID');
-      } else if ((Platform.isAndroid && (i == 2 || i == 4)) || (Platform.isIOS && (i == 3 || i == 5) )) {
-        expect(queryParams['end_session']?[0].isNotEmpty, true);
-        expect(queryParams['session_duration']?[0].isNotEmpty, true);
-        expect(queryParams['device_id']?[0], i == 5 ? 'newID_2' : 'newID');
+      if ((Platform.isAndroid && androidBeginSession.contains(i)) || (Platform.isIOS && iosBeginSession.contains(i))) {
+        checkBeginSession(queryParams);
+      } else if ((Platform.isAndroid && androidMerge.contains(i)) || (Platform.isIOS && iosMerge.contains(i))) {
+        checkMerge(queryParams);
+      } else if ((Platform.isAndroid && androidEndSession.contains(i)) || (Platform.isIOS && iosEndSession.contains(i))) {
+        checkEndSession(queryParams);
       } else if ((Platform.isIOS && i == 2)) {
         expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
       }
-      
+
       print('RQ.$i: $queryParams');
       print('========================');
       i++;
