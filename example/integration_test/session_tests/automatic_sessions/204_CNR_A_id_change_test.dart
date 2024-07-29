@@ -45,33 +45,39 @@ void main() {
     // Currently
     // - begin_session
     // - change ID
+    // - Orientation (ios only)
     // - end session
     // - begin_session
     // - end session (ios only)
+    // - begin session (ios only)
     // - change ID
     // EQ: orientation (android only)
-    expect(requestList.length, Platform.isAndroid ? 5 : 6);
+    expect(requestList.length, Platform.isAndroid ? 5 : 8);
 
     var i = 0;
     for (var element in requestList) {
       Map<String, List<String>> queryParams = Uri.parse("?" + element).queryParametersAll;
       testCommonRequestParams(queryParams); // tests
-      if (i == 0 || i == 3) {
+      if (i == 0 || (Platform.isAndroid && i == 3) || (Platform.isIOS && (i == 4 || i == 6))) {
         expect(queryParams['begin_session']?[0], '1');
-        if (i == 3) {
+        if (i == 3 || i == 4 || i == 6) {
           expect(queryParams['device_id']?[0], 'newID_2');
         }
-      } else if (i == 1 || (Platform.isAndroid && i == 4) || (Platform.isIOS && i == 5)) {
+      } else if (i == 1 || (Platform.isAndroid && i == 4) || (Platform.isIOS && i == 7)) {
         expect(queryParams['old_device_id']?[0].isNotEmpty, true);
-        if (i == 5) {
+        if (i == 7) {
           expect(queryParams['old_device_id']?[0], 'newID_2');
         }
         expect(queryParams['device_id']?[0], 'newID');
-      } else if (i == 2 || (Platform.isIOS && i == 4)) {
+      } else if ((Platform.isAndroid && i == 2) || (Platform.isIOS && (i == 3 || i == 5) )) {
         expect(queryParams['end_session']?[0].isNotEmpty, true);
         expect(queryParams['session_duration']?[0].isNotEmpty, true);
-        expect(queryParams['device_id']?[0], i == 4 ? 'newID_2' : 'newID');
+        expect(queryParams['device_id']?[0], i == 5 ? 'newID_2' : 'newID');
+      } else if ((Platform.isIOS && i == 2)) {
+        expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
       }
+
+
 
       print('RQ.$i: $queryParams');
       print('========================');
