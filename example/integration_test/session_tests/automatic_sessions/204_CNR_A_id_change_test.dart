@@ -51,7 +51,7 @@ void main() {
     // 5- begin_session (auto fg in ios not working)
     // 6- change ID
     // EQ: orientation (android only)
-    expect(requestList.length, Platform.isAndroid ? 7 : 6);
+    expect(requestList.length, Platform.isAndroid ? 7 : 8);
     expect(eventList.length, Platform.isAndroid ? 1 : 0);
 
     var i = 0;
