@@ -49,8 +49,8 @@ void main() {
     // - begin session
     // - end session
     // - begin session
-    // - end session => changed this
-    expect(requestList.length, Platform.isAndroid ? 5 : 4);
+    // - end session => changed this => android does not create this anymore
+    expect(requestList.length, 4); //android an ios now generates same amount of requests
 
     var i = 0;
     for (var element in requestList) {
@@ -62,7 +62,7 @@ void main() {
       } else if (i == 1 || i == 3) {
         expect(queryParams['begin_session']?[0], '1');
         expect(queryParams['device_id']?[0], i == 1 ? 'newID' : 'newID_2');
-      } else if (i == 2 || (Platform.isAndroid && i == 4)) {
+      } else if (i == 2) {
         expect(queryParams['end_session']?[0], '1');
         expect(queryParams['session_duration']?[0], '2');
         expect(queryParams['device_id']?[0], i == 2 ? 'newID' : 'newID_2');
@@ -72,5 +72,7 @@ void main() {
       print('========================');
       i++;
     }
+
+    expect(i, 4); // counter must be only 4
   });
 }
