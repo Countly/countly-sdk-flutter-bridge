@@ -431,3 +431,10 @@ void checkEndSession(Map<String, List<String>> queryParams, {String deviceID = '
     expect(queryParams['device_id']?[0], deviceID);
   }
 }
+
+void printQueues(List<String> requestList, List<String> eventList) {
+  print('RQ: $requestList');
+  print('RQ length: ${requestList.length}');
+  print('EQ: $eventList');
+  print('EQ length: ${eventList.length}');
+}
