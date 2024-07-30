@@ -2037,11 +2037,14 @@ class Countly {
       countlyConfig['appKey'] = config.appKey;
       countlyConfig['serverURL'] = config.serverURL;
 
-      if (config.deviceID != null && config.deviceID!.isNotEmpty) {
-        countlyConfig['deviceID'] = config.deviceID;
-        log('"_configToJson", Device ID provided: [${config.deviceID}]', logLevel: LogLevel.INFO);
+      final deviceID = config.deviceID?.trim();
+      if (deviceID == null) {
+        log('"_configToJson", no device ID provided', logLevel: LogLevel.INFO);
+      } else if (deviceID.isEmpty) {
+        log('"_configToJson", device ID cannot be an empty string.', logLevel: LogLevel.WARNING);
       } else {
-        log('"_configToJson", invalid device ID provided: [${config.deviceID}]', logLevel: LogLevel.WARNING);
+        countlyConfig['deviceID'] = deviceID;
+        log('"_configToJson", Device ID provided: [$deviceID]', logLevel: LogLevel.INFO);
       }
 
       if (config.customCrashSegment != null) {
