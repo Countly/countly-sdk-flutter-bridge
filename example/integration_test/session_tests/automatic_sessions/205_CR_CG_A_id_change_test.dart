@@ -15,7 +15,7 @@ void main() {
     await Countly.initWithConfig(config);
 
     await tester.pump(Duration(seconds: 1));
-    await Countly.changeDeviceId('newID', true);
+    await Countly.instance.deviceId.changeWithMerge('newID');
     await Countly.instance.sessions.beginSession();
     await Countly.instance.sessions.updateSession();
     await Countly.instance.sessions.endSession();
@@ -25,19 +25,19 @@ void main() {
     FlutterForegroundTask.launchApp();
 
     await tester.pump(Duration(seconds: 1));
-    await Countly.changeDeviceId('newID_2', false);
+    await Countly.instance.deviceId.changeWithoutMerge('newID_2');
     await Countly.instance.sessions.beginSession();
     await Countly.instance.sessions.updateSession();
     await Countly.instance.sessions.endSession();
 
     await tester.pump(Duration(seconds: 1));
-    await Countly.changeDeviceId('newID', true);
+    await Countly.instance.deviceId.changeWithMerge('newID');
 
     await tester.pump(Duration(seconds: 1));
-    await Countly.changeDeviceId('newID_2', false);
+    await Countly.instance.deviceId.changeWithoutMerge('newID_2');
 
     await tester.pump(Duration(seconds: 1));
-    await Countly.changeDeviceId('newID', true);
+    await Countly.instance.deviceId.changeWithMerge('newID');
 
     // Get request and event queues from native side
     List<String> requestList = await getRequestQueue(); // List of strings
