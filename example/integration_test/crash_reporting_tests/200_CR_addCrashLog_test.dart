@@ -5,8 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import '../utils.dart';
 
-/// Manual session obeys no consent rules or not
-/// expected requests are below
+/// Test crash reporting when using logException
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('200_CR_addCrashLog_test', (WidgetTester tester) async {
@@ -26,7 +25,7 @@ void main() {
     // Some logs for debugging
     print('RQ: $requestList');
     print('RQ length: ${requestList.length}');
-    // expect(requestList.length, 2);
+    expect(requestList.length, 2);
 
     for (int i = 0; i < requestList.length; i++) {
       Map<String, List<String>> queryParams = Uri.parse('?' + requestList[i]).queryParametersAll;

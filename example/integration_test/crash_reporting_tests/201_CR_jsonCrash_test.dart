@@ -5,8 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import '../utils.dart';
 
-/// Manual session obeys no consent rules or not
-/// expected requests are below
+/// Test crash reporting when using recordDartError
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('201_CR_jsonCrash_test', (WidgetTester tester) async {
