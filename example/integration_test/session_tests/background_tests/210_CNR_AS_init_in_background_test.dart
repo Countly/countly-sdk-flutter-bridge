@@ -15,6 +15,7 @@ void main() {
     expect(requestList.length, 0);
     expect(eventList.length, 0);
     FlutterForegroundTask.minimizeApp();
+    await Future.delayed(const Duration(seconds: 2));
 
     // Initialize the SDK
     CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true);
