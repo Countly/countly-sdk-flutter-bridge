@@ -63,11 +63,12 @@ void main() {
     print('EQ length: ${eventList.length}');
 
     // There should be:
-    // - begin_session
-    // - update_session
-    // - update_session
-    // - end_session
-    expect(requestList.length, 4);
+    // 0- begin_session
+    // 1- update_session
+    // 2- update_session
+    // 3- orientation
+    // 4- end_session
+    expect(requestList.length, 5);
 
     var i = 0;
     for (var element in requestList) {
@@ -79,6 +80,8 @@ void main() {
         expect(queryParams['session_duration']?[0], '2');
         expect(queryParams['end_session'], null);
       } else if (i == 3) {
+        expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
+      }  else if (i == 4) {
         expect(queryParams['end_session']?[0], '1');
         expect(queryParams['session_duration']?[0], '2');
       }

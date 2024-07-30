@@ -80,7 +80,7 @@ void main() {
         expect(consentInRequest.length, Platform.isAndroid ? 14 : 11);
       } else if (i == 1) {
         expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
-      }  else if (i == 2) {
+      } else if (i == 2) {
         expect(queryParams['begin_session']?[0], '1');
       } else if (i == 3 || i == 4) {
         expect(queryParams['session_duration']?[0], '2');

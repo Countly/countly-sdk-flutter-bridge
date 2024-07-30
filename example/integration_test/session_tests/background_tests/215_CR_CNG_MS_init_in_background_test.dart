@@ -23,7 +23,7 @@ void main() {
 
     printQueues(requestList, eventList);
 
-    expect(requestList.length, 2); // consents, emp ty location
+    expect(requestList.length, 2); // consents, empty location
     expect(eventList.length, 0);
     if (Platform.isIOS) {
       printMessageMultipleTimes('will now go to background, get ready to go foreground manually', 3);
