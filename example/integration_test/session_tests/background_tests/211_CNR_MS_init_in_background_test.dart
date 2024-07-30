@@ -21,10 +21,7 @@ void main() {
     List<String> requestList = await getRequestQueue(); // List of strings
     List<String> eventList = await getEventQueue(); // List of json objects
 
-    print('RQ: $requestList');
-    print('RQ length: ${requestList.length}');
-    print('EQ: $eventList');
-    print('EQ length: ${eventList.length}');
+    printQueues(requestList, eventList);
 
     expect(requestList.length, 0);
     expect(eventList.length, 0);
@@ -36,18 +33,12 @@ void main() {
     await tester.pump(Duration(seconds: 1));
 
     // Some logs for debugging
-    print('RQ: $requestList');
-    print('RQ length: ${requestList.length}');
-    print('EQ: $eventList');
-    print('EQ length: ${eventList.length}');
+    printQueues(requestList, eventList);
 
     requestList = await getRequestQueue(); // List of strings
     eventList = await getEventQueue(); // List of json objects
 
-    print('RQ: $requestList');
-    print('RQ length: ${requestList.length}');
-    print('EQ: $eventList');
-    print('EQ length: ${eventList.length}');
+    printQueues(requestList, eventList);
 
     expect(requestList.length, 0);
     expect(eventList.length, 0);

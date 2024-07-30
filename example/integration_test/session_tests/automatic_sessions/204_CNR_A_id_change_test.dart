@@ -49,10 +49,7 @@ void main() {
     List<String> eventList = await getEventQueue(); // List of json objects
 
     // Some logs for debugging
-    print('RQ: $requestList');
-    print('EQ: $eventList');
-    print('RQ length: ${requestList.length}');
-    print('EQ length: ${eventList.length}');
+    printQueues(requestList, eventList);
 
     // Currently
     // 0- begin_session
