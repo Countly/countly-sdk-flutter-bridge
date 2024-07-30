@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,7 +29,7 @@ void main() {
     print('EQ length: ${eventList.length}');
 
     expect(requestList.length, 1);
-    expect(eventList.length, 0);
+    expect(eventList.length, Platform.isAndroid ? 1 : 0); //orientation 
   });
 }
 
