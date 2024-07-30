@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import '../../utils.dart';
 import 'dart:convert';
-import 'dart:io';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
