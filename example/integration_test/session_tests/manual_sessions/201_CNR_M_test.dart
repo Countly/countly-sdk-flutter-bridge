@@ -81,7 +81,7 @@ void main() {
         expect(queryParams['end_session'], null);
       } else if (i == 3) {
         expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
-      }  else if (i == 4) {
+      } else if (i == 4) {
         expect(queryParams['end_session']?[0], '1');
         expect(queryParams['session_duration']?[0], '2');
       }
