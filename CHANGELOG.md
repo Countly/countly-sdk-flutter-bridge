@@ -1,4 +1,4 @@
-## 24.7.x
+## 24.7.1
 * Added a new configuration option `enableTemporaryDeviceIDMode` to 'CountlyConfig' interface
 * Introduced a new `deviceID` interface for grouping device ID management related methods:
   * `setID`
@@ -12,7 +12,10 @@
   * `getDeviceIDType`
   * `changeDeviceId`
 
-## 24.7.x-np
+* Updated underlying Android SDK version to 24.7.1
+* Updated underlying iOS SDK version to 24.7.1
+
+## 24.7.1-np
 * Added a new configuration option `enableTemporaryDeviceIDMode` to 'CountlyConfig' interface
 * Introduced a new `deviceID` interface for grouping device ID management related methods:
   * `setID`
@@ -25,6 +28,9 @@
   * `getCurrentDeviceId`
   * `getDeviceIDType`
   * `changeDeviceId`
+
+* Updated underlying Android SDK version to 24.7.1
+* Updated underlying iOS SDK version to 24.7.1
 
 ## 24.7.0
 * Added support for the automatic sending of user properties to the server without requiring an explicit call to the `save` method to enhance data fidelity.
