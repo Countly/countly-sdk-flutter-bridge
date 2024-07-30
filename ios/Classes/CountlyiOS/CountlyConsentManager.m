@@ -143,7 +143,10 @@ static dispatch_once_t onceToken;
         return;
 
     if ([features containsObject:CLYConsentSessions] && self.consentForSessions)
+    {
+        [CountlyConnectionManager.sharedInstance endSession];
         self.consentForSessions = NO;
+    }
 
     if ([features containsObject:CLYConsentEvents] && self.consentForEvents)
         self.consentForEvents = NO;
@@ -283,6 +286,7 @@ static dispatch_once_t onceToken;
     if (consentForUserDetails)
     {
         CLY_LOG_D(@"Consent for UserDetails is given.");
+        [CountlyCommon.sharedInstance recordOrientation];
         [Countly.user save];
     }
     else
@@ -350,6 +354,8 @@ static dispatch_once_t onceToken;
     else
     {
         CLY_LOG_D(@"Consent for Location is cancelled.");
+        
+        [CountlyConnectionManager.sharedInstance sendLocationInfo];
     }
 }
 

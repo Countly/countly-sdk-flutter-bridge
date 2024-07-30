@@ -11,18 +11,8 @@ void main() {
     CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true).enableTemporaryDeviceIDMode().setRequiresConsent(true).giveAllConsents();
     await Countly.initWithConfig(config);
 
-    DeviceIdType? type = await Countly.getDeviceIDType();
-    DeviceIdType? newModuleType = await Countly.instance.deviceId.getIDType();
-    String? id = await Countly.getCurrentDeviceId();
-    String? newModuleId = await Countly.instance.deviceId.getID();
-
-    // Verify the device ID type
-    expect(type, DeviceIdType.TEMPORARY_ID);
-    expect(newModuleType, DeviceIdType.TEMPORARY_ID);
-    // Verify the device ID
-    expect(id, Countly.temporaryDeviceID);
-    expect(newModuleId, Countly.temporaryDeviceID);
-
+    await testDeviceID(Countly.temporaryDeviceID);
+    await testDeviceIDType(DeviceIdType.TEMPORARY_ID);
     // Get request and event queues from native side
     List<String> requestList = await getRequestQueue(); // List of strings
     expect(requestList.length, 2);

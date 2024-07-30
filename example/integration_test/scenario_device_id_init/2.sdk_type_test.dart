@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -12,20 +10,9 @@ void main() {
     // Initialize the SDK
     CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true);
     await Countly.initWithConfig(config);
-    // Get the device ID type
-    DeviceIdType? type = await Countly.getDeviceIDType();
-    DeviceIdType? newModuleType = await Countly.instance.deviceId.getIDType();
-    String? id = await Countly.getCurrentDeviceId();
-    String? newModuleId = await Countly.instance.deviceId.getID();
-    // Verify the device ID type
-    expect(type, DeviceIdType.SDK_GENERATED);
-    expect(newModuleType, DeviceIdType.SDK_GENERATED);
-    expect(id!.length, Platform.isIOS ? 36 : 16);
-    expect(newModuleId!.length, Platform.isIOS ? 36 : 16);
-    expect(id, isNot('test'));
-    expect(newModuleId, isNot('test'));
-    expect(id, newModuleId);
 
+    final id = await testDeviceID(isNot('test'));
+    await testDeviceIDType(DeviceIdType.SDK_GENERATED);
     await testLastRequestParams({'device_id': id});
   });
 }
