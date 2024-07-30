@@ -27,7 +27,7 @@ void main() {
     print('EQ length: ${eventList.length}');
 
     expect(requestList.length, 1);
-    expect(eventList.length, 0);
+    expect(eventList.length, 1); //orientation 
   });
 }
 
