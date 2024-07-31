@@ -57,7 +57,7 @@ void main() {
     // - location
     // - change ID
     // - change ID
-    expect(requestList.length, 10);
+    expect(requestList.length, 11);
     expect(eventList.length, 0);
 
     var i = 0;
@@ -72,19 +72,19 @@ void main() {
           expect(consentInRequest[key], true);
         }
         expect(consentInRequest.length, Platform.isAndroid ? 14 : 11);
-      } else if ((Platform.isAndroid && (i == 1 || i == 4)) || (Platform.isIOS && (i == 0 || i == 5))) {
+      } else if ((Platform.isAndroid && (i == 1 || i == 5)) || (Platform.isIOS && (i == 0 || i == 5))) {
         expect(queryParams['begin_session']?[0], '1');
-      } else if (i == 2 || (Platform.isAndroid && (i == 8 || i == 9)) || (Platform.isIOS && (i == 8 || i == 9))) {
+      } else if (i == 2 || (Platform.isAndroid && (i == 10 || i == 9)) || (Platform.isIOS && (i == 8 || i == 9))) {
         expect(queryParams['old_device_id']?[0].isNotEmpty, true);
         expect(queryParams['device_id']?[0], 'newID');
-      } else if (i == 6 || (Platform.isIOS && i == 4)) {
+      } else if ((Platform.isAndroid && (i == 4 || i == 7)) || (Platform.isIOS && (i == 4 || i == 6))) {
         expect(queryParams['end_session']?[0], '1');
         expect(queryParams['session_duration']?[0].isNotEmpty, true);
         expect(queryParams['device_id']?[0], 'newID');
-      } else if ((Platform.isAndroid && i == 5) || (Platform.isIOS && i == 3)) {
+      } else if ((Platform.isAndroid && (i == 3 || i == 6)) || (Platform.isIOS && i == 3)) {
         expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
         expect(queryParams['device_id']?[0], 'newID');
-      } else if (Platform.isAndroid && (i == 7)) {
+      } else if (Platform.isAndroid && (i == 8)) {
         expect(queryParams['location'], ['']);
         expect(queryParams['device_id']?[0], 'newID');
       }
