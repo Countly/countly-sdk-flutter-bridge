@@ -64,10 +64,7 @@ void main() {
     List<String> eventList = await getEventQueue(); // List of json objects
 
     // Some logs for debugging
-    print('RQ: $requestList');
-    print('EQ: $eventList');
-    print('RQ length: ${requestList.length}');
-    print('EQ length: ${eventList.length}');
+    printQueues(requestList, eventList);
 
     expect(requestList.length, 2);
     expect(eventList.length, 4);
@@ -82,10 +79,7 @@ void main() {
     eventList = await getEventQueue(); // List of json objects
 
     // Some logs for debugging
-    print('RQ: $requestList');
-    print('EQ: $eventList');
-    print('RQ length: ${requestList.length}');
-    print('EQ length: ${eventList.length}');
+    printQueues(requestList, eventList);
 
     await Countly.instance.userProfile.setProperty('key2', 'on');
     await Countly.instance.userProfile.setProperty('key2', 'off');

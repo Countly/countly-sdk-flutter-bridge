@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -17,8 +15,10 @@ void main() {
     await testDeviceIDType(DeviceIdType.TEMPORARY_ID);
     // Get request and event queues from native side
     List<String> requestList = await getRequestQueue(); // List of strings
-    expect(requestList.length, 2);
     List<String> eventList = await getEventQueue(); // List of strings
+    printQueues(requestList, eventList);
+
+    expect(requestList.length, 2);
     expect(eventList.length, 1); // orientation
   });
 }
