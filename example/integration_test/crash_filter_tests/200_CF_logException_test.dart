@@ -11,12 +11,24 @@ void main() {
   testWidgets('200_CF_logException_test', (WidgetTester tester) async {
     final errorString = 'SecretKey';
     final filterString = '*****';
-    final GlobalCrashFilterCallback globalCrashFilterCallback = (crash) {
-      // Check that the error string exists in the stackTrace
-      expect(crash.stackTrace.contains(errorString), true);
-      expect(crash.stackTrace.contains(filterString), false);
+    final segmentation = {'test_crash': 'test_segmentation'};
+    final GlobalCrashFilterCallback globalCrashFilterCallback = (crashData) {
+      final breadcrumbs = [...crashData.breadcrumbs];
+      // update the breadcrumb.
+      breadcrumbs.add('test');
 
-      return crash.copyWith(stackTrace: crash.stackTrace.replaceAll(errorString, filterString));
+      final crashMetrics = crashData.crashMetrics;
+      // update the breadcrumb.
+      crashMetrics.putIfAbsent('test_metric', () => 'test_crash');
+
+      // return the updated crashdata.
+      return crashData.copyWith(
+        breadcrumbs: breadcrumbs,
+        crashMetrics: crashMetrics,
+        crashSegmentation: segmentation,
+        fatal: true, // the fatal flag can be easily overridden
+        stackTrace: crashData.stackTrace.replaceAll(errorString, filterString),
+      );
     };
 
     // Initialize the SDK
@@ -45,6 +57,10 @@ void main() {
         // Check that the error string has been replace in the Global callback
         expect((crash['_error'] as String).contains(errorString), false);
         expect((crash['_error'] as String).contains(filterString), true);
+
+        print('crash[][1].runtimeType');
+        print(crash['_custom'][1].runtimeType);
+        expect(crash['_custom'][1], segmentation);
       }
       print('RQ.$i: $queryParams');
       print('========================');
