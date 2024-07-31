@@ -44,24 +44,22 @@ void main() {
     List<String> eventList = await getEventQueue(); // List of json objects
 
     // Some logs for debugging
-    print('RQ: $requestList');
-    print('EQ: $eventList');
-    print('RQ length: ${requestList.length}');
-    print('EQ length: ${eventList.length}');
+    printQueues(requestList, eventList);
 
     // Currently
-    // - consents (android only)
-    // - location (android only)
+    // - consents
+    // - location
     // - change ID
     // - change ID
     // - change ID
-    expect(requestList.length, Platform.isAndroid ? 5 : 3);
+    expect(requestList.length, 5);
+    expect(eventList.length, 0);
 
     var i = 0;
     for (var element in requestList) {
       Map<String, List<String>> queryParams = Uri.parse("?" + element).queryParametersAll;
       testCommonRequestParams(queryParams); // tests
-      if (Platform.isAndroid && i == 0) {
+      if (i == 0) {
         // example:
         // consent: [{"sessions":true,"crashes":true,"users":true,"push":true,"feedback":true,"scrolls":true,"remote-config":true,"attribution":true,"clicks":true,"location":true,"star-rating":true,"events":true,"views":true,"apm":true}]
         Map<String, dynamic> consentInRequest = jsonDecode(queryParams['consent']![0]);
@@ -69,10 +67,10 @@ void main() {
           expect(consentInRequest[key], false);
         }
         expect(consentInRequest.length, Platform.isAndroid ? 14 : 11);
-      } else if ((Platform.isAndroid && (i == 2 || i == 3 || i == 4)) || (Platform.isIOS && (i == 0 || i == 1 || i == 2))) {
+      } else if (i == 2 || i == 3 || i == 4) {
         expect(queryParams['old_device_id']?[0].isNotEmpty, true);
         expect(queryParams['device_id']?[0], 'newID');
-      } else if (Platform.isAndroid && (i == 1)) {
+      } else if (i == 1) {
         expect(queryParams['location'], ['']);
         expect(queryParams['device_id']?[0] != 'newID', true);
       }

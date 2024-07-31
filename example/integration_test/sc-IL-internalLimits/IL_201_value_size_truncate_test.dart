@@ -72,12 +72,13 @@ void main() {
       } else if (a == 5) {
         // 0) Custom Event
         List<dynamic> eventList = json.decode(queryParams['events']![0]);
-        var event = eventList[0];
+        int eventIdx = Platform.isAndroid ? 1 : 0; // why 1 for android, because 0 is orientation
+        var event = eventList[eventIdx];
         expect(event['key'], 'Event With Sum And Segment');
         expect(event['segmentation']['Country'], 'Turkey'.substring(0, MAX_VALUE_SIZE));
         expect(event['segmentation']['Age'], '28884'.substring(0, MAX_VALUE_SIZE));
         // 1) View Start (legacy)
-        var view = eventList[1];
+        var view = eventList[eventIdx + 1];
         expect(view['key'], '[CLY]_view');
         expect(view['segmentation']['Cats'], '12345'.substring(0, MAX_VALUE_SIZE));
         expect(view['segmentation']['Moons'], '9.9866'.substring(0, MAX_VALUE_SIZE));
@@ -89,14 +90,14 @@ void main() {
         expect(view['segmentation']['NotCamel'], 'Deerz'.substring(0, MAX_VALUE_SIZE));
         expect(view['segmentation']['Moose'], 'Deer'.substring(0, MAX_VALUE_SIZE));
         // 2) View End (legacy)
-        view = eventList[2];
+        view = eventList[eventIdx + 2];
         expect(view['key'], '[CLY]_view');
         expect(view['segmentation']['segment'], Platform.isIOS ? 'iOS' : 'Android');
         expect(view['segmentation']['name'], 'HomePage');
         expect(view['segmentation']['Camel'], 666);
         expect(view['segmentation']['NotCamel'], 'Deerz'.substring(0, MAX_VALUE_SIZE));
         // 3) View Start (AutoStopped)
-        view = eventList[3];
+        view = eventList[eventIdx + 3];
         expect(view['key'], '[CLY]_view');
         expect(view['segmentation']['Cats'], 12345);
         expect(view['segmentation']['Moons'], 9.9866);

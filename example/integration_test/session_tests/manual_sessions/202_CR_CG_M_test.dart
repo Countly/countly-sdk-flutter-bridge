@@ -3,6 +3,7 @@ import 'package:countly_flutter_np/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import '../../utils.dart';
+import 'dart:io';
 
 /// Check if no session requests generated
 void main() {
@@ -71,10 +72,10 @@ void main() {
         // example:
         // consent: [{"sessions":true,"crashes":true,"users":true,"push":true,"feedback":true,"scrolls":true,"remote-config":true,"attribution":true,"clicks":true,"location":true,"star-rating":true,"events":true,"views":true,"apm":true}]
         Map<String, dynamic> consentInRequest = jsonDecode(queryParams['consent']![0]);
-        for (var key in ['push', 'feedback', 'scrolls', 'crashes', 'attribution', 'users', 'events', 'clicks', 'remote-config', 'sessions', 'location', 'star-rating', 'views', 'apm']) {
+        for (var key in ['push', 'feedback', 'crashes', 'attribution', 'users', 'events', 'remote-config', 'sessions', 'location', 'views', 'apm']) {
           expect(consentInRequest[key], false);
         }
-        expect(consentInRequest.length, 14);
+        expect(consentInRequest.length, Platform.isAndroid ? 14 : 11);
       } else if (i == 1) {
         expect(queryParams['location'], ['']);
       }
