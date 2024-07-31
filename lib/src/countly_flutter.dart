@@ -238,13 +238,13 @@ class Countly {
   /// param CrashData crashData object to check
   /// return CrashData filtered crash data
   static CrashData? _crashFilterCheck(CrashData crashData) {
-    log('Calling "crashFilterCheck": crashData:[$crashData]', logLevel: LogLevel.INFO);
+    log('Calling "crashFilterCheck": crashData:[${crashData.toJson()}]', logLevel: LogLevel.INFO);
     if (_globalCrashFilterCallback == null) {
       return crashData;
     }
 
     final filteredCrashData = _globalCrashFilterCallback!(crashData);
-    log('crashFilterCheck, filteredCrashData:[$filteredCrashData]', logLevel: LogLevel.INFO);
+    log('crashFilterCheck, filteredCrashData:[${filteredCrashData?.toJson()}]', logLevel: LogLevel.INFO);
     return filteredCrashData;
   }
 
@@ -2233,6 +2233,10 @@ class Countly {
       countlyConfig['remoteConfigAutomaticTriggers'] = config.remoteConfigAutomaticTriggers;
 
       countlyConfig['remoteConfigValueCaching'] = config.remoteConfigValueCaching;
+
+      if (config.globalCrashFilterCallback != null) {
+        countlyConfig['globalCrashFilterCallback'] = true;
+      }
     } catch (e) {
       log('_configToJson, Exception occur during converting config to json: $e');
     }

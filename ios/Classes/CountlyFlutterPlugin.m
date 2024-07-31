@@ -1615,6 +1615,31 @@ FlutterMethodChannel *_channel;
               [_channel invokeMethod:@"remoteConfigCallback" arguments:errorStr];
             };
         }
+        NSNumber *globalCrashFilterCallback = _config[@"globalCrashFilterCallback"];
+        if (globalCrashFilterCallback) {
+            [config.crashes setCrashFilterCallback:^BOOL(CountlyCrashData *crash) {
+                if (!crash)
+                {
+                return NO;
+                }
+
+                // You may want to omit a secret from the stack trace to protect it
+                NSDictionary *stackTrace = crash.crashSegmentation;
+                if ([stackTrace objectForKey:@"__cs__"]) {
+                    return NO;
+                }
+                NSMutableDictionary *crashData = [[NSMutableDictionary alloc] init];
+                
+                crashData[@"b"] =  crash.breadcrumbs;
+                crashData[@"m"] =  crash.crashMetrics;
+                crashData[@"cs"] =  crash.crashSegmentation;
+                crashData[@"f"] =  [NSNumber numberWithBool:crash.fatal];
+                crashData[@"s"] =  crash.stackTrace;
+
+                [_channel invokeMethod:@"globalCrashFilterCallback" arguments:crashData];
+                return YES;
+            }];
+        }
         
         [config remoteConfigRegisterGlobalCallback:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
             [self remoteConfigDownloadCallback:[NSNumber numberWithInt:-2] response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];

@@ -11,7 +11,7 @@ class CrashData {
 
   /// Convience method provided for easy manipulation of CrashData.
   /// This will return a new instance of CrashData and change only the data passed
-  CrashData copyWith({List<String>? breadcrumbs, Map<String, dynamic>? crashMetrics, Map<String, Object>? crashSegmentation, bool? fatal, String? stackTrace}) {
+  CrashData copyWith({List<dynamic>? breadcrumbs, Map<dynamic, dynamic>? crashMetrics, Map<dynamic, dynamic>? crashSegmentation, bool? fatal, String? stackTrace}) {
     return CrashData(
       breadcrumbs: breadcrumbs ?? this.breadcrumbs,
       crashMetrics: crashMetrics ?? this.crashMetrics,

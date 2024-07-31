@@ -29,13 +29,22 @@ class CountlyConfiguration {
     print(message);
   };
   static final GlobalCrashFilterCallback globalCrashFilterCallback = (crashData) {
-    // your logic to determine if crashData should be manipulated.
-    if (crashData.stackTrace.contains('Exception')) {
-      // return an updated crashData or null if you want the crash data to be ignored.
-      return crashData.copyWith(stackTrace: crashData.stackTrace.replaceAll('Exception', '*****'));
-    }
+    final breadcrumbs = [...crashData.breadcrumbs];
+    // update the breadcrumb.
+    breadcrumbs.add('test');
 
-    return crashData;
+    final crashMetrics = crashData.crashMetrics;
+    // update the breadcrumb.
+    crashMetrics.putIfAbsent('test_metric', () => 'test_crash');
+
+    // Update the stackTrace.
+    return crashData.copyWith(
+      breadcrumbs: breadcrumbs,
+      crashMetrics: crashMetrics,
+      crashSegmentation: {'test_crash': 'test_segmentation'},
+      fatal: true, // the fatal flag can be easily overridden
+      stackTrace: crashData.stackTrace.replaceAll('Exception', '*****'),
+    );
   };
 
   static CountlyConfig getConfig() {
