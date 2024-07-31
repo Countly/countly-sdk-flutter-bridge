@@ -19,6 +19,6 @@ void main() {
     List<String> requestList = await getRequestQueue(); // List of strings
     expect(requestList.length, 2);
     List<String> eventList = await getEventQueue(); // List of strings
-    expect(eventList.length, Platform.isAndroid ? 1 : 0); // why one for android because it adds orientation to the EQ not RQ
+    expect(eventList.length, 1); // orientation
   });
 }
