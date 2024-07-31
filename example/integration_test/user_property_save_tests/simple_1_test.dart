@@ -119,7 +119,7 @@ void main() {
         expect(queryParams['events']?[0].contains('event3'), true);
         if (Platform.isAndroid) {
           var seg = '"normalInt":1,"stringList":["value1","value2","value3"],"intList":[1,2,3],"doubleList":[1.1,2.2,3.3],"normalString":"normalString","normalDouble":1.1,"boolList":[true,false,true],"normalBool":true';
-          expect(queryParams['events']?[0].contains('seg'), true);
+          expect(queryParams['events']?[0].contains(seg), true);
         } else {
           expect(queryParams['events']?[0].contains('normalInt'), true);
           expect(queryParams['events']?[0].contains('stringList'), true);
