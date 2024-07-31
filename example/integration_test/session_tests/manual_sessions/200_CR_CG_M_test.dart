@@ -78,13 +78,26 @@ void main() {
           expect(consentInRequest[key], true);
         }
         expect(consentInRequest.length, Platform.isAndroid ? 14 : 11);
-      } else if (i == 1) {
-        expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
-      } else if (i == 2) {
-        expect(queryParams['begin_session']?[0], '1');
-      } else if (i == 3 || i == 4) {
-        expect(queryParams['session_duration']?[0], '2');
-        expect(queryParams['end_session'], null);
+      }
+      if (Platform.isIOS) {
+        if (i == 1) {
+          expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
+        } else if (i == 2) {
+          expect(queryParams['begin_session']?[0], '1');
+        } else if (i == 3 || i == 4) {
+          expect(queryParams['session_duration']?[0], '2');
+          expect(queryParams['end_session'], null);
+        }
+      }
+      if (Platform.isAndroid) {
+        if (i == 4) {
+          expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
+        } else if (i == 1) {
+          expect(queryParams['begin_session']?[0], '1');
+        } else if (i == 2 || i == 3) {
+          expect(queryParams['session_duration']?[0], '2');
+          expect(queryParams['end_session'], null);
+        }
       } else if (i == 5) {
         expect(queryParams['end_session']?[0], '1');
         expect(queryParams['session_duration']?[0], '2');
