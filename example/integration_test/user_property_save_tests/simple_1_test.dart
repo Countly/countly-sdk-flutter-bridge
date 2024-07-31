@@ -70,7 +70,7 @@ void main() {
     print('EQ length: ${eventList.length}');
 
     expect(requestList.length, 2);
-    expect(eventList.length, 3);
+    expect(eventList.length, Platform.isAndroid ? 4 : 3); // android adds extra orientation request to the EQ
 
     // Create some events
     await Countly.instance.views.startAutoStoppedView('test', segment);

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -17,6 +19,6 @@ void main() {
     List<String> requestList = await getRequestQueue(); // List of strings
     expect(requestList.length, 2);
     List<String> eventList = await getEventQueue(); // List of strings
-    expect(eventList.length, 0);
+    expect(eventList.length, Platform.isAndroid ? 1 : 0); // why one for android because it adds orientation to the EQ not RQ
   });
 }
