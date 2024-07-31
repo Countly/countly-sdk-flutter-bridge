@@ -50,8 +50,8 @@ void main() {
     // 2- Orientation
     // 3- end session
     // 4- begin session
-    expect(requestList.length, 5); //android an ios now generates same amount of requests
-
+    // 5- Orientation (android only)
+    expect(requestList.length, Platform.isAndroid ? 6 : 5); //android generates 
     var i = 0;
     for (var element in requestList) {
       Map<String, List<String>> queryParams = Uri.parse("?" + element).queryParametersAll;
@@ -68,6 +68,8 @@ void main() {
         expect(queryParams['end_session']?[0], '1');
         expect(queryParams['session_duration']?[0], '2');
         expect(queryParams['device_id']?[0], 'newID');
+      } else if (i == 6 && Platform.isAndroid){
+        expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
       }
 
       print('RQ.$i: $queryParams');
