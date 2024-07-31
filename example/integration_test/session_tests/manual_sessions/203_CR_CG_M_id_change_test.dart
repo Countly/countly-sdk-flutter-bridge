@@ -67,13 +67,13 @@ void main() {
     // 7- begin session
     // 8- end session
     // 9- location
-    expect(requestList.length, Platform.isAndroid ? 9: 10);
+    expect(requestList.length, Platform.isAndroid ? 11 : 10);
 
     var i = 0;
     for (var element in requestList) {
       Map<String, List<String>> queryParams = Uri.parse("?" + element).queryParametersAll;
       testCommonRequestParams(queryParams); // tests
-      if (i == 0 || (Platform.isAndroid && i == 5) || (Platform.isIOS && i == 6)) {
+      if (i == 0 || (Platform.isAndroid && i == 6) || (Platform.isIOS && i == 6)) {
         // example:
         // consent: [{"sessions":true,"crashes":true,"users":true,"push":true,"feedback":true,"scrolls":true,"remote-config":true,"attribution":true,"clicks":true,"location":true,"star-rating":true,"events":true,"views":true,"apm":true}]
         Map<String, dynamic> consentInRequest = jsonDecode(queryParams['consent']![0]);
@@ -81,22 +81,21 @@ void main() {
           expect(consentInRequest[key], true);
         }
         expect(consentInRequest.length, Platform.isAndroid ? 14 : 11);
-      } else if (Platform.isIOS && i == 1) {
+      } else if ((Platform.isAndroid && (i == 3 || i == 8)) || (Platform.isIOS && i == 1)) {
         expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
       } else if ((Platform.isAndroid && i == 1) || (Platform.isIOS && i == 2)) {
         expect(queryParams['device_id']?[0], 'newID');
         expect(queryParams['old_device_id']?[0].isNotEmpty, true);
-      } else if (i == 3 || (Platform.isAndroid && i == 6) || (Platform.isIOS && i == 7)) {
+      } else if ((Platform.isAndroid && (i == 7 || i == 2)) || (Platform.isIOS && (i == 7 || i == 3))) {
         expect(queryParams['begin_session']?[0], '1');
-      } else if ((Platform.isIOS && (i == 4 || i == 8)) || (Platform.isAndroid && (i == 3 || i == 7))) {
+      } else if ((Platform.isIOS && (i == 4 || i == 8)) || (Platform.isAndroid && (i == 4 || i == 9))) {
         expect(queryParams['end_session']?[0], '1');
         expect(queryParams['session_duration']?[0], '2');
-      } else if ((Platform.isIOS && (i == 5 || i == 9)) || (Platform.isAndroid && (i == 4 || i == 8))) {
+      } else if ((Platform.isIOS && (i == 5 || i == 9)) || (Platform.isAndroid && (i == 5 || i == 10))) {
         expect(queryParams['location'], ['']);
-        if(Platform.isAndroid) {
-          expect(queryParams['device_id']?[0], i == 4 ? 'newID' : 'newID_2');
-        }
-        else {
+        if (Platform.isAndroid) {
+          expect(queryParams['device_id']?[0], i == 5 ? 'newID' : 'newID_2');
+        } else {
           expect(queryParams['device_id']?[0], i == 5 ? 'newID_2' : 'newID_3');
         }
       }
