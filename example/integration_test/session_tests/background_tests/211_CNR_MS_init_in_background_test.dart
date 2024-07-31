@@ -25,9 +25,7 @@ void main() {
 
     expect(requestList.length, 0);
     expect(eventList.length, 0);
-    if (Platform.isIOS) {
-      printMessageMultipleTimes('will now go to background, get ready to go foreground manually', 3);
-    }
+    printMessageMultipleTimes('will now go to background, get ready to go foreground manually', 3);
     await tester.pump(Duration(seconds: 3));
     FlutterForegroundTask.launchApp();
     await tester.pump(Duration(seconds: 1));
@@ -41,22 +39,27 @@ void main() {
     printQueues(requestList, eventList);
 
     expect(requestList.length, 0);
-    expect(eventList.length, 0);
+    expect(eventList.length, Platform.isAndroid ? 1 : 0); // android percieves bg/fb as orientation change
 
     Countly.instance.sessions.beginSession();
-    await tester.pump(Duration(seconds: 1));
+    await tester.pump(Duration(seconds: 2));
 
     requestList = await getRequestQueue(); // List of strings
     eventList = await getEventQueue(); // List of json objects
+    printQueues(requestList, eventList);
 
     expect(requestList.length, 1); // begin session
     Map<String, List<String>> queryParams = Uri.parse("?" + requestList[0]).queryParametersAll;
     testCommonRequestParams(queryParams); // tests
     expect(queryParams['begin_session']?[0], '1');
 
-    expect(eventList.length, 1); // orientation
+    expect(eventList.length, Platform.isAndroid ? 2 : 1); // orientation
 
     Map<String, dynamic> event = json.decode(eventList[0]);
     expect("[CLY]_orientation", event['key']);
+    if (Platform.isAndroid) {
+      Map<String, dynamic> event2 = json.decode(eventList[1]);
+      expect("[CLY]_orientation", event2['key']);
+    }
   });
 }
