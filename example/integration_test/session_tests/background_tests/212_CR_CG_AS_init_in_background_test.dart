@@ -25,9 +25,7 @@ void main() {
 
     expect(requestList.length, 1);
     expect(eventList.length, 0);
-    if (Platform.isIOS) {
-      printMessageMultipleTimes('will now go to background, get ready to go foreground manually', 3);
-    }
+    printMessageMultipleTimes('will now go to background, get ready to go foreground manually', 3);
     await tester.pump(Duration(seconds: 3));
     FlutterForegroundTask.launchApp();
     await tester.pump(Duration(seconds: 1));

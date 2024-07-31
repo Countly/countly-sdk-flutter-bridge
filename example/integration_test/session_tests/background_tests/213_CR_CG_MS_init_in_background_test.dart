@@ -26,9 +26,7 @@ void main() {
 
     expect(requestList.length, 1); // consents
     expect(eventList.length, 0);
-    if (Platform.isIOS) {
-      printMessageMultipleTimes('will now go to background, get ready to go foreground manually', 3);
-    }
+    printMessageMultipleTimes('will now go to background, get ready to go foreground manually', 3);
     await tester.pump(Duration(seconds: 3));
     FlutterForegroundTask.launchApp();
     await tester.pump(Duration(seconds: 1));
@@ -42,7 +40,7 @@ void main() {
     printQueues(requestList, eventList);
 
     expect(requestList.length, 1); // consents
-    expect(eventList.length, Platform.isAndroid ? 1 : 0); // cus android does not wait for begin session to send
+    expect(eventList.length, Platform.isAndroid ? 1 : 0); // again, bg/fb is perceived as orientation change in android
 
     Countly.instance.sessions.beginSession();
     await tester.pump(Duration(seconds: 1));
@@ -61,9 +59,13 @@ void main() {
       expect(consentInRequest[key], true);
     }
     expect(consentInRequest.length, Platform.isAndroid ? 14 : 11);
-    expect(eventList.length, 2); // orientation // android generates to becasue begin session call not checking for cached orientation status
+    expect(eventList.length, Platform.isAndroid ? 2 : 1); // orientation
 
     Map<String, dynamic> event = json.decode(eventList[0]);
     expect("[CLY]_orientation", event['key']);
+    if (Platform.isAndroid) {
+      Map<String, dynamic> event2 = json.decode(eventList[1]);
+      expect("[CLY]_orientation", event2['key']);
+    }
   });
 }
