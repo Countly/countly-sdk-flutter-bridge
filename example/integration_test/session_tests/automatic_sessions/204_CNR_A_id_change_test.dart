@@ -60,7 +60,7 @@ void main() {
     // 5- begin_session (auto fg in ios not working)
     // 6- change ID
     // EQ: orientation (android only)
-    expect(requestList.length, Platform.isAndroid ? 7 : 8);
+    expect(requestList.length, Platform.isAndroid ? 9 : 8);
     expect(eventList.length, Platform.isAndroid ? 1 : 0);
 
     if (Platform.isAndroid) {
@@ -69,11 +69,13 @@ void main() {
     }
 
     var i = 0;
-    var androidBeginSession = [0, 3, 5];
+    var androidBeginSession = [0, 4, 7];
     var iosBeginSession = [0, 3, 6];
-    var androidMerge = [1, 6];
+    var androidMerge = [1, 8];
     var iosMerge = [1, 7];
-    var androidEndSession = [2, 4];
+    var androidOrientation = [2, 5];
+    var iosOrientation = [4];
+    var androidEndSession = [3, 6];
     var iosEndSession = [2, 5];
     for (var element in requestList) {
       Map<String, List<String>> queryParams = Uri.parse("?" + element).queryParametersAll;
@@ -84,7 +86,7 @@ void main() {
         checkMerge(queryParams, deviceID: 'newID', oldDeviceID: i != 1 ? 'newID_2' : '');
       } else if ((Platform.isAndroid && androidEndSession.contains(i)) || (Platform.isIOS && iosEndSession.contains(i))) {
         checkEndSession(queryParams, deviceID: i == 3 || i == 2 ? 'newID' : 'newID_2');
-      } else if ((Platform.isIOS && i == 4)) {
+      } else if ((Platform.isAndroid && androidOrientation.contains(i)) || (Platform.isIOS && iosOrientation.contains(i))) {
         expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
       }
 
