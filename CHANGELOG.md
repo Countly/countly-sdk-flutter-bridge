@@ -7,10 +7,20 @@
   * `getID`
   * `getIDType`
   * `enableTemporaryIDMode`
+
 * Deprecated the following methods:
   * `getCurrentDeviceId`
   * `getDeviceIDType`
   * `changeDeviceId`
+
+* Mitigated issues where:
+  * session was ending with device ID change without merge, when consent was not required and manual session control was enabled in Android
+  * session was not starting after device ID change without merge, when consent was not required and automatic sessions were enabled in Android
+  * consent information was not sent when no consent was given during initialization in iOS
+  * session could have started if the SDK was initialized on the background and automatic session tracking was enabled in iOS
+  * session did not end when session consent was removed in iOS
+  * disabling location did not work in iOS
+  * orientation info was not sent during initialization in iOS
 
 * Updated underlying Android SDK version to 24.7.1
 * Updated underlying iOS SDK version to 24.7.1
@@ -24,10 +34,20 @@
   * `getID`
   * `getIDType`
   * `enableTemporaryIDMode`
+
 * Deprecated the following methods:
   * `getCurrentDeviceId`
   * `getDeviceIDType`
   * `changeDeviceId`
+
+* Mitigated issues where:
+  * session was ending with device ID change without merge, when consent was not required and manual session control was enabled in Android
+  * session was not starting after device ID change without merge, when consent was not required and automatic sessions were enabled in Android
+  * consent information was not sent when no consent was given during initialization in iOS
+  * session could have started if the SDK was initialized on the background and automatic session tracking was enabled in iOS
+  * session did not end when session consent was removed in iOS
+  * disabling location did not work in iOS
+  * orientation info was not sent during initialization in iOS
 
 * Updated underlying Android SDK version to 24.7.1
 * Updated underlying iOS SDK version to 24.7.1
