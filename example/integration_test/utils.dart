@@ -405,3 +405,36 @@ Future<void> testConsentForRC({bool isAT = false, bool isCG = true, bool isCNR =
     await getAndValidateAllRecordedRCValues();
   }
 }
+
+// For session tests:
+void checkBeginSession(Map<String, List<String>> queryParams, {String deviceID = ''}) {
+  expect(queryParams['begin_session']?[0], '1');
+  if (deviceID.isNotEmpty) {
+    expect(queryParams['device_id']?[0], deviceID);
+  }
+}
+
+void checkMerge(Map<String, List<String>> queryParams, {String deviceID = '', String oldDeviceID = ''}) {
+  expect(queryParams['old_device_id']?[0].isNotEmpty, true);
+  if (deviceID.isNotEmpty) {
+    expect(queryParams['device_id']?[0], deviceID);
+  }
+  if (oldDeviceID.isNotEmpty) {
+    expect(queryParams['old_device_id']?[0], oldDeviceID);
+  }
+}
+
+void checkEndSession(Map<String, List<String>> queryParams, {String deviceID = ''}) {
+  expect(queryParams['end_session']?[0].isNotEmpty, true);
+//   expect(queryParams['session_duration']?[0].isNotEmpty, true); TODO: check this
+  if (deviceID.isNotEmpty) {
+    expect(queryParams['device_id']?[0], deviceID);
+  }
+}
+
+void printQueues(List<String> requestList, List<String> eventList) {
+  print('RQ: $requestList');
+  print('RQ length: ${requestList.length}');
+  print('EQ: $eventList');
+  print('EQ length: ${eventList.length}');
+}

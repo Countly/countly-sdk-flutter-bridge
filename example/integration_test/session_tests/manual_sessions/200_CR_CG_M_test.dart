@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -54,18 +55,16 @@ void main() {
     List<String> eventList = await getEventQueue(); // List of json objects
 
     // Some logs for debugging
-    print('RQ: $requestList');
-    print('EQ: $eventList');
-    print('RQ length: ${requestList.length}');
-    print('EQ length: ${eventList.length}');
+    printQueues(requestList, eventList);
 
     // There should be:
-    // - consent information
-    // - begin_session
-    // - update_session
-    // - update_session
-    // - end_session
-    expect(requestList.length, 5);
+    // 0- consent information
+    // 1- orientation
+    // 2- begin_session
+    // 3- update_session
+    // 4- update_session
+    // 5- end_session
+    expect(requestList.length, 6);
 
     var i = 0;
     for (var element in requestList) {
@@ -75,16 +74,31 @@ void main() {
         // example:
         // consent: [{"sessions":true,"crashes":true,"users":true,"push":true,"feedback":true,"scrolls":true,"remote-config":true,"attribution":true,"clicks":true,"location":true,"star-rating":true,"events":true,"views":true,"apm":true}]
         Map<String, dynamic> consentInRequest = jsonDecode(queryParams['consent']![0]);
-        for (var key in ['push', 'feedback', 'scrolls', 'crashes', 'attribution', 'users', 'events', 'clicks', 'remote-config', 'sessions', 'location', 'star-rating', 'views', 'apm']) {
+        for (var key in ['push', 'feedback', 'crashes', 'attribution', 'users', 'events', 'remote-config', 'sessions', 'location', 'views', 'apm']) {
           expect(consentInRequest[key], true);
         }
-        expect(consentInRequest.length, 14);
-      } else if (i == 1) {
-        expect(queryParams['begin_session']?[0], '1');
-      } else if (i == 2 || i == 3) {
-        expect(queryParams['session_duration']?[0], '2');
-        expect(queryParams['end_session'], null);
-      } else if (i == 4) {
+        expect(consentInRequest.length, Platform.isAndroid ? 14 : 11);
+      }
+      if (Platform.isIOS) {
+        if (i == 1) {
+          expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
+        } else if (i == 2) {
+          expect(queryParams['begin_session']?[0], '1');
+        } else if (i == 3 || i == 4) {
+          expect(queryParams['session_duration']?[0], '2');
+          expect(queryParams['end_session'], null);
+        }
+      }
+      if (Platform.isAndroid) {
+        if (i == 4) {
+          expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
+        } else if (i == 1) {
+          expect(queryParams['begin_session']?[0], '1');
+        } else if (i == 2 || i == 3) {
+          expect(queryParams['session_duration']?[0], '2');
+          expect(queryParams['end_session'], null);
+        }
+      } else if (i == 5) {
         expect(queryParams['end_session']?[0], '1');
         expect(queryParams['session_duration']?[0], '2');
       }

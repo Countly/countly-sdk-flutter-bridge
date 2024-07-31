@@ -15,7 +15,7 @@ void main() {
     await Countly.initWithConfig(config);
 
     await tester.pump(Duration(seconds: 1));
-    await Countly.changeDeviceId('newID', true);
+    await Countly.instance.deviceId.changeWithMerge('newID');
     await Countly.instance.sessions.beginSession();
     await Countly.instance.sessions.updateSession();
     await Countly.instance.sessions.endSession();
@@ -25,42 +25,40 @@ void main() {
     FlutterForegroundTask.launchApp();
 
     await tester.pump(Duration(seconds: 1));
-    await Countly.changeDeviceId('newID_2', false);
+    await Countly.instance.deviceId.changeWithoutMerge('newID_2');
     await Countly.instance.sessions.beginSession();
     await Countly.instance.sessions.updateSession();
     await Countly.instance.sessions.endSession();
 
     await tester.pump(Duration(seconds: 1));
-    await Countly.changeDeviceId('newID', true);
+    await Countly.instance.deviceId.changeWithMerge('newID');
 
     await tester.pump(Duration(seconds: 1));
-    await Countly.changeDeviceId('newID_2', false);
+    await Countly.instance.deviceId.changeWithoutMerge('newID_2');
 
     await tester.pump(Duration(seconds: 1));
-    await Countly.changeDeviceId('newID', true);
+    await Countly.instance.deviceId.changeWithMerge('newID');
 
     // Get request and event queues from native side
     List<String> requestList = await getRequestQueue(); // List of strings
     List<String> eventList = await getEventQueue(); // List of json objects
 
     // Some logs for debugging
-    print('RQ: $requestList');
-    print('EQ: $eventList');
-    print('RQ length: ${requestList.length}');
-    print('EQ length: ${eventList.length}');
+    printQueues(requestList, eventList);
 
     // Currently
     // - consents (begin ses in ios)
     // - begin_session (consent in ios)
     // - change ID
+    // - end session (orientation in ios)
+    // - begin_session (end session in ios)
+    // - orientation (begin session in ios)
     // - end session
-    // - begin_session
-    // - orientation (android only)
-    // - end session
-    // - location (android only)
+    // - location
     // - change ID
     // - change ID
-    expect(requestList.length, Platform.isAndroid ? 10 : 8);
+    expect(requestList.length, 11);
+    expect(eventList.length, 0);
 
     var i = 0;
     for (var element in requestList) {
@@ -74,19 +72,19 @@ void main() {
           expect(consentInRequest[key], true);
         }
         expect(consentInRequest.length, Platform.isAndroid ? 14 : 11);
-      } else if ((Platform.isAndroid && i == 1) || (Platform.isIOS && i == 0) || i == 4) {
+      } else if ((Platform.isAndroid && (i == 1 || i == 5)) || (Platform.isIOS && (i == 0 || i == 5))) {
         expect(queryParams['begin_session']?[0], '1');
-      } else if (i == 2 || (Platform.isAndroid && (i == 8 || i == 9)) || (Platform.isIOS && (i == 6 || i == 7))) {
+      } else if (i == 2 || (Platform.isAndroid && (i == 10 || i == 9)) || (Platform.isIOS && (i == 8 || i == 9))) {
         expect(queryParams['old_device_id']?[0].isNotEmpty, true);
         expect(queryParams['device_id']?[0], 'newID');
-      } else if (i == 3 || (Platform.isAndroid && i == 6) || (Platform.isIOS && i == 5)) {
+      } else if ((Platform.isAndroid && (i == 4 || i == 7)) || (Platform.isIOS && (i == 4 || i == 6))) {
         expect(queryParams['end_session']?[0], '1');
         expect(queryParams['session_duration']?[0].isNotEmpty, true);
         expect(queryParams['device_id']?[0], 'newID');
-      } else if (Platform.isAndroid && (i == 5)) {
+      } else if ((Platform.isAndroid && (i == 3 || i == 6)) || (Platform.isIOS && i == 3)) {
         expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
         expect(queryParams['device_id']?[0], 'newID');
-      } else if (Platform.isAndroid && (i == 7)) {
+      } else if (Platform.isAndroid && (i == 8)) {
         expect(queryParams['location'], ['']);
         expect(queryParams['device_id']?[0], 'newID');
       }

@@ -15,8 +15,10 @@ void main() {
     await testDeviceIDType(DeviceIdType.TEMPORARY_ID);
     // Get request and event queues from native side
     List<String> requestList = await getRequestQueue(); // List of strings
-    expect(requestList.length, 2);
     List<String> eventList = await getEventQueue(); // List of strings
-    expect(eventList.length, 0);
+    printQueues(requestList, eventList);
+
+    expect(requestList.length, 2);
+    expect(eventList.length, 1); // orientation
   });
 }
