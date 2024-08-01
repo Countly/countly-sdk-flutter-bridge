@@ -50,6 +50,7 @@ void main() {
     // - consents (begin ses in ios)
     // - begin_session (consent in ios)
     // - change ID
+    // - orientation (android only)
     // - end session (orientation in ios)
     // - begin_session (end session in ios)
     // - orientation (begin session in ios)
@@ -57,7 +58,7 @@ void main() {
     // - location
     // - change ID
     // - change ID
-    expect(requestList.length, 11);
+    expect(requestList.length, Platform.isAndroid ? 11 : 10);
     expect(eventList.length, 0);
 
     var i = 0;
