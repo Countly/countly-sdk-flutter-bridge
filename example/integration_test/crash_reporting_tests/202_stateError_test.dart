@@ -8,7 +8,7 @@ import '../utils.dart';
 /// Test crash reporting when using recordDartError
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  testWidgets('202_CR_stateError_test', (WidgetTester tester) async {
+  testWidgets('202_stateError_test', (WidgetTester tester) async {
     // Initialize the SDK
     CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true).enableCrashReporting();
     await Countly.initWithConfig(config);

@@ -8,7 +8,7 @@ import '../utils.dart';
 /// Test crash reporting when using logExceptionEx
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  testWidgets('205_CR_dividedByZero_test', (WidgetTester tester) async {
+  testWidgets('205_dividedByZero_test', (WidgetTester tester) async {
     // Initialize the SDK
     CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true).enableCrashReporting();
     await Countly.initWithConfig(config);
