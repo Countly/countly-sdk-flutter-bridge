@@ -1,4 +1,4 @@
-## 24.7.x
+## 24.7.1
 * Added a new configuration option `enableTemporaryDeviceIDMode` to 'CountlyConfig' interface
 * Introduced a new `deviceID` interface for grouping device ID management related methods:
   * `setID`
@@ -7,14 +7,25 @@
   * `getID`
   * `getIDType`
   * `enableTemporaryIDMode`
+
 * Deprecated the following methods:
   * `getCurrentDeviceId`
   * `getDeviceIDType`
   * `changeDeviceId`
 
-* Mitigated an issue where some crash reports are not automatically sent when you `enableCrashReporting` from config.
+* Mitigated issues where:
+  * session was ending with device ID change without merge, when consent was not required and manual session control was enabled in Android
+  * session was not starting after device ID change without merge, when consent was not required and automatic sessions were enabled in Android
+  * consent information was not sent when no consent was given during initialization in iOS
+  * session could have started if the SDK was initialized on the background and automatic session tracking was enabled in iOS
+  * session did not end when session consent was removed in iOS
+  * disabling location did not work in iOS
+  * orientation info was not sent during initialization in iOS
 
-## 24.7.x-np
+* Updated underlying Android SDK version to 24.7.1
+* Updated underlying iOS SDK version to 24.7.1
+
+## 24.7.1-np
 * Added a new configuration option `enableTemporaryDeviceIDMode` to 'CountlyConfig' interface
 * Introduced a new `deviceID` interface for grouping device ID management related methods:
   * `setID`
@@ -23,12 +34,23 @@
   * `getID`
   * `getIDType`
   * `enableTemporaryIDMode`
+
 * Deprecated the following methods:
   * `getCurrentDeviceId`
   * `getDeviceIDType`
   * `changeDeviceId`
 
-* Mitigated an issue where some crash reports are not automatically sent when you `enableCrashReporting` from config.
+* Mitigated issues where:
+  * session was ending with device ID change without merge, when consent was not required and manual session control was enabled in Android
+  * session was not starting after device ID change without merge, when consent was not required and automatic sessions were enabled in Android
+  * consent information was not sent when no consent was given during initialization in iOS
+  * session could have started if the SDK was initialized on the background and automatic session tracking was enabled in iOS
+  * session did not end when session consent was removed in iOS
+  * disabling location did not work in iOS
+  * orientation info was not sent during initialization in iOS
+
+* Updated underlying Android SDK version to 24.7.1
+* Updated underlying iOS SDK version to 24.7.1
 
 ## 24.7.0
 * Added support for the automatic sending of user properties to the server without requiring an explicit call to the `save` method to enhance data fidelity.
