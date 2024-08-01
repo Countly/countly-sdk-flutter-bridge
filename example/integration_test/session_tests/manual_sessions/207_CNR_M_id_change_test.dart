@@ -45,13 +45,13 @@ void main() {
     print('EQ length: ${eventList.length}');
 
     // There should be:
-    // - device ID change
-    // - begin session
-    // - end session
-    // - begin session
-    // - end session
-    expect(requestList.length, Platform.isAndroid ? 5 : 4);
-
+    // 0- device ID change
+    // 1- begin session
+    // 2- Orientation
+    // 3- end session
+    // 4- begin session
+    // 5- Orientation (android only)
+    expect(requestList.length, Platform.isAndroid ? 6 : 5); //android generates 
     var i = 0;
     for (var element in requestList) {
       Map<String, List<String>> queryParams = Uri.parse("?" + element).queryParametersAll;
@@ -59,18 +59,24 @@ void main() {
       if (i == 0) {
         expect(queryParams['device_id']?[0], 'newID');
         expect(queryParams['old_device_id']?[0].isNotEmpty, true);
-      } else if (i == 1 || i == 3) {
+      } else if (i == 1 || i == 4) {
         expect(queryParams['begin_session']?[0], '1');
         expect(queryParams['device_id']?[0], i == 1 ? 'newID' : 'newID_2');
-      } else if (i == 2 || (Platform.isAndroid && i == 4)) {
+      } else if (i == 2) {
+        expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
+      } else if (i == 3) {
         expect(queryParams['end_session']?[0], '1');
         expect(queryParams['session_duration']?[0], '2');
-        expect(queryParams['device_id']?[0], i == 2 ? 'newID' : 'newID_2');
+        expect(queryParams['device_id']?[0], 'newID');
+      } else if (i == 6 && Platform.isAndroid){
+        expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
       }
 
       print('RQ.$i: $queryParams');
       print('========================');
       i++;
     }
+
+    // expect(i, 4); // counter must be only 4
   });
 }

@@ -60,7 +60,7 @@ import ly.count.android.sdk.messaging.CountlyPush;
  */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
     private static final String TAG = "CountlyFlutterPlugin";
-    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "24.7.0";
+    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "24.7.1";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterbnp-android";
 
@@ -289,42 +289,46 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 } else {
                     result.success("false");
                 }
-            } else if ("getCurrentDeviceId".equals(call.method)) {
+            } 
+
+            // START DEVICE ID METHODS
+            else if ("getID".equals(call.method)) {
                 String deviceID = Countly.sharedInstance().deviceId().getID();
                 result.success(deviceID);
-            } else if ("getDeviceIDType".equals(call.method)) {
+            } else if ("getIDType".equals(call.method)) {
                 DeviceIdType deviceIDType = Countly.sharedInstance().deviceId().getType();
                 String deviceIDTypeString = null;
                 switch (deviceIDType) {
                     case DEVELOPER_SUPPLIED:
                         deviceIDTypeString = "DS";
                         break;
-                    case OPEN_UDID:
-                    default:
-                        deviceIDTypeString = "SG";
-                        break;
                     case TEMPORARY_ID:
                         deviceIDTypeString = "TID";
                         break;
+                    default:
+                        // OPEN_UDID is also SDK_GENERATED SG
+                        deviceIDTypeString = "SG";
+                        break;
                 }
                 result.success(deviceIDTypeString);
-            } else if ("changeDeviceId".equals(call.method)) {
+            } else if ("setID".equals(call.method)) {
                 String newDeviceID = args.getString(0);
-                String onServerString = args.getString(1);
-                if (newDeviceID.equals("TemporaryDeviceID")) {
-                    Countly.sharedInstance().deviceId().enableTemporaryIdMode();
-                } else {
-                    if ("1".equals(onServerString)) {
-                        Countly.sharedInstance().deviceId().changeWithMerge(newDeviceID);
-                    } else {
-                        Countly.sharedInstance().deviceId().changeWithoutMerge(newDeviceID);
-                    }
-                }
-                result.success("changeDeviceId success!");
-            } else if ("enableTemporaryIdMode".equals(call.method)) {
+                Countly.sharedInstance().deviceId().setID(newDeviceID);
+                result.success("SetID success!");
+            } else if ("changeWithMerge".equals(call.method)) {
+                String newDeviceID = args.getString(0);
+                Countly.sharedInstance().deviceId().changeWithMerge(newDeviceID);
+                result.success("changeWithMerge success!");
+            } else if ("changeWithoutMerge".equals(call.method)) {
+                String newDeviceID = args.getString(0);
+                Countly.sharedInstance().deviceId().changeWithoutMerge(newDeviceID);
+                result.success("changeWithoutMerge success!");
+            } else if ("enableTemporaryIDMode".equals(call.method)) {
                 Countly.sharedInstance().deviceId().enableTemporaryIdMode();
-                result.success("enableTemporaryIdMode This method doesn't exists!");
-            } else if ("setHttpPostForced".equals(call.method)) {
+                result.success("enableTemporaryIDMode success");
+            } // END DEVICE ID METHODS
+
+            else if ("setHttpPostForced".equals(call.method)) {
                 boolean isEnabled = args.getBoolean(0);
                 this.config.setHttpPostForced(isEnabled);
                 result.success("setHttpPostForced");
@@ -1478,9 +1482,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
         if (_config.has("deviceID")) {
             String deviceID = _config.getString("deviceID");
-            if (deviceID.equals("TemporaryDeviceID")) {
+            if (deviceID.equals("CLYTemporaryDeviceID")) {
                 this.config.enableTemporaryDeviceIdMode();
-
             } else {
                 this.config.setDeviceId(deviceID);
             }

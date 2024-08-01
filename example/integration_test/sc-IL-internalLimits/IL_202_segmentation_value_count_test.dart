@@ -67,11 +67,12 @@ void main() {
       } else if (a == 5) {
         // 0) Custom Event
         List<dynamic> eventList = json.decode(queryParams['events']![0]);
-        var event = eventList[0];
+        int eventIdx = Platform.isAndroid ? 1 : 0; // why 1 for android, because android adds orientation
+        var event = eventList[eventIdx];
         expect(event['key'], 'Event With Sum And Segment');
         expect(event['segmentation'].length, MAX_SEGMENTATION_COUNT);
         // 1) View Start (legacy)
-        var view = eventList[1];
+        var view = eventList[eventIdx + 1];
         expect(view['key'], '[CLY]_view');
         expect(view['segmentation']['segment'], Platform.isIOS ? 'iOS' : 'Android');
         expect(view['segmentation']['start'], Platform.isIOS ? 1 : '1');
@@ -79,14 +80,14 @@ void main() {
         expect(view['segmentation']['visit'], Platform.isIOS ? 1 : '1');
         expect(view['segmentation'].length, MAX_SEGMENTATION_COUNT + 4);
         // 2) View End (legacy)
-        view = eventList[2];
+        view = eventList[eventIdx + 2];
         expect(view['key'], '[CLY]_view');
         expect(view['segmentation']['segment'], Platform.isIOS ? 'iOS' : 'Android');
         expect(view['segmentation']['name'], 'HomePage');
         expect(view['segmentation'].length, MAX_SEGMENTATION_COUNT + 2);
 
         // 3) View Start (AutoStopped)
-        view = eventList[3];
+        view = eventList[eventIdx + 3];
         expect(view['key'], '[CLY]_view');
         expect(view['segmentation']['segment'], Platform.isIOS ? 'iOS' : 'Android');
         expect(view['segmentation']['name'], 'hawk');
