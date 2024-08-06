@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 abstract class Views {
   /// Start a view that will be automatically stopped when another view is started.
   /// [String viewName] - Name of view
@@ -50,4 +52,7 @@ abstract class Views {
   /// [String viewName] - Name of view
   /// [Map<String, Object> segmentation] - segmentation data for this view
   Future<void> addSegmentationToViewWithName(String viewName, Map<String, Object> segmentation);
+
+  void trackWidget(String name, double visiblePercentage);
+  void trackScroll(ScrollNotification notification);
 }
