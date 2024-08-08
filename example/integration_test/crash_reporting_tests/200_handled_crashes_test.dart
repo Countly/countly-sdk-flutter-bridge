@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,7 +14,7 @@ void main() {
     CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true).enableCrashReporting();
     await Countly.initWithConfig(config);
 
-    final crashLogs = 'crashLogs';
+    String crashLogs = 'crashErrorLogs';
     await Countly.addCrashLog(crashLogs);
     final segmentation = {'_facebook_version': '0.0.1'};
     final exceptionName = 'newException';
@@ -62,6 +63,10 @@ void main() {
     printQueues(requestList, eventList);
     expect(requestList.length, 6);
 
+    if (Platform.isAndroid) {
+      crashLogs += '\n';
+    }
+
     for (int i = 0; i < requestList.length; i++) {
       Map<String, List<String>> queryParams = Uri.parse('?' + requestList[i]).queryParametersAll;
       print(queryParams);
@@ -74,17 +79,21 @@ void main() {
       if (i == 0) {
         expect(queryParams['begin_session']?[0], '1');
       } else if (i == 1) {
-        expect(crash['_custom'], segmentation);
-        expect(crash['_logs'], crashLogs + '\n');
         expect((crash['_error'] as String).contains(exceptionName), true);
+        expect(crash['_custom'], segmentation);
+        expect(crash['_logs'], crashLogs);
       } else if (i == 2) {
         expect((crash['_error'] as String).contains('IntegerDivisionByZeroException'), true);
+        expect(crash['_logs'], crashLogs);
       } else if (i == 3) {
         expect((crash['_error'] as String).contains(throwAsyncErrorString), true);
+        expect(crash['_logs'], crashLogs);
       } else if (i == 4) {
         expect((crash['_error'] as String).contains(stateErrorString), true);
+        expect(crash['_logs'], crashLogs);
       } else if (i == 5) {
         expect((crash['_error'] as String).contains(jsonDecodeErrorString), true);
+        expect(crash['_logs'], crashLogs);
       }
       print('RQ.$i: $queryParams');
       print('========================');
