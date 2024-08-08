@@ -13,7 +13,7 @@ void main() {
     CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true).enableCrashReporting();
     await Countly.initWithConfig(config);
 
-    final crashLogs = 'crash logs';
+    final crashLogs = 'crashLogs';
     await Countly.addCrashLog(crashLogs);
     final segmentation = {'_facebook_version': '0.0.1'};
     final exceptionName = 'newException';
@@ -30,25 +30,25 @@ void main() {
     }
 
     // throw exception async
-    var errorString = 'jsonDecodeError';
+    final throwAsyncErrorString = 'throwExceptionAsync';
     try {
-      await throwExceptionAsync(errorString);
+      await throwExceptionAsync(throwAsyncErrorString);
     } catch (e, s) {
       Countly.recordDartError(e, s);
     }
 
     // throw state error
-    errorString = 'stateError';
+    final stateErrorString = 'stateError';
     try {
-      throw StateError(errorString);
+      throw StateError(stateErrorString);
     } catch (e, s) {
       Countly.recordDartError(e, s);
     }
 
     // json crash
-    errorString = 'jsonDecodeError';
+    final jsonDecodeErrorString = 'jsonDecodeError';
     try {
-      Map<String, Object> options = json.decode(errorString);
+      Map<String, Object> options = json.decode(jsonDecodeErrorString);
       print(options.length);
     } catch (e, s) {
       Countly.recordDartError(e, s);
@@ -60,18 +60,31 @@ void main() {
 
     // Some logs for debugging
     printQueues(requestList, eventList);
-    // expect(requestList.length, 2);
+    expect(requestList.length, 6);
 
     for (int i = 0; i < requestList.length; i++) {
       Map<String, List<String>> queryParams = Uri.parse('?' + requestList[i]).queryParametersAll;
       print(queryParams);
       print(i);
       testCommonRequestParams(queryParams);
+
+      // The first request is begin_session. It will not have crash
+      final Map<String, dynamic> crash = i == 0 ? {} : json.decode(queryParams['crash']![0]);
+
       if (i == 0) {
         expect(queryParams['begin_session']?[0], '1');
       } else if (i == 1) {
-        final Map<String, dynamic> crash = json.decode(queryParams['crash']![0]);
+        expect(crash['_custom'], segmentation);
+        expect(crash['_logs'], crashLogs + '\n');
+        expect((crash['_error'] as String).contains(exceptionName), true);
+      } else if (i == 2) {
         expect((crash['_error'] as String).contains('IntegerDivisionByZeroException'), true);
+      } else if (i == 3) {
+        expect((crash['_error'] as String).contains(throwAsyncErrorString), true);
+      } else if (i == 4) {
+        expect((crash['_error'] as String).contains(stateErrorString), true);
+      } else if (i == 5) {
+        expect((crash['_error'] as String).contains(jsonDecodeErrorString), true);
       }
       print('RQ.$i: $queryParams');
       print('========================');
