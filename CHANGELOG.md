@@ -1,3 +1,6 @@
+## X.X.X
+* Mitigated an issue where some crash reports are not automatically sent when you `enableCrashReporting` from config.
+
 ## 24.7.1
 * Added a new configuration option `enableTemporaryDeviceIDMode` to 'CountlyConfig' interface
 * Introduced a new `deviceID` interface for grouping device ID management related methods:

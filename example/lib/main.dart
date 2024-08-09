@@ -22,15 +22,13 @@ void main() {
   /// This or a similar call needs to added to catch and report Dart Errors to Countly,
   /// You need to run the app inside a Zone
   /// and provide the [Countly.recordDartError] callback for [onError()]
-  runZonedGuarded<void>(() {
-    runApp(
-      MaterialApp(
-        theme: AppTheme.countlyTheme(),
-        debugShowCheckedModeBanner: false,
-        home: const MyApp(),
-      ),
-    );
-  }, Countly.recordDartError);
+  runApp(
+    MaterialApp(
+      theme: AppTheme.countlyTheme(),
+      debugShowCheckedModeBanner: false,
+      home: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
