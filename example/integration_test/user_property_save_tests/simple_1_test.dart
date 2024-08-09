@@ -64,13 +64,10 @@ void main() {
     List<String> eventList = await getEventQueue(); // List of json objects
 
     // Some logs for debugging
-    print('RQ: $requestList');
-    print('EQ: $eventList');
-    print('RQ length: ${requestList.length}');
-    print('EQ length: ${eventList.length}');
+    printQueues(requestList, eventList);
 
     expect(requestList.length, 2);
-    expect(eventList.length, 3);
+    expect(eventList.length, 4);
 
     // Create some events
     await Countly.instance.views.startAutoStoppedView('test', segment);
@@ -82,10 +79,7 @@ void main() {
     eventList = await getEventQueue(); // List of json objects
 
     // Some logs for debugging
-    print('RQ: $requestList');
-    print('EQ: $eventList');
-    print('RQ length: ${requestList.length}');
-    print('EQ length: ${eventList.length}');
+    printQueues(requestList, eventList);
 
     await Countly.instance.userProfile.setProperty('key2', 'on');
     await Countly.instance.userProfile.setProperty('key2', 'off');
@@ -119,7 +113,7 @@ void main() {
         expect(queryParams['events']?[0].contains('event3'), true);
         if (Platform.isAndroid) {
           var seg = '"normalInt":1,"stringList":["value1","value2","value3"],"intList":[1,2,3],"doubleList":[1.1,2.2,3.3],"normalString":"normalString","normalDouble":1.1,"boolList":[true,false,true],"normalBool":true';
-          expect(queryParams['events']?[0].contains('seg'), true);
+          expect(queryParams['events']?[0].contains(seg), true);
         } else {
           expect(queryParams['events']?[0].contains('normalInt'), true);
           expect(queryParams['events']?[0].contains('stringList'), true);

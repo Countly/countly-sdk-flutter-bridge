@@ -10,11 +10,9 @@ void main() {
     // Initialize the SDK
     CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true).setDeviceId('test');
     await Countly.initWithConfig(config);
-    // Get the device ID type
-    DeviceIdType? type = await Countly.getDeviceIDType();
-    String? id = await Countly.getCurrentDeviceId();
-    // Verify the device ID type
-    expect(type, DeviceIdType.DEVELOPER_SUPPLIED);
-    expect(id, 'test');
+
+    await testDeviceID('test');
+    await testDeviceIDType(DeviceIdType.DEVELOPER_SUPPLIED);
+    await testLastRequestParams({'device_id': 'test'});
   });
 }

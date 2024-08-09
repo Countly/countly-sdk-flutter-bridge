@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
 import 'countly_config.dart';
 import 'countly_state.dart';
+import 'device_id.dart';
+import 'device_id_internal.dart';
 import 'remote_config.dart';
 import 'remote_config_internal.dart';
 import 'sessions.dart';
@@ -52,6 +54,7 @@ abstract class CountlyConsent {
 class Countly {
   Countly._() {
     _countlyState = CountlyState(this);
+    _deviceIdInternal = DeviceIDInternal(_countlyState);
     _remoteConfigInternal = RemoteConfigInternal(_countlyState);
     _userProfileInternal = UserProfileInternal(_countlyState);
     _viewsInternal = ViewsInternal(_countlyState);
@@ -73,6 +76,9 @@ class Countly {
 
   late final SessionsInternal _sessionsInternal;
   Sessions get sessions => _sessionsInternal;
+
+  late final DeviceIDInternal _deviceIdInternal;
+  DeviceID get deviceId => _deviceIdInternal;
 
   /// ignore: constant_identifier_names
   static const bool BUILDING_WITH_PUSH_DISABLED = false;
@@ -96,7 +102,9 @@ class Countly {
 
   static Map<String, String> messagingMode = Platform.isAndroid ? {'TEST': '2', 'PRODUCTION': '0'} : {'TEST': '1', 'PRODUCTION': '0', 'ADHOC': '2'};
 
-  static Map<String, String> deviceIDType = {'TemporaryDeviceID': 'TemporaryDeviceID'};
+  static const temporaryDeviceID = 'CLYTemporaryDeviceID';
+  @Deprecated('This variable is deprecated, please use "Countly.instance.deviceId.enableTemporaryDeviceID()" instead')
+  static Map<String, String> deviceIDType = {'TemporaryDeviceID': temporaryDeviceID};
 
   static void log(String? message, {LogLevel logLevel = LogLevel.DEBUG}) {
     String logLevelStr = describeEnum(logLevel);
@@ -722,14 +730,16 @@ class Countly {
   /// Get currently used device Id.
   /// Should be call after Countly init
   /// returns the error message or deviceID
+  @Deprecated('getCurrentDeviceId is deprecated, use getID of Countly.instance.deviceID instead')
   static Future<String?> getCurrentDeviceId() async {
     log('Calling "getCurrentDeviceId"');
+    log('getCurrentDeviceId is deprecated, use getID of Countly.instance.deviceID instead', logLevel: LogLevel.WARNING);
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "getCurrentDeviceId"';
       log('getCurrentDeviceId, $message', logLevel: LogLevel.ERROR);
       return message;
     }
-    final String? result = await _channel.invokeMethod('getCurrentDeviceId');
+    String? result = await _instance.deviceId.getID();
 
     return result;
   }
@@ -737,62 +747,39 @@ class Countly {
   /// Get currently used device Id type.
   /// Should be call after Countly init
   /// returns the error message or deviceID type
+  @Deprecated('getDeviceIDType is deprecated, use getIDType of Countly.instance.deviceID instead')
   static Future<DeviceIdType?> getDeviceIDType() async {
     log('Calling "getDeviceIDType"');
+    log('getDeviceIDType is deprecated, use getIDType of Countly.instance.deviceID instead', logLevel: LogLevel.WARNING);
     if (!_instance._countlyState.isInitialized) {
       log('getDeviceIDType, "initWithConfig" must be called before "getDeviceIDType"', logLevel: LogLevel.ERROR);
       return null;
     }
-    final String? result = await _channel.invokeMethod('getDeviceIDType');
-    if (result == null) {
-      log('getDeviceIDType, unexpected null value from native side', logLevel: LogLevel.ERROR);
-      return null;
-    }
-    return _getDeviceIdType(result);
-  }
-
-  static DeviceIdType _getDeviceIdType(String givenDeviceIDType) {
-    DeviceIdType deviceIdType = DeviceIdType.SDK_GENERATED;
-    switch (givenDeviceIDType) {
-      case 'DS':
-        deviceIdType = DeviceIdType.DEVELOPER_SUPPLIED;
-        break;
-      case 'TID':
-        deviceIdType = DeviceIdType.TEMPORARY_ID;
-        break;
-    }
-    return deviceIdType;
+    return await _instance.deviceId.getIDType();
   }
 
   /// change the device ID
   /// if onServer is true, the old device ID is replaced with the new one and all data associated with the old device ID will be merged automatically.
   /// if onServer is false, the new device ID will be counted as a new device on the server.
   /// returns the error or success message
+  @Deprecated('changeDeviceId is deprecated, use changeWithoutMerge of Countly.instance.deviceID if onServer = false and changeWithMerge if onServer = true, instead')
   static Future<String?> changeDeviceId(String newDeviceID, bool onServer) async {
+    log('changeDeviceId is deprecated, use ${onServer ? 'changeWithMerge' : 'changeWithoutMerge'} of Countly.instance.deviceID instead', logLevel: LogLevel.WARNING);
     if (!_instance._countlyState.isInitialized) {
       String message = '"initWithConfig" must be called before "changeDeviceId"';
       log('changeDeviceId, $message', logLevel: LogLevel.ERROR);
       return message;
     }
     log('Calling "changeDeviceId":[$newDeviceID] with onServer:[$onServer]');
-    if (newDeviceID.isEmpty) {
-      String error = 'changeDeviceId, deviceId cannot be null or empty';
-      log(error);
-      return 'Error : $error';
-    }
-    List<String> args = [];
-    String onServerString;
-    if (onServer == false) {
-      onServerString = '0';
+
+    if (newDeviceID == Countly.temporaryDeviceID) {
+      await _instance.deviceId.enableTemporaryIDMode();
+    } else if (onServer) {
+      await _instance.deviceId.changeWithMerge(newDeviceID);
     } else {
-      onServerString = '1';
+      await _instance.deviceId.changeWithoutMerge(newDeviceID);
     }
-    args.add(newDeviceID);
-    args.add(onServerString);
-
-    final String? result = await _channel.invokeMethod('changeDeviceId', <String, dynamic>{'data': json.encode(args)});
-
-    return result;
+    return 'changeDeviceId Success';
   }
 
   /// add logs to your crash report.
@@ -2050,126 +2037,165 @@ class Countly {
       countlyConfig['appKey'] = config.appKey;
       countlyConfig['serverURL'] = config.serverURL;
 
-      if (config.deviceID != null) {
-        countlyConfig['deviceID'] = config.deviceID;
+      final deviceID = config.deviceID?.trim();
+      if (deviceID == null) {
+        log('"_configToJson", no device ID provided', logLevel: LogLevel.INFO);
+      } else if (deviceID.isEmpty) {
+        log('"_configToJson", device ID cannot be an empty string.', logLevel: LogLevel.WARNING);
+      } else {
+        countlyConfig['deviceID'] = deviceID;
+        log('"_configToJson", Device ID provided: [$deviceID]', logLevel: LogLevel.INFO);
       }
 
       if (config.customCrashSegment != null) {
+        log('"_configToJson", value provided for customCrashSegment: [${config.customCrashSegment}]', logLevel: LogLevel.INFO);
         countlyConfig['customCrashSegment'] = config.customCrashSegment;
       }
 
       if (config.providedUserProperties != null) {
+        log('"_configToJson", value for providedUserProperties: [${config.providedUserProperties}]', logLevel: LogLevel.INFO);
         countlyConfig['providedUserProperties'] = config.providedUserProperties;
       }
 
       if (config.consents != null) {
+        log('"_configToJson", value provided for consents: [${config.consents}]', logLevel: LogLevel.INFO);
         countlyConfig['consents'] = config.consents;
       }
       if (config.tamperingProtectionSalt != null) {
+        log('"_configToJson", value provided for tamperingProtectionSalt: [${config.tamperingProtectionSalt}]', logLevel: LogLevel.INFO);
         countlyConfig['tamperingProtectionSalt'] = config.tamperingProtectionSalt;
       }
       if (config.eventQueueSizeThreshold != null) {
+        log('"_configToJson", value provided for eventQueueSizeThreshold: [${config.eventQueueSizeThreshold}]', logLevel: LogLevel.INFO);
         countlyConfig['eventQueueSizeThreshold'] = config.eventQueueSizeThreshold;
       }
       if (config.sessionUpdateTimerDelay != null) {
+        log('"_configToJson", value provided for sessionUpdateTimerDelay: [${config.sessionUpdateTimerDelay}]', logLevel: LogLevel.INFO);
         countlyConfig['sessionUpdateTimerDelay'] = config.sessionUpdateTimerDelay;
       }
       if (config.starRatingTextTitle != null) {
+        log('"_configToJson", value provided for starRatingTextTitle: [${config.starRatingTextTitle}]', logLevel: LogLevel.INFO);
         countlyConfig['starRatingTextTitle'] = config.starRatingTextTitle;
       }
       if (config.starRatingTextMessage != null) {
+        log('"_configToJson", value provided for starRatingTextMessage: [${config.starRatingTextMessage}]', logLevel: LogLevel.INFO);
         countlyConfig['starRatingTextMessage'] = config.starRatingTextMessage;
       }
       if (config.starRatingTextDismiss != null) {
+        log('"_configToJson", value provided for starRatingTextDismiss: [${config.starRatingTextDismiss}]', logLevel: LogLevel.INFO);
         countlyConfig['starRatingTextDismiss'] = config.starRatingTextDismiss;
       }
       if (config.loggingEnabled != null) {
+        log('"_configToJson", value provided for loggingEnabled: [${config.loggingEnabled}]', logLevel: LogLevel.INFO);
         countlyConfig['loggingEnabled'] = config.loggingEnabled;
       }
       if (config.locationDisabled) {
+        log('"_configToJson", value provided for locationDisabled: [${config.locationDisabled}]', logLevel: LogLevel.INFO);
         countlyConfig['locationDisabled'] = config.locationDisabled;
       }
       if (config.httpPostForced != null) {
+        log('"_configToJson", value provided for httpPostForced: [${config.httpPostForced}]', logLevel: LogLevel.INFO);
         countlyConfig['httpPostForced'] = config.httpPostForced;
       }
       if (config.shouldRequireConsent != null) {
+        log('"_configToJson", value provided for shouldRequireConsent: [${config.shouldRequireConsent}]', logLevel: LogLevel.INFO);
         countlyConfig['shouldRequireConsent'] = config.shouldRequireConsent;
       }
       if (config.enableUnhandledCrashReporting != null) {
+        log('"_configToJson", value provided for enableUnhandledCrashReporting: [${config.enableUnhandledCrashReporting}]', logLevel: LogLevel.INFO);
         countlyConfig['enableUnhandledCrashReporting'] = config.enableUnhandledCrashReporting;
       }
 
       if (config.manualSessionEnabled != null) {
+        log('"_configToJson", value provided for manualSessionEnabled: [${config.manualSessionEnabled}]', logLevel: LogLevel.INFO);
         countlyConfig['manualSessionEnabled'] = config.manualSessionEnabled;
       }
 
       if (config.maxRequestQueueSize != null) {
+        log('"_configToJson", value provided for maxRequestQueueSize: [${config.maxRequestQueueSize}]', logLevel: LogLevel.INFO);
         countlyConfig['maxRequestQueueSize'] = config.maxRequestQueueSize;
       }
 
       if (config.locationCity != null) {
+        log('"_configToJson", value provided for City: [${config.locationCity}]', logLevel: LogLevel.INFO);
         countlyConfig['locationCity'] = config.locationCity;
       }
 
       if (config.locationCountryCode != null) {
+        log('"_configToJson", value provided for CountryCode: [${config.locationCountryCode}]', logLevel: LogLevel.INFO);
         countlyConfig['locationCountryCode'] = config.locationCountryCode;
       }
 
       if (config.locationGpsCoordinates != null) {
+        log('"_configToJson", value provided for GpsCoordinates: [${config.locationGpsCoordinates}]', logLevel: LogLevel.INFO);
         countlyConfig['locationGpsCoordinates'] = config.locationGpsCoordinates;
       }
 
       if (config.locationIpAddress != null) {
+        log('"_configToJson", value provided for IpAddress: [${config.locationIpAddress}]', logLevel: LogLevel.INFO);
         countlyConfig['locationIpAddress'] = config.locationIpAddress;
       }
 
       if (config.enableRemoteConfigAutomaticDownload != null) {
+        log('"_configToJson", value provided for enableRemoteConfigAutomaticDownload: [${config.enableRemoteConfigAutomaticDownload}]', logLevel: LogLevel.INFO);
         countlyConfig['enableRemoteConfigAutomaticDownload'] = config.enableRemoteConfigAutomaticDownload;
       }
 
       if (config.daCampaignType != null) {
+        log('"_configToJson", value provided for campaignType: [${config.daCampaignType}]', logLevel: LogLevel.INFO);
         countlyConfig['campaignType'] = config.daCampaignType;
       }
 
       if (config.daCampaignData != null) {
+        log('"_configToJson", value provided for campaignData: [${config.daCampaignData}]', logLevel: LogLevel.INFO);
         countlyConfig['campaignData'] = config.daCampaignData;
       }
 
       if (config.iaAttributionValues != null) {
+        log('"_configToJson", value provided for attributionValues: [${config.iaAttributionValues}]', logLevel: LogLevel.INFO);
         countlyConfig['attributionValues'] = config.iaAttributionValues;
       }
 
       if (config.globalViewSegmentation != null) {
+        log('"_configToJson", value provided for globalViewSegmentation: [${config.globalViewSegmentation}]', logLevel: LogLevel.INFO);
         countlyConfig['globalViewSegmentation'] = config.globalViewSegmentation;
       }
 
       if (config.enableAllConsents) {
+        log('"_configToJson", value provided for enableAllConsents: [${config.enableAllConsents}]', logLevel: LogLevel.INFO);
         countlyConfig['enableAllConsents'] = config.enableAllConsents;
       }
 
       if (config.autoEnrollABOnDownload) {
+        log('"_configToJson", value provided for autoEnrollABOnDownload: [${config.autoEnrollABOnDownload}]', logLevel: LogLevel.INFO);
         countlyConfig['autoEnrollABOnDownload'] = config.autoEnrollABOnDownload;
       }
 
       if (config.requestDropAgeHours != null) {
+        log('"_configToJson", value provided for requestDropAgeHours: [${config.requestDropAgeHours}]', logLevel: LogLevel.INFO);
         countlyConfig['requestDropAgeHours'] = config.requestDropAgeHours;
       }
 
       /// APM ---------------------------
       if (config.apm.trackAppStartTime) {
+        log('"_configToJson", value provided for trackAppStartTime: [${config.apm.trackAppStartTime}]', logLevel: LogLevel.INFO);
         countlyConfig['trackAppStartTime'] = config.apm.trackAppStartTime;
       }
       if (config.apm.enableForegroundBackground) {
+        log('"_configToJson", value provided for enableForegroundBackground: [${config.apm.enableForegroundBackground}]', logLevel: LogLevel.INFO);
         countlyConfig['enableForegroundBackground'] = config.apm.enableForegroundBackground;
       }
       if (config.apm.enableManualAppLoaded) {
+        log('"_configToJson", value provided for enableManualAppLoaded: [${config.apm.enableManualAppLoaded}]', logLevel: LogLevel.INFO);
         countlyConfig['enableManualAppLoaded'] = config.apm.enableManualAppLoaded;
       }
       if (config.apm.startTSOverride != 0) {
+        log('"_configToJson", value provided for startTSOverride: [${config.apm.startTSOverride}]', logLevel: LogLevel.INFO);
         countlyConfig['startTSOverride'] = config.apm.startTSOverride;
       }
       // legacy
       if (config.recordAppStartTime != null) {
+        log('"_configToJson", value provided for recordAppStartTime: [${config.recordAppStartTime}]', logLevel: LogLevel.INFO);
         countlyConfig['recordAppStartTime'] = config.recordAppStartTime;
       }
 
@@ -2177,30 +2203,38 @@ class Countly {
       /// Internal Limits ---------------------------
       // Skipping logs for internal limits (change my mind)
       if (config.sdkInternalLimits.maxKeyLength > 0) {
+        log('"_configToJson", value provided for maxKeyLength: [${config.sdkInternalLimits.maxKeyLength}]', logLevel: LogLevel.INFO);
         countlyConfig['maxKeyLength'] = config.sdkInternalLimits.maxKeyLength;
       }
       if (config.sdkInternalLimits.maxValueSize > 0) {
+        log('"_configToJson", value provided for maxValueSize: [${config.sdkInternalLimits.maxValueSize}]', logLevel: LogLevel.INFO);
         countlyConfig['maxValueSize'] = config.sdkInternalLimits.maxValueSize;
       }
       if (config.sdkInternalLimits.maxSegmentationValues > 0) {
+        log('"_configToJson", value provided for maxSegmentationValues: [${config.sdkInternalLimits.maxSegmentationValues}]', logLevel: LogLevel.INFO);
         countlyConfig['maxSegmentationValues'] = config.sdkInternalLimits.maxSegmentationValues;
       }
       if (config.sdkInternalLimits.maxBreadcrumbCount > 0) {
+        log('"_configToJson", value provided for maxBreadcrumbCount: [${config.sdkInternalLimits.maxBreadcrumbCount}]', logLevel: LogLevel.INFO);
         countlyConfig['maxBreadcrumbCount'] = config.sdkInternalLimits.maxBreadcrumbCount;
       }
       if (config.sdkInternalLimits.maxStackTraceLineLength > 0) {
+        log('"_configToJson", value provided for maxStackTraceLineLength: [${config.sdkInternalLimits.maxStackTraceLineLength}]', logLevel: LogLevel.INFO);
         countlyConfig['maxStackTraceLineLength'] = config.sdkInternalLimits.maxStackTraceLineLength;
       }
       if (config.sdkInternalLimits.maxStackTraceLinesPerThread > 0) {
+        log('"_configToJson", value provided for maxStackTraceLinesPerThread: [${config.sdkInternalLimits.maxStackTraceLinesPerThread}]', logLevel: LogLevel.INFO);
         countlyConfig['maxStackTraceLinesPerThread'] = config.sdkInternalLimits.maxStackTraceLinesPerThread;
       }
 
       /// Internal Limits END ---------------------------
+      log('"_configToJson", value provided for remoteConfigAutomaticTriggers: [${config.remoteConfigAutomaticTriggers}]', logLevel: LogLevel.INFO);
       countlyConfig['remoteConfigAutomaticTriggers'] = config.remoteConfigAutomaticTriggers;
 
+      log('"_configToJson", value provided for remoteConfigValueCaching: [${config.remoteConfigValueCaching}]', logLevel: LogLevel.INFO);
       countlyConfig['remoteConfigValueCaching'] = config.remoteConfigValueCaching;
     } catch (e) {
-      log('_configToJson, Exception occur during converting config to json: $e');
+      log('"_configToJson", Exception occur during converting config to json: $e', logLevel: LogLevel.ERROR);
     }
     return countlyConfig;
   }

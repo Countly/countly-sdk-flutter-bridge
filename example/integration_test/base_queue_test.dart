@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -33,8 +34,8 @@ void main() {
 
     // Verify some parameters of a single event
     Map<String, dynamic> event = json.decode(eventList[0]);
-    expect("[CLY]_view", event['key']);
+    expect(Platform.isAndroid ? "[CLY]_orientation" : "[CLY]_view", event['key']);
     expect(1, event['count']);
-    expect(3, eventList.length);
+    expect(Platform.isAndroid ? 4 : 3, eventList.length);
   });
 }

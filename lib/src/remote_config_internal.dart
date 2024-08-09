@@ -292,7 +292,7 @@ class RemoteConfigInternal implements RemoteConfig {
     };
 
     int requestID = callback.hashCode;
-    Countly.log('"remoteConfigRegisterDownloadCallback" registering a callback with the hashCode:[$requestID]', logLevel: LogLevel.ERROR);
+    Countly.log('"remoteConfigRegisterDownloadCallback" registering a callback with the hashCode:[$requestID]', logLevel: LogLevel.INFO);
     _remoteConfigDownloadCallbacks[requestID] = innerCallback;
   }
 
