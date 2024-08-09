@@ -1895,14 +1895,14 @@ class Countly {
   /// Internal callback to record 'FlutterError.onError' errors
   ///
   /// Must call [enableCrashReporting()] to enable it
-  static Future<void> _recordFlutterError(FlutterErrorDetails details) async {
+  static void _recordFlutterError(FlutterErrorDetails details) {
     log('_recordFlutterError, Flutter error caught by Countly:');
     if (!_enableCrashReportingFlag) {
       log('_recordFlutterError, Crash Reporting must be enabled to report crash on Countly', logLevel: LogLevel.WARNING);
       return;
     }
 
-    unawaited(_internalRecordError(details.exceptionAsString(), details.stack));
+    _internalRecordError(details.exceptionAsString(), details.stack);
   }
 
   /// Callback to catch and report Dart errors, [enableCrashReporting()] must call before [initWithConfig] to make it work.
@@ -1916,19 +1916,19 @@ class Countly {
   ///   }, Countly.recordDartError);
   /// }
   ///
-  static Future<void> recordDartError(exception, StackTrace stack) async {
+  static void recordDartError(exception, StackTrace stack) {
     log('recordDartError, Error caught by Countly :');
     if (!_enableCrashReportingFlag) {
       log('recordDartError, Crash Reporting must be enabled to report crash on Countly', logLevel: LogLevel.WARNING);
       return;
     }
-    unawaited(_internalRecordError(exception, stack));
+    _internalRecordError(exception, stack);
   }
 
   /// A common call for crashes coming from [_recordFlutterError] and [recordDartError]
   ///
   /// They are then further reported to countly
-  static Future<void> _internalRecordError(exception, StackTrace? stack) async {
+  static void _internalRecordError(exception, StackTrace? stack) {
     if (!_instance._countlyState.isInitialized) {
       log('_internalRecordError, countly is not initialized', logLevel: LogLevel.WARNING);
       return;
