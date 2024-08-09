@@ -257,8 +257,10 @@ class Countly {
       }
     }
     if (config.enableUnhandledCrashReporting != null) {
-      FlutterError.onError = (e) {
-        _recordFlutterError(e);
+      FlutterError.onError = _recordFlutterError;
+      PlatformDispatcher.instance.onError = (e, s) {
+        _internalRecordError(e, s);
+        return true;
       };
       _enableCrashReportingFlag = config.enableUnhandledCrashReporting!;
     }
