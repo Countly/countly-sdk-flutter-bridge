@@ -1,5 +1,6 @@
 ## X.X.X
 * Mitigated an issue where some crash reports are not automatically sent when you `enableCrashReporting` from config.
+* Removed all reference to `runZonedGuarded`. Dart and async errors are caught using `PlatformDispatcher.instance.onError` if crashReporting is enabled.
 
 ## 24.7.1
 * Added a new configuration option `enableTemporaryDeviceIDMode` to 'CountlyConfig' interface

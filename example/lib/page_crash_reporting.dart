@@ -43,10 +43,14 @@ class CrashReportingPage extends StatelessWidget {
   }
 
   void dividedByZero() {
-    int firstInput = 20;
-    int secondInput = 0;
-    int result = firstInput ~/ secondInput;
-    print('The result of $firstInput divided by $secondInput is $result');
+    try {
+      int firstInput = 20;
+      int secondInput = 0;
+      int result = firstInput ~/ secondInput;
+      print('The result of $firstInput divided by $secondInput is $result');
+    } catch (e, s) {
+      Countly.logExceptionEx(e as Exception, true, stacktrace: s);
+    }
   }
 
   @override

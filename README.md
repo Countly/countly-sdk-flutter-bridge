@@ -48,10 +48,8 @@ dependencies:
 import 'package:countly_flutter/countly_flutter.dart';
 
 void main() {
-  // If you want to catch Dart errors, run your app inside a Zone and pass Countly.recordDartError as the onError parameter to it.
-  runZonedGuarded<void>(() {
-    runApp(MaterialApp(home: const MyApp()));
-  }, Countly.recordDartError);
+  // If you want to catch Dart errors, call enableCrashReporting before you initialize your Countly SDK.
+  runApp(MaterialApp(home: const MyApp()));
 }
 
 class MyApp extends StatefulWidget {
