@@ -1916,7 +1916,7 @@ class Countly {
   ///   }, Countly.recordDartError);
   /// }
   ///
-  static void recordDartError(exception, StackTrace stack) {
+  static Future<void> recordDartError(exception, StackTrace stack) async {
     log('recordDartError, Error caught by Countly :');
     if (!_enableCrashReportingFlag) {
       log('recordDartError, Crash Reporting must be enabled to report crash on Countly', logLevel: LogLevel.WARNING);
