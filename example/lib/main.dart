@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:countly_flutter_example/config_object.dart';
 
@@ -19,9 +17,6 @@ import 'package:countly_flutter_example/style.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-  /// This or a similar call needs to added to catch and report Dart Errors to Countly,
-  /// You need to run the app inside a Zone
-  /// and provide the [Countly.recordDartError] callback for [onError()]
   runApp(
     MaterialApp(
       theme: AppTheme.countlyTheme(),

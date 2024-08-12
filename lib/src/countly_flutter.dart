@@ -257,11 +257,21 @@ class Countly {
       }
     }
     if (config.enableUnhandledCrashReporting != null) {
+      // To catch all errors thrown within the flutter framework, we use
       FlutterError.onError = _recordFlutterError;
+
+      // Asynchronous errors are not caught by the Flutter framework. For example 
+      // ElevatedButton(
+      //   onPressed: () async {
+      //     throw Error();
+      //   }
+      // )
+      // To catch such errors, we use
       PlatformDispatcher.instance.onError = (e, s) {
         _internalRecordError(e, s);
         return true;
       };
+
       _enableCrashReportingFlag = config.enableUnhandledCrashReporting!;
     }
     _channel.setMethodCallHandler(_methodCallHandler);
@@ -1698,6 +1708,10 @@ class Countly {
     log('Calling "enableCrashReporting"');
     log('enableCrashReporting is deprecated, use enableCrashReporting of CountlyConfig instead', logLevel: LogLevel.WARNING);
     FlutterError.onError = _recordFlutterError;
+    PlatformDispatcher.instance.onError = (e, s) {
+      _internalRecordError(e, s);
+      return true;
+    };
     _enableCrashReportingFlag = true;
     final String? result = await _channel.invokeMethod('enableCrashReporting');
 
