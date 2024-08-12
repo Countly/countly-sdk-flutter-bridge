@@ -53,6 +53,13 @@ class CrashReportingPage extends StatelessWidget {
     }
   }
 
+  void dividedByZeroNoCatch() {
+    int firstInput = 20;
+    int secondInput = 0;
+    int result = firstInput ~/ secondInput;
+    print('The result of $firstInput divided by $secondInput is $result');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,6 +78,7 @@ class CrashReportingPage extends StatelessWidget {
             MyButton(text: 'Throw Native Exception', color: 'orange', onPressed: throwNativeException),
             MyButton(text: 'Record Exception Manually', color: 'teal', onPressed: recordExceptionManually),
             MyButton(text: 'Divided By Zero Exception', color: 'teal', onPressed: dividedByZero),
+            MyButton(text: 'Divided By Zero Exception (No catch)', color: 'teal', onPressed: dividedByZeroNoCatch),
             MyButton(
               text: 'Async Error',
               color: 'teal',
