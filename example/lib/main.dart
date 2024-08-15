@@ -24,10 +24,12 @@ void main() {
   /// and provide the [Countly.recordDartError] callback for [onError()]
   runZonedGuarded<void>(() {
     runApp(
-      MaterialApp(
-        theme: AppTheme.countlyTheme(),
-        debugShowCheckedModeBanner: false,
-        home: const MyApp(),
+      CountlyVisibilityDectector(
+        child: MaterialApp(
+          theme: AppTheme.countlyTheme(),
+          debugShowCheckedModeBanner: false,
+          home: const MyApp(),
+        ),
       ),
     );
   }, Countly.recordDartError);
