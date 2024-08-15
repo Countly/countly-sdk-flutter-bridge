@@ -121,6 +121,11 @@ class Countly {
   static int lastUsedRCID = 0;
   static Function(String? error)? _ratingWidgetCallback;
   static Function(Map<String, dynamic> widgetData, String? error)? _feedbackWidgetDataCallback;
+  static int _appVisible = 1;
+
+  void toggleAppVisiblity([bool appVisible = true]) {
+    _appVisible = appVisible ? 1 : 0;
+  }
 
   /// Callback handler to handle function calls from native iOS/Android to Dart.
   static Future<void> _methodCallHandler(MethodCall call) async {
@@ -360,9 +365,8 @@ class Countly {
     options['duration'] ??= '0';
     args.add(options['duration'].toString());
 
-    if (options['segmentation'] != null) {
-      args.add(options['segmentation']!);
-    }
+    (options['segmentation'] as Map<String, dynamic>).putIfAbsent('__v__', () => _appVisible);
+    args.add(options['segmentation']!);
 
     final String? result = await _channel.invokeMethod('recordEvent', <String, dynamic>{'data': json.encode(args)});
 
