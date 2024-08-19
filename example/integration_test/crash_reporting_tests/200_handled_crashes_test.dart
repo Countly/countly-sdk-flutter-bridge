@@ -19,6 +19,8 @@ void main() {
     final segmentation = {'_facebook_version': '0.0.1'};
     final exceptionName = 'newException';
     await Countly.logException(exceptionName, true, segmentation);
+    await Future.delayed(Duration(seconds: 1));
+    await Countly.logException(exceptionName, false, segmentation);
 
     // divide by zero
     try {
@@ -27,7 +29,9 @@ void main() {
       int result = firstInput ~/ secondInput;
       print('The result of [$firstInput] divided by [$secondInput] is [$result]');
     } catch (e, s) {
-      Countly.logExceptionEx(e as Exception, true, stacktrace: s);
+      await Countly.logExceptionEx(e as Exception, true, stacktrace: s);
+      await Future.delayed(Duration(seconds: 1));
+      await Countly.logExceptionEx(e, false, stacktrace: s);
     }
 
     // throw exception async
@@ -35,7 +39,7 @@ void main() {
     try {
       await throwExceptionAsync(throwAsyncErrorString);
     } catch (e, s) {
-      Countly.recordDartError(e, s);
+      await Countly.recordDartError(e, s);
     }
 
     // throw state error
@@ -43,7 +47,7 @@ void main() {
     try {
       throw StateError(stateErrorString);
     } catch (e, s) {
-      Countly.recordDartError(e, s);
+      await Countly.recordDartError(e, s);
     }
 
     // json crash
@@ -52,7 +56,7 @@ void main() {
       Map<String, Object> options = json.decode(jsonDecodeErrorString);
       print(options.length);
     } catch (e, s) {
-      Countly.recordDartError(e, s);
+      await Countly.recordDartError(e, s);
     }
 
     // Get request and event queues from native side
@@ -61,7 +65,7 @@ void main() {
 
     // Some logs for debugging
     printQueues(requestList, eventList);
-    expect(requestList.length, 6);
+    expect(requestList.length, 8);
 
     if (Platform.isAndroid) {
       crashLogs += '\n';
@@ -82,16 +86,27 @@ void main() {
         expect((crash['_error'] as String).contains(exceptionName), true);
         expect(crash['_custom'], segmentation);
         expect(crash['_logs'], crashLogs);
+        expect(crash['_nonfatal'], 'true');
       } else if (i == 2) {
+        expect((crash['_error'] as String).contains(exceptionName), true);
+        expect(crash['_custom'], segmentation);
+        expect(crash['_logs'], crashLogs);
+        expect(crash['_nonfatal'], 'false');
+      } else if (i == 3) {
         expect((crash['_error'] as String).contains('IntegerDivisionByZeroException'), true);
         expect(crash['_logs'], crashLogs);
-      } else if (i == 3) {
+        expect(crash['_nonfatal'], 'true');
+      } else if (i == 4) {
+        expect((crash['_error'] as String).contains('IntegerDivisionByZeroException'), true);
+        expect(crash['_logs'], crashLogs);
+        expect(crash['_nonfatal'], 'false');
+      } else if (i == 5) {
         expect((crash['_error'] as String).contains(throwAsyncErrorString), true);
         expect(crash['_logs'], crashLogs);
-      } else if (i == 4) {
+      } else if (i == 6) {
         expect((crash['_error'] as String).contains(stateErrorString), true);
         expect(crash['_logs'], crashLogs);
-      } else if (i == 5) {
+      } else if (i == 7) {
         expect((crash['_error'] as String).contains(jsonDecodeErrorString), true);
         expect(crash['_logs'], crashLogs);
       }
