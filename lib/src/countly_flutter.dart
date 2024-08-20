@@ -365,7 +365,10 @@ class Countly {
     options['duration'] ??= '0';
     args.add(options['duration'].toString());
 
-    (options['segmentation'] as Map<String, dynamic>).putIfAbsent('__v__', () => _appVisible);
+    if (options['segmentation'] == null) {
+      options['segmentation'] = {};
+    }
+    (options['segmentation'] as Map<dynamic, dynamic>).putIfAbsent('__v__', () => _appVisible);
     args.add(options['segmentation']!);
 
     final String? result = await _channel.invokeMethod('recordEvent', <String, dynamic>{'data': json.encode(args)});
