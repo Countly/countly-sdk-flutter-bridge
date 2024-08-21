@@ -122,6 +122,8 @@ class Countly {
   static Function(String? error)? _ratingWidgetCallback;
   static Function(Map<String, dynamic> widgetData, String? error)? _feedbackWidgetDataCallback;
   static int _appVisible = 1;
+  static bool _visibilityTracking = false;
+  bool get visibilityTracking => _visibilityTracking;
 
   void toggleAppVisiblity([bool appVisible = true]) {
     _appVisible = appVisible ? 1 : 0;
@@ -278,6 +280,7 @@ class Countly {
     for (final callback in config.remoteConfigGlobalCallbacks) {
       Countly.instance._remoteConfigInternal.registerDownloadCallback(callback);
     }
+    _visibilityTracking = config.visibilityTracking;
 
     return result;
   }
@@ -365,11 +368,15 @@ class Countly {
     options['duration'] ??= '0';
     args.add(options['duration'].toString());
 
-    if (options['segmentation'] == null) {
-      options['segmentation'] = {};
+    if (_visibilityTracking) {
+      if (options['segmentation'] == null) {
+        options['segmentation'] = {};
+      }
+      (options['segmentation'] as Map<dynamic, dynamic>).putIfAbsent('__v__', () => _appVisible);
     }
-    (options['segmentation'] as Map<dynamic, dynamic>).putIfAbsent('__v__', () => _appVisible);
-    args.add(options['segmentation']!);
+    if (options['segmentation'] != null) {
+      args.add(options['segmentation']!);
+    }
 
     final String? result = await _channel.invokeMethod('recordEvent', <String, dynamic>{'data': json.encode(args)});
 

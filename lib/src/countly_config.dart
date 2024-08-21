@@ -41,6 +41,7 @@ class CountlyConfig {
   bool _enableAllConsents = false;
   bool _autoEnrollABOnDownload = false;
   int? _requestDropAgeHours;
+  bool _visibilityTracking = false;
 
   /// instance of CountlyConfigApm
   final CountlyConfigApm _countlyConfigApmInstance = CountlyConfigApm();
@@ -122,6 +123,8 @@ class CountlyConfig {
   bool get autoEnrollABOnDownload => _autoEnrollABOnDownload;
 
   int? get requestDropAgeHours => _requestDropAgeHours;
+
+  bool get visibilityTracking => _visibilityTracking;
 
   /// getter for CountlyConfigApm instance that is used to access CountlyConfigApm methods
   CountlyConfigApm get apm => _countlyConfigApmInstance;
@@ -346,6 +349,11 @@ class CountlyConfig {
   /// [int dropAgeHours] A positive integer. Requests older than the 'dropAgeHours' (with respect to now) would be dropped
   CountlyConfig setRequestDropAgeHours(int dropAgeHours) {
     _requestDropAgeHours = dropAgeHours;
+    return this;
+  }
+
+  CountlyConfig enableVisibilityTracking() {
+    _visibilityTracking = true;
     return this;
   }
 }
