@@ -121,7 +121,7 @@ class Countly {
   static int lastUsedRCID = 0;
   static Function(String? error)? _ratingWidgetCallback;
   static Function(Map<String, dynamic> widgetData, String? error)? _feedbackWidgetDataCallback;
-  static int _appVisible = 1;
+  static int _appVisible = -1;
   static bool _visibilityTracking = false;
   bool get visibilityTracking => _visibilityTracking;
 
@@ -368,7 +368,7 @@ class Countly {
     options['duration'] ??= '0';
     args.add(options['duration'].toString());
 
-    if (_visibilityTracking) {
+    if (_visibilityTracking && _appVisible != -1) {
       if (options['segmentation'] == null) {
         options['segmentation'] = {};
       }

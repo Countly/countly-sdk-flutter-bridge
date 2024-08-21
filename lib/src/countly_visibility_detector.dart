@@ -27,10 +27,6 @@ class _CountlyVisibilityDectectorState extends State<CountlyVisibilityDectector>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
-    if (!Countly.instance.visibilityTracking) {
-      return;
-    }
-
     switch (state) {
       case AppLifecycleState.resumed:
         Countly.instance.toggleAppVisiblity();
