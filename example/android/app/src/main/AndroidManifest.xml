@@ -1,4 +1,7 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.countly.demo">
+    <queries>
+        <package android:name="com.countly.demo" />
+    </queries>
     <application
         android:label="example"
         android:name="${applicationName}"

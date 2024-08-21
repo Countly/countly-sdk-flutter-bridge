@@ -55,8 +55,7 @@ import ly.count.android.sdk.RequestResult;
 import ly.count.android.sdk.StarRatingCallback;
 import ly.count.android.sdk.messaging.CountlyPush;
 
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.FirebaseApp;
@@ -440,18 +439,19 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 }
                 CountlyPush.init(activity.getApplication(), pushTokenType);
                 FirebaseApp.initializeApp(context);
-                FirebaseInstanceId.getInstance().getInstanceId()
-                        .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                                if (!task.isSuccessful()) {
-                                    log("[askForNotificationPermission], getInstanceId failed", task.getException(), LogLevel.WARNING);
-                                    return;
-                                }
-                                String token = task.getResult().getToken();
-                                CountlyPush.onTokenRefresh(token);
-                            }
-                        });
+                FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
+                    @Override
+                    public void onComplete(@NonNull Task<String> task) {
+                        if (!task.isSuccessful()) {
+                            log("[askForNotificationPermission], Fetching FCM registration token failed", task.getException(), LogLevel.WARNING);
+                            return;
+                        }
+
+                        String token = task.getResult();
+                        log("FCM Token: " + token, LogLevel.INFO);
+                        CountlyPush.onTokenRefresh(token);
+                    }
+                });
                 result.success("askForNotificationPermission!");
             } else if ("pushTokenType".equals(call.method)) {
                 String tokenType = args.getString(0);
