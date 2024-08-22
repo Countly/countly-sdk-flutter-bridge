@@ -1871,7 +1871,7 @@ class Countly {
     String exceptionString = exception.toString();
     log('Calling "logExceptionEx":[$exceptionString] nonfatal:[$nonfatal]');
     stacktrace ??= StackTrace.current;
-    final result = logException('$exceptionString\n\n$stacktrace', nonfatal, segmentation);
+    final result = logException('$exceptionString\n$stacktrace', nonfatal, segmentation);
     return result;
   }
 
@@ -1888,7 +1888,7 @@ class Countly {
   static Future<String?> logExceptionManual(String message, bool nonfatal, {StackTrace? stacktrace, Map<String, Object>? segmentation}) async {
     log('Calling "logExceptionManual":[$message] nonfatal:[$nonfatal]');
     stacktrace ??= StackTrace.current;
-    final result = logException('$message\n\n$stacktrace', nonfatal, segmentation);
+    final result = logException('$message\n$stacktrace', nonfatal, segmentation);
     return result;
   }
 
@@ -1941,7 +1941,7 @@ class Countly {
 
     stack ??= StackTrace.fromString('');
     try {
-      unawaited(logException('${exception.toString()}\n\n$stack', true));
+      unawaited(logException('${exception.toString()}\n$stack', true));
     } catch (e) {
       log('_internalRecordError, Sending crash report to Countly failed: $e');
     }

@@ -1,3 +1,9 @@
+## x.x.x
+* Addressed an issue that prevented the stacktrace from being properly recognized on the server
+
+* Underlying Android SDK version is 24.7.1
+* Underlying iOS SDK version is 24.7.1
+
 ## 24.7.1
 * Added a new configuration option `enableTemporaryDeviceIDMode` to 'CountlyConfig' interface
 * Introduced a new `deviceID` interface for grouping device ID management related methods:
