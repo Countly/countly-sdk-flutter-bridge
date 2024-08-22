@@ -123,7 +123,6 @@ class Countly {
   static Function(Map<String, dynamic> widgetData, String? error)? _feedbackWidgetDataCallback;
   static int _appVisible = -1;
   static bool _visibilityTracking = false;
-  bool get visibilityTracking => _visibilityTracking;
 
   void toggleAppVisiblity([bool appVisible = true]) {
     _appVisible = appVisible ? 1 : 0;
