@@ -1,6 +1,6 @@
 ## X.X.X
-* Resolved an issue where certain crash reports were not automatically sent.
-* Removed all reference to `runZonedGuarded`.
+* Fixed an issue where automatic crash reporting failed to capture Flutter framework errors when using the newly introduced config option.
+* Addressed an issue where asynchronous Dart errors were not being captured.
 
 * Underlying Android SDK version is 24.7.1
 * Underlying iOS SDK version is 24.7.1

@@ -48,7 +48,6 @@ dependencies:
 import 'package:countly_flutter/countly_flutter.dart';
 
 void main() {
-  // If you want to catch Dart errors, call enableCrashReporting before you initialize your Countly SDK.
   runApp(MaterialApp(home: const MyApp()));
 }
 
