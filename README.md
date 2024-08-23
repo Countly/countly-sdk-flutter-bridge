@@ -152,18 +152,18 @@ await Countly.instance.views.stopAllViews(segmentation);
 
 // Change device ID with merge.
 // Here, the data associated with the previous device ID is merged with the new ID.
-await Countly.changeDeviceId('123456', true);
+await Countly.instance.deviceId.changeWithMerge('123456');
 
 // Change device ID without merge.
 // Here, the new device ID is counted as a new device.
-await Countly.changeDeviceId('123456', false);
+await Countly.instance.deviceId.changeWithoutMerge('123456');
 ```
 
 ## Get Device ID Type
 
 ```dart
 // To fetch the device ID type
-final DeviceIdType? deviceIdtype = await Countly.getDeviceIDType();
+final DeviceIdType? deviceIdtype = await Countly.instance.deviceId.getIDType();
 // DeviceIdType: DEVELOPER_SUPPLIED, SDK_GENERATED, TEMPORARY_ID
 ```
 

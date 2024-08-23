@@ -1890,7 +1890,7 @@ class Countly {
     String exceptionString = exception.toString();
     log('Calling "logExceptionEx":[$exceptionString] nonfatal:[$nonfatal]');
     stacktrace ??= StackTrace.current;
-    final result = logException('$exceptionString\n\n$stacktrace', nonfatal, segmentation);
+    final result = logException('$exceptionString\n$stacktrace', nonfatal, segmentation);
     return result;
   }
 
@@ -1907,21 +1907,21 @@ class Countly {
   static Future<String?> logExceptionManual(String message, bool nonfatal, {StackTrace? stacktrace, Map<String, Object>? segmentation}) async {
     log('Calling "logExceptionManual":[$message] nonfatal:[$nonfatal]');
     stacktrace ??= StackTrace.current;
-    final result = logException('$message\n\n$stacktrace', nonfatal, segmentation);
+    final result = logException('$message\n$stacktrace', nonfatal, segmentation);
     return result;
   }
 
   /// Internal callback to record 'FlutterError.onError' errors
   ///
   /// Must call [enableCrashReporting()] to enable it
-  static Future<void> _recordFlutterError(FlutterErrorDetails details) async {
+  static void _recordFlutterError(FlutterErrorDetails details) {
     log('_recordFlutterError, Flutter error caught by Countly:');
     if (!_enableCrashReportingFlag) {
       log('_recordFlutterError, Crash Reporting must be enabled to report crash on Countly', logLevel: LogLevel.WARNING);
       return;
     }
 
-    unawaited(_internalRecordError(details.exceptionAsString(), details.stack));
+    _internalRecordError(details.exceptionAsString(), details.stack);
   }
 
   /// Callback to catch and report Dart errors, [enableCrashReporting()] must call before [initWithConfig] to make it work.
@@ -1932,13 +1932,13 @@ class Countly {
       log('recordDartError, Crash Reporting must be enabled to report crash on Countly', logLevel: LogLevel.WARNING);
       return;
     }
-    unawaited(_internalRecordError(exception, stack));
+    _internalRecordError(exception, stack);
   }
 
   /// A common call for crashes coming from [_recordFlutterError] and [recordDartError]
   ///
   /// They are then further reported to countly
-  static Future<void> _internalRecordError(exception, StackTrace? stack) async {
+  static void _internalRecordError(exception, StackTrace? stack) {
     if (!_instance._countlyState.isInitialized) {
       log('_internalRecordError, countly is not initialized', logLevel: LogLevel.WARNING);
       return;
@@ -1951,7 +1951,7 @@ class Countly {
 
     stack ??= StackTrace.fromString('');
     try {
-      unawaited(logException('${exception.toString()}\n\n$stack', true));
+      unawaited(logException('${exception.toString()}\n$stack', true));
     } catch (e) {
       log('_internalRecordError, Sending crash report to Countly failed: $e');
     }
