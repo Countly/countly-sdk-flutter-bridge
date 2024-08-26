@@ -3,10 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import '../utils.dart';
 
-/// 4.Test Visibility Tracking - Test that the SDK handles visibility properly when initialized in background and event is recorded in the background
+/// 4.Test Visibility Tracking - Test that the SDK handles visibility properly when initialized in foreground and event is recorded in the background
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  testWidgets('4.Test Visibility Tracking - Test that the SDK handles visibility properly when initialized in background and event is recorded in the background', (WidgetTester tester) async {
+  testWidgets('4.Test Visibility Tracking - Test that the SDK handles visibility properly when initialized in foreground and event is recorded in the background', (WidgetTester tester) async {
     await tester.pumpWidget(CountlyVisibilityDectector(child: testApp()));
 
     // Initialize the SDK
