@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:countly_flutter/countly_flutter.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +13,15 @@ final String SERVER_URL = 'https://xxx.count.ly';
 final String SERVER_URL_RC = 'https://xxx.count.ly';
 final String APP_KEY = 'SHOULD_BE_YOUR_APP_KEY';
 final String APP_KEY_RC = 'SHOULD_BE_YOUR_APP_KEY';
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
+  }
+}
 
 /// Get request queue from native side (list of strings)
 Future<List<String>> getRequestQueue() async {
@@ -43,7 +53,7 @@ void testCommonRequestParams(Map<String, List<String>> requestObject) {
 Future<void> testLastRequestParams(Map<String, dynamic> params) async {
   print('params: $params');
 
-  // Get request and event queues from native side
+  // Get request queues from native side
   final requestList = await getRequestQueue(); // List of strings
 
   // Some logs for debugging
@@ -64,6 +74,60 @@ Future<void> testLastRequestParams(Map<String, dynamic> params) async {
       expect(requestList.length, 'Test failed because request queue should not be empty');
     }
   }
+}
+
+/// Verify custom event queue parameters
+/// This method checks if the provided parameter key matches the parameter value in the request queue
+Future<void> testLastEventParams(Map<String, dynamic> params) async {
+  print('params: $params');
+
+  // Get event queues from native side
+  final eventList = await getEventQueue(); // List of strings
+
+  // Some logs for debugging
+  print('EQ: $eventList');
+  print('EQ length: ${eventList.length}');
+
+  // Verify the request queue for a single request
+  if (eventList.length > 0) {
+    final event = jsonDecode(eventList.last);
+    print('Event: $event');
+    for (final param in params.keys) {
+      if (param == 'key') {
+        expect(event[param], params[param]);
+      } else {
+        expect(event?['segmentation']?[param], params[param]);
+      }
+    }
+  } else {
+    if (params.isNotEmpty) {
+      // test failed.
+      expect(eventList.length, 'Test failed because request queue should not be empty');
+    }
+  }
+}
+
+/// Go to background
+Future<void> goToBackground(WidgetTester tester) async {
+  FlutterForegroundTask.minimizeApp();
+  if (Platform.isIOS) {
+    printMessageMultipleTimes('will now go to background, get ready to go foreground manually', 3);
+  }
+  await tester.pump(Duration(seconds: 3));
+}
+
+/// Go to foreground
+Future<void> goToForeground(WidgetTester tester) async {
+  FlutterForegroundTask.launchApp();
+  if (Platform.isIOS) {
+    printMessageMultipleTimes('waiting for 3 seconds, now go to foreground', 3);
+  }
+  await tester.pump(Duration(seconds: 3));
+}
+
+/// Test app for testing
+Widget testApp() {
+  return MaterialApp(home: const MyApp());
 }
 
 /// Verify custom request queue parameters
