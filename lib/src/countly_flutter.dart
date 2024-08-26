@@ -257,6 +257,21 @@ class Countly {
       }
     }
     if (config.enableUnhandledCrashReporting != null) {
+      // To catch all errors thrown within the flutter framework, we use
+      FlutterError.onError = _recordFlutterError;
+
+      // Asynchronous errors are not caught by the Flutter framework. For example 
+      // ElevatedButton(
+      //   onPressed: () async {
+      //     throw Error();
+      //   }
+      // )
+      // To catch such errors, we use
+      PlatformDispatcher.instance.onError = (e, s) {
+        _internalRecordError(e, s);
+        return true;
+      };
+
       _enableCrashReportingFlag = config.enableUnhandledCrashReporting!;
     }
     _channel.setMethodCallHandler(_methodCallHandler);
@@ -1693,6 +1708,10 @@ class Countly {
     log('Calling "enableCrashReporting"');
     log('enableCrashReporting is deprecated, use enableCrashReporting of CountlyConfig instead', logLevel: LogLevel.WARNING);
     FlutterError.onError = _recordFlutterError;
+    PlatformDispatcher.instance.onError = (e, s) {
+      _internalRecordError(e, s);
+      return true;
+    };
     _enableCrashReportingFlag = true;
     final String? result = await _channel.invokeMethod('enableCrashReporting');
 
@@ -1906,15 +1925,6 @@ class Countly {
   }
 
   /// Callback to catch and report Dart errors, [enableCrashReporting()] must call before [initWithConfig] to make it work.
-  ///
-  /// This callback has to be provided when the app is about to be run.
-  /// It has to be done inside a custom Zone by providing [Countly.recordDartError] in onError() callback.
-  ///
-  /// void main() {
-  ///   runZonedGuarded<Future<void>>(() async {
-  ///     runApp(MyApp());
-  ///   }, Countly.recordDartError);
-  /// }
   ///
   static Future<void> recordDartError(exception, StackTrace stack) async {
     log('recordDartError, Error caught by Countly :');
