@@ -11,12 +11,30 @@ void main() {
   testWidgets('202_CF_logExceptionEx_test', (WidgetTester tester) async {
     final errorString = 'Division';
     final filterString = '*****';
-    final GlobalCrashFilterCallback globalCrashFilterCallback = (crash) {
-      // Check that the error string exists in the stackTrace
-      expect(crash.stackTrace.contains(errorString), true);
-      expect(crash.stackTrace.contains(filterString), false);
+    final segmentation = {'test_crash': 'test_segmentation'};
+    final GlobalCrashFilterCallback globalCrashFilterCallback = (crashData) {
+      print('GlobalCrashFilterCallback');
 
-      return crash.copyWith(stackTrace: crash.stackTrace.replaceAll(errorString, filterString));
+      // Check that the error string exists in the stackTrace
+      expect(crashData.stackTrace.contains(errorString), true);
+      expect(crashData.stackTrace.contains(filterString), false);
+
+      final breadcrumbs = [...crashData.breadcrumbs];
+      // update the breadcrumb.
+      breadcrumbs.add('test');
+
+      final crashMetrics = crashData.crashMetrics;
+      // update the breadcrumb.
+      crashMetrics.putIfAbsent('test_metric', () => 'test_crash');
+
+      // return the updated crashdata.
+      return crashData.copyWith(
+        breadcrumbs: breadcrumbs,
+        crashMetrics: crashMetrics,
+        crashSegmentation: segmentation,
+        fatal: true, // the fatal flag can be easily overridden
+        stackTrace: crashData.stackTrace.replaceAll(errorString, filterString),
+      );
     };
 
     // Initialize the SDK
@@ -53,6 +71,10 @@ void main() {
         // Check that the error string has been replace in the Global callback
         expect((crash['_error'] as String).contains(errorString), false);
         expect((crash['_error'] as String).contains(filterString), true);
+
+        // Check if segmentation values are well recorded
+        segmentation.forEach((k, v) => expect(crash['_custom'][k], v));
+        // NB: crashMetrics and breadcrumbs can't be tested because flutter cannot send them to native SDKs
       }
       print('RQ.$i: $queryParams');
       print('========================');

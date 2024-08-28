@@ -13,6 +13,12 @@ void main() {
     final filterString = '*****';
     final segmentation = {'test_crash': 'test_segmentation'};
     final GlobalCrashFilterCallback globalCrashFilterCallback = (crashData) {
+      print('GlobalCrashFilterCallback');
+
+      // Check that the error string exists in the stackTrace
+      expect(crashData.stackTrace.contains(errorString), true);
+      expect(crashData.stackTrace.contains(filterString), false);
+
       final breadcrumbs = [...crashData.breadcrumbs];
       // update the breadcrumb.
       breadcrumbs.add('test');
@@ -58,9 +64,9 @@ void main() {
         expect((crash['_error'] as String).contains(errorString), false);
         expect((crash['_error'] as String).contains(filterString), true);
 
-        print('crash[][1].runtimeType');
-        print(crash['_custom'][1].runtimeType);
-        expect(crash['_custom'][1], segmentation);
+        // Check if segmentation values are well recorded
+        segmentation.forEach((k, v) => expect(crash['_custom'][k], v));
+        // NB: crashMetrics and breadcrumbs can't be tested because flutter cannot send them to native SDKs
       }
       print('RQ.$i: $queryParams');
       print('========================');
