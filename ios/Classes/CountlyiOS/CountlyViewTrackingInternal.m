@@ -17,6 +17,12 @@
 
 NSString* const kCountlyReservedEventView = @"[CLY]_view";
 
+//TODO: Need discussion for its usage and then we decide to keep it or remove it
+NSString* const kCountlyCurrentView = @"cly_cvn";
+NSString* const kCountlyPreviousView = @"cly_pvn";
+
+NSString* const kCountlyPreviousEventName = @"cly_pen";
+
 NSString* const kCountlyVTKeyName     = @"name";
 NSString* const kCountlyVTKeySegment  = @"segment";
 NSString* const kCountlyVTKeyVisit    = @"visit";
@@ -440,7 +446,11 @@ NSString* const kCountlyVTKeyDur      = @"dur";
     self.previousViewID = self.currentViewID;
     self.currentViewID = CountlyCommon.sharedInstance.randomEventID;
     
+    self.previousViewName = self.currentViewName;
+    self.currentViewName = viewName;
+    
     CountlyViewData *viewData = [[CountlyViewData alloc] initWithID:self.currentViewID viewName:viewName];
+    viewData.startSegmentation = customSegmentation.mutableCopy;
     viewData.isAutoStoppedView = isAutoStoppedView;
     self.viewDataDictionary[self.currentViewID] = viewData;
     
@@ -518,37 +528,43 @@ NSString* const kCountlyVTKeyDur      = @"dur";
 }
 
 
-- (void)pauseAllViewsInternal
+- (void)stopRunningViewsInternal
 {
     [self.viewDataDictionary enumerateKeysAndObjectsUsingBlock:^(NSString * _Nonnull key, CountlyViewData * _Nonnull viewData, BOOL * _Nonnull stop) {
-        [self pauseViewInternal:viewData autoPaused:YES];
+        viewData.willStartAgain = YES;
+        [self stopViewWithIDInternal:viewData.viewID customSegmentation:nil autoPaused:YES];
     }];
 }
 
 - (void)pauseViewInternal:(CountlyViewData*) viewData
 {
-    [self pauseViewInternal:viewData autoPaused:NO];
-}
-
-- (void)pauseViewInternal:(CountlyViewData*) viewData autoPaused:(BOOL) autoPaused
-{
-    if (autoPaused) {
-        [viewData autoPauseView];
-    }
-    else {
-        [viewData pauseView];
-    }
+    [viewData pauseView];
     [self stopViewWithIDInternal:viewData.viewID customSegmentation:nil autoPaused:YES];
 }
 
-- (void)resumeAllViewsInternal
+- (void)startStoppedViewsInternal
 {
+    // Create an array to store keys for views that need to be removed
+    NSMutableArray<NSString *> *keysToRemove = [NSMutableArray array];
+
     [self.viewDataDictionary enumerateKeysAndObjectsUsingBlock:^(NSString * _Nonnull key, CountlyViewData * _Nonnull viewData, BOOL * _Nonnull stop) {
-        if (viewData.isAutoPaused)
+        if (viewData.willStartAgain)
         {
-            [viewData resumeView];
+            NSString *viewID = [self startViewInternal:viewData.viewName customSegmentation:viewData.startSegmentation isAutoStoppedView:viewData.isAutoStoppedView];
+            
+            // Retrieve the newly created viewData for the viewID
+            CountlyViewData* viewDataNew = self.viewDataDictionary[viewID];
+            
+            // Copy the segmentation data from the old view to the new view
+            viewDataNew.segmentation = viewData.segmentation.mutableCopy;
+            
+            // Add the old view's ID to the array for removal later
+            [keysToRemove addObject:viewData.viewID];
         }
     }];
+    
+    // Remove the entries from the dictionary
+    [self.viewDataDictionary removeObjectsForKeys:keysToRemove];
 }
 
 - (void)stopAllViewsInternal:(NSDictionary *)segmentation
@@ -717,14 +733,11 @@ NSString* const kCountlyVTKeyDur      = @"dur";
 
 - (void)applicationWillEnterForeground {
 #if (TARGET_OS_IOS || TARGET_OS_TV)
-    if (self.isAutoViewTrackingActive) {
-        
-    }
-    else {
-        [self resumeAllViewsInternal];
+    if (!self.isAutoViewTrackingActive) {
+        [self startStoppedViewsInternal];
     }
 #else
-    [self resumeAllViewsInternal];
+    [self startStoppedViewsInternal];
 #endif
 }
 - (void)applicationDidEnterBackground {
@@ -733,10 +746,10 @@ NSString* const kCountlyVTKeyDur      = @"dur";
         [self stopCurrentView];
     }
     else {
-        [self pauseAllViewsInternal];
+        [self stopRunningViewsInternal];
     }
 #else
-    [self pauseAllViewsInternal];
+    [self stopRunningViewsInternal];
 #endif
 }
 
