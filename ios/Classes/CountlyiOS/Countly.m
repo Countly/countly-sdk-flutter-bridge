@@ -16,7 +16,8 @@
 long long appLoadStartTime;
 // It holds the event id of previous recorded custom event.
 NSString* previousEventID;
-
+// It holds the event name of previous recorded custom event.
+NSString* previousEventName;
 @implementation Countly
 
 #pragma mark - Core
@@ -244,6 +245,13 @@ static dispatch_once_t onceToken;
         [CountlyViewTrackingInternal.sharedInstance addAutoViewTrackingExclutionList:config.automaticViewTrackingExclusionList];
     }
 #endif
+    
+    if(config.experimental.enablePreviousNameRecording) {
+        CountlyViewTrackingInternal.sharedInstance.enablePreviousNameRecording = YES;
+    }
+    if(config.experimental.enableVisibiltyTracking) {
+        CountlyCommon.sharedInstance.enableVisibiltyTracking = YES;
+    }
     if (config.globalViewSegmentation) {
         [CountlyViewTrackingInternal.sharedInstance setGlobalViewSegmentation:config.globalViewSegmentation];
     }
@@ -263,6 +271,11 @@ static dispatch_once_t onceToken;
     if (config.apm.getAppStartTimestampOverride) {
         appLoadStartTime = config.apm.getAppStartTimestampOverride;
     }
+#if (TARGET_OS_IOS)
+    if(config.content.getGlobalContentCallback) {
+        CountlyContentBuilderInternal.sharedInstance.contentCallback = config.content.getGlobalContentCallback;
+    }
+#endif
     
     [CountlyPerformanceMonitoring.sharedInstance startWithConfig:config.apm];
     
@@ -891,15 +904,21 @@ static dispatch_once_t onceToken;
     // Check if the event is a reserved event
     BOOL isReservedEvent = [self isReservedEvent:key];
 
-    // If the event is not reserved, assign the previous event ID to the current event's PEID property, or an empty string if previousEventID is nil. Then, update previousEventID to the current event's ID.
+    NSMutableDictionary *filteredSegmentations = segmentation.cly_filterSupportedDataTypes;
+    
+    // If the event is not reserved, assign the previous event ID and Name to the current event's PEID property, or an empty string if previousEventID is nil. Then, update previousEventID to the current event's ID.
     if (!isReservedEvent)
     {
         key = [key cly_truncatedKey:@"Event key"];
         event.PEID = previousEventID ?: @"";
         previousEventID = event.ID;
+        if(CountlyViewTrackingInternal.sharedInstance.enablePreviousNameRecording) {
+            filteredSegmentations[kCountlyPreviousEventName] = previousEventName ?: @"";
+            previousEventName = key;
+        }
     }
     event.key = key;
-    event.segmentation = segmentation.cly_filterSupportedDataTypes;
+    event.segmentation = [self processSegmentation:filteredSegmentations eventKey:key];
     event.count = MAX(count, 1);
     event.sum = sum;
     event.timestamp = timestamp;
@@ -909,6 +928,36 @@ static dispatch_once_t onceToken;
 
     [CountlyPersistency.sharedInstance recordEvent:event];
 }
+
+- (NSDictionary*) processSegmentation:(NSMutableDictionary *) segmentation eventKey:(NSString *)eventKey
+{
+    if(CountlyViewTrackingInternal.sharedInstance.enablePreviousNameRecording) {
+        if([eventKey isEqualToString:kCountlyReservedEventView]) {
+            segmentation[kCountlyPreviousView] = CountlyViewTrackingInternal.sharedInstance.previousViewName ?: @"";
+        }
+    }
+    
+    if(CountlyCommon.sharedInstance.enableVisibiltyTracking) {
+        segmentation[kCountlyVisibility] = @([self isAppInForeground]);
+    }
+    return segmentation;
+}
+
+- (BOOL)isAppInForeground {
+#if TARGET_OS_IOS || TARGET_OS_TV
+    UIApplicationState state = [UIApplication sharedApplication].applicationState;
+    return state == UIApplicationStateActive;
+#elif TARGET_OS_OSX
+    NSApplication *app = [NSApplication sharedApplication];
+    return app.isActive;
+#elif TARGET_OS_WATCH
+    WKExtension *extension = [WKExtension sharedExtension];
+    return extension.applicationState == WKApplicationStateActive;
+#else
+    return NO;
+#endif
+}
+
 
 - (BOOL)isReservedEvent:(NSString *)key
 {
@@ -1227,6 +1276,11 @@ static dispatch_once_t onceToken;
     CLY_LOG_I(@"%s %@", __FUNCTION__, completionHandler);
 
     [CountlyFeedbacks.sharedInstance getFeedbackWidgets:completionHandler];
+}
+
+- (CountlyContentBuilder *) content
+{
+    return CountlyContentBuilder.sharedInstance;
 }
 
 #endif
