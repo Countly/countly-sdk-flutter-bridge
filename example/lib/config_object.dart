@@ -28,9 +28,26 @@ class CountlyConfiguration {
     String message = 'Manual Download, Result:[${rResult}, updatedAll:[${fullValueUpdate}], downloadedValues:[\n${downloadedValuesString}]';
     print(message);
   };
+  static final GlobalCrashFilterCallback globalCrashFilterCallback = (crashData) {
+    final breadcrumbs = [...crashData.breadcrumbs];
+    // update the breadcrumb.
+    breadcrumbs.add('test');
+
+    final crashMetrics = crashData.crashMetrics;
+    // update the breadcrumb.
+    crashMetrics.putIfAbsent('test_metric', () => 'test_crash');
+
+    // Update the stackTrace.
+    return crashData.copyWith(
+      breadcrumbs: breadcrumbs,
+      crashMetrics: crashMetrics,
+      crashSegmentation: {'test_crash': 'test_segmentation'},
+      fatal: true, // the fatal flag can be easily overridden
+      stackTrace: crashData.stackTrace.replaceAll('Exception', '*****'),
+    );
+  };
 
   static CountlyConfig getConfig() {
-
     if (SERVER_URL == 'https://your.server.ly' || APP_KEY == 'YOUR_APP_KEY') {
       print('Please do not use default set of app key and server url');
     }
@@ -67,6 +84,7 @@ class CountlyConfiguration {
         //   ..enableManualSessionHandling() // Enable manual session handling
         //   ..setHttpPostForced(false) // Set to 'true' if you want HTTP POST to be used for all requests
         // ..disableLocation() // Call if you want to disable location tracking
+        //  ..setGlobalCrashFilterCallback(globalCrashFilterCallback) // Call if you want to filter crash data
         ;
   }
 }

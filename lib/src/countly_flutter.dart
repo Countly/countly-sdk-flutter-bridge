@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
 import 'countly_config.dart';
 import 'countly_state.dart';
+import 'crash.dart';
 import 'device_id.dart';
 import 'device_id_internal.dart';
 import 'remote_config.dart';
@@ -118,6 +119,7 @@ class Countly {
   static VoidCallback? _widgetShown;
   static VoidCallback? _widgetClosed;
   static Function(String? error)? _remoteConfigCallback;
+  static GlobalCrashFilterCallback? _globalCrashFilterCallback;
   static int lastUsedRCID = 0;
   static Function(String? error)? _ratingWidgetCallback;
   static Function(Map<String, dynamic> widgetData, String? error)? _feedbackWidgetDataCallback;
@@ -204,7 +206,46 @@ class Countly {
           log('[FMethodCallH] $e', logLevel: LogLevel.ERROR);
         }
         break;
+      case 'globalCrashFilterCallback':
+        try {
+          final Map<String, dynamic> argumentsMap = Map<String, dynamic>.from(call.arguments);
+          final crashData = _crashFilterCheck(CrashData.fromJson(argumentsMap));
+          log('[FMethodCallH] globalCrashFilterCallback, crashData: [$crashData]', logLevel: LogLevel.INFO);
+          if (crashData != null) {
+            Map<String, Object> segmentation = {};
+            crashData.crashSegmentation.forEach((k, v) {
+              if (v is List && v.length == v.length) {
+                // This is a hacky check for fixed-length lists
+                segmentation.putIfAbsent(k.toString(), () => List.from(v));
+              } else {
+                segmentation.putIfAbsent(k.toString(), () => v);
+              }
+            });
+            segmentation.putIfAbsent('__cs__', () => true);
+
+            unawaited(logException(crashData.stackTrace, crashData.fatal, segmentation));
+          } else {
+            log('[FMethodCallH] globalCrashFilterCallback, filtered crash data is null. Ignoring.', logLevel: LogLevel.INFO);
+          }
+        } catch (e) {
+          log('[FMethodCallH] globalCrashFilterCallback, ERROR: [$e]', logLevel: LogLevel.ERROR);
+        }
+        break;
     }
+  }
+
+  /// Calls globalCrashFilterCallback on the crashData and returns the manipulated crashData
+  /// param CrashData crashData object to check
+  /// return CrashData filtered crash data
+  static CrashData? _crashFilterCheck(CrashData crashData) {
+    log('Calling "crashFilterCheck": crashData:[${crashData.toJson()}]', logLevel: LogLevel.INFO);
+    if (_globalCrashFilterCallback == null) {
+      return crashData;
+    }
+
+    final filteredCrashData = _globalCrashFilterCallback!(crashData);
+    log('crashFilterCheck, filteredCrashData:[${filteredCrashData?.toJson()}]', logLevel: LogLevel.INFO);
+    return filteredCrashData;
   }
 
   /// For registering a callback that is called when a remote config download is completed
@@ -273,6 +314,9 @@ class Countly {
       };
 
       _enableCrashReportingFlag = config.enableUnhandledCrashReporting!;
+    }
+    if (config.globalCrashFilterCallback != null) {
+      _globalCrashFilterCallback = config.globalCrashFilterCallback;
     }
     _channel.setMethodCallHandler(_methodCallHandler);
 
@@ -2243,6 +2287,10 @@ class Countly {
 
       log('"_configToJson", value provided for remoteConfigValueCaching: [${config.remoteConfigValueCaching}]', logLevel: LogLevel.INFO);
       countlyConfig['remoteConfigValueCaching'] = config.remoteConfigValueCaching;
+
+      if (config.globalCrashFilterCallback != null) {
+        countlyConfig['globalCrashFilterCallback'] = true;
+      }
     } catch (e) {
       log('"_configToJson", Exception occur during converting config to json: $e', logLevel: LogLevel.ERROR);
     }

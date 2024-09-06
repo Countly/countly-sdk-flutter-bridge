@@ -1,6 +1,7 @@
 import 'configuration_interfaces/countly_config_apm.dart';
 import 'configuration_interfaces/countly_config_limits.dart';
 import 'countly_flutter.dart';
+import 'crash.dart';
 import 'remote_config.dart';
 
 class CountlyConfig {
@@ -41,6 +42,7 @@ class CountlyConfig {
   bool _enableAllConsents = false;
   bool _autoEnrollABOnDownload = false;
   int? _requestDropAgeHours;
+  GlobalCrashFilterCallback? _globalCrashFilterCallback;
 
   /// instance of CountlyConfigApm
   final CountlyConfigApm _countlyConfigApmInstance = CountlyConfigApm();
@@ -122,6 +124,8 @@ class CountlyConfig {
   bool get autoEnrollABOnDownload => _autoEnrollABOnDownload;
 
   int? get requestDropAgeHours => _requestDropAgeHours;
+
+  GlobalCrashFilterCallback? get globalCrashFilterCallback => _globalCrashFilterCallback;
 
   /// getter for CountlyConfigApm instance that is used to access CountlyConfigApm methods
   CountlyConfigApm get apm => _countlyConfigApmInstance;
@@ -346,6 +350,13 @@ class CountlyConfig {
   /// [int dropAgeHours] A positive integer. Requests older than the 'dropAgeHours' (with respect to now) would be dropped
   CountlyConfig setRequestDropAgeHours(int dropAgeHours) {
     _requestDropAgeHours = dropAgeHours;
+    return this;
+  }
+
+  /// For registering a callback that is called everytime there is a crash
+  /// If the callback returns null, the crash is ignored.
+  CountlyConfig setGlobalCrashFilterCallback(GlobalCrashFilterCallback callback) {
+    _globalCrashFilterCallback = callback;
     return this;
   }
 }

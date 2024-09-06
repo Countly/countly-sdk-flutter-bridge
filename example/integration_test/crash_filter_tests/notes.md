@@ -1,0 +1,6 @@
+
+## Anomalies
+
+Android:
+
+iOS:
