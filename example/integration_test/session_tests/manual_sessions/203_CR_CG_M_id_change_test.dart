@@ -77,10 +77,10 @@ void main() {
         // example:
         // consent: [{"sessions":true,"crashes":true,"users":true,"push":true,"feedback":true,"scrolls":true,"remote-config":true,"attribution":true,"clicks":true,"location":true,"star-rating":true,"events":true,"views":true,"apm":true}]
         Map<String, dynamic> consentInRequest = jsonDecode(queryParams['consent']![0]);
-        for (var key in ['push', 'feedback', 'crashes', 'attribution', 'users', 'events', 'remote-config', 'sessions', 'location', 'views', 'apm']) {
+        for (var key in ['push', 'feedback', 'crashes', 'attribution', 'users', 'events', 'remote-config', 'sessions', 'location', 'views', 'apm', 'content']) {
           expect(consentInRequest[key], true);
         }
-        expect(consentInRequest.length, Platform.isAndroid ? 14 : 11);
+        expect(consentInRequest.length, Platform.isAndroid ? 15 : 12);
       } else if ((Platform.isAndroid && (i == 3 || i == 8)) || (Platform.isIOS && i == 1)) {
         expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
       } else if ((Platform.isAndroid && i == 1) || (Platform.isIOS && i == 2)) {
