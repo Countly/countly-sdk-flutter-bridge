@@ -45,10 +45,10 @@ void main() {
 
     Map<String, List<String>> queryParamsConsent = Uri.parse("?" + requestList[0]).queryParametersAll;
     Map<String, dynamic> consentInRequest = jsonDecode(queryParamsConsent['consent']![0]);
-    for (var key in ['push', 'feedback', 'crashes', 'attribution', 'users', 'events', 'remote-config', 'sessions', 'location', 'views', 'apm']) {
+    for (var key in ['push', 'feedback', 'crashes', 'attribution', 'users', 'events', 'remote-config', 'sessions', 'location', 'views', 'apm', 'content']) {
       expect(consentInRequest[key], false);
     }
-    expect(consentInRequest.length, Platform.isAndroid ? 14 : 11);
+    expect(consentInRequest.length, Platform.isAndroid ? 15 : 12);
 
     expect(eventList.length, 0);
   });
