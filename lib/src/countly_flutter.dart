@@ -2097,6 +2097,10 @@ class Countly {
         log('"_configToJson", value provided for httpPostForced: [${config.httpPostForced}]', logLevel: LogLevel.INFO);
         countlyConfig['httpPostForced'] = config.httpPostForced;
       }
+      if (config.customNetworkRequestHeaders != null) {
+        log('"_configToJson", value provided for customNetworkRequestHeaders: [${config.customNetworkRequestHeaders}]', logLevel: LogLevel.INFO);
+        countlyConfig['customNetworkRequestHeaders'] = config.customNetworkRequestHeaders;
+      }
       if (config.shouldRequireConsent != null) {
         log('"_configToJson", value provided for shouldRequireConsent: [${config.shouldRequireConsent}]', logLevel: LogLevel.INFO);
         countlyConfig['shouldRequireConsent'] = config.shouldRequireConsent;

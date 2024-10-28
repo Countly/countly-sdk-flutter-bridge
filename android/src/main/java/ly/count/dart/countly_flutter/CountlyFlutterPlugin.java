@@ -1517,6 +1517,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if (_config.has("httpPostForced")) {
             this.config.setHttpPostForced(_config.getBoolean("httpPostForced"));
         }
+        if (_config.has("customNetworkRequestHeaders")) {
+            JSONObject customHeaderValues = _config.getJSONObject("customNetworkRequestHeaders");
+            Map<String, String> customHeaderValuesMap = toMapString(customHeaderValues);
+            this.config.addCustomNetworkRequestHeaders(customHeaderValuesMap);
+        }
         if (_config.has("shouldRequireConsent")) {
             this.config.setRequiresConsent(_config.getBoolean("shouldRequireConsent"));
         }

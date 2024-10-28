@@ -66,6 +66,7 @@ class CountlyConfiguration {
         //   ..setParameterTamperingProtectionSalt('salt') // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
         //   ..enableManualSessionHandling() // Enable manual session handling
         //   ..setHttpPostForced(false) // Set to 'true' if you want HTTP POST to be used for all requests
+        //   ..setCustomNetworkRequestHeaders(headers) // Set if you want custom HTTP headers to be used for all requests
         // ..disableLocation() // Call if you want to disable location tracking
         ;
   }
