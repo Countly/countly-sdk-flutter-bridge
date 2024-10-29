@@ -1499,7 +1499,7 @@ FlutterMethodChannel *_channel;
         if (customNetworkRequestHeaders) {
             NSURLSessionConfiguration *session = [NSURLSessionConfiguration defaultSessionConfiguration];
             session.HTTPAdditionalHeaders = customNetworkRequestHeaders;
-            config.urlSessionConfiguration = session;
+            config.URLSessionConfiguration = session;
         }
         NSNumber *shouldRequireConsent = _config[@"shouldRequireConsent"];
         if (shouldRequireConsent) {
