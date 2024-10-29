@@ -14,6 +14,7 @@ class CountlyConfig {
   bool? _loggingEnabled;
   bool _locationDisabled = false;
   bool? _httpPostForced;
+  Map<String, String>? _customNetworkRequestHeaders;
   String? _locationGpsCoordinates;
   String? _daCampaignType;
   String? _daCampaignData;
@@ -78,6 +79,8 @@ class CountlyConfig {
   bool? get httpPostForced => _httpPostForced;
 
   Map<String, String>? get location => _location;
+
+  Map<String, String>? get customNetworkRequestHeaders => _customNetworkRequestHeaders;
 
   bool? get recordAppStartTime => _recordAppStartTime;
 
@@ -212,6 +215,12 @@ class CountlyConfig {
   /// Set to 'true' if you want HTTP POST to be used for all requests
   CountlyConfig setHttpPostForced(bool isForced) {
     _httpPostForced = isForced;
+    return this;
+  }
+
+  /// Set if you want custom HTTP headers to be used for all requests
+  CountlyConfig setCustomNetworkRequestHeaders(Map<String, String>? customNetworkRequestHeaders) {
+    _customNetworkRequestHeaders = customNetworkRequestHeaders;
     return this;
   }
 
