@@ -257,6 +257,21 @@ class Countly {
       }
     }
     if (config.enableUnhandledCrashReporting != null) {
+      // To catch all errors thrown within the flutter framework, we use
+      FlutterError.onError = _recordFlutterError;
+
+      // Asynchronous errors are not caught by the Flutter framework. For example 
+      // ElevatedButton(
+      //   onPressed: () async {
+      //     throw Error();
+      //   }
+      // )
+      // To catch such errors, we use
+      PlatformDispatcher.instance.onError = (e, s) {
+        _internalRecordError(e, s);
+        return true;
+      };
+
       _enableCrashReportingFlag = config.enableUnhandledCrashReporting!;
     }
     _channel.setMethodCallHandler(_methodCallHandler);
@@ -1693,6 +1708,10 @@ class Countly {
     log('Calling "enableCrashReporting"');
     log('enableCrashReporting is deprecated, use enableCrashReporting of CountlyConfig instead', logLevel: LogLevel.WARNING);
     FlutterError.onError = _recordFlutterError;
+    PlatformDispatcher.instance.onError = (e, s) {
+      _internalRecordError(e, s);
+      return true;
+    };
     _enableCrashReportingFlag = true;
     final String? result = await _channel.invokeMethod('enableCrashReporting');
 
@@ -1871,7 +1890,7 @@ class Countly {
     String exceptionString = exception.toString();
     log('Calling "logExceptionEx":[$exceptionString] nonfatal:[$nonfatal]');
     stacktrace ??= StackTrace.current;
-    final result = logException('$exceptionString\n\n$stacktrace', nonfatal, segmentation);
+    final result = logException('$exceptionString\n$stacktrace', nonfatal, segmentation);
     return result;
   }
 
@@ -1888,33 +1907,24 @@ class Countly {
   static Future<String?> logExceptionManual(String message, bool nonfatal, {StackTrace? stacktrace, Map<String, Object>? segmentation}) async {
     log('Calling "logExceptionManual":[$message] nonfatal:[$nonfatal]');
     stacktrace ??= StackTrace.current;
-    final result = logException('$message\n\n$stacktrace', nonfatal, segmentation);
+    final result = logException('$message\n$stacktrace', nonfatal, segmentation);
     return result;
   }
 
   /// Internal callback to record 'FlutterError.onError' errors
   ///
   /// Must call [enableCrashReporting()] to enable it
-  static Future<void> _recordFlutterError(FlutterErrorDetails details) async {
+  static void _recordFlutterError(FlutterErrorDetails details) {
     log('_recordFlutterError, Flutter error caught by Countly:');
     if (!_enableCrashReportingFlag) {
       log('_recordFlutterError, Crash Reporting must be enabled to report crash on Countly', logLevel: LogLevel.WARNING);
       return;
     }
 
-    unawaited(_internalRecordError(details.exceptionAsString(), details.stack));
+    _internalRecordError(details.exceptionAsString(), details.stack);
   }
 
   /// Callback to catch and report Dart errors, [enableCrashReporting()] must call before [initWithConfig] to make it work.
-  ///
-  /// This callback has to be provided when the app is about to be run.
-  /// It has to be done inside a custom Zone by providing [Countly.recordDartError] in onError() callback.
-  ///
-  /// void main() {
-  ///   runZonedGuarded<Future<void>>(() async {
-  ///     runApp(MyApp());
-  ///   }, Countly.recordDartError);
-  /// }
   ///
   static Future<void> recordDartError(exception, StackTrace stack) async {
     log('recordDartError, Error caught by Countly :');
@@ -1922,13 +1932,13 @@ class Countly {
       log('recordDartError, Crash Reporting must be enabled to report crash on Countly', logLevel: LogLevel.WARNING);
       return;
     }
-    unawaited(_internalRecordError(exception, stack));
+    _internalRecordError(exception, stack);
   }
 
   /// A common call for crashes coming from [_recordFlutterError] and [recordDartError]
   ///
   /// They are then further reported to countly
-  static Future<void> _internalRecordError(exception, StackTrace? stack) async {
+  static void _internalRecordError(exception, StackTrace? stack) {
     if (!_instance._countlyState.isInitialized) {
       log('_internalRecordError, countly is not initialized', logLevel: LogLevel.WARNING);
       return;
@@ -1941,7 +1951,7 @@ class Countly {
 
     stack ??= StackTrace.fromString('');
     try {
-      unawaited(logException('${exception.toString()}\n\n$stack', true));
+      unawaited(logException('${exception.toString()}\n$stack', true));
     } catch (e) {
       log('_internalRecordError, Sending crash report to Countly failed: $e');
     }

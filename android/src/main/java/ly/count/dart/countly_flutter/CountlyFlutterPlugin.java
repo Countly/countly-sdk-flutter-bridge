@@ -1244,7 +1244,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 this.config.setRecordAppStartTime(true);
                 result.success("enableApm: success");
             } else if ("throwNativeException".equals(call.method)) {
-                throw new IllegalStateException("Native Exception Crashhh!");
+                triggerOverflow();
             } else if ("recordIndirectAttribution".equals(call.method)) {
                 JSONObject attributionValues = args.getJSONObject(0);
                 if (attributionValues != null && attributionValues.length() > 0) {
@@ -1348,6 +1348,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         } catch (JSONException jsonException) {
             result.success(jsonException.toString());
         }
+    }
+
+    void triggerOverflow() {
+        triggerOverflow1();
+    }
+
+    void triggerOverflow1() {
+        triggerOverflow();
     }
 
     CountlyFeedbackWidget getFeedbackWidget(String widgetId) {

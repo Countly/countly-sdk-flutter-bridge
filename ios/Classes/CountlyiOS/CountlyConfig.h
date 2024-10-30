@@ -10,6 +10,8 @@
 #import "CountlyAPMConfig.h"
 #import "CountlyCrashesConfig.h"
 #import "CountlySDKLimitsConfig.h"
+#import "CountlyExperimentalConfig.h"
+#import "CountlyContentConfig.h"
 
 #if (TARGET_OS_IOS || TARGET_OS_TV)
 #import <UIKit/UIKit.h>
@@ -77,6 +79,7 @@ extern CLYConsent const CLYConsentAttribution;
 extern CLYConsent const CLYConsentPerformanceMonitoring;
 extern CLYConsent const CLYConsentFeedback;
 extern CLYConsent const CLYConsentRemoteConfig;
+extern CLYConsent const CLYConsentContent;
 
 //NOTE: Push Notification Test Modes
 typedef NSString* CLYPushTestMode NS_EXTENSIBLE_STRING_ENUM;
@@ -113,6 +116,7 @@ extern CLYRequestResult const CLYResponseError;
 typedef void (^RCVariantCallback)(CLYRequestResult response, NSError *_Nullable error);
 
 typedef void (^RCDownloadCallback)(CLYRequestResult response, NSError *_Nullable error, BOOL fullValueUpdate, NSDictionary<NSString *, CountlyRCData *>* downloadedValues);
+
 
 //NOTE: Internal log levels
 typedef enum : NSUInteger
@@ -651,11 +655,24 @@ typedef enum : NSUInteger
 @property (nonatomic) BOOL enableOrientationTracking;
 
 /**
- * This is an experimental feature
+ * This is an experimental feature and it can have breaking changes
  * For enabling fetching and application of server config values.
  * @discussion If set, Server Config values from Countly Server will be fetched at the beginning of a session.
  */
 @property (nonatomic) BOOL enableServerConfiguration;
+
+/**
+ * Variable to access content configurations.
+ * @discussion Content configurations for developer to interact with SDK.
+ */
+- (CountlyContentConfig *) content;
+
+/**
+ * This is an experimental feature and it can have breaking changes
+ * Variable to access experimental configurations.
+ * @discussion Experimental configurations for developer to interact with SDK.
+ */
+- (CountlyExperimentalConfig *) experimental;
 NS_ASSUME_NONNULL_END
 
 @end
