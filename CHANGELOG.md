@@ -3,7 +3,7 @@
 * Addressed an issue where asynchronous Dart errors were not being captured.
 * Addressed an issue that prevented the stacktrace from being properly recognized on the server
 
-* Underlying Android SDK version is 24.7.1
+* Updated underlying Android SDK version to 24.7.4
 * Underlying iOS SDK version is 24.7.1
 
 ## 24.7.1
