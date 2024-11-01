@@ -3,9 +3,7 @@
 // This code is provided under the MIT License.
 //
 // Please visit www.count.ly for more information.
-
 #import "CountlyContentBuilderInternal.h"
-#if (TARGET_OS_IOS)
 #import "CountlyWebViewManager.h"
 
 //TODO: improve logging, check edge cases
@@ -17,6 +15,7 @@ NSString* const kCountlyCBFetchContent  = @"queue";
     NSTimer *_requestTimer;
     NSTimer *_minuteTimer;
 }
+#if (TARGET_OS_IOS)
 + (instancetype)sharedInstance {
     static CountlyContentBuilderInternal *instance = nil;
     static dispatch_once_t onceToken;
@@ -103,11 +102,26 @@ NSString* const kCountlyCBFetchContent  = @"queue";
             return;
         }
         
-        NSDictionary *jsonResponse = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-        NSString *pathToHtml = jsonResponse[@"pathToHtml"];
-        NSDictionary *placementCoordinates = jsonResponse[@"placementCoordinates"];
+        NSError *jsonError;
+        NSDictionary *jsonResponse = [NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonError];
         
-        [self showContentWithHtmlPath:pathToHtml placementCoordinates:placementCoordinates];
+        if (jsonError) {
+            CLY_LOG_I(@"Failed to parse JSON: %@", jsonError);
+            self->_isRequestQueueLocked = NO;
+            return;
+        }
+        
+        if (!jsonResponse) {
+            CLY_LOG_I(@"Received empty or null response.");
+            self->_isRequestQueueLocked = NO;
+            return;
+        }
+        
+        NSString *pathToHtml = jsonResponse[@"html"];
+        NSDictionary *placementCoordinates = jsonResponse[@"geo"];
+        if(pathToHtml) {
+            [self showContentWithHtmlPath:pathToHtml placementCoordinates:placementCoordinates];
+        }
         self->_isRequestQueueLocked = NO;
     }];
     
@@ -118,9 +132,8 @@ NSString* const kCountlyCBFetchContent  = @"queue";
 {
     NSString* queryString = [CountlyConnectionManager.sharedInstance queryEssentials];
     NSString *resolutionJson = [self resolutionJson];
-    queryString = [queryString stringByAppendingFormat:@"&%@=%@&%@=%@",
-                   kCountlyQSKeyMethod, kCountlyCBFetchContent,
-                   @"res", resolutionJson];
+    queryString = [queryString stringByAppendingFormat:@"&%@=%@",
+                   @"resolution", resolutionJson.cly_URLEscaped];
     
     queryString = [CountlyConnectionManager.sharedInstance appendChecksum:queryString];
     
@@ -155,17 +168,23 @@ NSString* const kCountlyCBFetchContent  = @"queue";
     CGFloat height = screenBounds.size.height;
     
     NSDictionary *resolutionDict = @{
-        @"p": @{@"h": @(height), @"w": @(width)},
-        @"l": @{@"h": @(width), @"w": @(height)}
+        @"portrait": @{@"height": @(height), @"width": @(width)},
+        @"landscape": @{@"height": @(width), @"width": @(height)}
     };
     
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:resolutionDict options:0 error:nil];
     return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
 }
 
-- (void)showContentWithHtmlPath:(NSString *)pathToHtml placementCoordinates:(NSDictionary *)placementCoordinates {
+- (void)showContentWithHtmlPath:(NSString *)urlString placementCoordinates:(NSDictionary *)placementCoordinates {
     // Convert pathToHtml to NSURL
-    NSURL *url = [NSURL URLWithString:pathToHtml];
+    NSURL *url = [NSURL URLWithString:urlString];
+    
+    if (!url || !url.scheme || !url.host) {
+        NSLog(@"The URL is not valid: %@", urlString);
+        return;
+    }
+
     
     dispatch_async(dispatch_get_main_queue(), ^ {
     // Detect screen orientation
@@ -174,12 +193,12 @@ NSString* const kCountlyCBFetchContent  = @"queue";
         
     
     // Get the appropriate coordinates based on the orientation
-    NSDictionary *coordinates = isLandscape ? placementCoordinates[@"landscape"] : placementCoordinates[@"portrait"];
+    NSDictionary *coordinates = isLandscape ? placementCoordinates[@"l"] : placementCoordinates[@"p"];
     
     CGFloat x = [coordinates[@"x"] floatValue];
     CGFloat y = [coordinates[@"y"] floatValue];
-    CGFloat width = [coordinates[@"width"] floatValue];
-    CGFloat height = [coordinates[@"height"] floatValue];
+    CGFloat width = [coordinates[@"w"] floatValue];
+    CGFloat height = [coordinates[@"h"] floatValue];
     
     CGRect frame = CGRectMake(x, y, width, height);
     
@@ -206,8 +225,5 @@ NSString* const kCountlyCBFetchContent  = @"queue";
         }];
     });
 }
-@end
-#else
-@implementation CountlyContentBuilderInternal
-@end
 #endif
+@end

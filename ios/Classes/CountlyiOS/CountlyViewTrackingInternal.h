@@ -8,7 +8,6 @@
 
 extern NSString* const kCountlyReservedEventView;
 
-//TODO: Need discussion for its usage and then we decide to keep it or remove it
 extern NSString* const kCountlyCurrentView;
 extern NSString* const kCountlyPreviousView;
 extern NSString* const kCountlyPreviousEventName;
@@ -19,13 +18,12 @@ extern NSString* const kCountlyPreviousEventName;
 @property (nonatomic) NSString* previousViewID;
 
 @property (nonatomic) BOOL enablePreviousNameRecording;
-//TODO: Need discussion for its usage and then we decide to keep it or remove it
 @property (nonatomic) NSString* currentViewName;
 @property (nonatomic) NSString* previousViewName;
 
 + (instancetype)sharedInstance;
 
-#if (TARGET_OS_IOS || TARGET_OS_TV)
+#if (TARGET_OS_IOS || TARGET_OS_VISION || TARGET_OS_TV)
 - (void)startAutoViewTracking;
 - (void)stopAutoViewTracking;
 - (void)addExceptionForAutoViewTracking:(NSString *)exception;
@@ -51,7 +49,7 @@ extern NSString* const kCountlyPreviousEventName;
 - (void)addSegmentationToViewWithID:(NSString *)viewID segmentation:(NSDictionary *)segmentation;
 - (void)addSegmentationToViewWithName:(NSString *)viewName segmentation:(NSDictionary *)segmentation;
 
-#if (TARGET_OS_IOS || TARGET_OS_TV)
+#if (TARGET_OS_IOS || TARGET_OS_VISION || TARGET_OS_TV)
 - (void)addAutoViewTrackingExclutionList:(NSArray *)viewTrackingExclusionList;
 #endif
 @end
