@@ -1,4 +1,9 @@
 ## X.X.X
+* Automatic view pause/resumes are changed with stop/start for better data consistency.
+* Added the config interface 'experimental' to group experimental features.
+* Added a flag (enablePreviousNameRecording) to add previous event/view and current view names as segmentation (Experimental!)
+* Added a flag (enableVisibilityTracking) to add app visibility info to views (Experimental!)
+
 * Fixed an issue where automatic crash reporting failed to capture Flutter framework errors when using the newly introduced config option.
 * Addressed an issue where asynchronous Dart errors were not being captured.
 * Addressed an issue that prevented the stacktrace from being properly recognized on the server

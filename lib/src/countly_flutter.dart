@@ -2186,6 +2186,18 @@ class Countly {
         countlyConfig['requestDropAgeHours'] = config.requestDropAgeHours;
       }
 
+      /// Experimental ---------------------------
+      if (config.experimental.visibilityTracking) {
+        log('"_configToJson", value provided for visibilityTracking: [${config.experimental.visibilityTracking}]', logLevel: LogLevel.INFO);
+        countlyConfig['visibilityTracking'] = config.experimental.visibilityTracking;
+      }
+      if (config.experimental.previousNameRecording) {
+        log('"_configToJson", value provided for previousNameRecording: [${config.experimental.previousNameRecording}]', logLevel: LogLevel.INFO);
+        countlyConfig['previousNameRecording'] = config.experimental.previousNameRecording;
+      }
+
+      /// Experimental END ---------------------------
+
       /// APM ---------------------------
       if (config.apm.trackAppStartTime) {
         log('"_configToJson", value provided for trackAppStartTime: [${config.apm.trackAppStartTime}]', logLevel: LogLevel.INFO);
