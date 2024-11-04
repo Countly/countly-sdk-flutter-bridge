@@ -9,7 +9,7 @@
 * Addressed an issue that prevented the stacktrace from being properly recognized on the server
 
 * Updated underlying Android SDK version to 24.7.4
-* Updated underlying iOS SDK version to 24.7.5
+* Updated underlying iOS SDK version to 24.7.6
 
 ## 24.7.1
 * Added a new configuration option `enableTemporaryDeviceIDMode` to 'CountlyConfig' interface
