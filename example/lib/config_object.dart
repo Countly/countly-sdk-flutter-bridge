@@ -7,8 +7,8 @@ import 'package:countly_flutter/countly_flutter.dart';
 // where you initialize the Countly SDK.
 // This is just an example of how you can create a class to hold the CountlyConfig object because we used way too many methods here.
 class CountlyConfiguration {
-  static final String SERVER_URL = 'https://master.count.ly'; // MANDATORY !!
-  static final String APP_KEY = '58594c9a3f461ebc000761a68c2146659ef75ea0'; // MANDATORY !!
+  static final String SERVER_URL = 'https://your.server.ly'; // MANDATORY !!
+  static final String APP_KEY = 'YOUR_APP_KEY'; // MANDATORY !!
 
   // These are optional values that you can set for the Countly SDK
   // Below you can see the methods that uses them
@@ -31,7 +31,7 @@ class CountlyConfiguration {
 
   static CountlyConfig getConfig() {
 
-    if (SERVER_URL == 'https://master.server.ly' || APP_KEY == '58594c9a3f461ebc000761a68c2146659ef75ea0') {
+    if (SERVER_URL == 'https://your.server.ly' || APP_KEY == 'YOUR_APP_KEY') {
       print('Please do not use default set of app key and server url');
     }
 
