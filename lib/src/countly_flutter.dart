@@ -366,7 +366,7 @@ class Countly {
       return 'Error : $error';
     }
     args.add(eventKey);
-    options['count'] ??= 1;
+    options['count'] ??= '1';
     args.add(options['count'].toString());
 
     options['sum'] ??= '0';
@@ -1672,7 +1672,7 @@ class Countly {
     }
     args.add(eventKey);
 
-    options['count'] ??= 1;
+    options['count'] ??= '1';
     args.add(options['count'].toString());
 
     options['sum'] ??= '0';
