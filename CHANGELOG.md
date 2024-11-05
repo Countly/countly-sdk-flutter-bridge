@@ -1,12 +1,18 @@
 ## X.X.X
 * Added functionality for adding custom header key/value pairs to every request
 
+* Automatic view pause/resumes are changed with stop/start for better data consistency.
+* Added the config interface `experimental` to group experimental features.
+* Added a flag `enablePreviousNameRecording` to add previous event/view and current view names as segmentation (Experimental!)
+* Added a flag `enableVisibilityTracking` to add app visibility info to views (Experimental!)
+
+* Mitigated an issue where an event was not recorded if a `count` was not provided.
 * Fixed an issue where automatic crash reporting failed to capture Flutter framework errors when using the newly introduced config option.
 * Addressed an issue where asynchronous Dart errors were not being captured.
 * Addressed an issue that prevented the stacktrace from being properly recognized on the server
 
-* Underlying Android SDK version is 24.7.1
-* Underlying iOS SDK version is 24.7.1
+* Updated underlying Android SDK version to 24.7.4
+* Updated underlying iOS SDK version to 24.7.7
 
 ## 24.7.1
 * Added a new configuration option `enableTemporaryDeviceIDMode` to 'CountlyConfig' interface

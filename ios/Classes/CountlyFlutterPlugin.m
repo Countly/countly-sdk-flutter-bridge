@@ -1671,6 +1671,15 @@ FlutterMethodChannel *_channel;
             config.indirectAttribution = attributionValues;
         }
 
+        NSNumber *visibilityTracking = _config[@"visibilityTracking"];
+        if (visibilityTracking) {
+            config.experimental.enableVisibiltyTracking = [visibilityTracking boolValue];
+        }
+        NSNumber *previousNameRecording = _config[@"previousNameRecording"];
+        if (previousNameRecording) {
+            config.experimental.enablePreviousNameRecording = [previousNameRecording boolValue];
+        }
+
     } @catch (NSException *exception) {
         COUNTLY_FLUTTER_LOG(@"[populateConfig], Unable to parse Config object: %@", exception);
     }
