@@ -1,10 +1,10 @@
 ## X.X.X
-* Updated the underlying Firebase Messaging SDK to version 24.0.0
-
 * Automatic view pause/resumes are changed with stop/start for better data consistency.
 * Added the config interface `experimental` to group experimental features.
 * Added a flag `enablePreviousNameRecording` to add previous event/view and current view names as segmentation (Experimental!)
 * Added a flag `enableVisibilityTracking` to add app visibility info to views (Experimental!)
+
+* Updated the underlying Firebase Messaging SDK to version 24.0.3
 
 * Mitigated an issue where an event was not recorded if a `count` was not provided.
 * Fixed an issue where automatic crash reporting failed to capture Flutter framework errors when using the newly introduced config option.
