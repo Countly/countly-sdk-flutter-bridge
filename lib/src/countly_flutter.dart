@@ -366,7 +366,7 @@ class Countly {
       return 'Error : $error';
     }
     args.add(eventKey);
-    options['count'] ??= 1;
+    options['count'] ??= '1';
     args.add(options['count'].toString());
 
     options['sum'] ??= '0';
@@ -1672,7 +1672,7 @@ class Countly {
     }
     args.add(eventKey);
 
-    options['count'] ??= 1;
+    options['count'] ??= '1';
     args.add(options['count'].toString());
 
     options['sum'] ??= '0';
@@ -2189,6 +2189,18 @@ class Countly {
         log('"_configToJson", value provided for requestDropAgeHours: [${config.requestDropAgeHours}]', logLevel: LogLevel.INFO);
         countlyConfig['requestDropAgeHours'] = config.requestDropAgeHours;
       }
+
+      /// Experimental ---------------------------
+      if (config.experimental.visibilityTracking) {
+        log('"_configToJson", value provided for visibilityTracking: [${config.experimental.visibilityTracking}]', logLevel: LogLevel.INFO);
+        countlyConfig['visibilityTracking'] = config.experimental.visibilityTracking;
+      }
+      if (config.experimental.previousNameRecording) {
+        log('"_configToJson", value provided for previousNameRecording: [${config.experimental.previousNameRecording}]', logLevel: LogLevel.INFO);
+        countlyConfig['previousNameRecording'] = config.experimental.previousNameRecording;
+      }
+
+      /// Experimental END ---------------------------
 
       /// APM ---------------------------
       if (config.apm.trackAppStartTime) {

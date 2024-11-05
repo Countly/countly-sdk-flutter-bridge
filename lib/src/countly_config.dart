@@ -1,4 +1,5 @@
 import 'configuration_interfaces/countly_config_apm.dart';
+import 'configuration_interfaces/countly_config_experimental.dart';
 import 'configuration_interfaces/countly_config_limits.dart';
 import 'countly_flutter.dart';
 import 'remote_config.dart';
@@ -45,6 +46,9 @@ class CountlyConfig {
 
   /// instance of CountlyConfigApm
   final CountlyConfigApm _countlyConfigApmInstance = CountlyConfigApm();
+
+  /// instance of CountlyConfigExperimental
+  final CountlyConfigExperimental _countlyConfigExperimentalInstance = CountlyConfigExperimental();
 
   /// instance of CountlyConfigLimits
   final CountlyConfigSDKInternalLimits _countlyConfigSDKInternalLimitsInstance = CountlyConfigSDKInternalLimits();
@@ -128,6 +132,9 @@ class CountlyConfig {
 
   /// getter for CountlyConfigApm instance that is used to access CountlyConfigApm methods
   CountlyConfigApm get apm => _countlyConfigApmInstance;
+
+  /// getter for CountlyConfigExperimental instance that is used to access CountlyConfigExperimental methods
+  CountlyConfigExperimental get experimental => _countlyConfigExperimentalInstance;
 
   /// getter for CountlyConfigLimits instance that is used to access CountlyConfigLimits methods
   CountlyConfigSDKInternalLimits get sdkInternalLimits => _countlyConfigSDKInternalLimitsInstance;
