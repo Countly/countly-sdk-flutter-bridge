@@ -3,6 +3,9 @@
 * Added the config interface `experimental` to group experimental features.
 * Added a flag `enablePreviousNameRecording` to add previous event/view and current view names as segmentation (Experimental!)
 * Added a flag `enableVisibilityTracking` to add app visibility info to views (Experimental!)
+* Added `Content` feature methods:
+  * `enterContentZone`, to start Content checks(Experimental!)
+  * `exitContentZone`, to stop content checks (Experimental!)
 
 * Mitigated an issue where an event was not recorded if a `count` was not provided.
 * Fixed an issue where automatic crash reporting failed to capture Flutter framework errors when using the newly introduced config option.

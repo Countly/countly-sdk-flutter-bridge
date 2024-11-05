@@ -5,6 +5,8 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
+
+import 'content_builder_internal.dart';
 import 'countly_config.dart';
 import 'countly_state.dart';
 import 'device_id.dart';
@@ -49,6 +51,7 @@ abstract class CountlyConsent {
   static const String apm = 'apm';
   static const String feedback = 'feedback';
   static const String remoteConfig = 'remote-config';
+  static const String content = 'content';
 }
 
 class Countly {
@@ -59,6 +62,7 @@ class Countly {
     _userProfileInternal = UserProfileInternal(_countlyState);
     _viewsInternal = ViewsInternal(_countlyState);
     _sessionsInternal = SessionsInternal(_countlyState);
+    _contentBuilderInternal = ContentBuilderInternal(_countlyState);
   }
   static final instance = _instance;
   static final _instance = Countly._();
@@ -79,6 +83,9 @@ class Countly {
 
   late final DeviceIDInternal _deviceIdInternal;
   DeviceID get deviceId => _deviceIdInternal;
+
+  late final ContentBuilderInternal _contentBuilderInternal;
+  ContentBuilderInternal get content => _contentBuilderInternal;
 
   /// ignore: constant_identifier_names
   static const bool BUILDING_WITH_PUSH_DISABLED = false;
@@ -260,7 +267,7 @@ class Countly {
       // To catch all errors thrown within the flutter framework, we use
       FlutterError.onError = _recordFlutterError;
 
-      // Asynchronous errors are not caught by the Flutter framework. For example 
+      // Asynchronous errors are not caught by the Flutter framework. For example
       // ElevatedButton(
       //   onPressed: () async {
       //     throw Error();
