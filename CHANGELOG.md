@@ -1,4 +1,6 @@
 ## X.X.X
+* Added functionality for adding custom header key/value pairs to every request
+
 * Fixed an issue where automatic crash reporting failed to capture Flutter framework errors when using the newly introduced config option.
 * Addressed an issue where asynchronous Dart errors were not being captured.
 * Addressed an issue that prevented the stacktrace from being properly recognized on the server
