@@ -72,6 +72,8 @@ class OthersPage extends StatelessWidget {
       'normalBool': true,
     };
 
+    Countly.startEvent('timed');
+    Countly.endEvent({'key': 'timed', 'segmentation': segment});
     Countly.recordEvent({'key': 'value', 'count': 1, 'sum': 3.14, 'segmentation': segment});
     Countly.instance.views.startView('viewName', segment);
     Countly.instance.views.stopAllViews();
