@@ -4,6 +4,8 @@
 * Added a flag `enablePreviousNameRecording` to add previous event/view and current view names as segmentation (Experimental!)
 * Added a flag `enableVisibilityTracking` to add app visibility info to views (Experimental!)
 
+* Updated the underlying Firebase Messaging SDK to version 24.0.3
+
 * Mitigated an issue where an event was not recorded if a `count` was not provided.
 * Fixed an issue where automatic crash reporting failed to capture Flutter framework errors when using the newly introduced config option.
 * Addressed an issue where asynchronous Dart errors were not being captured.
