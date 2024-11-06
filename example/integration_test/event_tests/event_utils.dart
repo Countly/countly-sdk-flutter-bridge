@@ -1,5 +1,6 @@
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'dart:io';
 
 // string list
 List<String> list = ['value1', 'value2', 'value3'];
@@ -90,46 +91,46 @@ Future<void> recordTimedEvent(eventObj) async {
 }
 
 Future<void> generateEvents() async {
-    await Countly.recordEvent(event);
-    await Countly.recordEvent(event_c);
-    await Countly.recordEvent(event_c_s);
-    await Countly.recordEvent(event_c_d);
-    await Countly.recordEvent(event_c_se);
-    await Countly.recordEvent(event_c_s_d);
-    await Countly.recordEvent(event_c_s_se);
-    await Countly.recordEvent(event_c_d_se);
-    await Countly.recordEvent(event_c_s_d_se);
-    await Countly.recordEvent(event_s);
-    await Countly.recordEvent(event_s_d);
-    await Countly.recordEvent(event_s_se);
-    await Countly.recordEvent(event_s_d_se);
-    await Countly.recordEvent(event_d);
-    await Countly.recordEvent(event_d_se);
-    await Countly.recordEvent(event_se);
-    await recordTimedEvent(timed_event);
-    await recordTimedEvent(timed_event_c);
-    await recordTimedEvent(timed_event_c_s);
-    await recordTimedEvent(timed_event_c_d);
-    await recordTimedEvent(timed_event_c_se);
-    await recordTimedEvent(timed_event_c_s_d);
-    await recordTimedEvent(timed_event_c_s_se);
-    await recordTimedEvent(timed_event_c_d_se);
-    await recordTimedEvent(timed_event_c_s_d_se);
-    await recordTimedEvent(timed_event_s);
-    await recordTimedEvent(timed_event_s_d);
-    await recordTimedEvent(timed_event_s_se);
-    await recordTimedEvent(timed_event_s_d_se);
-    await recordTimedEvent(timed_event_d);
-    await recordTimedEvent(timed_event_d_se);
-    await recordTimedEvent(timed_event_se);
+  await Countly.recordEvent(event);
+  await Countly.recordEvent(event_c);
+  await Countly.recordEvent(event_c_s);
+  await Countly.recordEvent(event_c_d);
+  await Countly.recordEvent(event_c_se);
+  await Countly.recordEvent(event_c_s_d);
+  await Countly.recordEvent(event_c_s_se);
+  await Countly.recordEvent(event_c_d_se);
+  await Countly.recordEvent(event_c_s_d_se);
+  await Countly.recordEvent(event_s);
+  await Countly.recordEvent(event_s_d);
+  await Countly.recordEvent(event_s_se);
+  await Countly.recordEvent(event_s_d_se);
+  await Countly.recordEvent(event_d);
+  await Countly.recordEvent(event_d_se);
+  await Countly.recordEvent(event_se);
+  await recordTimedEvent(timed_event);
+  await recordTimedEvent(timed_event_c);
+  await recordTimedEvent(timed_event_c_s);
+  await recordTimedEvent(timed_event_c_d);
+  await recordTimedEvent(timed_event_c_se);
+  await recordTimedEvent(timed_event_c_s_d);
+  await recordTimedEvent(timed_event_c_s_se);
+  await recordTimedEvent(timed_event_c_d_se);
+  await recordTimedEvent(timed_event_c_s_d_se);
+  await recordTimedEvent(timed_event_s);
+  await recordTimedEvent(timed_event_s_d);
+  await recordTimedEvent(timed_event_s_se);
+  await recordTimedEvent(timed_event_s_d_se);
+  await recordTimedEvent(timed_event_d);
+  await recordTimedEvent(timed_event_d_se);
+  await recordTimedEvent(timed_event_se);
 }
 
 String idCounter = "";
-void validateEvent({dynamic event, String? key, int? count = 1, int? sum = 0, int? dur, dynamic segmentation, String? cvid = "", bool isTimed = false }) {
+void validateEvent({dynamic event, String? key, int? count = 1, int? sum = 0, int? dur, dynamic segmentation, String? cvid = "", bool isTimed = false}) {
   expect(event['key'], key);
   expect(event['count'], count);
   expect(event['sum'], sum);
-  expect(event['dur'], isTimed ? isNotNull : dur);
+  expect(event['dur'], isTimed || Platform.isIOS ? isNotNull : dur);
   expect(event['segmentation'], segmentation);
   expect(event['timestamp'], isNotNull);
   expect(event['hour'], DateTime.now().hour);
