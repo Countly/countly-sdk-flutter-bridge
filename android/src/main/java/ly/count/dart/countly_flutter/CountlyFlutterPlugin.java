@@ -515,12 +515,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 String key = args.getString(0);
                 int count = Integer.parseInt(args.getString(1));
                 float sum = Float.parseFloat(args.getString(2));
-                HashMap<String, Object> segmentation = new HashMap<>();
+                Map<String, Object> segmentation;
                 if (args.length() > 3) {
-                    for (int i = 3, il = args.length(); i < il; i += 2) {
-                        segmentation.put(args.getString(i), args.getString(i + 1));
-                    }
+                    segmentation = toMap(args.getJSONObject(3));
+                } else {
+                    segmentation = null;
                 }
+                // Map<String, Object> segmentation = toMap(args.getJSONObject(4));
+                
                 Countly.sharedInstance().events().endEvent(key, segmentation, count, sum);
                 result.success("endEvent for: " + key);
             } else if ("recordEvent".equals(call.method)) {

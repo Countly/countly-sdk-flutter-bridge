@@ -4,6 +4,7 @@
 * Added the config interface `experimental` to group experimental features.
 * Added a flag `enablePreviousNameRecording` to add previous event/view and current view names as segmentation (Experimental!)
 * Added a flag `enableVisibilityTracking` to add app visibility info to views (Experimental!)
+* Added support for `List` values in user given segmentations of timed events.
 
 * Updated the underlying Firebase Messaging SDK to version 24.0.3
 
