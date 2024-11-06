@@ -1,4 +1,4 @@
-## X.X.X
+## 24.11.0
 * Added a config flag `setCustomNetworkRequestHeaders` to add custom headers to SDK requests (thanks @sbatezat)
 * Automatic view pause/resumes are changed with stop/start for better data consistency.
 * Added the config interface `experimental` to group experimental features.
