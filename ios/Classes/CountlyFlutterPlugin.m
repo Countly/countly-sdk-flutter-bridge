@@ -1495,6 +1495,12 @@ FlutterMethodChannel *_channel;
         if (httpPostForced) {
             config.alwaysUsePOST = [httpPostForced boolValue];
         }
+        NSDictionary *customNetworkRequestHeaders = _config[@"customNetworkRequestHeaders"];
+        if (customNetworkRequestHeaders) {
+            NSURLSessionConfiguration *session = [NSURLSessionConfiguration defaultSessionConfiguration];
+            session.HTTPAdditionalHeaders = customNetworkRequestHeaders;
+            config.URLSessionConfiguration = session;
+        }
         NSNumber *shouldRequireConsent = _config[@"shouldRequireConsent"];
         if (shouldRequireConsent) {
             config.requiresConsent = [shouldRequireConsent boolValue];
