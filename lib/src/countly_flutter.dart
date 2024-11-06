@@ -1669,8 +1669,7 @@ class Countly {
     }
     String eventKey = options['key'] != null ? options['key'].toString() : '';
     log('Calling "endEvent":[$eventKey]');
-    List<String> args = [];
-    var segmentation = {};
+    List<Object> args = [];
 
     if (eventKey.isEmpty) {
       String error = "endEvent, Can't end event with a null or empty key";
@@ -1686,11 +1685,7 @@ class Countly {
     args.add(options['sum'].toString());
 
     if (options['segmentation'] != null) {
-      segmentation = options['segmentation'] as Map;
-      segmentation.forEach((k, v) {
-        args.add(k.toString());
-        args.add(v.toString());
-      });
+      args.add(options['segmentation']!);
     }
 
     final String? result = await _channel.invokeMethod('endEvent', <String, dynamic>{'data': json.encode(args)});
@@ -2113,6 +2108,10 @@ class Countly {
       if (config.httpPostForced != null) {
         log('"_configToJson", value provided for httpPostForced: [${config.httpPostForced}]', logLevel: LogLevel.INFO);
         countlyConfig['httpPostForced'] = config.httpPostForced;
+      }
+      if (config.customNetworkRequestHeaders != null) {
+        log('"_configToJson", value provided for customNetworkRequestHeaders: [${config.customNetworkRequestHeaders}]', logLevel: LogLevel.INFO);
+        countlyConfig['customNetworkRequestHeaders'] = config.customNetworkRequestHeaders;
       }
       if (config.shouldRequireConsent != null) {
         log('"_configToJson", value provided for shouldRequireConsent: [${config.shouldRequireConsent}]', logLevel: LogLevel.INFO);

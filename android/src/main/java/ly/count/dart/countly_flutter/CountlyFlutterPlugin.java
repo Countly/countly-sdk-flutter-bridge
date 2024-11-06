@@ -55,8 +55,7 @@ import ly.count.android.sdk.RequestResult;
 import ly.count.android.sdk.StarRatingCallback;
 import ly.count.android.sdk.messaging.CountlyPush;
 
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.FirebaseApp;
@@ -440,18 +439,19 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 }
                 CountlyPush.init(activity.getApplication(), pushTokenType);
                 FirebaseApp.initializeApp(context);
-                FirebaseInstanceId.getInstance().getInstanceId()
-                        .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                                if (!task.isSuccessful()) {
-                                    log("[askForNotificationPermission], getInstanceId failed", task.getException(), LogLevel.WARNING);
-                                    return;
-                                }
-                                String token = task.getResult().getToken();
-                                CountlyPush.onTokenRefresh(token);
-                            }
-                        });
+                FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
+                    @Override
+                    public void onComplete(@NonNull Task<String> task) {
+                        if (!task.isSuccessful()) {
+                            log("[askForNotificationPermission], Fetching FCM registration token failed", task.getException(), LogLevel.WARNING);
+                            return;
+                        }
+
+                        String token = task.getResult();
+                        log("FCM Token: " + token, LogLevel.INFO);
+                        CountlyPush.onTokenRefresh(token);
+                    }
+                });
                 result.success("askForNotificationPermission!");
             } else if ("pushTokenType".equals(call.method)) {
                 String tokenType = args.getString(0);
@@ -515,12 +515,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 String key = args.getString(0);
                 int count = Integer.parseInt(args.getString(1));
                 float sum = Float.parseFloat(args.getString(2));
-                HashMap<String, Object> segmentation = new HashMap<>();
+                Map<String, Object> segmentation;
                 if (args.length() > 3) {
-                    for (int i = 3, il = args.length(); i < il; i += 2) {
-                        segmentation.put(args.getString(i), args.getString(i + 1));
-                    }
+                    segmentation = toMap(args.getJSONObject(3));
+                } else {
+                    segmentation = null;
                 }
+                // Map<String, Object> segmentation = toMap(args.getJSONObject(4));
+                
                 Countly.sharedInstance().events().endEvent(key, segmentation, count, sum);
                 result.success("endEvent for: " + key);
             } else if ("recordEvent".equals(call.method)) {
@@ -1529,6 +1531,11 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
         if (_config.has("httpPostForced")) {
             this.config.setHttpPostForced(_config.getBoolean("httpPostForced"));
+        }
+        if (_config.has("customNetworkRequestHeaders")) {
+            JSONObject customHeaderValues = _config.getJSONObject("customNetworkRequestHeaders");
+            Map<String, String> customHeaderValuesMap = toMapString(customHeaderValues);
+            this.config.addCustomNetworkRequestHeaders(customHeaderValuesMap);
         }
         if (_config.has("shouldRequireConsent")) {
             this.config.setRequiresConsent(_config.getBoolean("shouldRequireConsent"));

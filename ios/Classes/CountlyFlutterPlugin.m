@@ -318,12 +318,11 @@ FlutterMethodChannel *_channel;
           int count = [countString intValue];
           NSString *sumString = [command objectAtIndex:2];
           float sum = [sumString floatValue];
-          NSMutableDictionary *segmentation = [[NSMutableDictionary alloc] init];
-
+          NSDictionary *segmentation;
           if ((int)command.count > 3) {
-              for (int i = 3, il = (int)command.count; i < il; i += 2) {
-                  segmentation[[command objectAtIndex:i]] = [command objectAtIndex:i + 1];
-              }
+            segmentation = [command objectAtIndex:3];
+          } else {
+            segmentation = nil;
           }
           [[Countly sharedInstance] endEvent:key segmentation:segmentation count:count sum:sum];
           NSString *resultString = @"endEvent for: ";
@@ -1508,6 +1507,12 @@ FlutterMethodChannel *_channel;
         NSNumber *httpPostForced = _config[@"httpPostForced"];
         if (httpPostForced) {
             config.alwaysUsePOST = [httpPostForced boolValue];
+        }
+        NSDictionary *customNetworkRequestHeaders = _config[@"customNetworkRequestHeaders"];
+        if (customNetworkRequestHeaders) {
+            NSURLSessionConfiguration *session = [NSURLSessionConfiguration defaultSessionConfiguration];
+            session.HTTPAdditionalHeaders = customNetworkRequestHeaders;
+            config.URLSessionConfiguration = session;
         }
         NSNumber *shouldRequireConsent = _config[@"shouldRequireConsent"];
         if (shouldRequireConsent) {
