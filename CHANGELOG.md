@@ -1,5 +1,5 @@
 ## X.X.X
-* Added functionality for adding custom header key/value pairs to every request
+* Added a config flag `setCustomNetworkRequestHeaders` to add custom headers to SDK requests (thanks @sbatezat)
 * Automatic view pause/resumes are changed with stop/start for better data consistency.
 * Added the config interface `experimental` to group experimental features.
 * Added a flag `enablePreviousNameRecording` to add previous event/view and current view names as segmentation (Experimental!)
