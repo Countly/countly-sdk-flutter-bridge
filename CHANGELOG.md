@@ -1,4 +1,4 @@
-## 24.11.0
+## 24.11.0-np
 * Added further intent redirection vulnerability checks in Android
 * Added support for Android 15 (API level 35)
 * Added a config flag `setCustomNetworkRequestHeaders` to add custom headers to SDK requests (thanks @sbatezat)
@@ -21,7 +21,7 @@
 * Updated underlying Android SDK version to 24.7.5
 * Updated underlying iOS SDK version to 24.7.7
 
-From this version on NP variant changelogs will be added to `-np` branches!
+From this version on NP variant changelogs will be added to this branch!
 
 ## 24.7.1
 * Added a new configuration option `enableTemporaryDeviceIDMode` to 'CountlyConfig' interface
