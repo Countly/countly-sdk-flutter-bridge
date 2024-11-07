@@ -15,11 +15,6 @@ void main() {
 
     await generateEvents(); // Generate some events
 
-    if (Platform.isIOS) {
-      expectedSegmentation['nestedList'] = [];
-      expectedSegmentation['mapList'] = [];
-    }
-
     // Get request and event queues from native side
     List<String> requestList = await getRequestQueue(); // List of strings
     List<String> eventList = await getEventQueue(); // List of json objects
