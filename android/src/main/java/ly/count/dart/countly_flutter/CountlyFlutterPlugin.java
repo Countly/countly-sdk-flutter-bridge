@@ -433,25 +433,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     }
                 }
                 CountlyPush.init(activity.getApplication(), pushTokenType);
-<<<<<<< HEAD
                 result.success(" askForNotificationPermission!");
-=======
-                FirebaseApp.initializeApp(context);
-                FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
-                    @Override
-                    public void onComplete(@NonNull Task<String> task) {
-                        if (!task.isSuccessful()) {
-                            log("[askForNotificationPermission], Fetching FCM registration token failed", task.getException(), LogLevel.WARNING);
-                            return;
-                        }
-
-                        String token = task.getResult();
-                        log("FCM Token: " + token, LogLevel.INFO);
-                        CountlyPush.onTokenRefresh(token);
-                    }
-                });
-                result.success("askForNotificationPermission!");
->>>>>>> 5c220d7e2d148de3de79d300a48a258fa44138d9
             } else if ("pushTokenType".equals(call.method)) {
                 String tokenType = args.getString(0);
                 if ("2".equals(tokenType)) {
