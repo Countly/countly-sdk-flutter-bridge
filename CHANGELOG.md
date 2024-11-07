@@ -21,6 +21,8 @@
 * Updated underlying Android SDK version to 24.7.5
 * Updated underlying iOS SDK version to 24.7.7
 
+From this version on NP variant changelogs will be added to `-np` branches!
+
 ## 24.7.1
 * Added a new configuration option `enableTemporaryDeviceIDMode` to 'CountlyConfig' interface
 * Introduced a new `deviceID` interface for grouping device ID management related methods:
