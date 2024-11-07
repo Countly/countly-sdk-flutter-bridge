@@ -20,9 +20,7 @@ void main() {
     await Countly.instance.sessions.updateSession();
     await Countly.instance.sessions.endSession();
 
-    FlutterForegroundTask.minimizeApp();
-    await tester.pump(Duration(seconds: 1));
-    FlutterForegroundTask.launchApp();
+    goBackgroundAndForeground();
 
     await tester.pump(Duration(seconds: 1));
     await Countly.instance.deviceId.changeWithoutMerge('newID_2');

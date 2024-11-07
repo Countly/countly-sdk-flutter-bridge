@@ -20,21 +20,13 @@ void main() {
 
     // go foreground and background
     // TODO: this automation is Android only, iOS automation is not supported yet
-    FlutterForegroundTask.minimizeApp();
-    if (Platform.isIOS) {
-      printMessageMultipleTimes('will now go to background, get ready to go foreground manually', 3);
-    }
-    await tester.pump(Duration(seconds: 3));
+    goBackground();
 
     // foreground apm request should be sent
     List<String> apmReqs = await getAndPrintWantedElementsWithParamFromAllQueues('apm');
     expect(apmReqs.length, 1);
 
-    FlutterForegroundTask.launchApp();
-    if (Platform.isIOS) {
-      printMessageMultipleTimes('waiting for 3 seconds, now go to foreground', 3);
-    }
-    await tester.pump(Duration(seconds: 3));
+    goForeground();
 
     // background apm request should be sent
     apmReqs = await getAndPrintWantedElementsWithParamFromAllQueues('apm');

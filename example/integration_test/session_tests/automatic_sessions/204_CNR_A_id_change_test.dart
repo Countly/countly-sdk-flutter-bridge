@@ -31,16 +31,7 @@ void main() {
     await Countly.instance.sessions.updateSession();
     await Countly.instance.sessions.endSession();
 
-    FlutterForegroundTask.minimizeApp(); // generates 4.end_session
-    if (Platform.isIOS) {
-      printMessageMultipleTimes('will now go to background, get ready to go foreground manually', 3);
-    }
-    await tester.pump(Duration(seconds: 3));
-    FlutterForegroundTask.launchApp(); // generates 5.begin_session
-    if (Platform.isIOS) {
-      printMessageMultipleTimes('waiting for 3 seconds, now go to foreground', 3);
-    }
-    await tester.pump(Duration(seconds: 3));
+    goBackgroundAndForeground();
 
     await Countly.instance.deviceId.changeWithMerge('newID'); // generates 6.change_id
 

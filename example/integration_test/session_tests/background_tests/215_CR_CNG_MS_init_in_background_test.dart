@@ -9,8 +9,7 @@ import 'dart:convert';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('215_CR_CNG_MS_init_in_background_test', (WidgetTester tester) async {
-    FlutterForegroundTask.minimizeApp();
-    await tester.pump(Duration(seconds: 2));
+    goBackground();
 
     // Initialize the SDK
     CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY).setLoggingEnabled(true).enableManualSessionHandling().setRequiresConsent(true);
@@ -25,10 +24,7 @@ void main() {
 
     expect(requestList.length, 2); // consents, empty location
     expect(eventList.length, 0);
-    printMessageMultipleTimes('will now go to background, get ready to go foreground manually', 3);
-    await tester.pump(Duration(seconds: 3));
-    FlutterForegroundTask.launchApp();
-    await tester.pump(Duration(seconds: 1));
+    goForeground();
 
     // Some logs for debugging
     printQueues(requestList, eventList);
