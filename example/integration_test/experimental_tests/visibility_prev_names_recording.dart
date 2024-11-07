@@ -72,7 +72,7 @@ void main() {
         expect(view['segmentation']['cly_pvn'], 'V3_FG');
       }
       else {
-        expect(view['segmentation']['cly_v'], Platform.isIOS ? 1 : 0);
+        expect(view['segmentation']['cly_v'], 1);
         if(viewName != 'V1_FG')
         {
           var currentNumber = int.parse(viewName.split('_')[0].substring(1));
@@ -100,7 +100,7 @@ void main() {
 
     for (var event in eventFG) {
       var eventName = event['key'];
-      expect(event['segmentation']['cly_v'], Platform.isIOS ? 1 : 0);
+      expect(event['segmentation']['cly_v'], 1);
       if(eventName != 'E1_FG')
       {
         var currentNumber = int.parse(eventName.split('_')[0].substring(1));

@@ -1,4 +1,6 @@
 ## 24.11.0
+* Added further intent redirection vulnerability checks in Android
+* Added support for Android 15 (API level 35)
 * Added a config flag `setCustomNetworkRequestHeaders` to add custom headers to SDK requests (thanks @sbatezat)
 * Automatic view pause/resumes are changed with stop/start for better data consistency.
 * Added the config interface `experimental` to group experimental features.
@@ -16,7 +18,7 @@
 
 * Updated the underlying Firebase Messaging SDK to version 24.0.3
 
-* Updated underlying Android SDK version to 24.7.4
+* Updated underlying Android SDK version to 24.7.5
 * Updated underlying iOS SDK version to 24.7.7
 
 ## 24.7.1
