@@ -1,3 +1,42 @@
+## 24.7.7
+* Changed the visibility tracking segmentation values to binary
+
+## 24.7.6
+* Mitigated an issue with experimental visibility tracking and previous name recording, ensuring they’re included even when no segmentation is provided in event or view recording.
+
+## 24.7.5
+* Mitigated an issue with content action json parsing due to json encoding
+* Mitigated an issue where pausing a view resulted in a '0' view duration.
+* Mitigated an issue where an internal timer was not reset when going to foreground for `autoStoppedViews`
+* Mitigated an issue for `autoStoppedViews` could have not started when multiple views were open at the same time while going to foreground
+
+## 24.7.4
+* Added visionOS build support
+* Added `CountlyFeedbacks:` interface with new view methods (Access with `Countly.sharedInstance.feedback`):
+    * Method to present feedback widget (wih an optional widget selector(name, ID or tag) string and a Callback):
+        * `presentNPS`
+        * `presentSurvey`
+        * `presentRating`
+    * `getAvailableFeedbackWidgets` method to retrieve available feedback widgets with a completion handler.
+
+* Mitigated an issue with the feedback widget URL encoding on iOS 16 and earlier, which prevented the widget from displaying
+* Mitigated an issue with content fetch URL encoding on iOS 16 and earlier, which caused the request to fail
+    
+* Deprecated `getFeedbackWidgets` method, you should use `[feedback getAvailableFeedbackWidgets:]` method instead
+
+## 24.7.3
+* Added current view names to event segmentation based on the `enablePreviousNameRecording` (Experimental!)
+* Updated the SDK to ensure compatibility with the latest server response models
+
+## 24.7.2
+* Automatic view pause/resumes are changed with stop/start for better data consistency.
+* Added the config interface 'experimental' to group experimental features.
+* Added a flag (enablePreviousNameRecording) to add previous event and view names as segmentation. (Experimental!)
+* Added a flag (enableVisibilityTracking) to add app visibility info to views 
+* Added Content feature methods:
+	- enterContentZone, to start Content checks(Experimental!)
+	- exitContentZone, to stop content checks (Experimental!)
+
 ## 24.7.1
 * Added `enableTemporaryDeviceIDMode` config and post-initialization methods to enable temporary device ID mode
 * Orientation info is now also sent during initialization

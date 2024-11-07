@@ -1,4 +1,5 @@
 import 'configuration_interfaces/countly_config_apm.dart';
+import 'configuration_interfaces/countly_config_experimental.dart';
 import 'configuration_interfaces/countly_config_limits.dart';
 import 'countly_flutter.dart';
 import 'remote_config.dart';
@@ -14,6 +15,7 @@ class CountlyConfig {
   bool? _loggingEnabled;
   bool _locationDisabled = false;
   bool? _httpPostForced;
+  Map<String, String>? _customNetworkRequestHeaders;
   String? _locationGpsCoordinates;
   String? _daCampaignType;
   String? _daCampaignData;
@@ -44,6 +46,9 @@ class CountlyConfig {
 
   /// instance of CountlyConfigApm
   final CountlyConfigApm _countlyConfigApmInstance = CountlyConfigApm();
+
+  /// instance of CountlyConfigExperimental
+  final CountlyConfigExperimental _countlyConfigExperimentalInstance = CountlyConfigExperimental();
 
   /// instance of CountlyConfigLimits
   final CountlyConfigSDKInternalLimits _countlyConfigSDKInternalLimitsInstance = CountlyConfigSDKInternalLimits();
@@ -78,6 +83,8 @@ class CountlyConfig {
   bool? get httpPostForced => _httpPostForced;
 
   Map<String, String>? get location => _location;
+
+  Map<String, String>? get customNetworkRequestHeaders => _customNetworkRequestHeaders;
 
   bool? get recordAppStartTime => _recordAppStartTime;
 
@@ -125,6 +132,9 @@ class CountlyConfig {
 
   /// getter for CountlyConfigApm instance that is used to access CountlyConfigApm methods
   CountlyConfigApm get apm => _countlyConfigApmInstance;
+
+  /// getter for CountlyConfigExperimental instance that is used to access CountlyConfigExperimental methods
+  CountlyConfigExperimental get experimental => _countlyConfigExperimentalInstance;
 
   /// getter for CountlyConfigLimits instance that is used to access CountlyConfigLimits methods
   CountlyConfigSDKInternalLimits get sdkInternalLimits => _countlyConfigSDKInternalLimitsInstance;
@@ -212,6 +222,12 @@ class CountlyConfig {
   /// Set to 'true' if you want HTTP POST to be used for all requests
   CountlyConfig setHttpPostForced(bool isForced) {
     _httpPostForced = isForced;
+    return this;
+  }
+
+  /// Set if you want custom HTTP headers to be used for all requests
+  CountlyConfig setCustomNetworkRequestHeaders(Map<String, String>? customNetworkRequestHeaders) {
+    _customNetworkRequestHeaders = customNetworkRequestHeaders;
     return this;
   }
 

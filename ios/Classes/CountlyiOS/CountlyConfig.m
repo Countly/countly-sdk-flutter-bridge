@@ -17,7 +17,7 @@
 @implementation CountlyConfig
 
 //NOTE: Countly features
-#if (TARGET_OS_IOS)
+#if (TARGET_OS_IOS || TARGET_OS_VISION)
 CLYFeature const CLYPushNotifications   = @"CLYPushNotifications";
 CLYFeature const CLYCrashReporting      = @"CLYCrashReporting";
 // CLYAutoViewTracking is deprecated, Use 'config.enableAutomaticViewTracking' instead
@@ -36,6 +36,11 @@ CLYFeature const CLYCrashReporting      = @"CLYCrashReporting";
 CountlyAPMConfig *apmConfig = nil;
 CountlyCrashesConfig *crashes = nil;
 CountlySDKLimitsConfig *sdkLimitsConfig = nil;
+CountlyExperimentalConfig *experimental = nil;
+
+#if (TARGET_OS_IOS)
+CountlyContentConfig *content = nil;
+#endif
 
 //NOTE: Device ID options
 NSString* const CLYDefaultDeviceID = @""; //NOTE: It will be overridden to default device ID mechanism, depending on platform.
@@ -123,5 +128,21 @@ CLYDeviceIDType const CLYDeviceIDTypeNSUUID     = @"CLYDeviceIDTypeNSUUID";
     }
     return crashes;
 }
+
+- (nonnull CountlyExperimentalConfig *)experimental {
+    if (experimental == nil) {
+        experimental = CountlyExperimentalConfig.new;
+    }
+    return experimental;
+}
+
+#if (TARGET_OS_IOS)
+- (nonnull CountlyContentConfig *)content {
+    if (content == nil) {
+        content = CountlyContentConfig.new;
+    }
+    return content;
+}
+#endif
 
 @end
