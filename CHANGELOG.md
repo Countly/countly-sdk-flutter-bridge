@@ -1,4 +1,6 @@
 ## 24.11.0
+* Added further intent redirection vulnerability checks in Android
+* The Android SDK now supports Android 15 (API level 35)
 * Added a config flag `setCustomNetworkRequestHeaders` to add custom headers to SDK requests (thanks @sbatezat)
 * Automatic view pause/resumes are changed with stop/start for better data consistency.
 * Added the config interface `experimental` to group experimental features.
@@ -13,7 +15,7 @@
 * Addressed an issue where asynchronous Dart errors were not being captured.
 * Addressed an issue that prevented the stacktrace from being properly recognized on the server
 
-* Updated underlying Android SDK version to 24.7.4
+* Updated underlying Android SDK version to 24.7.5
 * Updated underlying iOS SDK version to 24.7.7
 
 ## 24.7.1
