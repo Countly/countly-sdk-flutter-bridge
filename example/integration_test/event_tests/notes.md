@@ -2,6 +2,5 @@
 
 Android
 * 0 duration not appearing
-* not leaving keys after clearing unsupported segmentation values
 iOS
 * no orientation event

@@ -45,6 +45,8 @@ var expectedSegmentation = {
   'boolList': boolList,
   'mixedList': mixedList,
   'normalString': 'normalString',
+  'nestedList' : [],
+  'mapList' : [],
   'normalInt': 1,
   'normalDouble': 1.1,
   'normalBool': true,
