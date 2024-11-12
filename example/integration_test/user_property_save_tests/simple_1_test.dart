@@ -101,29 +101,26 @@ void main() {
         // example:
         // consent: [{"sessions":true,"crashes":true,"users":true,"push":true,"feedback":true,"scrolls":true,"remote-config":true,"attribution":true,"clicks":true,"location":true,"star-rating":true,"events":true,"views":true,"apm":true}]
         Map<String, dynamic> consentInRequest = jsonDecode(queryParams['consent']![0]);
-        for (var key in ['push', 'feedback', 'crashes', 'attribution', 'users', 'events', 'remote-config', 'sessions', 'location', 'views', 'apm']) {
+        for (var key in ['push', 'feedback', 'crashes', 'attribution', 'users', 'events', 'remote-config', 'sessions', 'location', 'views', 'apm', 'content']) {
           expect(consentInRequest[key], true);
         }
-        expect(consentInRequest.length, Platform.isAndroid ? 14 : 11);
+        expect(consentInRequest.length, Platform.isAndroid ? 15 : 12);
       } else if ((Platform.isAndroid && i == 1) || (Platform.isIOS && i == 0)) {
         expect(queryParams['begin_session']?[0], '1');
       } else if (i == 2) {
         expect(queryParams['events']?[0].contains('event1'), true);
         expect(queryParams['events']?[0].contains('event2'), true);
         expect(queryParams['events']?[0].contains('event3'), true);
-        if (Platform.isAndroid) {
-          var seg = '"normalInt":1,"stringList":["value1","value2","value3"],"intList":[1,2,3],"doubleList":[1.1,2.2,3.3],"normalString":"normalString","normalDouble":1.1,"boolList":[true,false,true],"normalBool":true';
-          expect(queryParams['events']?[0].contains(seg), true);
-        } else {
-          expect(queryParams['events']?[0].contains('normalInt'), true);
-          expect(queryParams['events']?[0].contains('stringList'), true);
-          expect(queryParams['events']?[0].contains('intList'), true);
-          expect(queryParams['events']?[0].contains('doubleList'), true);
-          expect(queryParams['events']?[0].contains('normalString'), true);
-          expect(queryParams['events']?[0].contains('normalDouble'), true);
-          expect(queryParams['events']?[0].contains('boolList'), true);
-          expect(queryParams['events']?[0].contains('normalBool'), true);
-        }
+        expect(queryParams['events']?[0].contains('normalInt'), true);
+        expect(queryParams['events']?[0].contains('stringList'), true);
+        expect(queryParams['events']?[0].contains('intList'), true);
+        expect(queryParams['events']?[0].contains('doubleList'), true);
+        expect(queryParams['events']?[0].contains('normalString'), true);
+        expect(queryParams['events']?[0].contains('normalDouble'), true);
+        expect(queryParams['events']?[0].contains('boolList'), true);
+        expect(queryParams['events']?[0].contains('normalBool'), true);
+        expect(queryParams['events']?[0].contains('nestedList'), true);
+        expect(queryParams['events']?[0].contains('mapList'), true);
       } else if (i == 3) {
         expect(queryParams['user_details']?[0], '{"custom":{"key1":"on"}}');
       }
