@@ -28,7 +28,7 @@ BOOL BUILDING_WITH_PUSH_DISABLED = false;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
 
-NSString *const kCountlyFlutterSDKVersion = @"24.7.1";
+NSString *const kCountlyFlutterSDKVersion = @"24.11.0";
 NSString *const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 NSString *const kCountlyFlutterSDKNameNoPush = @"dart-flutterbnp-ios";
 
@@ -318,12 +318,11 @@ FlutterMethodChannel *_channel;
           int count = [countString intValue];
           NSString *sumString = [command objectAtIndex:2];
           float sum = [sumString floatValue];
-          NSMutableDictionary *segmentation = [[NSMutableDictionary alloc] init];
-
+          NSDictionary *segmentation;
           if ((int)command.count > 3) {
-              for (int i = 3, il = (int)command.count; i < il; i += 2) {
-                  segmentation[[command objectAtIndex:i]] = [command objectAtIndex:i + 1];
-              }
+            segmentation = [command objectAtIndex:3];
+          } else {
+            segmentation = nil;
           }
           [[Countly sharedInstance] endEvent:key segmentation:segmentation count:count sum:sum];
           NSString *resultString = @"endEvent for: ";
@@ -1302,6 +1301,20 @@ FlutterMethodChannel *_channel;
           [Countly.sharedInstance appLoadingFinished];
         });
         result(@"appLoadingFinished: success");
+    }  else if ([@"enterContentZone" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [Countly.sharedInstance.content enterContentZone];
+            result(nil);
+        });
+
+        // setRequiresConsent
+    } else if ([@"exitContentZone" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [Countly.sharedInstance.content exitContentZone];
+            result(nil);
+        });
+
+        // setRequiresConsent
     } else {
         result(FlutterMethodNotImplemented);
     }
@@ -1495,6 +1508,12 @@ FlutterMethodChannel *_channel;
         if (httpPostForced) {
             config.alwaysUsePOST = [httpPostForced boolValue];
         }
+        NSDictionary *customNetworkRequestHeaders = _config[@"customNetworkRequestHeaders"];
+        if (customNetworkRequestHeaders) {
+            NSURLSessionConfiguration *session = [NSURLSessionConfiguration defaultSessionConfiguration];
+            session.HTTPAdditionalHeaders = customNetworkRequestHeaders;
+            config.URLSessionConfiguration = session;
+        }
         NSNumber *shouldRequireConsent = _config[@"shouldRequireConsent"];
         if (shouldRequireConsent) {
             config.requiresConsent = [shouldRequireConsent boolValue];
@@ -1663,6 +1682,15 @@ FlutterMethodChannel *_channel;
         NSDictionary *attributionValues = _config[@"attributionValues"];
         if (attributionValues) {
             config.indirectAttribution = attributionValues;
+        }
+
+        NSNumber *visibilityTracking = _config[@"visibilityTracking"];
+        if (visibilityTracking) {
+            config.experimental.enableVisibiltyTracking = [visibilityTracking boolValue];
+        }
+        NSNumber *previousNameRecording = _config[@"previousNameRecording"];
+        if (previousNameRecording) {
+            config.experimental.enablePreviousNameRecording = [previousNameRecording boolValue];
         }
 
     } @catch (NSException *exception) {

@@ -72,9 +72,19 @@ class OthersPage extends StatelessWidget {
       'normalBool': true,
     };
 
+    Countly.startEvent('timed');
+    Countly.endEvent({'key': 'timed', 'segmentation': segment});
     Countly.recordEvent({'key': 'value', 'count': 1, 'sum': 3.14, 'segmentation': segment});
     Countly.instance.views.startView('viewName', segment);
     Countly.instance.views.stopAllViews();
+  }
+
+  void enterContentZone() {
+    Countly.instance.content.enterContentZone();
+  }
+
+  void exitContentZone() {
+    Countly.instance.content.exitContentZone();
   }
 
   @override
@@ -88,6 +98,8 @@ class OthersPage extends StatelessWidget {
         child: Center(
             child: Column(
           children: [
+            MyButton(text: 'Enter Content Zone', color: 'olive', onPressed: enterContentZone),
+            MyButton(text: 'Exit Content Zone', color: 'olive', onPressed: exitContentZone),
             MyButton(text: 'Record Direct Attribution', color: 'olive', onPressed: recordDirectAttribution),
             MyButton(text: 'Record Indirect Attribution', color: 'olive', onPressed: recordIndirectAttribution),
             MyButton(text: 'Push Notification', color: 'blue', onPressed: askForNotificationPermission),
