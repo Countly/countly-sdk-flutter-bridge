@@ -65,7 +65,7 @@ import com.google.firebase.FirebaseApp;
  */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
     private static final String TAG = "CountlyFlutterPlugin";
-    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "24.7.1";
+    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "24.11.0";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterbnp-android";
 
@@ -1340,6 +1340,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("halt".equals(call.method)) {
                 Countly.sharedInstance().halt();
                 result.success("halt: success");
+            } else if ("enterContentZone".equals(call.method)) {
+                Countly.sharedInstance().contents().enterContentZone();
+                result.success(null);
+            } else if ("exitContentZone".equals(call.method)) {
+                Countly.sharedInstance().contents().exitContentZone();
+                result.success(null);
             }
             //------------------End------------------------------------
 

@@ -86,20 +86,20 @@ void main() {
         expect((crash['_error'] as String).contains(exceptionName), true);
         expect(crash['_custom'], segmentation);
         expect(crash['_logs'], crashLogs);
-        expect(crash['_nonfatal'], 'true');
+        expect(crash['_nonfatal'], Platform.isIOS ? 1 : 'true');
       } else if (i == 2) {
         expect((crash['_error'] as String).contains(exceptionName), true);
         expect(crash['_custom'], segmentation);
         expect(crash['_logs'], crashLogs);
-        expect(crash['_nonfatal'], 'false');
+        expect(crash['_nonfatal'], Platform.isIOS ? 0 : 'false');
       } else if (i == 3) {
         expect((crash['_error'] as String).contains('IntegerDivisionByZeroException'), true);
         expect(crash['_logs'], crashLogs);
-        expect(crash['_nonfatal'], 'true');
+        expect(crash['_nonfatal'], Platform.isIOS ? 1 : 'true');
       } else if (i == 4) {
         expect((crash['_error'] as String).contains('IntegerDivisionByZeroException'), true);
         expect(crash['_logs'], crashLogs);
-        expect(crash['_nonfatal'], 'false');
+        expect(crash['_nonfatal'], Platform.isIOS ? 0 : 'false');
       } else if (i == 5) {
         expect((crash['_error'] as String).contains(throwAsyncErrorString), true);
         expect(crash['_logs'], crashLogs);

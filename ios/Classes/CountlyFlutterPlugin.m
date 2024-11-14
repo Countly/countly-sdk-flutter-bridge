@@ -28,7 +28,7 @@ BOOL BUILDING_WITH_PUSH_DISABLED = false;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
 
-NSString *const kCountlyFlutterSDKVersion = @"24.7.1";
+NSString *const kCountlyFlutterSDKVersion = @"24.11.0";
 NSString *const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 NSString *const kCountlyFlutterSDKNameNoPush = @"dart-flutterbnp-ios";
 
@@ -1301,6 +1301,20 @@ FlutterMethodChannel *_channel;
           [Countly.sharedInstance appLoadingFinished];
         });
         result(@"appLoadingFinished: success");
+    }  else if ([@"enterContentZone" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [Countly.sharedInstance.content enterContentZone];
+            result(nil);
+        });
+
+        // setRequiresConsent
+    } else if ([@"exitContentZone" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [Countly.sharedInstance.content exitContentZone];
+            result(nil);
+        });
+
+        // setRequiresConsent
     } else {
         result(FlutterMethodNotImplemented);
     }
