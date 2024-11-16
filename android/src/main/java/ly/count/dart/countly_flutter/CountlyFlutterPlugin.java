@@ -19,6 +19,8 @@ import ly.count.android.sdk.ExperimentInformation;
 import ly.count.android.sdk.FeedbackRatingCallback;
 import ly.count.android.sdk.ModuleFeedback.*;
 import ly.count.android.sdk.DeviceIdType;
+import ly.count.android.sdk.ContentCallback;
+import ly.count.android.sdk.ContentStatus;
 
 import java.util.HashMap;
 import java.util.Iterator;
