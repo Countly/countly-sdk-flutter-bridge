@@ -1091,6 +1091,42 @@ FlutterMethodChannel *_channel;
                   }];
           }
         });
+    } else if ([@"presentNPS" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *nameIDorTag = [command objectAtIndex:0];
+          
+            [Countly.sharedInstance.feedback presentNPS:nameIDorTag widgetCallback:^(WidgetState *state) {
+                if (state == WIDGET_CLOSED) {
+                    [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
+                } else {
+                    [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
+                }
+            }];
+        });
+    } else if ([@"presentRating" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *nameIDorTag = [command objectAtIndex:0];
+          
+            [Countly.sharedInstance.feedback presentRating:nameIDorTag widgetCallback:^(WidgetState *state) {
+                if (state == WIDGET_CLOSED) {
+                    [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
+                } else {
+                    [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
+                }
+            }];
+        });
+    } else if ([@"presentSurvey" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *nameIDorTag = [command objectAtIndex:0];
+          
+            [Countly.sharedInstance.feedback presentSurvey:nameIDorTag widgetCallback:^(WidgetState *state) {
+                if (state == WIDGET_CLOSED) {
+                    [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
+                } else {
+                    [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
+                }
+            }];
+        });
     } else if ([@"getFeedbackWidgetData" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *widgetId = [command objectAtIndex:0];
