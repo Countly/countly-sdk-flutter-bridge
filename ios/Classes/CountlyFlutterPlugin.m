@@ -1693,21 +1693,20 @@ FlutterMethodChannel *_channel;
             config.experimental.enablePreviousNameRecording = [previousNameRecording boolValue];
         }
 
-       if (_config[@"contentCallback"]) {
-            [config.content setGlobalContentCallback:^(ContentStatus contentStatus, NSDictionary *contentData) {
-                NSMutableDictionary *contentCallbackData = [NSMutableDictionary dictionary];
-                int contentResult = 0; // COMPLETED = 0, CLOSED = 1
+        [config.content setGlobalContentCallback:^(ContentStatus contentStatus, NSDictionary *contentData) {
+            NSMutableDictionary *contentCallbackData = [NSMutableDictionary dictionary];
+            int contentResult = 0; // COMPLETED = 0, CLOSED = 1
 
-                if (contentStatus == ContentStatusClosed) {
-                    contentResult = 1;
-                }
+            if (contentStatus == CLOSED) {
+                contentResult = 1;
+            }
 
-                contentCallbackData[@"contentResult"] = @(contentResult);
-                contentCallbackData[@"contentData"] = contentData;
+            contentCallbackData[@"contentResult"] = @(contentResult);
+            contentCallbackData[@"contentData"] = contentData;
 
-                [_channel invokeMethod:@"contentCallback" arguments:contentCallbackData];
-            }];
-       }
+            [_channel invokeMethod:@"contentCallback" arguments:contentCallbackData];
+        }];
+       
     } @catch (NSException *exception) {
         COUNTLY_FLUTTER_LOG(@"[populateConfig], Unable to parse Config object: %@", exception);
     }
