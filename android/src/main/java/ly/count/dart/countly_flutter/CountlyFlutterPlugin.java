@@ -1705,21 +1705,19 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.experimental.enablePreviousNameRecording();
         }
 
-        if (_config.has("contentCallback")) {
-            this.config.content.setGlobalContentCallback(new ContentCallback() {
-                @Override 
-                public void onContentCallback(ContentStatus contentStatus, Map<String, Object> contentData) {
-                    Map<String, Object> contentCallbackData = new HashMap<>();
-                    int contentResult = 0; // COMPLETED = 0, CLOSED = 1
-                    if(contentStatus.equals(ContentStatus.CLOSED)){
-                        contentResult = 1;
-                    }
-                    contentCallbackData.put("contentResult", contentResult);
-                    contentCallbackData.put("contentData", contentData);
-                    
-                    methodChannel.invokeMethod("contentCallback", contentCallbackData);
+        this.config.content.setGlobalContentCallback(new ContentCallback() {
+            @Override 
+            public void onContentCallback(ContentStatus contentStatus, Map<String, Object> contentData) {
+                Map<String, Object> contentCallbackData = new HashMap<>();
+                int contentResult = 0; // COMPLETED = 0, CLOSED = 1
+                if(contentStatus.equals(ContentStatus.CLOSED)){
+                    contentResult = 1;
                 }
-            });
-        }
+                contentCallbackData.put("contentResult", contentResult);
+                contentCallbackData.put("contentData", contentData);
+                
+                methodChannel.invokeMethod("contentCallback", contentCallbackData);
+            }
+        });
     }
 }
