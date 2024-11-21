@@ -1093,39 +1093,63 @@ FlutterMethodChannel *_channel;
         });
     } else if ([@"presentNPS" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *nameIDorTag = [command objectAtIndex:0];
+            NSString *nameIDorTag = @"";
+
+            if (command.count != 0) {
+                nameIDorTag = [command objectAtIndex:0];
+            }
           
-            [Countly.sharedInstance.feedback presentNPS:nameIDorTag widgetCallback:^(WidgetState *state) {
+            [Countly.sharedInstance.feedback presentNPS:nameIDorTag widgetCallback:^(WidgetState state) {
                 if (state == WIDGET_CLOSED) {
                     [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
+                    result(@"[CountlyFlutterPlugin] presentNPS, appeared");
                 } else {
                     [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
+                    result(@"[CountlyFlutterPlugin] presentNPS, dismissed");
                 }
             }];
+
+            result(@"[CountlyFlutterPlugin] presentNPS, success");
         });
     } else if ([@"presentRating" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *nameIDorTag = [command objectAtIndex:0];
+            NSString *nameIDorTag = @"";
+
+            if (command.count != 0) {
+                nameIDorTag = [command objectAtIndex:0];
+            }
           
-            [Countly.sharedInstance.feedback presentRating:nameIDorTag widgetCallback:^(WidgetState *state) {
+            [Countly.sharedInstance.feedback presentRating:nameIDorTag widgetCallback:^(WidgetState state) {
                 if (state == WIDGET_CLOSED) {
                     [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
+                    result(@"[CountlyFlutterPlugin] presentRating, appeared");
                 } else {
                     [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
+                    result(@"[CountlyFlutterPlugin] presentRating, dismissed");
                 }
             }];
+
+            result(@"[CountlyFlutterPlugin] presentRating, success");
         });
     } else if ([@"presentSurvey" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *nameIDorTag = [command objectAtIndex:0];
+            NSString *nameIDorTag = @"";
+
+            if (command.count != 0) {
+                nameIDorTag = [command objectAtIndex:0];
+            }
           
-            [Countly.sharedInstance.feedback presentSurvey:nameIDorTag widgetCallback:^(WidgetState *state) {
+            [Countly.sharedInstance.feedback presentSurvey:nameIDorTag widgetCallback:^(WidgetState state) {
                 if (state == WIDGET_CLOSED) {
                     [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
+                    result(@"CountlyFlutterPlugin] presentSurvey, appeared");
                 } else {
                     [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
+                    result(@"CountlyFlutterPlugin] presentSurvey, dismissed");
                 }
             }];
+
+            result(@"[CountlyFlutterPlugin] presentSurvey, success");
         });
     } else if ([@"getFeedbackWidgetData" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
