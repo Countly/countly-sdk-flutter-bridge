@@ -1,3 +1,6 @@
+## 24.11.1
+* Added content configuration interface that has `setGlobalContentCallback` to get notified about content changes.
+
 ## 24.11.0
 * Added further intent redirection vulnerability checks in Android
 * Added support for Android 15 (API level 35)
@@ -10,7 +13,6 @@
   * `enterContentZone`, to start Content checks(Experimental!)
   * `exitContentZone`, to stop content checks (Experimental!)
 * Added support for `List` values in user given segmentations of timed events.
-* Added content configuration interface that has `setGlobalContentCallback` to get notified about content changes.
 
 * Mitigated an issue where an event was not recorded if a `count` was not provided.
 * Fixed an issue where automatic crash reporting failed to capture Flutter framework errors when using the newly introduced config option.
