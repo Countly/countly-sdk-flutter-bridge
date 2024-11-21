@@ -10,7 +10,6 @@
   * `enterContentZone`, to start Content checks(Experimental!)
   * `exitContentZone`, to stop content checks (Experimental!)
 * Added support for `List` values in user given segmentations of timed events.
-* Added content configuration interface that has `setGlobalContentCallback` to get notified about content changes. 
 
 * Mitigated an issue where an event was not recorded if a `count` was not provided.
 * Fixed an issue where automatic crash reporting failed to capture Flutter framework errors when using the newly introduced config option.
@@ -19,8 +18,8 @@
 
 * Updated the underlying Firebase Messaging SDK to version 24.0.3
 
-* Updated underlying Android SDK version to 24.7.6
-* Updated underlying iOS SDK version to 24.7.8
+* Updated underlying Android SDK version to 24.7.5
+* Updated underlying iOS SDK version to 24.7.7
 
 From this version on NP variant changelogs will be added to `-np` branches!
 
