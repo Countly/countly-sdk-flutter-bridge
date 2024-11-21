@@ -1,5 +1,12 @@
 ## 24.11.1
 * Added content configuration interface that has `setGlobalContentCallback` to get notified about content changes.
+* Added support for localization of content blocks.
+
+* Mitigated an issue where visibility could have been wrongly assigned if a view was closed while going to background. (Experimental!)
+* Mitigated issues where:
+  * Passing the global content callback was not possible in Android.
+  * The user provided URLSessionConfiguration was not applied to direct requests in iOS.
+  * A concurrent modification error could have happen when starting multiple stopped views in iOS.
 
 * Updated underlying Android SDK version to 24.7.6
 * Updated underlying iOS SDK version to 24.7.8
