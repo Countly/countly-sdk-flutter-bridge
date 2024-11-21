@@ -1,3 +1,6 @@
+## XX.XX.XX
+* Added content configuration interface that has `setGlobalContentCallback` to get notified about content changes. 
+
 ## 24.11.0
 * Added further intent redirection vulnerability checks in Android
 * Added support for Android 15 (API level 35)

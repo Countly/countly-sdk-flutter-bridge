@@ -1,4 +1,5 @@
 import 'configuration_interfaces/countly_config_apm.dart';
+import 'configuration_interfaces/countly_config_content.dart';
 import 'configuration_interfaces/countly_config_experimental.dart';
 import 'configuration_interfaces/countly_config_limits.dart';
 import 'countly_flutter.dart';
@@ -52,6 +53,9 @@ class CountlyConfig {
 
   /// instance of CountlyConfigLimits
   final CountlyConfigSDKInternalLimits _countlyConfigSDKInternalLimitsInstance = CountlyConfigSDKInternalLimits();
+
+  /// instance of CountlyConfigContent
+  final CountlyConfigContent _countlyConfigContentInstance = CountlyConfigContent();
 
   CountlyConfig(this._serverURL, this._appKey);
 
@@ -138,6 +142,9 @@ class CountlyConfig {
 
   /// getter for CountlyConfigLimits instance that is used to access CountlyConfigLimits methods
   CountlyConfigSDKInternalLimits get sdkInternalLimits => _countlyConfigSDKInternalLimitsInstance;
+
+  /// getter for CountlyConfigContent instance that is used to access CountlyConfigContent methods
+  CountlyConfigContent get content => _countlyConfigContentInstance;
 
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
