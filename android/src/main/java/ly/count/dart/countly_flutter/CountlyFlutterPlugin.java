@@ -19,6 +19,8 @@ import ly.count.android.sdk.ExperimentInformation;
 import ly.count.android.sdk.FeedbackRatingCallback;
 import ly.count.android.sdk.ModuleFeedback.*;
 import ly.count.android.sdk.DeviceIdType;
+import ly.count.android.sdk.ContentCallback;
+import ly.count.android.sdk.ContentStatus;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -65,7 +67,7 @@ import com.google.firebase.FirebaseApp;
  */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
     private static final String TAG = "CountlyFlutterPlugin";
-    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "24.11.0";
+    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "24.11.1";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterbnp-android";
 
@@ -1760,5 +1762,20 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if (_config.has("previousNameRecording")) {
             this.config.experimental.enablePreviousNameRecording();
         }
+
+        this.config.content.setGlobalContentCallback(new ContentCallback() {
+            @Override 
+            public void onContentCallback(ContentStatus contentStatus, Map<String, Object> contentData) {
+                Map<String, Object> contentCallbackData = new HashMap<>();
+                int contentResult = 0; // COMPLETED = 0, CLOSED = 1
+                if(contentStatus.equals(ContentStatus.CLOSED)){
+                    contentResult = 1;
+                }
+                contentCallbackData.put("contentResult", contentResult);
+                contentCallbackData.put("contentData", contentData);
+                
+                methodChannel.invokeMethod("contentCallback", contentCallbackData);
+            }
+        });
     }
 }

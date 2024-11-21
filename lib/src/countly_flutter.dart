@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
 
+import 'package:countly_flutter/src/content_builder.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
@@ -224,6 +225,12 @@ class Countly {
           _instance._feedbackInternal.feedbackCallback = null;
         }
         break;
+      case 'feedbackCallback_onFinished':
+        if (_instance._feedbackInternal.feedbackCallback != null) {
+          _instance._feedbackInternal.feedbackCallback!.onFinished(call.arguments);
+          _instance._feedbackInternal.feedbackCallback = null;
+        }
+        break;
       case 'contentCallback':
         Map<String, dynamic> argumentsMap = Map<String, dynamic>.from(call.arguments);
         final int contentResult = argumentsMap['contentResult'];
@@ -234,12 +241,6 @@ class Countly {
         Map<String, dynamic> contentData = Map<String, dynamic>.from(argumentsMap['contentData']);;
 
         Countly.instance._contentBuilderInternal.onContentCallback(contentStatus, contentData);
-        break;
-      case 'feedbackCallback_onFinished':
-        if (_instance._feedbackInternal.feedbackCallback != null) {
-          _instance._feedbackInternal.feedbackCallback!.onFinished(call.arguments);
-          _instance._feedbackInternal.feedbackCallback = null;
-        }
         break;
     }
   }
@@ -324,6 +325,11 @@ class Countly {
     }
     for (final callback in config.remoteConfigGlobalCallbacks) {
       Countly.instance._remoteConfigInternal.registerDownloadCallback(callback);
+    }
+
+    if(config.content.contentCallback != null){
+      log('[initWithConfig] About to register content callback', logLevel: LogLevel.VERBOSE);
+      Countly.instance._contentBuilderInternal.registerContentCallback(config.content.contentCallback!);
     }
 
     return result;
