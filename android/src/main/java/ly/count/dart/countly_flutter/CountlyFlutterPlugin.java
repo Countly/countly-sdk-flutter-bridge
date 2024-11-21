@@ -1161,20 +1161,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 }
                 String nameIDorTag = args.optString(0, "");
 
-                activity.runOnUiThread(new Runnable() {
+                Countly.sharedInstance().feedback().presentNPS(activity, nameIDorTag, new FeedbackCallback() {
                     @Override
-                    public void run() {
-                        Countly.sharedInstance().feedback().presentNPS(activity, nameIDorTag, new FeedbackCallback() {
-                            @Override
-                            public void onFinished(String error) {
-                                methodChannel.invokeMethod("feedbackCallback_onFinished", error);
-                            }
+                    public void onFinished(String error) {
+                        methodChannel.invokeMethod("feedbackCallback_onFinished", error);
+                    }
 
-                            @Override
-                            public void onClosed() {
-                                methodChannel.invokeMethod("feedbackCallback_onClosed", null);
-                            }
-                        });
+                    @Override
+                    public void onClosed() {
+                        methodChannel.invokeMethod("feedbackCallback_onClosed", null);
                     }
                 });
             } else if("presentSurvey".equals(call.method)){
@@ -1185,20 +1180,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 }
                 String nameIDorTag = args.optString(0, "");
 
-                activity.runOnUiThread(new Runnable() {
+                Countly.sharedInstance().feedback().presentSurvey(activity, nameIDorTag, new FeedbackCallback() {
                     @Override
-                    public void run() {
-                        Countly.sharedInstance().feedback().presentSurvey(activity, nameIDorTag, new FeedbackCallback() {
-                            @Override
-                            public void onFinished(String error) {
-                                methodChannel.invokeMethod("feedbackCallback_onFinished", error);
-                            }
+                    public void onFinished(String error) {
+                        methodChannel.invokeMethod("feedbackCallback_onFinished", error);
+                    }
 
-                            @Override
-                            public void onClosed() {
-                                methodChannel.invokeMethod("feedbackCallback_onClosed", null);
-                            }
-                        });
+                    @Override
+                    public void onClosed() {
+                        methodChannel.invokeMethod("feedbackCallback_onClosed", null);
                     }
                 });
             } else if("presentRating".equals(call.method)){
@@ -1209,20 +1199,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 }
                 String nameIDorTag = args.optString(0, "");
 
-                activity.runOnUiThread(new Runnable() {
+                Countly.sharedInstance().feedback().presentRating(activity, nameIDorTag, new FeedbackCallback() {
                     @Override
-                    public void run() {
-                        Countly.sharedInstance().feedback().presentRating(activity, nameIDorTag, new FeedbackCallback() {
-                            @Override
-                            public void onFinished(String error) {
-                                methodChannel.invokeMethod("feedbackCallback_onFinished", error);
-                            }
+                    public void onFinished(String error) {
+                        methodChannel.invokeMethod("feedbackCallback_onFinished", error);
+                    }
 
-                            @Override
-                            public void onClosed() {
-                                methodChannel.invokeMethod("feedbackCallback_onClosed", null);
-                            }
-                        });
+                    @Override
+                    public void onClosed() {
+                        methodChannel.invokeMethod("feedbackCallback_onClosed", null);
                     }
                 });
             }
