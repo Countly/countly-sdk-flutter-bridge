@@ -1151,7 +1151,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         }
                     });
                 }
-            } else if("presentNPS").equals(call.method){
+            } else if("presentNPS".equals(call.method)){
                 if (activity == null) {
                     log("presentNPS failed : Activity is null", LogLevel.ERROR);
                     methodChannel.invokeMethod("feedbackCallback_onFinished", "Activity is null");
@@ -1170,7 +1170,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         methodChannel.invokeMethod("feedbackCallback_onClosed", null);
                     }
                 });
-            } else if("presentSurvey").equals(call.method){
+            } else if("presentSurvey".equals(call.method)){
                 if (activity == null) {
                     log("presentSurvey failed : Activity is null", LogLevel.ERROR);
                     methodChannel.invokeMethod("feedbackCallback_onFinished", "Activity is null");
@@ -1189,7 +1189,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         methodChannel.invokeMethod("feedbackCallback_onClosed", null);
                     }
                 });
-            } else if("presentRating").equals(call.method){
+            } else if("presentRating".equals(call.method)){
                 if (activity == null) {
                     log("presentRating failed : Activity is null", LogLevel.ERROR);
                     methodChannel.invokeMethod("feedbackCallback_onFinished", "Activity is null");
