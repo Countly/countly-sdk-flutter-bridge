@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
 
+import 'content_builder.dart';
 import 'content_builder_internal.dart';
 import 'countly_config.dart';
 import 'countly_state.dart';
@@ -222,6 +223,17 @@ class Countly {
           _instance._feedbackInternal.feedbackCallback!.onClosed();
           _instance._feedbackInternal.feedbackCallback = null;
         }
+        break;
+      case 'contentCallback':
+        Map<String, dynamic> argumentsMap = Map<String, dynamic>.from(call.arguments);
+        final int contentResult = argumentsMap['contentResult'];
+        ContentStatus contentStatus = ContentStatus.completed;
+        if (contentResult == 1) {
+          contentStatus = ContentStatus.closed;
+        } 
+        Map<String, dynamic> contentData = Map<String, dynamic>.from(argumentsMap['contentData']);;
+
+        Countly.instance._contentBuilderInternal.onContentCallback(contentStatus, contentData);
         break;
       case 'feedbackCallback_onFinished':
         if (_instance._feedbackInternal.feedbackCallback != null) {
