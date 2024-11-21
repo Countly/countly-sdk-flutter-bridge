@@ -18,8 +18,8 @@
 
 * Updated the underlying Firebase Messaging SDK to version 24.0.3
 
-* Updated underlying Android SDK version to 24.7.5
-* Updated underlying iOS SDK version to 24.7.7
+* Updated underlying Android SDK version to 24.7.6
+* Updated underlying iOS SDK version to 24.7.8
 
 From this version on NP variant changelogs will be added to `-np` branches!
 
