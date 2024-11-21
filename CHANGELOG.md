@@ -1,5 +1,8 @@
 ## 24.11.1
 * Added content configuration interface that has `setGlobalContentCallback` to get notified about content changes.
+* Added support for localization of content blocks.
+
+* Mitigated an issue where visibility could have been wrongly assigned if a view was closed while going to background. (Experimental!)
 
 * Updated underlying Android SDK version to 24.7.6
 * Updated underlying iOS SDK version to 24.7.8
