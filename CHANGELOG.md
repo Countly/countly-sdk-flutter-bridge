@@ -1,3 +1,9 @@
+## XX.XX.XX
+* Added new functions to ease the presenting the feedback widgets. Functions present the first matching feedback widget from the list.
+  * presentNPS([String?, FeedbackCallback?])
+  * presentSurvey([String?, FeedbackCallback?])
+  * presentRating([String?, FeedbackCallback?])
+
 ## 24.11.1
 * Added content configuration interface that has `setGlobalContentCallback` to get notified about content changes.
 * Added support for localization of content blocks.
