@@ -19,9 +19,9 @@ class FeedbackInternal implements Feedback {
       feedbackCallback?.onFinished('init must be called before presentNPS');
       return;
     }
-    
+
     _feedbackCallback = feedbackCallback;
-    Countly.log('Calling "presentNPS"');
+    Countly.log('Calling "presentNPS" with nameIDorTag: [$nameIDorTag]');
     await _countlyState.channel.invokeMethod('presentNPS', nameIDorTag);
   }
 
@@ -34,7 +34,7 @@ class FeedbackInternal implements Feedback {
     }
 
     _feedbackCallback = feedbackCallback;
-    Countly.log('Calling "presentRating"');
+    Countly.log('Calling "presentRating" with nameIDorTag: [$nameIDorTag]');
     await _countlyState.channel.invokeMethod('presentRating', nameIDorTag);
   }
 
@@ -47,8 +47,7 @@ class FeedbackInternal implements Feedback {
     }
 
     _feedbackCallback = feedbackCallback;
-    Countly.log('Calling "presentSurvey"');
+    Countly.log('Calling "presentSurvey" with nameIDorTag: [$nameIDorTag]');
     await _countlyState.channel.invokeMethod('presentSurvey', nameIDorTag);
   }
-
 }
