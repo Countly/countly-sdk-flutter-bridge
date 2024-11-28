@@ -1,3 +1,4 @@
+export 'src/content_builder.dart';
 export 'src/countly_config.dart';
 export 'src/countly_flutter.dart';
 export 'src/feedback.dart';
