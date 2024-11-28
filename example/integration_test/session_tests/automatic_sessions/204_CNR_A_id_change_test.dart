@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:countly_flutter/countly_flutter.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import '../../utils.dart';
@@ -31,16 +30,7 @@ void main() {
     await Countly.instance.sessions.updateSession();
     await Countly.instance.sessions.endSession();
 
-    FlutterForegroundTask.minimizeApp(); // generates 4.end_session
-    if (Platform.isIOS) {
-      printMessageMultipleTimes('will now go to background, get ready to go foreground manually', 3);
-    }
-    await tester.pump(Duration(seconds: 3));
-    FlutterForegroundTask.launchApp(); // generates 5.begin_session
-    if (Platform.isIOS) {
-      printMessageMultipleTimes('waiting for 3 seconds, now go to foreground', 3);
-    }
-    await tester.pump(Duration(seconds: 3));
+    goBackgroundAndForeground();
 
     await Countly.instance.deviceId.changeWithMerge('newID'); // generates 6.change_id
 
