@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'countly_flutter.dart';
 import 'countly_state.dart';
 import 'feedback.dart';
@@ -22,32 +24,40 @@ class FeedbackInternal implements Feedback {
 
     _feedbackCallback = feedbackCallback;
     Countly.log('Calling "presentNPS" with nameIDorTag: [$nameIDorTag]');
-    await _countlyState.channel.invokeMethod('presentNPS', nameIDorTag);
+    await invokeFeedbackMethod('presentNPS', nameIDorTag);
   }
 
   @override
   Future<void> presentRating([String? nameIDorTag, FeedbackCallback? feedbackCallback]) async {
     if (!_countlyState.isInitialized) {
-      Countly.log('presentNPS, "initWithConfig" must be called before "presentRating"', logLevel: LogLevel.ERROR);
+      Countly.log('presentRating, "initWithConfig" must be called before "presentRating"', logLevel: LogLevel.ERROR);
       feedbackCallback?.onFinished('init must be called before presentRating');
       return;
     }
 
     _feedbackCallback = feedbackCallback;
     Countly.log('Calling "presentRating" with nameIDorTag: [$nameIDorTag]');
-    await _countlyState.channel.invokeMethod('presentRating', nameIDorTag);
+    await invokeFeedbackMethod('presentRating', nameIDorTag);
   }
 
   @override
   Future<void> presentSurvey([String? nameIDorTag, FeedbackCallback? feedbackCallback]) async {
     if (!_countlyState.isInitialized) {
-      Countly.log('presentNPS, "initWithConfig" must be called before "presentSurvey"', logLevel: LogLevel.ERROR);
+      Countly.log('presentSurvey, "initWithConfig" must be called before "presentSurvey"', logLevel: LogLevel.ERROR);
       feedbackCallback?.onFinished('init must be called before presentSurvey');
       return;
     }
 
     _feedbackCallback = feedbackCallback;
     Countly.log('Calling "presentSurvey" with nameIDorTag: [$nameIDorTag]');
-    await _countlyState.channel.invokeMethod('presentSurvey', nameIDorTag);
+    await invokeFeedbackMethod('presentSurvey', nameIDorTag);
+  }
+
+  Future<void> invokeFeedbackMethod(String methodName, String? nameIDorTag){
+    final args = [];
+    nameIDorTag ??= '';
+    args.add(nameIDorTag);
+
+    return _countlyState.channel.invokeMethod(methodName, <String, dynamic>{'data': json.encode(args)});
   }
 }
