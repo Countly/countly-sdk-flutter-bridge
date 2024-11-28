@@ -1,12 +1,10 @@
-## XX.XX.XX
-* Added new functions to ease the presenting the feedback widgets. Functions present the first matching feedback widget from the list.
-  * presentNPS([String?, FeedbackCallback?])
-  * presentSurvey([String?, FeedbackCallback?])
-  * presentRating([String?, FeedbackCallback?])
-
 ## 24.11.1
 * Added content configuration interface that has `setGlobalContentCallback` to get notified about content changes.
 * Added support for localization of content blocks.
+* Added the interface `feedback` and convenience methods that presents the first available widget to user:
+  * presentNPS([String? nameTagOrID, FeedbackCallback? callback])
+  * presentSurvey([String? nameTagOrID, FeedbackCallback? callback])
+  * presentRating([String? nameTagOrID, FeedbackCallback? callback])
 
 * Mitigated an issue where visibility could have been wrongly assigned if a view was closed while going to background. (Experimental!)
 * Mitigated issues where:
