@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'dart:io';
 
 import 'package:countly_flutter/countly_flutter.dart';
@@ -14,134 +15,100 @@ void main() {
     config.experimental.enableVisibilityTracking().enablePreviousNameRecording();
     await Countly.initWithConfig(config);
 
-    await createMixViewsAndEvents(true);
+    await createMixViewsAndEvents(inForeground: true);
+    sleep(Duration(seconds: 2)); // lets add duration to session
 
-    sleep(Duration(seconds: 1));
-    goBackground();
+    FlutterForegroundTask.minimizeApp();
+    sleep(Duration(seconds: 2));
 
-    sleep(Duration(seconds: 1));
-    await createMixViewsAndEvents(false);
+    // record events and views in background
+    await createMixViewsAndEvents(inForeground: false);
 
-    sleep(Duration(seconds: 1));
-    // goForeground();
+    FlutterForegroundTask.launchApp();
+    if (Platform.isIOS) {
+      printMessageMultipleTimes('waiting for 3 seconds, now go to foreground', 3);
+    }
+    sleep(Duration(seconds: 5));
 
     // Get request and event queues from native side
     List<String> requestList = await getRequestQueue();
     List<String> eventList = await getEventQueue();
 
     // Some logs for debugging
-    print('RQ: $requestList');
-    print('EQ: $eventList');
-    print('RQ length: ${requestList.length}');
-    print('EQ length: ${eventList.length}');
+    printQueues(requestList, eventList);
 
-    // Process each filtered request
-    List<dynamic> events = await getEventsFromEventQueueAndRequestList();
+    // Begin session
+    // events and views in foreground
+    // end session
+    // begin session
+    expect(requestList.length, 4);
 
-    print('Filtered Events Both Request & Events List: ${events.length}');
+    // events and views in background and then after we come to foreground
+    // depending on which view is started first after fg, we can have 9 or 10 events
+    expect(eventList.length, anyOf([9, 10]));
 
-    // Filter events based on keys
-    var views = events.where((event) => event['key'] == '[CLY]_view').toList();
-    print('Filtered Views: ${views.length}');
+    for (var entry in requestList.asMap().entries) {
+      int index = entry.key;
+      var element = entry.value;
 
-    var filteredEvents = events.where((event) => event['key'] != '[CLY]_view').toList();
-    print('Filtered Events: ${filteredEvents.length}');
-
-    var eventBG = filteredEvents.where((event) => event['key'].contains('_BG')).toList();
-    var eventFG = filteredEvents.where((event) => event['key'].contains('_FG')).toList();
-
-    // Filter views based on name segmentation
-    var viewBG = views.where((view) => view['segmentation']['name'].contains('_BG')).toList();
-    var viewFG = views.where((view) => view['segmentation']['name'].contains('_FG')).toList();
-
-
-    // Some logs for debugging
-    print('Filtered Views (BG): ${viewBG.length}');
-    print('Filtered Views (FG): ${viewFG.length}');
-    print('Filtered Events (BG): ${eventBG.length}');
-    print('Filtered Events (FG): ${eventFG.length}');
-
-    for (var view in viewFG) {
-      print('ViewFG : $view');
-      var viewName = view['segmentation']['name'];
-      var viewVisit = view['segmentation']['visit'];
-
-      if(viewVisit == null && (viewName == 'V1_FG' || viewName == 'V4_FG'))
-      {
-        expect(view['segmentation']['cly_v'], 0);
-        expect(view['segmentation']['cly_pvn'], 'V3_FG');
-      }
-      else {
-        expect(view['segmentation']['cly_v'], 1);
-        if(viewName != 'V1_FG')
-        {
-          var currentNumber = int.parse(viewName.split('_')[0].substring(1));
-          final expectedPrevName = 'V${currentNumber - 1}_FG';
-          expect(view['segmentation']['cly_pvn'], equals(expectedPrevName));
-        }
-      }
-    }
-
-    for (var view in viewBG) {
-      var viewName = view['segmentation']['name'];
-
-      expect(view['segmentation']['cly_v'], 0);
-      if(viewName != 'V1_BG')
-      {
-        var currentNumber = int.parse(viewName.split('_')[0].substring(1));
-        final expectedPrevName = 'V${currentNumber - 1}_BG';
-        expect(view['segmentation']['cly_pvn'], equals(expectedPrevName));
-      }
-      else {
-
-        expect(view['segmentation']['cly_pvn'], 'V4_FG');
-      }
-    }
-
-    for (var event in eventFG) {
-      var eventName = event['key'];
-      expect(event['segmentation']['cly_v'], 1);
-      if(eventName != 'E1_FG')
-      {
-        var currentNumber = int.parse(eventName.split('_')[0].substring(1));
-        final expectedPrevEventName = 'E${currentNumber - 1}_FG';
-        final expectedCurrentViewName = 'V${currentNumber - 1}_FG';
-        expect(event['segmentation']['cly_pen'], equals(expectedPrevEventName));
-        expect(event['segmentation']['cly_cvn'], equals(expectedCurrentViewName));
-      }
-      else
-      {
-        expect(event['segmentation']['cly_pen'], "");
-        expect(event['segmentation']['cly_cvn'], "");
-      }
-    }
-
-    for (var event in eventBG) {
-      var eventName = event['key'];
-      expect(event['segmentation']['cly_v'], 0);
-      if(eventName != 'E1_BG')
-      {
-        var currentNumber = int.parse(eventName.split('_')[0].substring(1));
-        final expectedPrevEventName = 'E${currentNumber - 1}_BG';
-        final expectedCurrentViewName = 'V${currentNumber - 1}_BG';
-        expect(event['segmentation']['cly_pen'], equals(expectedPrevEventName));
-        expect(event['segmentation']['cly_cvn'], equals(expectedCurrentViewName));
-      }
-      else
-      {
-        expect(event['segmentation']['cly_pen'], "E5_FG");
-        expect(event['segmentation']['cly_cvn'], "V4_FG");
-      }
-    }
-
-    var a = 0;
-    for (var element in requestList) {
       Map<String, List<String>> queryParams = Uri.parse('?' + element).queryParametersAll;
-      testCommonRequestParams(queryParams); // checks general params
-      // some logs for debugging
-      print('RQ.$a: $queryParams');
+      testCommonRequestParams(queryParams);
+
+      // start and then when to fg
+      if (index == 0 || index == 3) {
+        expect(queryParams['begin_session']?[0], '1');
+      }
+      // when going to bg
+      if (index == 2) {
+        expect(queryParams['end_session']?[0], '1');
+        expect(queryParams['session_duration']?[0], '2');
+      }
+      if (index == 1) {
+        var rqEvents = jsonDecode(queryParams['events']![0]);
+        expect(rqEvents.length, 7);
+        // events nad views at initial fg
+        checkEventAndViews(rqEvents, true);
+        // events and views after going to bg and coming back to fg
+        checkEventAndViews(eventList, false);
+      }
+
+      print('RQ.$index: $queryParams');
       print('========================');
-      a++;
     }
   });
+}
+
+void checkEventAndViews(eventArray, isFGEvents) {
+  if (isFGEvents) {
+    expect(eventArray[0]['key'], 'E1_FG');
+    expect(eventArray[1]['segmentation']['name'], 'V1_FG');
+    expect(eventArray[2]['key'], 'E2_FG');
+    expect(eventArray[3]['segmentation']['name'], 'V2_FG');
+    expect(eventArray[4]['key'], 'E3_FG');
+    // closed in random order
+    try {
+      expect(eventArray[5]['segmentation']['name'], 'V2_FG');
+      expect(eventArray[6]['segmentation']['name'], 'V1_FG');
+    } catch (e) {
+      expect(eventArray[5]['segmentation']['name'], 'V1_FG');
+      expect(eventArray[6]['segmentation']['name'], 'V2_FG');
+    }
+  } else {
+    expect(jsonDecode(eventArray[0])['key'], 'E1_BG');
+    expect(jsonDecode(eventArray[1])['segmentation']['name'], 'V1_BG');
+    expect(jsonDecode(eventArray[2])['key'], 'E2_BG');
+    expect(jsonDecode(eventArray[3])['segmentation']['name'], 'V2_BG');
+    expect(jsonDecode(eventArray[4])['key'], 'E3_BG');
+    expect(jsonDecode(eventArray[5])['key'], '[CLY]_orientation');
+    expect(jsonDecode(eventArray[6])['segmentation']['name'], 'V2_BG');
+    // this part is random as autoStopped or normal view can start first
+    try {
+      expect(jsonDecode(eventArray[7])['segmentation']['name'], 'V2_BG');
+      expect(jsonDecode(eventArray[8])['segmentation']['name'], 'V2_FG');
+      expect(jsonDecode(eventArray[9])['segmentation']['name'], 'V1_FG');
+    } catch (e) {
+      expect(jsonDecode(eventArray[7])['segmentation']['name'], 'V1_FG');
+      expect(jsonDecode(eventArray[8])['segmentation']['name'], 'V2_FG');
+    }
+  }
 }
