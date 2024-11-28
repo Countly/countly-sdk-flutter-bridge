@@ -7,6 +7,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import '../utils.dart';
 
+var pen = "";
+var cvn = "";
+var cvn_end = "";
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('Init SDK with some visibility and previous names recording', (WidgetTester tester) async {
@@ -66,10 +69,14 @@ void main() {
       if (index == 1) {
         var rqEvents = jsonDecode(queryParams['events']![0]);
         expect(rqEvents.length, 7);
+
         // events nad views at initial fg
         checkEventAndViews(rqEvents, true);
         // events and views after going to bg and coming back to fg
-        checkEventAndViews(eventList, false);
+        checkEventAndViews(
+          eventList,
+          false,
+        );
       }
 
       print('RQ.$index: $queryParams');
@@ -80,35 +87,77 @@ void main() {
 
 void checkEventAndViews(eventArray, isFGEvents) {
   if (isFGEvents) {
-    expect(eventArray[0]['key'], 'E1_FG');
-    expect(eventArray[1]['segmentation']['name'], 'V1_FG');
-    expect(eventArray[2]['key'], 'E2_FG');
-    expect(eventArray[3]['segmentation']['name'], 'V2_FG');
-    expect(eventArray[4]['key'], 'E3_FG');
+    checkEvent(eventArray[0], 'E1_FG', true);
+    checkViewStart(eventArray[1], 'V1_FG', true);
+    checkEvent(eventArray[2], 'E2_FG', true);
+    checkViewStart((eventArray[3]), 'V2_FG', true);
+    checkEvent((eventArray[4]), 'E3_FG', true);
     // closed in random order
     try {
-      expect(eventArray[5]['segmentation']['name'], 'V2_FG');
-      expect(eventArray[6]['segmentation']['name'], 'V1_FG');
+      checkViewEnd((eventArray[5]), 'V2_FG', true);
+      checkViewEnd((eventArray[6]), 'V1_FG', true);
     } catch (e) {
-      expect(eventArray[5]['segmentation']['name'], 'V1_FG');
-      expect(eventArray[6]['segmentation']['name'], 'V2_FG');
+      checkViewEnd((eventArray[5]), 'V1_FG', true);
+      checkViewEnd((eventArray[6]), 'V2_FG', true);
     }
   } else {
-    expect(jsonDecode(eventArray[0])['key'], 'E1_BG');
-    expect(jsonDecode(eventArray[1])['segmentation']['name'], 'V1_BG');
-    expect(jsonDecode(eventArray[2])['key'], 'E2_BG');
-    expect(jsonDecode(eventArray[3])['segmentation']['name'], 'V2_BG');
-    expect(jsonDecode(eventArray[4])['key'], 'E3_BG');
+    checkEvent(jsonDecode(eventArray[0]), 'E1_BG', false);
+    checkViewStart(jsonDecode(eventArray[1]), 'V1_BG', false);
+    checkEvent(jsonDecode(eventArray[2]), 'E2_BG', false);
+    checkViewStart(jsonDecode(eventArray[3]), 'V2_BG', false);
+    checkEvent(jsonDecode(eventArray[4]), 'E3_BG', false);
     expect(jsonDecode(eventArray[5])['key'], '[CLY]_orientation');
-    expect(jsonDecode(eventArray[6])['segmentation']['name'], 'V2_BG');
+    checkViewEnd(jsonDecode(eventArray[6]), 'V2_BG', false);
     // this part is random as autoStopped or normal view can start first
     try {
-      expect(jsonDecode(eventArray[7])['segmentation']['name'], 'V2_BG');
+      checkRestartedView(jsonDecode(eventArray[7]), 'V2_FG', true, false);
+
       expect(jsonDecode(eventArray[8])['segmentation']['name'], 'V2_FG');
-      expect(jsonDecode(eventArray[9])['segmentation']['name'], 'V1_FG');
+      expect(jsonDecode(eventArray[8])['segmentation']['fg_events'], false);
+      expect(jsonDecode(eventArray[8])['segmentation']['cly_v'], isNull);
+      expect(jsonDecode(eventArray[8])['segmentation']['visit'], isNull);
+      expect(jsonDecode(eventArray[8])['segmentation']['cly_pvn'], cvn_end);
+
+      checkRestartedView(jsonDecode(eventArray[9]), 'V1_FG', true, false);
     } catch (e) {
-      expect(jsonDecode(eventArray[7])['segmentation']['name'], 'V1_FG');
-      expect(jsonDecode(eventArray[8])['segmentation']['name'], 'V2_FG');
+      checkRestartedView(jsonDecode(eventArray[7]), 'V1_FG', true, false);
+      checkRestartedView(jsonDecode(eventArray[8]), 'V2_FG', true, false);
     }
   }
+}
+
+void checkEvent(event, key, isVisible) {
+  expect(event['key'], key);
+  expect(event['segmentation']['cly_pen'], pen);
+  expect(event['segmentation']['cly_v'], isVisible ? 1 : 0);
+  expect(event['segmentation']['cly_cvn'], cvn);
+  pen = key;
+}
+
+void checkViewStart(view, name, isVisible) {
+  expect(view['segmentation']['name'], name);
+  expect(view['segmentation']['fg_events'], isVisible);
+  expect(view['segmentation']['cly_v'], isVisible ? 1 : 0);
+  expect(view['segmentation']['visit'], 1);
+  expect(view['segmentation']['cly_pvn'], cvn);
+  cvn_end = cvn;
+  cvn = name;
+}
+
+void checkViewEnd(view, name, isVisible) {
+  expect(view['segmentation']['name'], name);
+  expect(view['segmentation']['fg_events'], isVisible);
+  expect(view['segmentation']['cly_v'], isNull);
+  expect(view['segmentation']['visit'], isNull);
+  expect(view['segmentation']['cly_pvn'], cvn_end);
+}
+
+void checkRestartedView(view, name, isVisible, globalSegmentation) {
+  expect(view['segmentation']['name'], name);
+  expect(view['segmentation']['fg_events'], globalSegmentation);
+  expect(view['segmentation']['cly_v'], isVisible ? 1 : 0);
+  expect(view['segmentation']['visit'], 1);
+  expect(view['segmentation']['cly_pvn'], cvn);
+  cvn_end = cvn;
+  cvn = name;
 }
