@@ -1102,10 +1102,10 @@ FlutterMethodChannel *_channel;
             [Countly.sharedInstance.feedback presentNPS:nameIDorTag widgetCallback:^(WidgetState state) {
                 if (state == WIDGET_CLOSED) {
                     [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
-                    result(@"[CountlyFlutterPlugin] presentNPS, appeared");
-                } else {
-                    [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
                     result(@"[CountlyFlutterPlugin] presentNPS, dismissed");
+                } else if (state = WIDGET_APPEARED) {
+                    [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
+                    result(@"[CountlyFlutterPlugin] presentNPS, appeared");
                 }
             }];
 
@@ -1122,10 +1122,10 @@ FlutterMethodChannel *_channel;
             [Countly.sharedInstance.feedback presentRating:nameIDorTag widgetCallback:^(WidgetState state) {
                 if (state == WIDGET_CLOSED) {
                     [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
-                    result(@"[CountlyFlutterPlugin] presentRating, appeared");
-                } else {
-                    [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
                     result(@"[CountlyFlutterPlugin] presentRating, dismissed");
+                } else if (state = WIDGET_APPEARED) {
+                    [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
+                    result(@"[CountlyFlutterPlugin] presentRating, appeared");
                 }
             }];
 
@@ -1142,10 +1142,10 @@ FlutterMethodChannel *_channel;
             [Countly.sharedInstance.feedback presentSurvey:nameIDorTag widgetCallback:^(WidgetState state) {
                 if (state == WIDGET_CLOSED) {
                     [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
-                    result(@"CountlyFlutterPlugin] presentSurvey, appeared");
-                } else {
-                    [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
                     result(@"CountlyFlutterPlugin] presentSurvey, dismissed");
+                } else if (state = WIDGET_APPEARED) {
+                    [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
+                    result(@"CountlyFlutterPlugin] presentSurvey, appeared");
                 }
             }];
 
