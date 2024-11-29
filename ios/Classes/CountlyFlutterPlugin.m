@@ -1091,6 +1091,66 @@ FlutterMethodChannel *_channel;
                   }];
           }
         });
+    } else if ([@"presentNPS" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *nameIDorTag = @"";
+
+            if (command.count != 0) {
+                nameIDorTag = [command objectAtIndex:0];
+            }
+          
+            [Countly.sharedInstance.feedback presentNPS:nameIDorTag widgetCallback:^(WidgetState state) {
+                if (state == WIDGET_CLOSED) {
+                    [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
+                    result(@"[CountlyFlutterPlugin] presentNPS, dismissed");
+                } else if (state = WIDGET_APPEARED) {
+                    [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
+                    result(@"[CountlyFlutterPlugin] presentNPS, appeared");
+                }
+            }];
+
+            result(@"[CountlyFlutterPlugin] presentNPS, success");
+        });
+    } else if ([@"presentRating" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *nameIDorTag = @"";
+
+            if (command.count != 0) {
+                nameIDorTag = [command objectAtIndex:0];
+            }
+          
+            [Countly.sharedInstance.feedback presentRating:nameIDorTag widgetCallback:^(WidgetState state) {
+                if (state == WIDGET_CLOSED) {
+                    [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
+                    result(@"[CountlyFlutterPlugin] presentRating, dismissed");
+                } else if (state = WIDGET_APPEARED) {
+                    [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
+                    result(@"[CountlyFlutterPlugin] presentRating, appeared");
+                }
+            }];
+
+            result(@"[CountlyFlutterPlugin] presentRating, success");
+        });
+    } else if ([@"presentSurvey" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *nameIDorTag = @"";
+
+            if (command.count != 0) {
+                nameIDorTag = [command objectAtIndex:0];
+            }
+          
+            [Countly.sharedInstance.feedback presentSurvey:nameIDorTag widgetCallback:^(WidgetState state) {
+                if (state == WIDGET_CLOSED) {
+                    [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
+                    result(@"CountlyFlutterPlugin] presentSurvey, dismissed");
+                } else if (state = WIDGET_APPEARED) {
+                    [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
+                    result(@"CountlyFlutterPlugin] presentSurvey, appeared");
+                }
+            }];
+
+            result(@"[CountlyFlutterPlugin] presentSurvey, success");
+        });
     } else if ([@"getFeedbackWidgetData" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *widgetId = [command objectAtIndex:0];

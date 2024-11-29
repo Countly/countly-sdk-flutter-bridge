@@ -1153,7 +1153,65 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         }
                     });
                 }
-            } else if ("getFeedbackWidgetData".equals(call.method)) {
+            } else if("presentNPS".equals(call.method)){
+                if (activity == null) {
+                    log("presentNPS failed : Activity is null", LogLevel.ERROR);
+                    methodChannel.invokeMethod("feedbackCallback_onFinished", "Activity is null");
+                    return;
+                }
+                String nameIDorTag = args.optString(0, "");
+
+                Countly.sharedInstance().feedback().presentNPS(activity, nameIDorTag, new FeedbackCallback() {
+                    @Override
+                    public void onFinished(String error) {
+                        methodChannel.invokeMethod("feedbackCallback_onFinished", error);
+                    }
+
+                    @Override
+                    public void onClosed() {
+                        methodChannel.invokeMethod("feedbackCallback_onClosed", null);
+                    }
+                });
+            } else if("presentSurvey".equals(call.method)){
+                if (activity == null) {
+                    log("presentSurvey failed : Activity is null", LogLevel.ERROR);
+                    methodChannel.invokeMethod("feedbackCallback_onFinished", "Activity is null");
+                    return;
+                }
+                String nameIDorTag = args.optString(0, "");
+
+                Countly.sharedInstance().feedback().presentSurvey(activity, nameIDorTag, new FeedbackCallback() {
+                    @Override
+                    public void onFinished(String error) {
+                        methodChannel.invokeMethod("feedbackCallback_onFinished", error);
+                    }
+
+                    @Override
+                    public void onClosed() {
+                        methodChannel.invokeMethod("feedbackCallback_onClosed", null);
+                    }
+                });
+            } else if("presentRating".equals(call.method)){
+                if (activity == null) {
+                    log("presentRating failed : Activity is null", LogLevel.ERROR);
+                    methodChannel.invokeMethod("feedbackCallback_onFinished", "Activity is null");
+                    return;
+                }
+                String nameIDorTag = args.optString(0, "");
+
+                Countly.sharedInstance().feedback().presentRating(activity, nameIDorTag, new FeedbackCallback() {
+                    @Override
+                    public void onFinished(String error) {
+                        methodChannel.invokeMethod("feedbackCallback_onFinished", error);
+                    }
+
+                    @Override
+                    public void onClosed() {
+                        methodChannel.invokeMethod("feedbackCallback_onClosed", null);
+                    }
+                });
+            }
+            else if ("getFeedbackWidgetData".equals(call.method)) {
                 String widgetId = args.getString(0);
                 CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
                 if (feedbackWidget == null) {
