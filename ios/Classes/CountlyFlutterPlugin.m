@@ -28,7 +28,7 @@ BOOL BUILDING_WITH_PUSH_DISABLED = true;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
 
-NSString *const kCountlyFlutterSDKVersion = @"24.11.0";
+NSString *const kCountlyFlutterSDKVersion = @"24.11.1";
 NSString *const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 NSString *const kCountlyFlutterSDKNameNoPush = @"dart-flutterbnp-ios";
 
@@ -1091,6 +1091,66 @@ FlutterMethodChannel *_channel;
                   }];
           }
         });
+    } else if ([@"presentNPS" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *nameIDorTag = @"";
+
+            if (command.count != 0) {
+                nameIDorTag = [command objectAtIndex:0];
+            }
+          
+            [Countly.sharedInstance.feedback presentNPS:nameIDorTag widgetCallback:^(WidgetState state) {
+                if (state == WIDGET_CLOSED) {
+                    [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
+                    result(@"[CountlyFlutterPlugin] presentNPS, dismissed");
+                } else if (state = WIDGET_APPEARED) {
+                    [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
+                    result(@"[CountlyFlutterPlugin] presentNPS, appeared");
+                }
+            }];
+
+            result(@"[CountlyFlutterPlugin] presentNPS, success");
+        });
+    } else if ([@"presentRating" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *nameIDorTag = @"";
+
+            if (command.count != 0) {
+                nameIDorTag = [command objectAtIndex:0];
+            }
+          
+            [Countly.sharedInstance.feedback presentRating:nameIDorTag widgetCallback:^(WidgetState state) {
+                if (state == WIDGET_CLOSED) {
+                    [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
+                    result(@"[CountlyFlutterPlugin] presentRating, dismissed");
+                } else if (state = WIDGET_APPEARED) {
+                    [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
+                    result(@"[CountlyFlutterPlugin] presentRating, appeared");
+                }
+            }];
+
+            result(@"[CountlyFlutterPlugin] presentRating, success");
+        });
+    } else if ([@"presentSurvey" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *nameIDorTag = @"";
+
+            if (command.count != 0) {
+                nameIDorTag = [command objectAtIndex:0];
+            }
+          
+            [Countly.sharedInstance.feedback presentSurvey:nameIDorTag widgetCallback:^(WidgetState state) {
+                if (state == WIDGET_CLOSED) {
+                    [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
+                    result(@"CountlyFlutterPlugin] presentSurvey, dismissed");
+                } else if (state = WIDGET_APPEARED) {
+                    [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
+                    result(@"CountlyFlutterPlugin] presentSurvey, appeared");
+                }
+            }];
+
+            result(@"[CountlyFlutterPlugin] presentSurvey, success");
+        });
     } else if ([@"getFeedbackWidgetData" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *widgetId = [command objectAtIndex:0];
@@ -1693,6 +1753,20 @@ FlutterMethodChannel *_channel;
             config.experimental.enablePreviousNameRecording = [previousNameRecording boolValue];
         }
 
+        [config.content setGlobalContentCallback:^(ContentStatus contentStatus, NSDictionary *contentData) {
+            NSMutableDictionary *contentCallbackData = [NSMutableDictionary dictionary];
+            int contentResult = 0; // COMPLETED = 0, CLOSED = 1
+
+            if (contentStatus == CLOSED) {
+                contentResult = 1;
+            }
+
+            contentCallbackData[@"contentResult"] = @(contentResult);
+            contentCallbackData[@"contentData"] = contentData;
+
+            [_channel invokeMethod:@"contentCallback" arguments:contentCallbackData];
+        }];
+       
     } @catch (NSException *exception) {
         COUNTLY_FLUTTER_LOG(@"[populateConfig], Unable to parse Config object: %@", exception);
     }

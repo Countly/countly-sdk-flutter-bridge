@@ -1,28 +1,41 @@
 PODS:
-  - countly_flutter_np (24.1.0):
+  - countly_flutter_np (24.11.1):
     - Flutter
   - Flutter (1.0.0)
+  - flutter_foreground_task (0.0.1):
+    - Flutter
   - integration_test (0.0.1):
     - Flutter
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
 
 DEPENDENCIES:
   - countly_flutter_np (from `.symlinks/plugins/countly_flutter_np/ios`)
   - Flutter (from `Flutter`)
+  - flutter_foreground_task (from `.symlinks/plugins/flutter_foreground_task/ios`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
 
 EXTERNAL SOURCES:
   countly_flutter_np:
     :path: ".symlinks/plugins/countly_flutter_np/ios"
   Flutter:
     :path: Flutter
+  flutter_foreground_task:
+    :path: ".symlinks/plugins/flutter_foreground_task/ios"
   integration_test:
     :path: ".symlinks/plugins/integration_test/ios"
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
 
 SPEC CHECKSUMS:
-  countly_flutter: 0b87be283b3ecef341b5f8d45ff97dd33ee966b9
-  Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
-  integration_test: 13825b8a9334a850581300559b8839134b124670
+  countly_flutter: 6a2ccd4c63c21c2fea1ab58e14d03fecc03a00fa
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  flutter_foreground_task: 21ef182ab0a29a3005cc72cd70e5f45cb7f7f817
+  integration_test: ce0a3ffa1de96d1a89ca0ac26fca7ea18a749ef4
+  shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
 
-PODFILE CHECKSUM: 7368163408c647b7eb699d0d788ba6718e18fb8d
+PODFILE CHECKSUM: 4e8f8b2be68aeea4c0d5beb6ff1e79fface1d048
 
-COCOAPODS: 1.14.3
+COCOAPODS: 1.15.2

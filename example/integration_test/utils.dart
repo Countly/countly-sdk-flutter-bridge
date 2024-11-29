@@ -25,51 +25,11 @@ Future<List<String>> getEventQueue() async {
   return eq.cast<String>();
 }
 
-/// Get event queue from native side (list of json objects)
-Future<List<dynamic>> getEventsFromEventQueueAndRequestList() async {
-  List<String> requestList = await getRequestQueue();
-  List<String> eventList = await getEventQueue();
-  // Filter requestList to include only requests containing 'events_'
-  List<String> filteredRequestList = requestList.where((element) => element.contains('events=')).toList();
-
-  // Some logs for debugging
-  print('Filtered Request List: $filteredRequestList');
-
-  // Process each filtered request
-  List<dynamic> events = [];
-
-  for (var element in filteredRequestList) {
-    Map<String, List<String>> queryParams = Uri
-        .parse('?' + element)
-        .queryParametersAll;
-
-    if (queryParams.containsKey('events')) {
-      var eventsEncoded = queryParams['events']!.first; // Get the first item as it is a List<String>
-      var eventsRaw = json.decode(Uri.decodeComponent(eventsEncoded));
-
-      if (eventsRaw is List) {
-        for (var event in eventsRaw) {
-          events.add(event);
-        }
-      }
-    }
-  }
-
-  print('Filtered Events Request List: ${events.length}');
-
-  for (var index = 0; index < eventList.length; index++) {
-    Map<String, dynamic> event = json.decode(eventList[index]);
-    events.add(event);
-  }
-
-  return events;
-}
-
 /// Verify the common request queue parameters
 void testCommonRequestParams(Map<String, List<String>> requestObject) {
   expect(requestObject['app_key']?[0], APP_KEY);
   expect(requestObject['sdk_name']?[0], "dart-flutterbnp-${Platform.isIOS ? "ios" : "android"}");
-  expect(requestObject['sdk_version']?[0], '24.11.0');
+  expect(requestObject['sdk_version']?[0], '24.11.1');
   expect(requestObject['av']?[0], Platform.isIOS ? '0.0.1' : '1.0.0');
   assert(requestObject['timestamp']?[0] != null);
 
@@ -140,7 +100,7 @@ Future<DeviceIdType> testDeviceIDType(DeviceIdType givenType) async {
 
 /// Start a server to receive the requests from the SDK and store them in a provided List
 /// Use http://0.0.0.0:8080 as the server url
-void creatServer(List requestArray) async {
+void createServer(List requestArray) async {
   // Start a server to receive the requests from the SDK
   var server = await HttpServer.bind(InternetAddress.anyIPv4, 8080);
   server.listen((HttpRequest request) {
@@ -212,15 +172,6 @@ Future<Map<String, dynamic>> getApmParamsFromRequest(String request) async {
   return apmParams;
 }
 
-/// Go to background
-void goBackground() {
-  FlutterForegroundTask.minimizeApp();
-  if (Platform.isIOS) {
-    printMessageMultipleTimes('will now go to background, get ready to go foreground manually', 3);
-  }
-  sleep(Duration(seconds: 3));
-}
-
 /// Go to foreground
 void goForeground() {
   FlutterForegroundTask.launchApp();
@@ -253,42 +204,21 @@ void printMessageMultipleTimes(String message, int times) {
   }
 }
 
-Future<void> createMixViewsAndEvents(bool inForeground) async {
+Future<void> createMixViewsAndEvents({bool inForeground = true}) async {
   // Set global view segmentation
-  Map<String, Object> viewSegmentation = {
-    'isForeground': inForeground
-  };
-  await Countly.instance.views.setGlobalViewSegmentation(viewSegmentation);
-
-  // Create events with segmentation
-  var event1 = {'key': 'E1${inForeground ? '_FG' : '_BG'}'};
-  await Countly.recordEvent(event1);
-
-  await Countly.instance.views.startView("V1${inForeground ? '_FG' : '_BG'}");
-
+  Map<String, Object> viewSegmentation = {'fg_events': inForeground};
+  var sg = {'k1': 'v1'};
+  var event1 = {'key': 'E1${inForeground ? '_FG' : '_BG'}', 'segmentation': sg};
   var event2 = {'key': 'E2${inForeground ? '_FG' : '_BG'}', 'count': 3, 'sum': '2.99'};
-  await Countly.recordEvent(event2);
-
-  await Countly.instance.views.startAutoStoppedView("V2${inForeground ? '_FG' : '_BG'}");
-
   var event3 = {'key': 'E3${inForeground ? '_FG' : '_BG'}'};
+
+  await Countly.instance.views.setGlobalViewSegmentation(viewSegmentation);
+  await Countly.recordEvent(event1);
+  await Countly.instance.views.startView("V1${inForeground ? '_FG' : '_BG'}");
+  await Countly.recordEvent(event2);
+  await Countly.instance.views.startAutoStoppedView("V2${inForeground ? '_FG' : '_BG'}");
   await Countly.recordEvent(event3);
-
-  await Countly.instance.views.startAutoStoppedView('V3${inForeground ? '_FG' : '_BG'}');
-
-  var event4 = {'key': 'E4${inForeground ? '_FG' : '_BG'}'};
-  await Countly.recordEvent(event4);
-
-  await Countly.instance.views.startView("V4${inForeground ? '_FG' : '_BG'}");
-
-  var event5 = {
-    'key': 'E5${inForeground ? '_FG' : '_BG'}',
-    'count': 5,
-    'sum': '5.99'
-  };
-  await Countly.recordEvent(event5);
 }
-
 
 /// Creates truncable events (which covers all possible truncable situations)
 /// - Events with segmentation
@@ -528,8 +458,15 @@ void checkEndSession(Map<String, List<String>> queryParams, {String deviceID = '
 }
 
 void printQueues(List<String> requestList, List<String> eventList) {
-  print('RQ: $requestList');
-  print('RQ length: ${requestList.length}');
+  for (var entry in requestList.asMap().entries) {
+    int index = entry.key;
+    var element = entry.value;
+
+    Map<String, List<String>> queryParams = Uri.parse('?' + element).queryParametersAll;
+    print('RQ.$index: $queryParams');
+    print('========================');
+  }
   print('EQ: $eventList');
+  print('RQ length: ${requestList.length}');
   print('EQ length: ${eventList.length}');
 }
