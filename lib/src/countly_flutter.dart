@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
 
-import 'package:countly_flutter/src/content_builder.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
@@ -237,8 +236,8 @@ class Countly {
         ContentStatus contentStatus = ContentStatus.completed;
         if (contentResult == 1) {
           contentStatus = ContentStatus.closed;
-        } 
-        Map<String, dynamic> contentData = Map<String, dynamic>.from(argumentsMap['contentData']);;
+        }
+        Map<String, dynamic> contentData = Map<String, dynamic>.from(argumentsMap['contentData']);
 
         Countly.instance._contentBuilderInternal.onContentCallback(contentStatus, contentData);
         break;
@@ -327,7 +326,7 @@ class Countly {
       Countly.instance._remoteConfigInternal.registerDownloadCallback(callback);
     }
 
-    if(config.content.contentCallback != null){
+    if (config.content.contentCallback != null) {
       log('[initWithConfig] About to register content callback', logLevel: LogLevel.VERBOSE);
       Countly.instance._contentBuilderInternal.registerContentCallback(config.content.contentCallback!);
     }
