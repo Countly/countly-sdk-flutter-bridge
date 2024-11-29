@@ -238,7 +238,6 @@ class Countly {
           contentStatus = ContentStatus.closed;
         }
         Map<String, dynamic> contentData = Map<String, dynamic>.from(argumentsMap['contentData']);
-        ;
 
         Countly.instance._contentBuilderInternal.onContentCallback(contentStatus, contentData);
         break;
