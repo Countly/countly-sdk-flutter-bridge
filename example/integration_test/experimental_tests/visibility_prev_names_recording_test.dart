@@ -162,13 +162,11 @@ void checkViewStart(view, name, isVisible) {
   expect(view['segmentation']['name'], name);
   expect(view['segmentation']['fg_events'], isVisible);
   expect(view['segmentation']['cly_v'], isVisible ? 1 : 0);
-  int visit;
   if (Platform.isAndroid) {
-    visit = int.parse(view['segmentation']['visit']);
+    expect(view['segmentation']['visit'], '1');
   } else {
-    visit = view['segmentation']['visit'];
+    expect(view['segmentation']['visit'], 1);
   }
-  expect(visit, 1);
   expect(view['segmentation']['cly_pvn'], cvn);
   cvn_end = cvn;
   cvn = name;
@@ -187,7 +185,7 @@ void checkRestartedView(view, name, isVisible, globalSegmentation) {
   expect(view['segmentation']['fg_events'], globalSegmentation);
   expect(view['segmentation']['cly_v'], isVisible ? 1 : 0);
   if (Platform.isAndroid) {
-    expect(int.parse(view['segmentation']['visit']), 1);
+    expect(view['segmentation']['visit'], '1');
   } else {
     expect(view['segmentation']['visit'], 1);
   }
