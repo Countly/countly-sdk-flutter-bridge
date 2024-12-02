@@ -48,12 +48,8 @@ void main() {
 
     // events and views in background and then after we come to foreground
     // depending on which view is started first after fg, we can have 9 or 10 events
-    if (Platform.isAndroid) {
-      // But for android, we have 11 events or 12 because end view calls are not recorded to the RQ
-      expect(eventList.length,  anyOf([11, 12]));
-    } else {
-      expect(eventList.length, anyOf([9, 10]));
-    }
+    // But for android, we have 11 events or 12 because end view calls are not recorded to the RQ
+    expect(eventList.length, Platform.isAndroid ? anyOf([11, 12]) : anyOf([9, 10]));
 
     for (var entry in requestList.asMap().entries) {
       int index = entry.key;
@@ -162,11 +158,7 @@ void checkViewStart(view, name, isVisible) {
   expect(view['segmentation']['name'], name);
   expect(view['segmentation']['fg_events'], isVisible);
   expect(view['segmentation']['cly_v'], isVisible ? 1 : 0);
-  if (Platform.isAndroid) {
-    expect(view['segmentation']['visit'], '1');
-  } else {
-    expect(view['segmentation']['visit'], 1);
-  }
+  expect(view['segmentation']['visit'], Platform.isAndroid ? '1' : 1);
   expect(view['segmentation']['cly_pvn'], cvn);
   cvn_end = cvn;
   cvn = name;
@@ -184,11 +176,7 @@ void checkRestartedView(view, name, isVisible, globalSegmentation) {
   expect(view['segmentation']['name'], name);
   expect(view['segmentation']['fg_events'], globalSegmentation);
   expect(view['segmentation']['cly_v'], isVisible ? 1 : 0);
-  if (Platform.isAndroid) {
-    expect(view['segmentation']['visit'], '1');
-  } else {
-    expect(view['segmentation']['visit'], 1);
-  }
+  expect(view['segmentation']['visit'], Platform.isAndroid ? '1' : 1);
   expect(view['segmentation']['cly_pvn'], cvn);
   cvn_end = cvn;
   cvn = name;
