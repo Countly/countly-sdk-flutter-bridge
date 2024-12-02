@@ -48,7 +48,8 @@ void main() {
 
     // events and views in background and then after we come to foreground
     // depending on which view is started first after fg, we can have 9 or 10 events
-    expect(eventList.length, anyOf([9, 10]));
+    // But for android, we have 11 events or 12 because end view calls are not recorded to the RQ
+    expect(eventList.length, Platform.isAndroid ? anyOf([11, 12]) : anyOf([9, 10]));
 
     for (var entry in requestList.asMap().entries) {
       int index = entry.key;
@@ -68,9 +69,9 @@ void main() {
       }
       if (index == 1) {
         var rqEvents = jsonDecode(queryParams['events']![0]);
-        expect(rqEvents.length, 7);
+        expect(rqEvents.length, Platform.isAndroid ? 6 : 7);
 
-        // events nad views at initial fg
+        // events and views at initial fg
         checkEventAndViews(rqEvents, true);
         // events and views after going to bg and coming back to fg
         checkEventAndViews(
@@ -87,41 +88,60 @@ void main() {
 
 void checkEventAndViews(eventArray, isFGEvents) {
   if (isFGEvents) {
-    checkEvent(eventArray[0], 'E1_FG', true);
-    checkViewStart(eventArray[1], 'V1_FG', true);
-    checkEvent(eventArray[2], 'E2_FG', true);
-    checkViewStart((eventArray[3]), 'V2_FG', true);
-    checkEvent((eventArray[4]), 'E3_FG', true);
+    int index = 0;
+    if (Platform.isAndroid) {
+      // in Android 0th element is orientation event
+      index = 1;
+      expect(eventArray[0]['key'], "[CLY]_orientation");
+    }
+    checkEvent(eventArray[index], 'E1_FG', true);
+    checkViewStart(eventArray[index + 1], 'V1_FG', true);
+    checkEvent(eventArray[index + 2], 'E2_FG', true);
+    checkViewStart((eventArray[index + 3]), 'V2_FG', true);
+    checkEvent((eventArray[index + 4]), 'E3_FG', true);
     // closed in random order
-    try {
-      checkViewEnd((eventArray[5]), 'V2_FG', true);
-      checkViewEnd((eventArray[6]), 'V1_FG', true);
-    } catch (e) {
-      checkViewEnd((eventArray[5]), 'V1_FG', true);
-      checkViewEnd((eventArray[6]), 'V2_FG', true);
+    if (!Platform.isAndroid) {
+      try {
+        checkViewEnd((eventArray[5]), 'V2_FG', true);
+        checkViewEnd((eventArray[6]), 'V1_FG', true);
+      } catch (e) {
+        checkViewEnd((eventArray[5]), 'V1_FG', true);
+        checkViewEnd((eventArray[6]), 'V2_FG', true);
+      }
     }
   } else {
-    checkEvent(jsonDecode(eventArray[0]), 'E1_BG', false);
-    checkViewStart(jsonDecode(eventArray[1]), 'V1_BG', false);
-    checkEvent(jsonDecode(eventArray[2]), 'E2_BG', false);
-    checkViewStart(jsonDecode(eventArray[3]), 'V2_BG', false);
-    checkEvent(jsonDecode(eventArray[4]), 'E3_BG', false);
-    expect(jsonDecode(eventArray[5])['key'], '[CLY]_orientation');
-    checkViewEnd(jsonDecode(eventArray[6]), 'V2_BG', false);
+    int index = 0;
+    if (Platform.isAndroid) {
+      try {
+        checkViewEnd(jsonDecode(eventArray[index]), 'V2_FG', true);
+        checkViewEnd(jsonDecode(eventArray[index + 1]), 'V1_FG', true);
+      } catch (e) {
+        checkViewEnd(jsonDecode(eventArray[index]), 'V1_FG', true);
+        checkViewEnd(jsonDecode(eventArray[index + 1]), 'V2_FG', true);
+      }
+      index = 2;
+    }
+    checkEvent(jsonDecode(eventArray[index]), 'E1_BG', false);
+    checkViewStart(jsonDecode(eventArray[index + 1]), 'V1_BG', false);
+    checkEvent(jsonDecode(eventArray[index + 2]), 'E2_BG', false);
+    checkViewStart(jsonDecode(eventArray[index + 3]), 'V2_BG', false);
+    checkEvent(jsonDecode(eventArray[index + 4]), 'E3_BG', false);
+    expect(jsonDecode(eventArray[index + 5])['key'], '[CLY]_orientation');
+    checkViewEnd(jsonDecode(eventArray[index + 6]), 'V2_BG', false);
     // this part is random as autoStopped or normal view can start first
     try {
-      checkRestartedView(jsonDecode(eventArray[7]), 'V2_FG', true, false);
+      checkRestartedView(jsonDecode(eventArray[index + 7]), 'V2_FG', true, false);
 
-      expect(jsonDecode(eventArray[8])['segmentation']['name'], 'V2_FG');
-      expect(jsonDecode(eventArray[8])['segmentation']['fg_events'], false);
-      expect(jsonDecode(eventArray[8])['segmentation']['cly_v'], isNull);
-      expect(jsonDecode(eventArray[8])['segmentation']['visit'], isNull);
-      expect(jsonDecode(eventArray[8])['segmentation']['cly_pvn'], cvn_end);
+      expect(jsonDecode(eventArray[index + 8])['segmentation']['name'], 'V2_FG');
+      expect(jsonDecode(eventArray[index + 8])['segmentation']['fg_events'], false);
+      expect(jsonDecode(eventArray[index + 8])['segmentation']['cly_v'], isNull);
+      expect(jsonDecode(eventArray[index + 8])['segmentation']['visit'], isNull);
+      expect(jsonDecode(eventArray[index + 8])['segmentation']['cly_pvn'], cvn_end);
 
-      checkRestartedView(jsonDecode(eventArray[9]), 'V1_FG', true, false);
+      checkRestartedView(jsonDecode(eventArray[index + 9]), 'V1_FG', true, false);
     } catch (e) {
-      checkRestartedView(jsonDecode(eventArray[7]), 'V1_FG', true, false);
-      checkRestartedView(jsonDecode(eventArray[8]), 'V2_FG', true, false);
+      checkRestartedView(jsonDecode(eventArray[index + 7]), 'V1_FG', true, false);
+      checkRestartedView(jsonDecode(eventArray[index + 8]), 'V2_FG', true, false);
     }
   }
 }
@@ -138,7 +158,7 @@ void checkViewStart(view, name, isVisible) {
   expect(view['segmentation']['name'], name);
   expect(view['segmentation']['fg_events'], isVisible);
   expect(view['segmentation']['cly_v'], isVisible ? 1 : 0);
-  expect(view['segmentation']['visit'], 1);
+  expect(view['segmentation']['visit'], Platform.isAndroid ? '1' : 1);
   expect(view['segmentation']['cly_pvn'], cvn);
   cvn_end = cvn;
   cvn = name;
@@ -156,7 +176,7 @@ void checkRestartedView(view, name, isVisible, globalSegmentation) {
   expect(view['segmentation']['name'], name);
   expect(view['segmentation']['fg_events'], globalSegmentation);
   expect(view['segmentation']['cly_v'], isVisible ? 1 : 0);
-  expect(view['segmentation']['visit'], 1);
+  expect(view['segmentation']['visit'], Platform.isAndroid ? '1' : 1);
   expect(view['segmentation']['cly_pvn'], cvn);
   cvn_end = cvn;
   cvn = name;
