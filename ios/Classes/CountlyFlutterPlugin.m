@@ -1058,7 +1058,7 @@ FlutterMethodChannel *_channel;
         });
     } else if ([@"getAvailableFeedbackWidgets" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          [Countly.sharedInstance getFeedbackWidgets:^(NSArray<CountlyFeedbackWidget *> *_Nonnull feedbackWidgets, NSError *_Nonnull error) {
+          [Countly.sharedInstance.feedback getAvailableFeedbackWidgets:^(NSArray<CountlyFeedbackWidget *> *feedbackWidgets, NSError *error) {
             feedbackWidgetList = [NSArray arrayWithArray:feedbackWidgets];
             NSMutableArray *feedbackWidgetsArray = [NSMutableArray arrayWithCapacity:feedbackWidgets.count];
             for (CountlyFeedbackWidget *retrievedWidget in feedbackWidgets) {
