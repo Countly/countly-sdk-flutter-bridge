@@ -79,7 +79,7 @@ void main() {
       }
     }
 
-    validateView("V4", Platform.isAndroid ? true : false, true, viewStr: eventList[index++]); //TODO: check this
+    validateView("V4", false, true, viewStr: eventList[index++]);
     validateView("V4", false, false, viewStr: eventList[index++]);
     validateView("V3", false, true, viewStr: eventList[index++]);
     if(Platform.isAndroid){
@@ -89,12 +89,12 @@ void main() {
     int iCached = index;
     if (Platform.isAndroid) {
       try {
-        validateView("V2", false, true, viewStr: eventList[index++]);
+        validateView("V2", true, true, viewStr: eventList[index++]);
         validateView("V2", false, false, viewStr: eventList[index++]);
         validateView("V1", false, true, viewStr: eventList[index++]);
       } catch (e) {
         index = iCached;
-        validateView("V1", false, true, viewStr: eventList[index++]);
+        validateView("V1", true, true, viewStr: eventList[index++]);
         validateView("V2", false, true, viewStr: eventList[index++]);
       }
     }
