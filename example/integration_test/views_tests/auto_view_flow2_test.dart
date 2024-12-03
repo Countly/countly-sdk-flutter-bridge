@@ -44,9 +44,7 @@ void main() {
 
     int index = 0;
     validateView("V1", false, true, viewGiven: rqEvents[index++]); // begin session not called
-    if(Platform.isAndroid){
-      validateEvent("[CLY]_orientation", <String, dynamic>{'mode': 'portrait'}, eventGiven: rqEvents[index++]);
-    }
+    validateEvent("[CLY]_orientation", <String, dynamic>{'mode': 'portrait'}, eventGiven: rqEvents[index++]);
     validateView("V1", false, false, viewGiven: rqEvents[index++]); // it is because auto view
     validateView("V2", true, true, viewGiven: rqEvents[index++]); // after begin session called
     index = 0;

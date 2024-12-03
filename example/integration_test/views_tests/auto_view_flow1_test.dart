@@ -58,8 +58,8 @@ void main() {
     validateView("V1", true, true, viewGiven: rqEvents[index++]);
     validateView("V2", false, true, viewGiven: rqEvents[index++]);
     if(Platform.isIOS){
-      validateView("V2", false, false, viewGiven: rqEvents[index++]);
       validateView("V1", false, false, viewGiven: rqEvents[index++]);
+      validateView("V2", false, false, viewGiven: rqEvents[index++]);
     }
 
     validateEndSessionRequest(requestList[2]); // validate end session on 2nd idx
