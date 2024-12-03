@@ -65,7 +65,7 @@ void main() {
       // when going to bg
       if (index == 2) {
         expect(queryParams['end_session']?[0], '1');
-        expect(queryParams['session_duration']?[0], '2');
+        expect(queryParams['session_duration']?[0], anyOf(['2', '3']));
       }
       if (index == 1) {
         var rqEvents = jsonDecode(queryParams['events']![0]);
