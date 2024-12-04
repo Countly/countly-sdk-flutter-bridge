@@ -6,6 +6,7 @@ class ContentBuilderInternal implements ContentBuilder {
   ContentBuilderInternal(this._countlyState);
 
   final CountlyState _countlyState;
+  ContentCallback? _contentCallback;
 
   @override
   Future<void> enterContentZone() async {
@@ -25,5 +26,15 @@ class ContentBuilderInternal implements ContentBuilder {
     }
     Countly.log('Calling "exitContentZone"');
     await _countlyState.channel.invokeMethod('exitContentZone');
+  }
+
+  void registerContentCallback(ContentCallback callback) {
+    _contentCallback = callback;
+  }
+
+  void onContentCallback(ContentStatus contentStatus, Map<String, dynamic> contentData) {
+    if (_contentCallback != null) {
+      _contentCallback!(contentStatus, contentData);
+    }
   }
 }

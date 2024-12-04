@@ -16,6 +16,9 @@ void main() {
     await Countly.instance.views.startAutoStoppedView('test');
     await Countly.instance.views.startAutoStoppedView('test2');
 
+    // Wait for the events to be stored
+    await Future.delayed(Duration(seconds: 5));
+
     // Get request and event queues from native side
     List<String> requestList = await getRequestQueue(); // List of strings
     List<String> eventList = await getEventQueue(); // List of json objects

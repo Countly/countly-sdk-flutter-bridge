@@ -1,3 +1,30 @@
+## 24.11.2
+* Improved view tracking capabilities in iOS.
+
+* Mitigated issues where:
+  * On Android 35 and above, the navigation bar was overlapping with the content display in Android.
+  * An automatically closed autoStopped view's duration could have increased when opening new views in Android.
+  * A concurrent modification error could have happen when starting multiple stopped views in iOS.
+
+* Updated underlying Android SDK version to 24.7.7
+* Updated underlying iOS SDK version to 24.7.9
+
+## 24.11.1
+* Added content configuration interface that has `setGlobalContentCallback` to get notified about content changes.
+* Added support for localization of content blocks.
+* Added the interface `feedback` and convenience methods that presents the first available widget to user:
+  * presentNPS([String? nameTagOrID, FeedbackCallback? callback])
+  * presentSurvey([String? nameTagOrID, FeedbackCallback? callback])
+  * presentRating([String? nameTagOrID, FeedbackCallback? callback])
+
+* Mitigated an issue where visibility could have been wrongly assigned if a view was closed while going to background. (Experimental!)
+* Mitigated issues where:
+  * Passing the global content callback was not possible in Android.
+  * The user provided URLSessionConfiguration was not applied to direct requests in iOS.
+
+* Updated underlying Android SDK version to 24.7.6
+* Updated underlying iOS SDK version to 24.7.8
+
 ## 24.11.0
 * Added further intent redirection vulnerability checks in Android
 * Added support for Android 15 (API level 35)

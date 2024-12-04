@@ -7,6 +7,7 @@ CNR:Consent not Required
 CG:Session Consent given
 CNG:Session Consent not given
 
+- we need to add duration checks to these tests
 ## Anomalies
 
 Android:

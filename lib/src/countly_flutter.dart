@@ -6,11 +6,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
 
+import 'content_builder.dart';
 import 'content_builder_internal.dart';
 import 'countly_config.dart';
 import 'countly_state.dart';
 import 'device_id.dart';
 import 'device_id_internal.dart';
+import 'feedback.dart';
+import 'feedback_internal.dart';
 import 'remote_config.dart';
 import 'remote_config_internal.dart';
 import 'sessions.dart';
@@ -63,6 +66,7 @@ class Countly {
     _viewsInternal = ViewsInternal(_countlyState);
     _sessionsInternal = SessionsInternal(_countlyState);
     _contentBuilderInternal = ContentBuilderInternal(_countlyState);
+    _feedbackInternal = FeedbackInternal(_countlyState);
   }
   static final instance = _instance;
   static final _instance = Countly._();
@@ -86,6 +90,9 @@ class Countly {
 
   late final ContentBuilderInternal _contentBuilderInternal;
   ContentBuilderInternal get content => _contentBuilderInternal;
+
+  late final FeedbackInternal _feedbackInternal;
+  Feedback get feedback => _feedbackInternal;
 
   /// ignore: constant_identifier_names
   static const bool BUILDING_WITH_PUSH_DISABLED = false;
@@ -211,6 +218,29 @@ class Countly {
           log('[FMethodCallH] $e', logLevel: LogLevel.ERROR);
         }
         break;
+      case 'feedbackCallback_onClosed':
+        if (_instance._feedbackInternal.feedbackCallback != null) {
+          _instance._feedbackInternal.feedbackCallback!.onClosed();
+          _instance._feedbackInternal.feedbackCallback = null;
+        }
+        break;
+      case 'feedbackCallback_onFinished':
+        if (_instance._feedbackInternal.feedbackCallback != null) {
+          _instance._feedbackInternal.feedbackCallback!.onFinished(call.arguments);
+          _instance._feedbackInternal.feedbackCallback = null;
+        }
+        break;
+      case 'contentCallback':
+        Map<String, dynamic> argumentsMap = Map<String, dynamic>.from(call.arguments);
+        final int contentResult = argumentsMap['contentResult'];
+        ContentStatus contentStatus = ContentStatus.completed;
+        if (contentResult == 1) {
+          contentStatus = ContentStatus.closed;
+        }
+        Map<String, dynamic> contentData = Map<String, dynamic>.from(argumentsMap['contentData']);
+
+        Countly.instance._contentBuilderInternal.onContentCallback(contentStatus, contentData);
+        break;
     }
   }
 
@@ -294,6 +324,11 @@ class Countly {
     }
     for (final callback in config.remoteConfigGlobalCallbacks) {
       Countly.instance._remoteConfigInternal.registerDownloadCallback(callback);
+    }
+
+    if (config.content.contentCallback != null) {
+      log('[initWithConfig] About to register content callback', logLevel: LogLevel.VERBOSE);
+      Countly.instance._contentBuilderInternal.registerContentCallback(config.content.contentCallback!);
     }
 
     return result;
