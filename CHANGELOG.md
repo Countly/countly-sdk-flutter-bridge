@@ -1,3 +1,14 @@
+## 24.11.2-np
+* Improved view tracking capabilities in iOS.
+
+* Mitigated issues where:
+  * On Android 35 and above, the navigation bar was overlapping with the content display in Android.
+  * An automatically closed autoStopped view's duration could have increased when opening new views in Android.
+  * A concurrent modification error could have happen when starting multiple stopped views in iOS.
+
+* Updated underlying Android SDK version to 24.7.7
+* Updated underlying iOS SDK version to 24.7.9
+
 ## 24.11.1-np
 * Added content configuration interface that has `setGlobalContentCallback` to get notified about content changes.
 * Added support for localization of content blocks.
@@ -10,7 +21,6 @@
 * Mitigated issues where:
   * Passing the global content callback was not possible in Android.
   * The user provided URLSessionConfiguration was not applied to direct requests in iOS.
-  * A concurrent modification error could have happen when starting multiple stopped views in iOS.
 
 * Updated underlying Android SDK version to 24.7.6
 * Updated underlying iOS SDK version to 24.7.8
