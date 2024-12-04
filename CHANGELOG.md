@@ -21,7 +21,6 @@
 * Mitigated issues where:
   * Passing the global content callback was not possible in Android.
   * The user provided URLSessionConfiguration was not applied to direct requests in iOS.
-  * A concurrent modification error could have happen when starting multiple stopped views in iOS.
 
 * Updated underlying Android SDK version to 24.7.6
 * Updated underlying iOS SDK version to 24.7.8
