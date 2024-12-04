@@ -44,7 +44,7 @@ dependencies:
 ## Usage
 
 ```dart
-import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter_np/countly_flutter.dart';
 
 void main() {
   runApp(MaterialApp(home: const MyApp()));

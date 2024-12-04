@@ -1,3 +1,14 @@
+## 24.7.9
+* Improved view tracking capabilities
+
+## 24.7.8
+* Added support for localization of content blocks.
+
+* Mitigated an issue where visibility could have been wrongly assigned if a view was closed while going to background. (Experimental!)
+* Mitigated an issue where the user provided URLSessionConfiguration was not applied to direct requests
+* Mitigated an issue where a concurrent modification error could have happen when starting multiple stopped views
+* Mitigated an issue that parsing internal content event segmentation.
+
 ## 24.7.7
 * Changed the visibility tracking segmentation values to binary
 

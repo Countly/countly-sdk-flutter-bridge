@@ -29,6 +29,7 @@ class _FeedbackWidgetsPageState extends State<FeedbackWidgetsPage> {
     super.dispose();
   }
 
+  // for Countly Lite users only
   void askForStarRating() {
     Countly.askForStarRating();
   }
@@ -267,8 +268,38 @@ class _FeedbackWidgetsPageState extends State<FeedbackWidgetsPage> {
     });
   }
 
+  void demoNPS(nameTagOrID, callback) {
+    if (ratingIdController.text.isNotEmpty) {
+      nameTagOrID = ratingIdController.text;
+    }
+    Countly.instance.feedback.presentNPS(nameTagOrID, callback);
+  }
+
+  void demoSurvey(nameTagOrID, callback) {
+    if (ratingIdController.text.isNotEmpty) {
+      nameTagOrID = ratingIdController.text;
+    }
+    Countly.instance.feedback.presentSurvey(nameTagOrID, callback);
+  }
+
+  void demoRating(nameTagOrID, callback) {
+    if (ratingIdController.text.isNotEmpty) {
+      nameTagOrID = ratingIdController.text;
+    }
+    Countly.instance.feedback.presentRating(nameTagOrID, callback);
+  }
+
   @override
   Widget build(BuildContext context) {
+    FeedbackCallback widgetCB = FeedbackCallback(onClosed: () {
+      showCountlyToast(context, 'Widget Closed', Colors.green);
+    }, onFinished: (error) {
+      if (error != null) {
+        showCountlyToast(context, 'Error: $error', Colors.red);
+      } else {
+        showCountlyToast(context, 'Widget Finished', Colors.green);
+      }
+    });
     return Scaffold(
       appBar: AppBar(
         title: Text('FeedbackWidgets'),
@@ -278,13 +309,19 @@ class _FeedbackWidgetsPageState extends State<FeedbackWidgetsPage> {
         child: Center(
             child: Column(
           children: [
+            MyButton(text: 'Present NPS', color: 'green', onPressed: () => demoNPS(null, null)),
+            MyButton(text: 'Present Survey', color: 'green', onPressed: () => demoSurvey(null, null)),
+            MyButton(text: 'Present Rating', color: 'green', onPressed: () => demoRating(null, null)),
+            MyButton(text: 'Present NPS wCallback', color: 'green', onPressed: () => demoNPS(null, widgetCB)),
+            MyButton(text: 'Present Survey wCallback', color: 'green', onPressed: () => demoSurvey(null, widgetCB)),
+            MyButton(text: 'Present Rating wCallback', color: 'green', onPressed: () => demoRating(null, widgetCB)),
             MyButton(text: 'Open rating modal', color: 'orange', onPressed: askForStarRating),
             MyButton(text: 'Open feedback modal', color: 'orange', onPressed: presentRatingWidget),
             TextField(
               controller: ratingIdController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                hintText: 'Enter a Rating ID',
+                hintText: 'Rating ID, Tag or Name',
               ),
             ),
             MyButton(text: 'Show Rating using EditBox', color: 'orange', onPressed: ratingIdController.text.isNotEmpty ? presentRatingWidgetUsingEditBox : null),

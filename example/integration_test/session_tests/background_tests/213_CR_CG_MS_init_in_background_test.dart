@@ -26,10 +26,10 @@ void main() {
 
     expect(requestList.length, 1); // consents
     expect(eventList.length, 0);
-    printMessageMultipleTimes('will now go to background, get ready to go foreground manually', 3);
-    await tester.pump(Duration(seconds: 3));
+
     FlutterForegroundTask.launchApp();
-    await tester.pump(Duration(seconds: 1));
+    printMessageMultipleTimes('go to foreground now', 3);
+    await tester.pump(Duration(seconds: 4));
 
     // Some logs for debugging
     printQueues(requestList, eventList);
