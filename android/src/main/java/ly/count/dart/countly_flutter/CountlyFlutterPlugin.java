@@ -58,9 +58,6 @@ import ly.count.android.sdk.StarRatingCallback;
 import ly.count.android.sdk.messaging.CountlyPush;
 
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.firebase.FirebaseApp;
 
 /**
  * CountlyFlutterPlugin
@@ -440,7 +437,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     }
                 }
                 CountlyPush.init(activity.getApplication(), pushTokenType);
-                FirebaseApp.initializeApp(context);
                 FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
                     @Override
                     public void onComplete(@NonNull Task<String> task) {

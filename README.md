@@ -1,6 +1,6 @@
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/7ab95afb3da8421ab499cc921e1381ac)](https://app.codacy.com/gh/Countly/countly-sdk-flutter-bridge/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/7ab95afb3da8421ab499cc921e1381ac)](https://www.codacy.com/gh/Countly/countly-sdk-flutter-bridge/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Countly/countly-sdk-flutter-bridge&amp;utm_campaign=Badge_Grade)
 
-# Countly Flutter SDK
+# Countly Flutter SDK - No Push
 
 This repository contains the Countly Flutter SDK, which can be integrated into mobile Flutter applications. The Countly Flutter SDK is intended to be used with [Countly Lite](https://countly.com/lite), [Countly Flex](https://countly.com/flex), [Countly Enterprise](https://countly.com/enterprise).
 
@@ -26,7 +26,6 @@ For an example integration of this SDK, you can have a look [here](https://githu
 
 This SDK supports the following features:
 * [Analytics](https://support.count.ly/hc/en-us/articles/4431589003545-Analytics)
-* [Push Notifications](https://support.count.ly/hc/en-us/articles/4405405459225-Push-Notifications)
 * [User Profiles](https://support.count.ly/hc/en-us/articles/4403281285913-User-Profiles)
 * [Crash Reports](https://support.count.ly/hc/en-us/articles/4404213566105-Crashes-Errors)
 * [A/B Testing](https://support.count.ly/hc/en-us/articles/4416496362393-A-B-Testing-)
@@ -152,18 +151,18 @@ await Countly.instance.views.stopAllViews(segmentation);
 
 // Change device ID with merge.
 // Here, the data associated with the previous device ID is merged with the new ID.
-await Countly.instance.deviceId.changeWithMerge('123456');
+await Countly.changeDeviceId('123456', true);
 
 // Change device ID without merge.
 // Here, the new device ID is counted as a new device.
-await Countly.instance.deviceId.changeWithoutMerge('123456');
+await Countly.changeDeviceId('123456', false);
 ```
 
 ## Get Device ID Type
 
 ```dart
 // To fetch the device ID type
-final DeviceIdType? deviceIdtype = await Countly.instance.deviceId.getIDType();
+final DeviceIdType? deviceIdtype = await Countly.getDeviceIDType();
 // DeviceIdType: DEVELOPER_SUPPLIED, SDK_GENERATED, TEMPORARY_ID
 ```
 
@@ -222,7 +221,7 @@ Countly.instance.userProfile.clear();
 // Flutter SDK allows developers to enable/disable any feature at any time depending
 // on user consent.
 
-// Consent values: sessions, events, views, location, crashes, attribution, users, push, starRating, apm, feedback, remoteConfig
+// Consent values: sessions, events, views, location, crashes, attribution, users, starRating, apm, feedback, remoteConfig
 
 // Consent can be enabled during initialization
 final CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
@@ -248,7 +247,7 @@ Countly.removeAllConsent();
 From 2014 to 2020 it was maintained by Trinisoft Technologies developers (trinisofttechnologies@gmail.com).
 
 ## Security
-Security is very important to us. If you discover any issue regarding security, please disclose the information responsibly by sending an email to security@count.ly and **not by creating a GitHub issue**.
+Security is very important to us. If you discover any issue regarding security, please disclose the information responsibly by sending an email to security@countly.com and **not by creating a GitHub issue**.
 
 ## Badges
 If you like Countly, [why not use one of our badges](https://countly.com/brand-assets) and give a link back to us so others know about this wonderful platform?

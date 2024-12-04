@@ -1,5 +1,5 @@
-import 'package:countly_flutter/countly_flutter.dart';
-import 'package:countly_flutter/experiment_information.dart';
+import 'package:countly_flutter_np/countly_flutter.dart';
+import 'package:countly_flutter_np/experiment_information.dart';
 import 'package:countly_flutter_example/helpers.dart';
 import 'package:countly_flutter_example/page_remote_config_legacy.dart';
 import 'package:flutter/material.dart';
