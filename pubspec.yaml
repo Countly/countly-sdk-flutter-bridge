@@ -17,6 +17,8 @@ dependencies:
     flutter:
         sdk: flutter
     flutter_plugin_android_lifecycle: ^2.0.2
+    flutter_web_plugins:
+        sdk: flutter
     pedantic: ^1.11.0
 
 dev_dependencies:
@@ -30,3 +32,6 @@ flutter:
                 pluginClass: CountlyFlutterPlugin
             ios:
                 pluginClass: CountlyFlutterPlugin
+            web:
+                pluginClass: CountlyFlutterPluginWeb
+                fileName: countly_flutter_plugin_web.dart
