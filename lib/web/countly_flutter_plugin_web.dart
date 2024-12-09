@@ -1,50 +1,11 @@
-import 'dart:html';
-import 'dart:js_interop';
-import 'dart:js' as js;
 import 'dart:convert';
-import 'dart:js';
-import 'dart:html' as html;
+import 'dart:html';
+import 'dart:js' as js;
 import 'dart:js_interop';
-import 'dart:js_interop_unsafe';
-import 'dart:math';
-import 'package:flutter/material.dart';
+
+import 'package:countly_flutter/web/countly_flutter_web_interop.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
-import 'dart:js_util' as js_util;
-
-@JS('Countly') // Bind to the global 'Countly' object
-@staticInterop
-class Countly {
-  external static JSArray get features;
-
-  external static void init(JSAny config);
-  external static void add_event(JSAny event);
-
-  // Session Management
-  external static void begin_session();
-  external static void track_sessions(); // Auto session tracking
-
-  // Device ID Management
-  external static String get_device_id();
-  external static void set_id(String id);
-  external static int get_device_id_type();
-  external static void change_id(String newId, bool merge);
-  external static void enable_offline_mode();
-
-  // Consents
-  external static void add_consent(JSAny consents);
-  external static void remove_consent(JSAny consents);
-
-  // View Management
-  external static void track_view(String viewName, JSArray? ignoreList, JSAny? segments);
-}
-
-@JS('Countly.content') // Bind to 'Countly.content'
-@staticInterop
-class CountlyContent {
-  external static void enterContentZone();
-  external static void exitContentZone();
-}
 
 class CountlyFlutterPluginWeb {
   static const String TAG = "CountlyFlutterPlugin";
@@ -74,20 +35,18 @@ class CountlyFlutterPluginWeb {
     } else if (call.method == 'isInitialized') {
       //TODO: implement isInitialized
       return Future(() => "false");
-    } 
-    
-    
+    }
+
     // EVENTS
     else if (call.method == 'recordEvent') {
       recordEvent(data);
-    } 
-    
-    
+    }
+
     // SESSIONS
     else if (call.method == 'beginSession') {
       Countly.begin_session();
-    } 
-    
+    }
+
     // DEVICE ID MANAGEMENT
     else if (call.method == 'getID') {
       return Future(() => Countly.get_device_id());
@@ -95,11 +54,11 @@ class CountlyFlutterPluginWeb {
       Countly.set_id(data[0]);
     } else if (call.method == 'getIDType') {
       return Future(() => getDeviceIDType(Countly.get_device_id_type()));
-    } else if(call.method == 'changeWithMerge'){
+    } else if (call.method == 'changeWithMerge') {
       Countly.change_id(data[0], true);
-    } else if(call.method == 'changeWithoutMerge'){
+    } else if (call.method == 'changeWithoutMerge') {
       Countly.change_id(data[0], false);
-    } else if(call.method == 'enableTemporaryIDMode'){
+    } else if (call.method == 'enableTemporaryIDMode') {
       Countly.enable_offline_mode();
       // there is also disable offine mode call, but it is not needed for now
     }
@@ -109,23 +68,21 @@ class CountlyFlutterPluginWeb {
       Countly.add_consent(data[0].jsify()!);
     } else if (call.method == 'removeConsent') {
       Countly.remove_consent(data[0].jsify()!);
-    } else if(call.method == 'giveAllConsent'){
+    } else if (call.method == 'giveAllConsent') {
       Countly.add_consent(Countly.features.jsify()!);
-    } else if(call.method == 'removeAllConsent'){
+    } else if (call.method == 'removeAllConsent') {
       Countly.remove_consent(Countly.features.jsify()!);
     }
-
 
     // VIEWS
     else if (call.method == 'startView' || call.method == 'startAutoStoppedView' || call.method == 'recordView') {
       recordView(data);
-    } 
-    
-    
+    }
+
     // CONTENT ZONE
-    else if(call.method == 'enterContentZone'){
+    else if (call.method == 'enterContentZone') {
       CountlyContent.enterContentZone();
-    } else if(call.method == 'exitContentZone'){
+    } else if (call.method == 'exitContentZone') {
       CountlyContent.exitContentZone();
     } else {
       //throw PlatformException(code: 'Unimplemented', details: "The countly_flutter plugin for web doesn't implement the method '${call.method}'");
@@ -171,10 +128,9 @@ class CountlyFlutterPluginWeb {
     var segments = {};
 
     int il = view.length;
-    if(il == 2){
+    if (il == 2) {
       segments = view[1];
-    }
-    else if(il > 2) {
+    } else if (il > 2) {
       for (int i = 1; i < il; i += 2) {
         try {
           segments[view[i]] = view[i + 1];
@@ -187,8 +143,8 @@ class CountlyFlutterPluginWeb {
     Countly.track_view(viewName, null, segments.jsify()!);
   }
 
-  String getDeviceIDType(int type){
-    switch(type){
+  String getDeviceIDType(int type) {
+    switch (type) {
       case 0: // DEVELOPER_SUPPLIED
         return 'DS';
       case 2: // TEMPORARY_ID
@@ -231,19 +187,19 @@ class CountlyFlutterPluginWeb {
 
     configMap.removeWhere((key, value) => value == null);
 
-    if(config['disableLocation'] != null && config['disableLocation'] == true){
+    if (config['disableLocation'] != null && config['disableLocation'] == true) {
       configMap['ip_address'] = null;
       configMap['country_code'] = null;
       configMap['city'] = null;
     }
 
     Countly.init(configMap.jsify()!);
-    if(config['manualSessionEnabled'] == null || config['manualSessionEnabled'] == false){
+    if (config['manualSessionEnabled'] == null || config['manualSessionEnabled'] == false) {
       print(configMap);
       Countly.track_sessions();
     }
 
-    if(config['consents'] != null){
+    if (config['consents'] != null) {
       Countly.add_consent(config['consents'].jsify()!);
     }
   }

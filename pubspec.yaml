@@ -34,4 +34,4 @@ flutter:
                 pluginClass: CountlyFlutterPlugin
             web:
                 pluginClass: CountlyFlutterPluginWeb
-                fileName: countly_flutter_plugin_web.dart
+                fileName: web/countly_flutter_plugin_web.dart
