@@ -40,6 +40,10 @@ class CountlyFlutterPluginWeb {
     // EVENTS
     else if (call.method == 'recordEvent') {
       recordEvent(data);
+    } else if (call.method == 'startEvent') {
+      Countly.start_event(data[0]);
+    } else if (call.method == 'endEvent') {
+      endEvent(data);
     }
 
     // SESSIONS
@@ -47,7 +51,7 @@ class CountlyFlutterPluginWeb {
       Countly.begin_session();
     } else if (call.method == 'updateSession') {
       //TODO: implement updateSession
-    } else if(call.method == 'endSession'){
+    } else if (call.method == 'endSession') {
       Countly.end_session();
     }
 
@@ -123,6 +127,12 @@ class CountlyFlutterPluginWeb {
     // first 4 parameters are sent always
     // ket, count, sum, dur, segmentation might be sent
     Countly.add_event({'key': event[0], 'count': event[1], 'sum': event[2], 'dur': event[3], 'segmentation': event.length > 4 ? event[4] : null}.jsify()!);
+  }
+
+  void endEvent(List<dynamic> event) {
+    assert(event.length >= 3);
+    // first parameter is key
+    Countly.end_event({'key': event[0], 'count': event[1], 'sum': event[2], 'segmentation': event.length > 3 ? event[3] : null}.jsify()!);
   }
 
   void recordView(List<dynamic> view) {

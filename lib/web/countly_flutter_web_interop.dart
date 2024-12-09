@@ -6,7 +6,11 @@ class Countly {
   external static JSArray get features;
 
   external static void init(JSAny config);
+
+  // Events
   external static void add_event(JSAny event);
+  external static void start_event(String key);
+  external static void end_event(JSAny event);
 
   // Session Management
   external static void begin_session();
