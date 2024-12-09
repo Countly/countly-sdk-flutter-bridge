@@ -11,6 +11,7 @@ class Countly {
   // Session Management
   external static void begin_session();
   external static void track_sessions(); // Auto session tracking
+  external static void end_session();
 
   // Device ID Management
   external static String get_device_id();

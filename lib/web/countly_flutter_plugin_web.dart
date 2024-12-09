@@ -45,6 +45,10 @@ class CountlyFlutterPluginWeb {
     // SESSIONS
     else if (call.method == 'beginSession') {
       Countly.begin_session();
+    } else if (call.method == 'updateSession') {
+      //TODO: implement updateSession
+    } else if(call.method == 'endSession'){
+      Countly.end_session();
     }
 
     // DEVICE ID MANAGEMENT
