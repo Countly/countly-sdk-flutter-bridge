@@ -6,6 +6,7 @@ import 'dart:js';
 import 'dart:html' as html;
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
@@ -14,6 +15,8 @@ import 'dart:js_util' as js_util;
 @JS('Countly') // Bind to the global 'Countly' object
 @staticInterop
 class Countly {
+  external static JSArray get features;
+
   external static void init(JSAny config);
   external static void add_event(JSAny event);
 
@@ -30,6 +33,7 @@ class Countly {
 
   // Consents
   external static void add_consent(JSAny consents);
+  external static void remove_consent(JSAny consents);
 
   // View Management
   external static void track_view(String viewName, JSArray? ignoreList, JSAny? segments);
@@ -98,6 +102,17 @@ class CountlyFlutterPluginWeb {
     } else if(call.method == 'enableTemporaryIDMode'){
       Countly.enable_offline_mode();
       // there is also disable offine mode call, but it is not needed for now
+    }
+
+    // CONSENT
+    else if (call.method == 'giveConsent') {
+      Countly.add_consent(data[0].jsify()!);
+    } else if (call.method == 'removeConsent') {
+      Countly.remove_consent(data[0].jsify()!);
+    } else if(call.method == 'giveAllConsent'){
+      Countly.add_consent(Countly.features.jsify()!);
+    } else if(call.method == 'removeAllConsent'){
+      Countly.remove_consent(Countly.features.jsify()!);
     }
 
 
