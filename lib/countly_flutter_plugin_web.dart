@@ -24,6 +24,9 @@ class Countly {
   // Device ID Management
   external static String get_device_id();
   external static void set_id(String id);
+  external static int get_device_id_type();
+  external static void change_id(String newId, bool merge);
+  external static void enable_offline_mode();
 
   // View Management
   external static void track_view(String viewName, JSArray? ignoreList, JSAny? segments);
@@ -57,22 +60,52 @@ class CountlyFlutterPluginWeb {
     if (call.arguments != null && call.arguments['data'] != null) {
       data = jsonDecode(call.arguments['data']);
     }
+
+    // INIT RELATED
     if (call.method == 'init') {
       initialize(data[0]);
     } else if (call.method == 'isInitialized') {
       //TODO: implement isInitialized
       return Future(() => "false");
-    } else if (call.method == 'recordEvent') {
+    } 
+    
+    
+    // EVENTS
+    else if (call.method == 'recordEvent') {
       recordEvent(data);
-    } else if (call.method == 'beginSession') {
+    } 
+    
+    
+    // SESSIONS
+    else if (call.method == 'beginSession') {
       Countly.begin_session();
-    } else if (call.method == 'getID') {
+    } 
+    
+    // DEVICE ID MANAGEMENT
+    else if (call.method == 'getID') {
       return Future(() => Countly.get_device_id());
     } else if (call.method == 'setID') {
       Countly.set_id(data[0]);
-    } else if (call.method == 'startView' || call.method == 'startAutoStoppedView' || call.method == 'recordView') {
+    } else if (call.method == 'getIDType') {
+      return Future(() => getDeviceIDType(Countly.get_device_id_type()));
+    } else if(call.method == 'changeWithMerge'){
+      Countly.change_id(data[0], true);
+    } else if(call.method == 'changeWithoutMerge'){
+      Countly.change_id(data[0], false);
+    } else if(call.method == 'enableTemporaryIDMode'){
+      Countly.enable_offline_mode();
+      // there is also disable offine mode call, but it is not needed for now
+    }
+
+
+    // VIEWS
+    else if (call.method == 'startView' || call.method == 'startAutoStoppedView' || call.method == 'recordView') {
       recordView(data);
-    } else if(call.method == 'enterContentZone'){
+    } 
+    
+    
+    // CONTENT ZONE
+    else if(call.method == 'enterContentZone'){
       CountlyContent.enterContentZone();
     } else if(call.method == 'exitContentZone'){
       CountlyContent.exitContentZone();
@@ -84,10 +117,10 @@ class CountlyFlutterPluginWeb {
 
   ScriptElement _createScriptTag(String library) {
     final ScriptElement script = ScriptElement()
-      ..type = "application/javascript"
-      ..charset = "utf-8"
+      ..type = 'application/javascript'
+      ..charset = 'utf-8'
       ..async = true
-      //..defer = true
+      ..noModule = false
       ..src = library;
     return script;
   }
@@ -99,7 +132,7 @@ class CountlyFlutterPluginWeb {
     final head = querySelector('head');
 
     // try this as module
-    final scriptTag = _createScriptTag('https://cdn.jsdelivr.net/npm/countly-sdk-web@latest/lib/countly.min.js');
+    final scriptTag = _createScriptTag('http://127.0.0.1:5500/dist/countly_umd.js');
     head?.children.add(scriptTag);
     loading.add(scriptTag.onLoad.first);
 
@@ -134,6 +167,17 @@ class CountlyFlutterPluginWeb {
     }
     // ignore list and segmentation might be sent
     Countly.track_view(viewName, null, segments.jsify()!);
+  }
+
+  String getDeviceIDType(int type){
+    switch(type){
+      case 0: // DEVELOPER_SUPPLIED
+        return 'DS';
+      case 2: // TEMPORARY_ID
+        return 'TID';
+      default: // 1 and default are SDK_GENERATED
+        return 'SG';
+    }
   }
 
   void initialize(Map<String, dynamic> config) {
