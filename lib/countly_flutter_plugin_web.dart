@@ -28,6 +28,9 @@ class Countly {
   external static void change_id(String newId, bool merge);
   external static void enable_offline_mode();
 
+  // Consents
+  external static void add_consent(JSAny consents);
+
   // View Management
   external static void track_view(String viewName, JSArray? ignoreList, JSAny? segments);
 }
@@ -189,14 +192,44 @@ class CountlyFlutterPluginWeb {
       'debug': config['loggingEnabled'],
       'session_update': config['sessionUpdateTimerDelay'],
       'max_events': config['eventQueueSizeThreshold'],
-      'queue_size': config['maxRequestQueueSize']
+      'queue_size': config['maxRequestQueueSize'],
+      'device_id': config['deviceID'],
+      'force_post': config['httpPostForced'],
+      'require_consent': config['shouldRequireConsent'],
+      'salt': config['tamperingProtectionSalt'],
     };
 
+    // Internal Limits
+    configMap['max_key_length'] = config['maxKeyLength'];
+    configMap['max_value_size'] = config['maxValueSize'];
+    configMap['max_segmentation_values'] = config['maxSegmentationValues'];
+    configMap['max_breadcrumb_count'] = config['maxBreadcrumbCount'];
+    configMap['max_stack_trace_lines_per_thread'] = config['maxStackTraceLinesPerThread'];
+    configMap['max_stack_trace_line_length'] = config['maxStackTraceLineLength'];
+
+    // Location
+    configMap['ip_address'] = config['locationIpAddress'];
+    configMap['country_code'] = config['locationCountryCode'];
+    configMap['city'] = config['locationCity'];
+
+    configMap['remote_config'] = config['remoteConfigAutomaticTriggers'];
+
     configMap.removeWhere((key, value) => value == null);
+
+    if(config['disableLocation'] != null && config['disableLocation'] == true){
+      configMap['ip_address'] = null;
+      configMap['country_code'] = null;
+      configMap['city'] = null;
+    }
+
     Countly.init(configMap.jsify()!);
     if(config['manualSessionEnabled'] == null || config['manualSessionEnabled'] == false){
       print(configMap);
       Countly.track_sessions();
+    }
+
+    if(config['consents'] != null){
+      Countly.add_consent(config['consents'].jsify()!);
     }
   }
 }
