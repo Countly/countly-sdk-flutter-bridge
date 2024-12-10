@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:js_interop';
 
 @JS('Countly') // Bind to the global 'Countly' object
@@ -30,6 +32,11 @@ class Countly {
 
   // View Management
   external static void track_view(String viewName, JSArray? ignoreList, JSAny? segments);
+
+  // Crashes
+  external static void track_errors(JSAny? globalSegmennts);
+  external static void recordError(JSAny error, bool nonfatal, JSAny? segments);
+  external static void add_log(String log); // breadcrumb
 }
 
 @JS('Countly.content') // Bind to 'Countly.content'

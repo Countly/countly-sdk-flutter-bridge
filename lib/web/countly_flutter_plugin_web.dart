@@ -87,6 +87,23 @@ class CountlyFlutterPluginWeb {
       recordView(data);
     }
 
+    // CRASHES
+    else if (call.method == 'setCustomCrashSegment') {
+      Map<String, dynamic> segments = extractMap(data);
+
+      if (segments.isNotEmpty) {
+        Countly.track_errors(segments.jsify()!);
+      }
+    } else if (call.method == 'logException') {
+      String exceptionString = data[0];
+      bool nonfatal = data[1];
+
+      Map<String, dynamic> segments = extractMap(data, idxStart: 2);
+      Countly.recordError({'stack': exceptionString}.jsify()!, nonfatal, segments.jsify()!);
+    } else if (call.method == 'addCrashLog') {
+      Countly.add_log(data[0]);
+    }
+
     // CONTENT ZONE
     else if (call.method == 'enterContentZone') {
       CountlyContent.enterContentZone();
@@ -145,13 +162,7 @@ class CountlyFlutterPluginWeb {
     if (il == 2) {
       segments = view[1];
     } else if (il > 2) {
-      for (int i = 1; i < il; i += 2) {
-        try {
-          segments[view[i]] = view[i + 1];
-        } catch (e) {
-          //TODO print("recordView: could not parse segments, skipping it. Error: $e");
-        }
-      }
+      segments = extractMap(view, idxStart: 1);
     }
     // ignore list and segmentation might be sent
     Countly.track_view(viewName, null, segments.jsify()!);
@@ -166,6 +177,14 @@ class CountlyFlutterPluginWeb {
       default: // 1 and default are SDK_GENERATED
         return 'SG';
     }
+  }
+
+  Map<String, dynamic> extractMap(List<dynamic> data, {int idxStart = 0}) {
+    Map<String, dynamic> map = {};
+    for (int i = 0; i < data.length; i += 2) {
+      map[data[i]] = data[i + 1];
+    }
+    return map;
   }
 
   void initialize(Map<String, dynamic> config) {
@@ -215,6 +234,10 @@ class CountlyFlutterPluginWeb {
 
     if (config['consents'] != null) {
       Countly.add_consent(config['consents'].jsify()!);
+    }
+
+    if (config['enableUnhandledCrashReporting']) {
+      Countly.track_errors(null);
     }
   }
 }
