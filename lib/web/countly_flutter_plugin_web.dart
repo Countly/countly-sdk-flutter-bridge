@@ -197,11 +197,19 @@ class CountlyFlutterPluginWeb {
       'session_update': config['sessionUpdateTimerDelay'],
       'max_events': config['eventQueueSizeThreshold'],
       'queue_size': config['maxRequestQueueSize'],
-      'device_id': config['deviceID'],
       'force_post': config['httpPostForced'],
       'require_consent': config['shouldRequireConsent'],
       'salt': config['tamperingProtectionSalt'],
     };
+
+    var deviceID = config['deviceID'];
+    if (deviceID != null) {
+      if (deviceID == 'CLYTemporaryDeviceID') {
+        configMap['offline_mode'] = true;
+      } else {
+        configMap['device_id'] = deviceID;
+      }
+    }
 
     // Internal Limits
     configMap['max_key_length'] = config['maxKeyLength'];
