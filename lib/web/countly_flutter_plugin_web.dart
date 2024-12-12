@@ -2,8 +2,11 @@ import 'dart:convert';
 import 'dart:html';
 import 'dart:js' as js;
 import 'dart:js_interop';
+import 'dart:js_util';
 
 import 'package:countly_flutter/web/countly_flutter_web_interop.dart';
+import 'package:countly_flutter/web/json_web_interop.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
@@ -33,8 +36,7 @@ class CountlyFlutterPluginWeb {
     if (call.method == 'init') {
       initialize(data[0]);
     } else if (call.method == 'isInitialized') {
-      //TODO: implement isInitialized
-      return Future(() => "false");
+      return Future(() => 'false');
     }
 
     // EVENTS
@@ -104,6 +106,24 @@ class CountlyFlutterPluginWeb {
       Countly.add_log(data[0]);
     }
 
+    // INTERNALS
+    else if (call.method == 'getRequestQueue') {
+      dynamic object = CountlyInternal.getRequestQueue();
+      List<String> requestList = [];
+      for (dynamic item in object) {
+        String result = await promiseToFuture(CountlyInternal.prepareParams(item, "")).then((value) => value.toString());
+        requestList.add(result); // will get from config
+      }
+      return Future(() => requestList);
+    } else if (call.method == 'getEventQueue') {
+      dynamic object = CountlyInternal.getEventQueue();
+      List<String> eventList = [];
+      for (dynamic item in object) {
+        eventList.add(JSON.stringify(item));
+      }
+      return Future(() => eventList);
+    }
+
     // CONTENT ZONE
     else if (call.method == 'enterContentZone') {
       CountlyContent.enterContentZone();
@@ -112,6 +132,7 @@ class CountlyFlutterPluginWeb {
     } else {
       //throw PlatformException(code: 'Unimplemented', details: "The countly_flutter plugin for web doesn't implement the method '${call.method}'");
     }
+
     return Future.value();
   }
 
@@ -127,16 +148,15 @@ class CountlyFlutterPluginWeb {
 
   /// Injects a bunch of libraries in the <head> and returns a
   /// Future that resolves when all load.
-  Future<void> importLibrary() {
-    final List<Future<void>> loading = <Future<void>>[];
+  Future<void> importLibrary() async {
     final head = querySelector('head');
 
     // try this as module
     final scriptTag = _createScriptTag('http://127.0.0.1:5500/dist/countly_umd.js');
     head?.children.add(scriptTag);
-    loading.add(scriptTag.onLoad.first);
+    await scriptTag.onLoad.first;
 
-    return Future.wait(loading);
+    return Future.value();
   }
 
   void recordEvent(List<dynamic> event) {
@@ -244,7 +264,7 @@ class CountlyFlutterPluginWeb {
       Countly.add_consent(config['consents'].jsify()!);
     }
 
-    if (config['enableUnhandledCrashReporting']) {
+    if (config['enableUnhandledCrashReporting'] != null) {
       Countly.track_errors(null);
     }
   }

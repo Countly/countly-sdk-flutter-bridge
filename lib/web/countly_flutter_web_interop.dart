@@ -45,3 +45,11 @@ class CountlyContent {
   external static void enterContentZone();
   external static void exitContentZone();
 }
+
+@JS('Countly._internals') // Bind to 'Countly._internals'
+@staticInterop
+class CountlyInternal {
+  external static JSArray getRequestQueue();
+  external static JSArray getEventQueue();
+  external static JSAny prepareParams(JSAny? params, String? salt); // will return a promise
+}
