@@ -111,7 +111,7 @@ class CountlyFlutterPluginWeb {
       dynamic object = CountlyInternal.getRequestQueue();
       List<String> requestList = [];
       for (dynamic item in object) {
-        String result = await promiseToFuture(CountlyInternal.prepareParams(item, "")).then((value) => value.toString());
+        String result = await promiseToFuture(CountlyInternal.prepareParams(item, Countly.salt)).then((value) => value.toString());
         requestList.add(result); // will get from config
       }
       return Future(() => requestList);
