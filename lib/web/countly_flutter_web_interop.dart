@@ -6,7 +6,7 @@ import 'dart:js_interop';
 @staticInterop
 class Countly {
   external static JSArray get features;
-  external static String get salt;
+  external static String? get salt;
 
   external static void init(JSAny config);
 
