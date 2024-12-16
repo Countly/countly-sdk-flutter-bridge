@@ -4,13 +4,12 @@ import 'dart:js' as js;
 import 'dart:js_interop';
 import 'dart:js_util';
 
-import 'package:countly_flutter/web/countly_flutter_web_interop.dart';
-import 'package:countly_flutter/web/json_web_interop.dart';
-import 'package:flutter/material.dart';
+import 'package:countly_flutter/web/countly_sdk_web_interop.dart';
+import 'package:countly_flutter/web/json_interop.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
-class CountlyFlutterPluginWeb {
+class CountlyFlutterPlugin {
   static const String TAG = "CountlyFlutterPlugin";
   static const String COUNTLY_FLUTTER_SDK_VERSION_STRING = "24.11.2";
   static const String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-web";
@@ -18,7 +17,7 @@ class CountlyFlutterPluginWeb {
   // Register the plugin with Flutter Web
   static void registerWith(Registrar registrar) {
     final MethodChannel channel = MethodChannel('countly_flutter', const StandardMethodCodec(), registrar.messenger);
-    final CountlyFlutterPluginWeb instance = CountlyFlutterPluginWeb();
+    final CountlyFlutterPlugin instance = CountlyFlutterPlugin();
     channel.setMethodCallHandler(instance.handleMethodCall);
   }
 
