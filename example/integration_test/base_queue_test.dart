@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:countly_flutter/countly_flutter.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'utils.dart';
@@ -22,7 +21,7 @@ void main() {
 
     // Get request and event queues from native side
     List<String> requestList = await getRequestQueue(); // List of strings
-    List<dynamic> eventList = await getEventQueue(); // List of json objects
+    List<String> eventList = await getEventQueue(); // List of json objects
 
     // Some logs for debugging
     print('RQ: $requestList');
@@ -36,18 +35,10 @@ void main() {
       testCommonRequestParams(queryParams); // tests
     }
 
-    Map<String, dynamic> event;
-    if (kIsWeb) {
-      Map<String, List<String>> queryParams = Uri.parse('?${requestList[1]}').queryParametersAll;
-      expect(0, eventList.length);
-      eventList = jsonDecode(queryParams['events']![0]);
-      event = eventList[0];
-    } else {
-      event = json.decode(eventList[0]);
-    }
     // Verify some parameters of a single event
-    expect(kIsWeb || Platform.isAndroid ? "[CLY]_orientation" : "[CLY]_view", event['key']);
+    Map<String, dynamic> event = json.decode(eventList[0]);
+    expect(Platform.isAndroid ? "[CLY]_orientation" : "[CLY]_view", event['key']);
     expect(1, event['count']);
-    expect(kIsWeb || Platform.isAndroid ? 4 : 3, eventList.length);
+    expect(Platform.isAndroid ? 4 : 3, eventList.length);
   });
 }
