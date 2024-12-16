@@ -33,5 +33,5 @@ flutter:
             ios:
                 pluginClass: CountlyFlutterPlugin
             web:
-                pluginClass: CountlyFlutterPluginWeb
-                fileName: web/countly_flutter_plugin_web.dart
+                pluginClass: CountlyFlutterPlugin
+                fileName: web/countly_flutter_plugin.dart
