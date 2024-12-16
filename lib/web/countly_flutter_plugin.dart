@@ -84,7 +84,7 @@ class CountlyFlutterPlugin {
     }
 
     // VIEWS
-    else if (call.method == 'startView' || call.method == 'startAutoStoppedView' || call.method == 'recordView') {
+    else if (call.method == 'startAutoStoppedView') {
       recordView(data);
     }
 
