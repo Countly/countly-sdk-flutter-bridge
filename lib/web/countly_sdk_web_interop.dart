@@ -38,6 +38,10 @@ class Countly {
   external static void track_errors(JSAny? globalSegmennts);
   external static void recordError(JSAny error, bool nonfatal, JSAny? segments);
   external static void add_log(String log); // breadcrumb
+
+  // User Profiles
+  external static void user_details(JSAny userDetails);
+
 }
 
 @JS('Countly.content') // Bind to 'Countly.content'
@@ -45,6 +49,22 @@ class Countly {
 class CountlyContent {
   external static void enterContentZone();
   external static void exitContentZone();
+}
+
+@JS('Countly.userData') // Bind to 'Countly.userData'
+@staticInterop
+class CountlyUserData {
+  external static void set(String key, JSAny? value);
+  external static void set_once(String key, JSAny? value);
+  external static void increment(String key);
+  external static void increment_by(String key, int value);
+  external static void multiply(String key, int value);
+  external static void max(String key, int value);
+  external static void min(String key, int value);
+  external static void push(String key, JSAny? value);
+  external static void push_unique(String key, JSAny? value);
+  external static void pull(String key, JSAny? value);
+  external static void save();
 }
 
 @JS('Countly._internals') // Bind to 'Countly._internals'

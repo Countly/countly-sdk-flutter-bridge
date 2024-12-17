@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:html';
 import 'dart:js' as js;
 import 'dart:js_interop';
-import 'dart:js_util';
 
+import 'package:countly_flutter/countly_flutter.dart' as cly;
 import 'package:countly_flutter/web/countly_sdk_web_interop.dart';
 import 'package:countly_flutter/web/json_interop.dart';
 import 'package:flutter/services.dart';
@@ -122,15 +122,23 @@ class CountlyFlutterPlugin {
       return Future(() => eventList);
     }
 
+    // USER PROFILES
+    else if (call.method == 'setuserdata') {
+      reportUserDetails(data[0]);
+    } else if (call.method.startsWith('userData_')) {
+      userDataOps(call.method, data);
+    } else if (call.method.startsWith('userProfile_')) {
+      userProfileOps(call.method, data);
+    }
+
     // CONTENT ZONE
     else if (call.method == 'enterContentZone') {
       CountlyContent.enterContentZone();
     } else if (call.method == 'exitContentZone') {
       CountlyContent.exitContentZone();
     } else {
-      //throw PlatformException(code: 'Unimplemented', details: "The countly_flutter plugin for web doesn't implement the method '${call.method}'");
+      cly.Countly.log("The countly_flutter plugin for web doesn't implement the method ${call.method}", logLevel: cly.LogLevel.ERROR);
     }
-
     return Future.value();
   }
 
@@ -155,6 +163,137 @@ class CountlyFlutterPlugin {
     await scriptTag.onLoad.first;
 
     return Future.value();
+  }
+
+  void reportUserDetails(Map<String, dynamic> userData) {
+    Map<String, dynamic> bundle = {};
+    bundle['custom'] = {};
+
+    userData.forEach((key, value) {
+      if (key == 'name') {
+        bundle['name'] = value;
+      } else if (key == 'username') {
+        bundle['username'] = value;
+      } else if (key == 'email') {
+        bundle['email'] = value;
+      } else if (key == 'organization') {
+        bundle['organization'] = value;
+      } else if (key == 'phone') {
+        bundle['phone'] = value;
+      } else if (key == 'picture') {
+        bundle['picture'] = value;
+      } else if (key == 'gender') {
+        bundle['gender'] = value;
+      } else if (key == 'byear') {
+        bundle['byear'] = value;
+      } else {
+        // Add any other key-value pair to the 'custom' section
+        (bundle['custom'] as Map<String, dynamic>)[key] = value;
+      }
+    });
+
+    if((bundle['custom'] as Map<String, dynamic>).isEmpty) {
+      bundle.remove('custom');
+    }
+
+    if (bundle.isNotEmpty) {
+      Countly.user_details(bundle.jsify()!);
+    }
+  }
+
+  void userProfileOps(String method, List<dynamic> data) {
+    if (method == 'userProfile_setProperties') {
+      reportUserDetails(data[0]);
+    } else if (method == 'userProfile_setProperty') {
+      String keyName = data[0];
+      Object keyValue = data[1];
+      CountlyUserData.set(keyName, keyValue.jsify());
+    } else if (method == 'userProfile_increment') {
+      String keyName = data[0];
+      CountlyUserData.increment(keyName);
+    } else if (method == 'userProfile_incrementBy') {
+      String key = data[0];
+      int value = data[1];
+      CountlyUserData.increment_by(key, value);
+    } else if (method == 'userProfile_multiply') {
+      String key = data[0];
+      int value = data[1];
+      CountlyUserData.multiply(key, value);
+    } else if (method == 'userProfile_saveMax') {
+      String key = data[0];
+      int value = data[1];
+      CountlyUserData.max(key, value);
+    } else if (method == 'userProfile_saveMin') {
+      String key = data[0];
+      int value = data[1];
+      CountlyUserData.min(key, value);
+    } else if (method == 'userProfile_setOnce') {
+      String key = data[0];
+      Object value = data[1];
+      CountlyUserData.set_once(key, value.jsify());
+    } else if (method == 'userProfile_pushUnique') {
+      String key = data[0];
+      Object value = data[1];
+      CountlyUserData.push_unique(key, value.jsify());
+    } else if (method == 'userProfile_push') {
+      String key = data[0];
+      Object value = data[1];
+      CountlyUserData.push(key, value.jsify());
+    } else if (method == 'userProfile_pull') {
+      String key = data[0];
+      Object value = data[1];
+      CountlyUserData.pull(key, value.jsify());
+    } else if (method == 'userProfile_save') {
+      CountlyUserData.save();
+    }
+  }
+
+  void userDataOps(String method, List<dynamic> data) {
+    if (method == 'userData_setProperty') {
+      String keyName = data[0];
+      String keyValue = data[1];
+      CountlyUserData.set(keyName, keyValue.jsify());
+      CountlyUserData.save();
+    } else if (method == 'userData_increment') {
+      String keyName = data[0];
+      CountlyUserData.increment(keyName);
+      CountlyUserData.save();
+    } else if (method == 'userData_incrementBy') {
+      String keyName = data[0];
+      int value = data[1];
+      CountlyUserData.increment_by(keyName, value);
+      CountlyUserData.save();
+    } else if (method == 'userData_saveMax') {
+      String keyName = data[0];
+      int value = data[1];
+      CountlyUserData.max(keyName, value);
+      CountlyUserData.save();
+    } else if (method == 'userData_saveMin') {
+      String keyName = data[0];
+      int value = data[1];
+      CountlyUserData.min(keyName, value);
+      CountlyUserData.save();
+    } else if (method == 'userData_setOnce') {
+      String keyName = data[0];
+      String value = data[1];
+      CountlyUserData.set_once(keyName, value.jsify());
+      CountlyUserData.save();
+    } else if (method == 'userData_pushUniqueValue') {
+      String keyName = data[0];
+      String value = data[1];
+      CountlyUserData.push_unique(keyName, value.jsify());
+      CountlyUserData.save();
+    } else if (method == 'userData_pushValue') {
+      String keyName = data[0];
+      String value = data[1];
+      CountlyUserData.push(keyName, value.jsify());
+      CountlyUserData.save();
+    } else if (method == 'userData_pullValue') {
+      String keyName = data[0];
+      String value = data[1];
+      CountlyUserData.pull(keyName, value.jsify());
+      CountlyUserData.save();
+    }
   }
 
   void recordEvent(List<dynamic> event) {
