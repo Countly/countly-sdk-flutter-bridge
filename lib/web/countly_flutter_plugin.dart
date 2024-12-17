@@ -110,8 +110,7 @@ class CountlyFlutterPlugin {
       dynamic object = CountlyInternal.getRequestQueue();
       List<String> requestList = [];
       for (dynamic item in object) {
-        String result = await promiseToFuture(CountlyInternal.prepareParams(item, Countly.salt)).then((value) => value.toString());
-        requestList.add(result); // will get from config
+        requestList.add(JSON.stringify(item)); // will get from config
       }
       return Future(() => requestList);
     } else if (call.method == 'getEventQueue') {

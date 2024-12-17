@@ -52,5 +52,4 @@ class CountlyContent {
 class CountlyInternal {
   external static JSArray getRequestQueue();
   external static JSArray getEventQueue();
-  external static JSAny prepareParams(JSAny? params, String? salt); // will return a promise
 }
