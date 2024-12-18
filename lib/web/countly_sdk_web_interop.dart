@@ -67,6 +67,15 @@ class CountlyUserData {
   external static void save();
 }
 
+@JS('Countly.feedback') // Bind to 'Countly.feedback'
+@staticInterop
+class CountlyFeedback {
+  external static void showNPS(String? nameTagOrID);
+  external static void showSurvey(String? nameTagOrID);
+  external static void showRating(String? nameTagOrID);
+}
+
+
 @JS('Countly._internals') // Bind to 'Countly._internals'
 @staticInterop
 class CountlyInternal {

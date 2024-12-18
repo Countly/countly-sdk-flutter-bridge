@@ -74,9 +74,9 @@ class CountlyFlutterPlugin {
 
     // CONSENT
     else if (call.method == 'giveConsent') {
-      Countly.add_consent(data[0].jsify()!);
+      Countly.add_consent(data.jsify()!);
     } else if (call.method == 'removeConsent') {
-      Countly.remove_consent(data[0].jsify()!);
+      Countly.remove_consent(data.jsify()!);
     } else if (call.method == 'giveAllConsent') {
       Countly.add_consent(Countly.features.jsify()!);
     } else if (call.method == 'removeAllConsent') {
@@ -129,6 +129,15 @@ class CountlyFlutterPlugin {
       userDataOps(call.method, data);
     } else if (call.method.startsWith('userProfile_')) {
       userProfileOps(call.method, data);
+    } 
+    
+    // FEEDBACK
+    else if (call.method == 'presentNPS') {
+      CountlyFeedback.showNPS(data[0]);
+    } else if (call.method == 'presentSurvey') {
+      CountlyFeedback.showSurvey(data[0]);
+    } else if (call.method == 'presentRating') {
+      CountlyFeedback.showRating(data[0]);
     }
 
     // CONTENT ZONE
@@ -167,7 +176,7 @@ class CountlyFlutterPlugin {
 
   void reportUserDetails(Map<String, dynamic> userData) {
     Map<String, dynamic> bundle = {};
-    bundle['custom'] = {};
+    bundle['custom'] = <String, dynamic>{};
 
     userData.forEach((key, value) {
       if (key == 'name') {
@@ -192,7 +201,7 @@ class CountlyFlutterPlugin {
       }
     });
 
-    if((bundle['custom'] as Map<String, dynamic>).isEmpty) {
+    if ((bundle['custom'] as Map<String, dynamic>).isEmpty) {
       bundle.remove('custom');
     }
 
@@ -245,6 +254,8 @@ class CountlyFlutterPlugin {
       CountlyUserData.pull(key, value.jsify());
     } else if (method == 'userProfile_save') {
       CountlyUserData.save();
+    } else {
+      cly.Countly.log("The countly_flutter plugin for web doesn't implement the method $method", logLevel: cly.LogLevel.ERROR);
     }
   }
 
@@ -293,6 +304,8 @@ class CountlyFlutterPlugin {
       String value = data[1];
       CountlyUserData.pull(keyName, value.jsify());
       CountlyUserData.save();
+    } else {
+      cly.Countly.log("The countly_flutter plugin for web doesn't implement the method $method", logLevel: cly.LogLevel.ERROR);
     }
   }
 
