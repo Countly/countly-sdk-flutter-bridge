@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 import 'dart:js' as js;
 import 'dart:js_interop';
+import 'dart:js_util';
 
 import 'package:countly_flutter/countly_flutter.dart' as cly;
 import 'package:countly_flutter/web/countly_sdk_web_interop.dart';
@@ -13,11 +15,14 @@ class CountlyFlutterPlugin {
   static const String TAG = "CountlyFlutterPlugin";
   static const String COUNTLY_FLUTTER_SDK_VERSION_STRING = "24.11.2";
   static const String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-web";
+  List<Map<Object?, Object?>> retrievedWidgetList = [];
+  MethodChannel? methodChannel;
 
   // Register the plugin with Flutter Web
   static void registerWith(Registrar registrar) {
     final MethodChannel channel = MethodChannel('countly_flutter', const StandardMethodCodec(), registrar.messenger);
     final CountlyFlutterPlugin instance = CountlyFlutterPlugin();
+    instance.methodChannel = channel;
     channel.setMethodCallHandler(instance.handleMethodCall);
   }
 
@@ -129,8 +134,8 @@ class CountlyFlutterPlugin {
       userDataOps(call.method, data);
     } else if (call.method.startsWith('userProfile_')) {
       userProfileOps(call.method, data);
-    } 
-    
+    }
+
     // FEEDBACK
     else if (call.method == 'presentNPS') {
       CountlyFeedback.showNPS(data[0]);
@@ -138,6 +143,86 @@ class CountlyFlutterPlugin {
       CountlyFeedback.showSurvey(data[0]);
     } else if (call.method == 'presentRating') {
       CountlyFeedback.showRating(data[0]);
+    } else if (call.method == 'getAvailableFeedbackWidgets') {
+      retrievedWidgetList.clear(); // clear previous state
+      // Create a Completer to manage the Future
+      final completer = Completer<dynamic>();
+
+      // Wrap the Dart function using allowInterop
+      var callback = allowInterop((JSAny? widgets, String? error) {
+        if (error != null) {
+          // Complete with an error if one is returned
+          completer.completeError(error);
+          return;
+        }
+
+        List<Map<String, String>> dartFeedbackWidgets = [];
+
+        if (widgets != null) {
+          // Convert the JS object to a Dart Map
+          List<dynamic> dartWidgets = widgets.dartify() as List<dynamic>;
+          for (dynamic widget in dartWidgets) {
+            retrievedWidgetList.add(widget);
+            dartFeedbackWidgets.add({
+              'id': widget['_id'].toString(),
+              'type': widget['type'].toString(),
+              'name': widget['name'].toString(),
+            });
+          }
+
+          // Complete the Future with the widgets data
+          completer.complete(dartFeedbackWidgets);
+        }
+      });
+
+      // Call the JS function
+      Countly.get_available_feedback_widgets(callback.jsify());
+
+      // Return the Future from the Completer
+      return completer.future;
+    } else if (call.method == 'presentFeedbackWidget') {
+      String widgetId = data[0];
+      Map<Object?, Object?> widget = retrievedWidgetList.firstWhere((element) => element['_id'] == widgetId, orElse: () => {});
+      if (widget.isEmpty) {
+        return Future.error("[presentFeedbackWidget], No feedbackWidget is found against widget id: '$widgetId', always call 'getFeedbackWidgets' to get updated list of feedback widgets.");
+      }
+      Countly.present_feedback_widget(widget.jsify(), null, null, null);
+    } else if (call.method == 'getFeedbackWidgetData') {
+      String widgetId = data[0];
+      Map<Object?, Object?> widget = retrievedWidgetList.firstWhere((element) => element['_id'] == widgetId, orElse: () => {});
+      final completer = Completer<dynamic>();
+
+      if (widget.isEmpty) {
+        String errorInit = "[getFeedbackWidgetData], No feedbackWidget is found against widget id: '$widgetId', always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
+
+        Map<String, Object?> callbackData = prepareCallbackData(null, errorInit);
+        await methodChannel?.invokeMethod('feedbackWidgetDataCallback', callbackData);
+        completer.complete([callbackData]);
+      }
+
+      // Wrap the Dart function using allowInterop
+      var callback = allowInterop((JSAny? feedbackWidgetData, String? error) {
+        Map<String, Object?> returnedObject = prepareCallbackData(feedbackWidgetData?.dartify(), error);
+
+        methodChannel?.invokeMethod('feedbackWidgetDataCallback', returnedObject);
+        // Complete the Future with the widgets data
+        completer.complete([returnedObject]);
+      });
+
+      Countly.getFeedbackWidgetData(widget.jsify(), callback.jsify());
+      return completer.future;
+    } else if (call.method == 'reportFeedbackWidgetManually') {
+      List<dynamic> widgetInfo = data[0];
+      Map<String, dynamic> widgetData = data[1];
+      Map<String, dynamic>? widgetResult = data[2];
+      String widgetId = widgetInfo[0];
+
+      Map<Object?, Object?> widget = retrievedWidgetList.firstWhere((element) => element['_id'] == widgetId, orElse: () => {});
+      if (widget.isEmpty) {
+        return Future.error("[reportFeedbackWidgetManually], No feedbackWidget is found against widget id: '$widgetId', always call 'getFeedbackWidgets' to get updated list of feedback widgets.");
+      }
+
+      Countly.reportFeedbackWidgetManually(widget.jsify(), widgetData.jsify(), widgetResult.jsify());
     }
 
     // CONTENT ZONE
@@ -149,6 +234,16 @@ class CountlyFlutterPlugin {
       cly.Countly.log("The countly_flutter plugin for web doesn't implement the method ${call.method}", logLevel: cly.LogLevel.ERROR);
     }
     return Future.value();
+  }
+
+  Map<String, Object?> prepareCallbackData(Object? data, String? error) {
+    Map<String, Object?> returnedObject = {};
+    returnedObject['widgetData'] = data;
+    if (error != null) {
+      returnedObject['error'] = error;
+    }
+
+    return returnedObject;
   }
 
   ScriptElement _createScriptTag(String library) {
@@ -419,3 +514,12 @@ class CountlyFlutterPlugin {
     }
   }
 }
+
+// What is that session cooldown
+// make a graph about it
+// how much this batcher configs about session update
+// could you open this more 3)Session_end. Document in drill gets updated with properties from app_user document. If batched update failed, document has now newest values.
+// are they tied to the last end session
+// what happens to the events that there is no session yet.
+// lets sey session a start a end event b session b start, which session is it tied to
+// any more info about the sessions

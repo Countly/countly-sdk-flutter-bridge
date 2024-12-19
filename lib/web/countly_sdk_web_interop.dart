@@ -42,6 +42,11 @@ class Countly {
   // User Profiles
   external static void user_details(JSAny userDetails);
 
+  // Feedback
+  external static void get_available_feedback_widgets(JSAny? callback);
+  external static void present_feedback_widget(JSAny? presentableFeedback, String? id, String? className, JSAny? feedbackWidgetSegmentation);
+  external static void getFeedbackWidgetData(JSAny? CountlyFeedbackWidget, JSAny? callback);
+  external static void reportFeedbackWidgetManually(JSAny? CountlyFeedbackWidget, JSAny? CountlyWidgetData, JSAny? widgetResult);
 }
 
 @JS('Countly.content') // Bind to 'Countly.content'
@@ -74,7 +79,6 @@ class CountlyFeedback {
   external static void showSurvey(String? nameTagOrID);
   external static void showRating(String? nameTagOrID);
 }
-
 
 @JS('Countly._internals') // Bind to 'Countly._internals'
 @staticInterop
