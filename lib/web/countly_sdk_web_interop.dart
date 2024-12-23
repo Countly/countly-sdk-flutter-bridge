@@ -50,7 +50,7 @@ class Countly {
 
   // Remote Config
   external static void fetch_remote_config(JSArray? keys, JSArray? omit_keys, JSAny? callback);
-  external static JSAny get_remote_config();
+  external static JSAny get_remote_config(String? key);
 }
 
 @JS('Countly.content') // Bind to 'Countly.content'
