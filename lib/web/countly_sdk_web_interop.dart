@@ -47,6 +47,10 @@ class Countly {
   external static void present_feedback_widget(JSAny? presentableFeedback, String? id, String? className, JSAny? feedbackWidgetSegmentation);
   external static void getFeedbackWidgetData(JSAny? CountlyFeedbackWidget, JSAny? callback);
   external static void reportFeedbackWidgetManually(JSAny? CountlyFeedbackWidget, JSAny? CountlyWidgetData, JSAny? widgetResult);
+
+  // Remote Config
+  external static void fetch_remote_config(JSArray? keys, JSArray? omit_keys, JSAny? callback);
+  external static JSAny get_remote_config();
 }
 
 @JS('Countly.content') // Bind to 'Countly.content'

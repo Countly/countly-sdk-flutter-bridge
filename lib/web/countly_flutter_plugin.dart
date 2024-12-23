@@ -18,6 +18,9 @@ class CountlyFlutterPlugin {
   List<Map<Object?, Object?>> retrievedWidgetList = [];
   MethodChannel? methodChannel;
 
+  static const int requestIDNoCallback = -1;
+  static const int requestIDGlobalCallback = -2;
+
   // Register the plugin with Flutter Web
   static void registerWith(Registrar registrar) {
     final MethodChannel channel = MethodChannel('countly_flutter', const StandardMethodCodec(), registrar.messenger);
@@ -223,6 +226,22 @@ class CountlyFlutterPlugin {
       }
 
       Countly.reportFeedbackWidgetManually(widget.jsify(), widgetData.jsify(), widgetResult.jsify());
+    }
+
+    // REMOTE CONFIG
+    else if (call.method == 'remoteConfigDownloadValues') {
+      int requestID = data[0];
+      Countly.fetch_remote_config(
+          null,
+          null,
+          allowInterop((JSAny? error, JSAny? remoteConfigs) {
+            if (requestID == requestIDNoCallback) {
+              return;
+            }
+            notifyRemoteConfigDownloadCallback(error, remoteConfigs, true, requestID);
+          }).jsify());
+    } else if (call.method == 'remoteConfigGetAllValues') {
+      return Future.value(convertMapToRCData(Countly.get_remote_config().dartify()));
     }
 
     // CONTENT ZONE
@@ -452,6 +471,29 @@ class CountlyFlutterPlugin {
     return map;
   }
 
+  Map<String, Map<String, dynamic>> convertMapToRCData(dynamic rcData) {
+    if (rcData == null) {
+      return {};
+    }
+    Map<String, Map<String, dynamic>> data = {};
+    rcData.forEach((key, value) {
+      data[key] = {'value': value, 'isCurrentUsersData': true};
+    });
+    return data;
+  }
+
+  void notifyRemoteConfigDownloadCallback(JSAny? error, JSAny? remoteConfigs, bool fullValueUpdate, int id) {
+    Map<String, dynamic> data = {};
+    dynamic errorDart = error?.dartify();
+    data['error'] = errorDart is bool ? null : errorDart;
+    data['requestResult'] = remoteConfigs != null ? 0 : 2;
+    data['downloadedValues'] = convertMapToRCData(remoteConfigs?.dartify());
+    data['fullValueUpdate'] = fullValueUpdate;
+    data['id'] = id;
+
+    methodChannel?.invokeMethod('remoteConfigDownloadCallback', data);
+  }
+
   void initialize(Map<String, dynamic> config) {
     Map<String, dynamic> configMap = {
       'app_key': config['appKey'],
@@ -489,7 +531,13 @@ class CountlyFlutterPlugin {
     configMap['country_code'] = config['locationCountryCode'];
     configMap['city'] = config['locationCity'];
 
-    configMap['remote_config'] = config['remoteConfigAutomaticTriggers'];
+    // Remote Config
+    bool? rcEnabled = config['remoteConfigAutomaticTriggers'];
+    configMap['use_explicit_rc_api'] = true;
+    if (rcEnabled != null && rcEnabled) {
+      // not feedback one, RC download one
+      configMap['remote_config'] = allowInterop((JSAny? error, JSAny? remoteConfigs) => notifyRemoteConfigDownloadCallback(error, remoteConfigs, true, requestIDGlobalCallback)).jsify();
+    }
 
     configMap.removeWhere((key, value) => value == null);
 
@@ -514,12 +562,3 @@ class CountlyFlutterPlugin {
     }
   }
 }
-
-// What is that session cooldown
-// make a graph about it
-// how much this batcher configs about session update
-// could you open this more 3)Session_end. Document in drill gets updated with properties from app_user document. If batched update failed, document has now newest values.
-// are they tied to the last end session
-// what happens to the events that there is no session yet.
-// lets sey session a start a end event b session b start, which session is it tied to
-// any more info about the sessions
