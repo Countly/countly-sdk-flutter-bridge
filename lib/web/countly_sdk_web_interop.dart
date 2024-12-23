@@ -49,8 +49,9 @@ class Countly {
   external static void reportFeedbackWidgetManually(JSAny? CountlyFeedbackWidget, JSAny? CountlyWidgetData, JSAny? widgetResult);
 
   // Remote Config
-  external static void fetch_remote_config(JSArray? keys, JSArray? omit_keys, JSAny? callback);
+  external static void fetch_remote_config(JSAny? keys, JSAny? omit_keys, JSAny? callback);
   external static JSAny get_remote_config(String? key);
+  external static void enrollUserToAb(JSAny? keys);
 }
 
 @JS('Countly.content') // Bind to 'Countly.content'

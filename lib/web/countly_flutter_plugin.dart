@@ -271,6 +271,32 @@ class CountlyFlutterPlugin {
       String key = data[0];
       dynamic value = Countly.get_remote_config(key).dartify();
       return Future.value({'value': value, 'isCurrentUsersData': true});
+    } else if (call.method == 'getRemoteConfigValueForKey') {
+      String key = data[0];
+      return Future.value(Countly.get_remote_config(key).dartify().toString());
+    }
+
+    // LEGACY REMOTE CONFIG
+    else if (call.method == 'updateRemoteConfigForKeysOnly') {
+      return updateValuesRC(data.jsify(), null);
+    } else if (call.method == 'updateRemoteConfigExceptKeys') {
+      return updateValuesRC(null, data.jsify());
+    } else if (call.method == 'remoteConfigUpdate') {
+      return updateValuesRC(null, null);
+    }
+
+    // A/B TESTING
+    else if (call.method == 'remoteConfigGetValueAndEnroll') {
+      String key = data[0];
+      dynamic value = Countly.get_remote_config(key).dartify();
+      Countly.enrollUserToAb([key].jsify());
+      return Future.value({'value': value, 'isCurrentUsersData': true});
+    } else if (call.method == 'remoteConfigGetAllValuesAndEnroll') {
+      Map<String, Map<String, dynamic>> rcValues = convertMapToRCData(Countly.get_remote_config(null).dartify());
+      Countly.enrollUserToAb(rcValues.keys.toList().jsify());
+      return Future.value(rcValues);
+    } else if (call.method == 'remoteConfigEnrollIntoABTestsForKeys') {
+      Countly.enrollUserToAb(data[0].jsify());
     }
 
     // CONTENT ZONE
@@ -490,6 +516,21 @@ class CountlyFlutterPlugin {
       default: // 1 and default are SDK_GENERATED
         return 'SG';
     }
+  }
+
+  Future<dynamic> updateValuesRC(JSAny? included, JSAny? excluded) {
+    final completer = Completer<dynamic>();
+    Countly.fetch_remote_config(
+        included,
+        excluded,
+        allowInterop((JSAny? error) {
+          if (error != null) {
+            completer.complete('Error: $error');
+          } else {
+            completer.complete('Success');
+          }
+        }).jsify());
+    return completer.future;
   }
 
   Map<String, dynamic> extractMap(List<dynamic> data, {int idxStart = 0}) {
