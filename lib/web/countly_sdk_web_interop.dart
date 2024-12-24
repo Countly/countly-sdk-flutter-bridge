@@ -33,6 +33,7 @@ class Countly {
 
   // View Management
   external static void track_view(String viewName, JSArray? ignoreList, JSAny? segments);
+  external static void track_pageview(String? page, JSArray? ignoreList, JSAny? segments);
 
   // Crashes
   external static void track_errors(JSAny? globalSegmennts);

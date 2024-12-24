@@ -58,8 +58,6 @@ class CountlyFlutterPlugin {
     // SESSIONS
     else if (call.method == 'beginSession') {
       Countly.begin_session();
-    } else if (call.method == 'updateSession') {
-      //TODO: implement updateSession
     } else if (call.method == 'endSession') {
       Countly.end_session();
     }
@@ -94,6 +92,8 @@ class CountlyFlutterPlugin {
     // VIEWS
     else if (call.method == 'startAutoStoppedView') {
       recordView(data);
+    } else if (call.method == 'setGlobalViewSegmentation' || call.method == 'updateGlobalViewSegmentation') {
+      Countly.track_pageview(null, null, data[0].jsify());
     }
 
     // CRASHES
@@ -603,6 +603,7 @@ class CountlyFlutterPlugin {
 
     // Remote Config
     bool? rcEnabled = config['remoteConfigAutomaticTriggers'];
+    configMap['rc_automatic_optin_for_ab'] = config['autoEnrollABOnDownload'];
     configMap['use_explicit_rc_api'] = true;
     if (rcEnabled != null && rcEnabled) {
       // not feedback one, RC download one
@@ -629,6 +630,14 @@ class CountlyFlutterPlugin {
 
     if (config['enableUnhandledCrashReporting'] != null) {
       Countly.track_errors(null);
+    }
+
+    if (config['customCrashSegment'] != null) {
+      Countly.track_errors(config['customCrashSegment'].jsify());
+    }
+
+    if (config['globalViewSegmentation'] != null) {
+      Countly.track_pageview(null, null, config['globalViewSegmentation'].jsify());
     }
   }
 }
