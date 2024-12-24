@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:countly_flutter/countly_flutter.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,14 +29,24 @@ Future<List<String>> getEventQueue() async {
 /// Verify the common request queue parameters
 void testCommonRequestParams(Map<String, List<String>> requestObject) {
   expect(requestObject['app_key']?[0], APP_KEY);
-  expect(requestObject['sdk_name']?[0], "dart-flutterb-${Platform.isIOS ? "ios" : "android"}");
+  expect(
+      requestObject['sdk_name']?[0],
+      "dart-flutterb-${kIsWeb ? 'web' : Platform.isIOS ? 'ios' : 'android'}");
   expect(requestObject['sdk_version']?[0], '24.11.2');
-  expect(requestObject['av']?[0], Platform.isIOS ? '0.0.1' : '1.0.0');
+  expect(
+      requestObject['av']?[0],
+      kIsWeb
+          ? '0.0'
+          : Platform.isIOS
+              ? '0.0.1'
+              : '1.0.0');
   assert(requestObject['timestamp']?[0] != null);
 
   expect(requestObject['hour']?[0], DateTime.now().hour.toString());
   expect(requestObject['dow']?[0], DateTime.now().weekday.toString());
-  expect(requestObject['tz']?[0], DateTime.now().timeZoneOffset.inMinutes.toString());
+  if (!kIsWeb) {
+    expect(requestObject['tz']?[0], DateTime.now().timeZoneOffset.inMinutes.toString());
+  }
 }
 
 /// Verify custom request queue parameters
