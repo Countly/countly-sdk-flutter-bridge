@@ -241,14 +241,14 @@ class CountlyFlutterPlugin {
             notifyRemoteConfigDownloadCallback(error, remoteConfigs, true, requestID);
           }).jsify());
     } else if (call.method == 'remoteConfigGetAllValues') {
-      return Future.value(convertMapToRCData(Countly.get_remote_config(null).dartify()));
+      return Future.value(convertMapToRCData(Countly.get_remote_config()?.dartify()));
     } else if (call.method == 'getRemoteConfigValueForKey') {
       String key = data[0];
       return Future.value(Countly.get_remote_config(key).dartify());
     } else if (call.method == 'remoteConfigDownloadSpecificValue') {
       int requestID = data[0];
       Countly.fetch_remote_config(
-          data[1].jsify(),
+          data[1],
           null,
           allowInterop((JSAny? error, JSAny? remoteConfigs) {
             if (requestID == requestIDNoCallback) {
@@ -260,7 +260,7 @@ class CountlyFlutterPlugin {
       int requestID = data[0];
       Countly.fetch_remote_config(
           null,
-          data[1].jsify(),
+          data[1],
           allowInterop((JSAny? error, JSAny? remoteConfigs) {
             if (requestID == requestIDNoCallback) {
               return;
@@ -269,11 +269,10 @@ class CountlyFlutterPlugin {
           }).jsify());
     } else if (call.method == 'remoteConfigGetValue') {
       String key = data[0];
-      dynamic value = Countly.get_remote_config(key).dartify();
-      return Future.value({'value': value, 'isCurrentUsersData': true});
+      return Future.value({'value': Countly.get_remote_config(key)?.dartify(), 'isCurrentUsersData': true});
     } else if (call.method == 'getRemoteConfigValueForKey') {
       String key = data[0];
-      return Future.value(Countly.get_remote_config(key).dartify().toString());
+      return Future.value({'value': Countly.get_remote_config(key)?.dartify()?.toString(), 'isCurrentUsersData': true});
     }
 
     // LEGACY REMOTE CONFIG

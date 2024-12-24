@@ -51,7 +51,7 @@ class Countly {
 
   // Remote Config
   external static void fetch_remote_config(JSAny? keys, JSAny? omit_keys, JSAny? callback);
-  external static JSAny get_remote_config(String? key);
+  external static JSAny? get_remote_config([String? key]);
   external static void enrollUserToAb(JSAny? keys);
 }
 
