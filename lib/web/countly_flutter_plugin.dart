@@ -32,7 +32,7 @@ class CountlyFlutterPlugin {
   // insert module as package
   Future<dynamic> handleMethodCall(MethodCall call) async {
     if (!js.context.hasProperty('Countly')) {
-      await importLibrary();
+      await _importLibrary();
     }
     List<dynamic> data = List.empty();
     if (call.arguments != null && call.arguments['data'] != null) {
@@ -41,18 +41,18 @@ class CountlyFlutterPlugin {
 
     // INIT RELATED
     if (call.method == 'init') {
-      initialize(data[0]);
+      _initialize(data[0]);
     } else if (call.method == 'isInitialized') {
       return Future(() => 'false');
     }
 
     // EVENTS
     else if (call.method == 'recordEvent') {
-      recordEvent(data);
+      _recordEvent(data);
     } else if (call.method == 'startEvent') {
       Countly.start_event(data[0]);
     } else if (call.method == 'endEvent') {
-      endEvent(data);
+      _endEvent(data);
     }
 
     // SESSIONS
@@ -68,7 +68,7 @@ class CountlyFlutterPlugin {
     } else if (call.method == 'setID') {
       Countly.set_id(data[0]);
     } else if (call.method == 'getIDType') {
-      return Future(() => getDeviceIDType(Countly.get_device_id_type()));
+      return Future(() => _getDeviceIDType(Countly.get_device_id_type()));
     } else if (call.method == 'changeWithMerge') {
       Countly.change_id(data[0], true);
     } else if (call.method == 'changeWithoutMerge') {
@@ -91,12 +91,12 @@ class CountlyFlutterPlugin {
 
     // VIEWS
     else if (call.method == 'startAutoStoppedView') {
-      recordView(data);
+      _recordView(data);
     }
 
     // CRASHES
     else if (call.method == 'setCustomCrashSegment') {
-      Map<String, dynamic> segments = extractMap(data);
+      Map<String, dynamic> segments = _extractMap(data);
 
       if (segments.isNotEmpty) {
         Countly.track_errors(segments.jsify()!);
@@ -105,7 +105,7 @@ class CountlyFlutterPlugin {
       String exceptionString = data[0];
       bool nonfatal = data[1] == 'true';
 
-      Map<String, dynamic> segments = extractMap(data, idxStart: 2);
+      Map<String, dynamic> segments = _extractMap(data, idxStart: 2);
       Countly.recordError({'stack': exceptionString}.jsify()!, nonfatal, segments.jsify()!);
     } else if (call.method == 'addCrashLog') {
       Countly.add_log(data[0]);
@@ -130,11 +130,11 @@ class CountlyFlutterPlugin {
 
     // USER PROFILES
     else if (call.method == 'setuserdata') {
-      reportUserDetails(data[0]);
+      _reportUserDetails(data[0]);
     } else if (call.method.startsWith('userData_')) {
-      userDataOps(call.method, data);
+      _userDataOps(call.method, data);
     } else if (call.method.startsWith('userProfile_')) {
-      userProfileOps(call.method, data);
+      _userProfileOps(call.method, data);
     }
 
     // FEEDBACK
@@ -198,7 +198,6 @@ class CountlyFlutterPlugin {
 
       if (widget.isEmpty) {
         String errorInit = "[getFeedbackWidgetData], No feedbackWidget is found against widget id: '$widgetId', always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
-
         Map<String, Object?> callbackData = prepareCallbackData(null, errorInit);
         await methodChannel?.invokeMethod('feedbackWidgetDataCallback', callbackData);
         completer.complete([callbackData]);
@@ -241,10 +240,10 @@ class CountlyFlutterPlugin {
             if (requestID == requestIDNoCallback) {
               return;
             }
-            notifyRemoteConfigDownloadCallback(error, remoteConfigs, true, requestID);
+            _notifyRemoteConfigDownloadCallback(error, remoteConfigs, true, requestID);
           }).jsify());
     } else if (call.method == 'remoteConfigGetAllValues') {
-      return Future.value(convertMapToRCData(Countly.get_remote_config()?.dartify()));
+      return Future.value(_convertMapToRCData(Countly.get_remote_config()?.dartify()));
     } else if (call.method == 'getRemoteConfigValueForKey') {
       String key = data[0];
       return Future.value(Countly.get_remote_config(key).dartify());
@@ -257,7 +256,7 @@ class CountlyFlutterPlugin {
             if (requestID == requestIDNoCallback) {
               return;
             }
-            notifyRemoteConfigDownloadCallback(error, remoteConfigs, false, requestID);
+            _notifyRemoteConfigDownloadCallback(error, remoteConfigs, false, requestID);
           }).jsify());
     } else if (call.method == 'remoteConfigDownloadOmittingValues') {
       int requestID = data[0];
@@ -268,7 +267,7 @@ class CountlyFlutterPlugin {
             if (requestID == requestIDNoCallback) {
               return;
             }
-            notifyRemoteConfigDownloadCallback(error, remoteConfigs, false, requestID);
+            _notifyRemoteConfigDownloadCallback(error, remoteConfigs, false, requestID);
           }).jsify());
     } else if (call.method == 'remoteConfigGetValue') {
       String key = data[0];
@@ -280,11 +279,11 @@ class CountlyFlutterPlugin {
 
     // LEGACY REMOTE CONFIG
     else if (call.method == 'updateRemoteConfigForKeysOnly') {
-      return updateValuesRC(data.jsify(), null);
+      return _updateValuesRC(data.jsify(), null);
     } else if (call.method == 'updateRemoteConfigExceptKeys') {
-      return updateValuesRC(null, data.jsify());
+      return _updateValuesRC(null, data.jsify());
     } else if (call.method == 'remoteConfigUpdate') {
-      return updateValuesRC(null, null);
+      return _updateValuesRC(null, null);
     }
 
     // A/B TESTING
@@ -294,7 +293,7 @@ class CountlyFlutterPlugin {
       Countly.enrollUserToAb([key].jsify());
       return Future.value({'value': value, 'isCurrentUsersData': true});
     } else if (call.method == 'remoteConfigGetAllValuesAndEnroll') {
-      Map<String, Map<String, dynamic>> rcValues = convertMapToRCData(Countly.get_remote_config(null).dartify());
+      Map<String, Map<String, dynamic>> rcValues = _convertMapToRCData(Countly.get_remote_config(null).dartify());
       Countly.enrollUserToAb(rcValues.keys.toList().jsify());
       return Future.value(rcValues);
     } else if (call.method == 'remoteConfigEnrollIntoABTestsForKeys') {
@@ -334,7 +333,7 @@ class CountlyFlutterPlugin {
 
   /// Injects a bunch of libraries in the <head> and returns a
   /// Future that resolves when all load.
-  Future<void> importLibrary() async {
+  Future<void> _importLibrary() async {
     final head = querySelector('head');
 
     // try this as module
@@ -345,7 +344,7 @@ class CountlyFlutterPlugin {
     return Future.value();
   }
 
-  void reportUserDetails(Map<String, dynamic> userData) {
+  void _reportUserDetails(Map<String, dynamic> userData) {
     Map<String, dynamic> bundle = {};
     bundle['custom'] = <String, dynamic>{};
 
@@ -381,9 +380,9 @@ class CountlyFlutterPlugin {
     }
   }
 
-  void userProfileOps(String method, List<dynamic> data) {
+  void _userProfileOps(String method, List<dynamic> data) {
     if (method == 'userProfile_setProperties') {
-      reportUserDetails(data[0]);
+      _reportUserDetails(data[0]);
     } else if (method == 'userProfile_setProperty') {
       String keyName = data[0];
       Object keyValue = data[1];
@@ -430,7 +429,7 @@ class CountlyFlutterPlugin {
     }
   }
 
-  void userDataOps(String method, List<dynamic> data) {
+  void _userDataOps(String method, List<dynamic> data) {
     if (method == 'userData_setProperty') {
       String keyName = data[0];
       String keyValue = data[1];
@@ -480,20 +479,20 @@ class CountlyFlutterPlugin {
     }
   }
 
-  void recordEvent(List<dynamic> event) {
+  void _recordEvent(List<dynamic> event) {
     assert(event.length >= 4);
     // first 4 parameters are sent always
     // ket, count, sum, dur, segmentation might be sent
     Countly.add_event({'key': event[0], 'count': event[1], 'sum': event[2], 'dur': event[3], 'segmentation': event.length > 4 ? event[4] : null}.jsify()!);
   }
 
-  void endEvent(List<dynamic> event) {
+  void _endEvent(List<dynamic> event) {
     assert(event.length >= 3);
     // first parameter is key
     Countly.end_event({'key': event[0], 'count': event[1], 'sum': event[2], 'segmentation': event.length > 3 ? event[3] : null}.jsify()!);
   }
 
-  void recordView(List<dynamic> view) {
+  void _recordView(List<dynamic> view) {
     assert(view.isNotEmpty);
     // first parameter is view name
     String viewName = view[0];
@@ -503,13 +502,13 @@ class CountlyFlutterPlugin {
     if (il == 2) {
       segments = view[1];
     } else if (il > 2) {
-      segments = extractMap(view, idxStart: 1);
+      segments = _extractMap(view, idxStart: 1);
     }
     // ignore list and segmentation might be sent
     Countly.track_view(viewName, null, segments.jsify()!);
   }
 
-  String getDeviceIDType(int type) {
+  String _getDeviceIDType(int type) {
     switch (type) {
       case 0: // DEVELOPER_SUPPLIED
         return 'DS';
@@ -520,7 +519,7 @@ class CountlyFlutterPlugin {
     }
   }
 
-  Future<dynamic> updateValuesRC(JSAny? included, JSAny? excluded) {
+  Future<dynamic> _updateValuesRC(JSAny? included, JSAny? excluded) {
     final completer = Completer<dynamic>();
     Countly.fetch_remote_config(
         included,
@@ -536,7 +535,7 @@ class CountlyFlutterPlugin {
     return completer.future;
   }
 
-  Map<String, dynamic> extractMap(List<dynamic> data, {int idxStart = 0}) {
+  Map<String, dynamic> _extractMap(List<dynamic> data, {int idxStart = 0}) {
     Map<String, dynamic> map = {};
     for (int i = 0; i < data.length; i += 2) {
       map[data[i]] = data[i + 1];
@@ -544,7 +543,7 @@ class CountlyFlutterPlugin {
     return map;
   }
 
-  Map<String, Map<String, dynamic>> convertMapToRCData(dynamic rcData) {
+  Map<String, Map<String, dynamic>> _convertMapToRCData(dynamic rcData) {
     if (rcData == null) {
       return {};
     }
@@ -555,19 +554,19 @@ class CountlyFlutterPlugin {
     return data;
   }
 
-  void notifyRemoteConfigDownloadCallback(JSAny? error, JSAny? remoteConfigs, bool fullValueUpdate, int id) {
+  void _notifyRemoteConfigDownloadCallback(JSAny? error, JSAny? remoteConfigs, bool fullValueUpdate, int id) {
     Map<String, dynamic> data = {};
     dynamic errorDart = error?.dartify();
     data['error'] = errorDart is bool ? null : errorDart;
     data['requestResult'] = remoteConfigs != null ? 0 : 2;
-    data['downloadedValues'] = convertMapToRCData(remoteConfigs?.dartify());
+    data['downloadedValues'] = _convertMapToRCData(remoteConfigs?.dartify());
     data['fullValueUpdate'] = fullValueUpdate;
     data['id'] = id;
 
     methodChannel?.invokeMethod('remoteConfigDownloadCallback', data);
   }
 
-  void initialize(Map<String, dynamic> config) {
+  void _initialize(Map<String, dynamic> config) {
     Map<String, dynamic> configMap = {
       'app_key': config['appKey'],
       'url': config['serverURL'],
@@ -610,7 +609,7 @@ class CountlyFlutterPlugin {
     configMap['use_explicit_rc_api'] = true;
     if (rcEnabled != null && rcEnabled) {
       // not feedback one, RC download one
-      configMap['remote_config'] = allowInterop((JSAny? error, JSAny? remoteConfigs) => notifyRemoteConfigDownloadCallback(error, remoteConfigs, true, requestIDGlobalCallback)).jsify();
+      configMap['remote_config'] = allowInterop((JSAny? error, JSAny? remoteConfigs) => _notifyRemoteConfigDownloadCallback(error, remoteConfigs, true, requestIDGlobalCallback)).jsify();
     }
 
     configMap.removeWhere((key, value) => value == null);
@@ -623,7 +622,6 @@ class CountlyFlutterPlugin {
 
     Countly.init(configMap.jsify()!);
     if (config['manualSessionEnabled'] == null || config['manualSessionEnabled'] == false) {
-      print(configMap);
       Countly.track_sessions();
     }
 

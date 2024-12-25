@@ -1,5 +1,4 @@
 // ignore_for_file: non_constant_identifier_names
-
 import 'dart:js_interop';
 
 @JS('Countly') // Bind to the global 'Countly' object
