@@ -92,8 +92,6 @@ class CountlyFlutterPlugin {
     // VIEWS
     else if (call.method == 'startAutoStoppedView') {
       recordView(data);
-    } else if (call.method == 'setGlobalViewSegmentation' || call.method == 'updateGlobalViewSegmentation') {
-      Countly.track_pageview(null, null, data[0].jsify());
     }
 
     // CRASHES
@@ -105,7 +103,7 @@ class CountlyFlutterPlugin {
       }
     } else if (call.method == 'logException') {
       String exceptionString = data[0];
-      bool nonfatal = data[1];
+      bool nonfatal = data[1] == 'true';
 
       Map<String, dynamic> segments = extractMap(data, idxStart: 2);
       Countly.recordError({'stack': exceptionString}.jsify()!, nonfatal, segments.jsify()!);
@@ -155,7 +153,8 @@ class CountlyFlutterPlugin {
       var callback = allowInterop((JSAny? widgets, String? error) {
         if (error != null) {
           // Complete with an error if one is returned
-          completer.completeError(error);
+          cly.Countly.log('[CountlyFlutterPluginWeb] getAvailableFeedbackWidgets $error', logLevel: cly.LogLevel.ERROR);
+          completer.complete(error);
           return;
         }
 
@@ -183,11 +182,13 @@ class CountlyFlutterPlugin {
 
       // Return the Future from the Completer
       return completer.future;
-    } else if (call.method == 'presentFeedbackWidget') {
+    } else if (call.method == 'presentFeedbackWidget' || call.method == 'presentRatingWidgetWithID') {
       String widgetId = data[0];
       Map<Object?, Object?> widget = retrievedWidgetList.firstWhere((element) => element['_id'] == widgetId, orElse: () => {});
       if (widget.isEmpty) {
-        return Future.error("[presentFeedbackWidget], No feedbackWidget is found against widget id: '$widgetId', always call 'getFeedbackWidgets' to get updated list of feedback widgets.");
+        String message = "[CountlyFlutterPluginWeb] presentFeedbackWidget, No feedbackWidget is found against widget id: '$widgetId', always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
+        cly.Countly.log(message, logLevel: cly.LogLevel.ERROR);
+        return Future.value(message);
       }
       Countly.present_feedback_widget(widget.jsify(), null, null, null);
     } else if (call.method == 'getFeedbackWidgetData') {
@@ -222,7 +223,9 @@ class CountlyFlutterPlugin {
 
       Map<Object?, Object?> widget = retrievedWidgetList.firstWhere((element) => element['_id'] == widgetId, orElse: () => {});
       if (widget.isEmpty) {
-        return Future.error("[reportFeedbackWidgetManually], No feedbackWidget is found against widget id: '$widgetId', always call 'getFeedbackWidgets' to get updated list of feedback widgets.");
+        String message = "[CountlyFlutterPluginWeb] reportFeedbackWidgetManually, No feedbackWidget is found against widget id: '$widgetId', always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
+        cly.Countly.log(message, logLevel: cly.LogLevel.ERROR);
+        return Future.value(message);
       }
 
       Countly.reportFeedbackWidgetManually(widget.jsify(), widgetData.jsify(), widgetResult.jsify());
@@ -295,7 +298,7 @@ class CountlyFlutterPlugin {
       Countly.enrollUserToAb(rcValues.keys.toList().jsify());
       return Future.value(rcValues);
     } else if (call.method == 'remoteConfigEnrollIntoABTestsForKeys') {
-      Countly.enrollUserToAb(data[0].jsify());
+      Countly.enrollUserToAb(data[0]);
     }
 
     // CONTENT ZONE
@@ -304,7 +307,7 @@ class CountlyFlutterPlugin {
     } else if (call.method == 'exitContentZone') {
       CountlyContent.exitContentZone();
     } else {
-      cly.Countly.log("The countly_flutter plugin for web doesn't implement the method ${call.method}", logLevel: cly.LogLevel.ERROR);
+      cly.Countly.log('[CountlyFlutterPluginWeb] handleMethodCall, The method ${call.method} does not implemented', logLevel: cly.LogLevel.ERROR);
     }
     return Future.value();
   }
@@ -522,11 +525,12 @@ class CountlyFlutterPlugin {
     Countly.fetch_remote_config(
         included,
         excluded,
-        allowInterop((JSAny? error) {
-          if (error != null) {
+        allowInterop((JSAny? error, JSAny? remoteConfigs) {
+          bool isError = error != null && error.dartify() as bool;
+          if (error != null && (isError || error is! bool)) {
             completer.complete('Error: $error');
           } else {
-            completer.complete('Success');
+            completer.complete('Success: ${remoteConfigs?.dartify()}');
           }
         }).jsify());
     return completer.future;
@@ -633,10 +637,6 @@ class CountlyFlutterPlugin {
 
     if (config['customCrashSegment'] != null) {
       Countly.track_errors(config['customCrashSegment'].jsify());
-    }
-
-    if (config['globalViewSegmentation'] != null) {
-      Countly.track_pageview(null, null, config['globalViewSegmentation'].jsify());
     }
   }
 }

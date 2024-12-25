@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:countly_flutter_example/helpers.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class OthersPage extends StatelessWidget {
@@ -12,10 +13,12 @@ class OthersPage extends StatelessWidget {
 
   void recordIndirectAttribution() {
     Map<String, String> attributionValues = {};
-    if (Platform.isIOS) {
-      attributionValues[AttributionKey.IDFA] = 'IDFA';
-    } else {
-      attributionValues[AttributionKey.AdvertisingID] = 'AdvertisingID';
+    if (!kIsWeb) {
+      if (Platform.isIOS) {
+        attributionValues[AttributionKey.IDFA] = 'IDFA';
+      } else {
+        attributionValues[AttributionKey.AdvertisingID] = 'AdvertisingID';
+      }
     }
     Countly.recordIndirectAttribution(attributionValues);
   }

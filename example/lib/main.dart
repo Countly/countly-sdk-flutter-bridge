@@ -14,6 +14,7 @@ import 'package:countly_flutter_example/page_sessions.dart';
 import 'package:countly_flutter_example/page_user_profiles.dart';
 import 'package:countly_flutter_example/page_views.dart';
 import 'package:countly_flutter_example/style.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 void main() {
@@ -37,29 +38,28 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    Countly.isInitialized().then((bool isInitialized) {
-      if (!isInitialized) {
-        Countly.pushTokenType(Countly.messagingMode['TEST']!); // Set messaging mode for push notifications
 
-        CountlyConfig config = CountlyConfiguration.getConfig();
-        Countly.initWithConfig(config).then((value) {
-          Countly.appLoadingFinished(); // for APM feature
+    if (!kIsWeb) {
+      Countly.pushTokenType(Countly.messagingMode['TEST']!); // Set messaging mode for push notifications
+    }
 
-          /// Push notifications settings. Should be call after init
-          Countly.onNotification((String notification) {
-            print('The notification:[$notification]');
-          }); // Set callback to receive push notifications
+    CountlyConfig config = CountlyConfiguration.getConfig();
+    Countly.initWithConfig(config).then((value) {
+      Countly.appLoadingFinished(); // for APM feature
 
-          Countly.askForNotificationPermission(); // This method will ask for permission, enables push notification and send push token to countly server.;
+      if (!kIsWeb) {
+        /// Push notifications settings. Should be call after init
+        Countly.onNotification((String notification) {
+          print('The notification:[$notification]');
+        }); // Set callback to receive push notifications
 
-          Countly.instance.remoteConfig.registerDownloadCallback((rResult, error, fullValueUpdate, downloadedValues) {
-            print('download callback after init 3');
-          });
-        }); // Initialize the countly SDK.
-      } else {
-        print('Countly: Already initialized!');
+        Countly.askForNotificationPermission(); // This method will ask for permission, enables push notification and send push token to countly server.;
       }
-    });
+
+      Countly.instance.remoteConfig.registerDownloadCallback((rResult, error, fullValueUpdate, downloadedValues) {
+        print('download callback after init 3');
+      });
+    }); // Initialize the countly SDK.
   }
 
   @override

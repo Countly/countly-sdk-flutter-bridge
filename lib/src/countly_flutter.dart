@@ -2024,10 +2024,12 @@ class Countly {
       return 'Error : $error';
     }
     Map<String, String> attributionValues = {};
-    if (Platform.isIOS) {
-      attributionValues[AttributionKey.IDFA] = attributionID;
-    } else {
-      attributionValues[AttributionKey.AdvertisingID] = attributionID;
+    if(!kIsWeb) {
+      if (Platform.isIOS) {
+        attributionValues[AttributionKey.IDFA] = attributionID;
+      } else {
+        attributionValues[AttributionKey.AdvertisingID] = attributionID;
+      }
     }
     final String? result = await recordIndirectAttribution(attributionValues);
     return result;
