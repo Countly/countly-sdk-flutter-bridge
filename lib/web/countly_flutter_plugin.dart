@@ -45,7 +45,6 @@ class CountlyFlutterPlugin {
     } else if (call.method == 'isInitialized') {
       return Future(() => 'false');
     }
-
     // EVENTS
     else if (call.method == 'recordEvent') {
       _recordEvent(data);
@@ -126,6 +125,8 @@ class CountlyFlutterPlugin {
         eventList.add(JSON.stringify(item));
       }
       return Future(() => eventList);
+    } else if (call.method == 'halt') {
+      Countly.halt();
     }
 
     // USER PROFILES

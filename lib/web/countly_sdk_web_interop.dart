@@ -7,7 +7,9 @@ class Countly {
   external static JSArray get features;
   external static String? get salt;
 
+  // SDK
   external static void init(JSAny config);
+  external static void halt();
 
   // Events
   external static void add_event(JSAny event);

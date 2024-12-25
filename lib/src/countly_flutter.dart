@@ -114,7 +114,11 @@ class Countly {
   /// Flag to determine if manual session is enabled
   static bool _manualSessionControlEnabled = false;
 
-  static Map<String, String> messagingMode = kIsWeb ? {} : Platform.isAndroid ? {'TEST': '2', 'PRODUCTION': '0'} : {'TEST': '1', 'PRODUCTION': '0', 'ADHOC': '2'};
+  static Map<String, String> messagingMode = kIsWeb
+      ? {}
+      : Platform.isAndroid
+          ? {'TEST': '2', 'PRODUCTION': '0'}
+          : {'TEST': '1', 'PRODUCTION': '0', 'ADHOC': '2'};
 
   static const temporaryDeviceID = 'CLYTemporaryDeviceID';
   @Deprecated('This variable is deprecated, please use "Countly.instance.deviceId.enableTemporaryDeviceID()" instead')
@@ -2024,7 +2028,7 @@ class Countly {
       return 'Error : $error';
     }
     Map<String, String> attributionValues = {};
-    if(!kIsWeb) {
+    if (!kIsWeb) {
       if (Platform.isIOS) {
         attributionValues[AttributionKey.IDFA] = attributionID;
       } else {
@@ -2302,6 +2306,13 @@ class Countly {
       log('"_configToJson", Exception occur during converting config to json: $e', logLevel: LogLevel.ERROR);
     }
     return countlyConfig;
+  }
+
+  /// This method is for testing purposes only
+  /// Do not use this method in production
+  Future<void> halt() {
+    _countlyState.isInitialized = false;
+    return _channel.invokeMethod('halt');
   }
 }
 
