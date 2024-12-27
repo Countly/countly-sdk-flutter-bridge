@@ -508,7 +508,7 @@ class CountlyFlutterPlugin {
       segments = _extractMap(view, idxStart: 1);
     }
     // ignore list and segmentation might be sent
-    Countly.track_view(viewName, null, segments.jsify()!);
+    Countly.track_pageview(viewName, null, segments.jsify()!);
   }
 
   String _getDeviceIDType(int type) {
@@ -579,7 +579,7 @@ class CountlyFlutterPlugin {
       'session_update': config['sessionUpdateTimerDelay'],
       'max_events': config['eventQueueSizeThreshold'],
       'queue_size': config['maxRequestQueueSize'],
-      'force_post': config['httpPostForced'],
+      'force_post': config['httpPostForced'] ?? false,
       'require_consent': config['shouldRequireConsent'],
       'salt': config['tamperingProtectionSalt'],
     };
