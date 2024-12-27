@@ -400,9 +400,9 @@ class Countly {
   @Deprecated('This function is deprecated, please use "recordEvent" of events instead')
   static Future<String?> recordEvent(Map<String, Object> options) async {
     String? key = options['key'] as String?;
-    int? count = options['count'] as int?;
-    int? sum = options['sum'] as int?;
-    int? duration = options['duration'] as int?;
+    int? count = _parseValue(options, 'count', 1);
+    double? sum = _parseValue(options, 'sum', 0);
+    int? duration = _parseValue(options, 'duration', 1);
     Map<String, Object>? segmentation = options['segmentation'] as Map<String, Object>?;
 
     if (key == null) {
@@ -412,6 +412,22 @@ class Countly {
     }
 
     return _instance.events.recordEvent(key, segmentation, count, sum, duration);
+  }
+
+  static T _parseValue<T>(Map<String, Object> map, String key, T fallback) {
+    Object? value = map[key];
+
+    if (value is T) {
+      return value;
+    } else if (value is String) {
+      if (T == int) {
+        return (int.tryParse(value) ?? fallback) as T;
+      } else if (T == double) {
+        return (double.tryParse(value) ?? fallback) as T;
+      }
+    }
+
+    return fallback;
   }
 
   /// Record custom view to Countly.
@@ -1673,8 +1689,8 @@ class Countly {
   static Future<String?> endEvent(Map<String, Object> options) async {
     String? key = options['key'] as String?;
     Map<String, Object>? segmentation = options['segmentation'] as Map<String, Object>?;
-    int? count = options['count'] as int?;
-    int? sum = options['sum'] as int?;
+    int? count = _parseValue(options, 'count', 1);
+    double? sum = _parseValue(options, 'sum', 0);
 
     if (key == null) {
       String message = 'endEvent, key cannot be null';

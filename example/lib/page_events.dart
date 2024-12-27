@@ -70,6 +70,13 @@ class EventsPage extends StatelessWidget {
     });
   }
 
+  void cancelEvent() {
+    Countly.startEvent('Timed Event With Cancel');
+    Timer(const Duration(seconds: 5), () {
+      Countly.instance.events.cancelEvent('Timed Event With Cancel');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,6 +96,7 @@ class EventsPage extends StatelessWidget {
             MyButton(text: 'Timed event Sum: Start / Stop', color: 'grey', onPressed: endEventWithSum),
             MyButton(text: 'Timed event Segment: Start / Stop', color: 'grey', onPressed: endEventWithSegment),
             MyButton(text: 'Timed event Sum Segment: Start / Stop', color: 'grey', onPressed: endEventWithSumSegment),
+            MyButton(text: 'Timed event Start / Cancel', color: 'grey', onPressed: cancelEvent),
           ],
         )),
       ),
