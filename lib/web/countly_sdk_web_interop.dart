@@ -15,6 +15,7 @@ class Countly {
   external static void add_event(JSAny event);
   external static void start_event(String key);
   external static void end_event(JSAny event);
+  external static void cancel_event(String key);
 
   // Session Management
   external static void begin_session();

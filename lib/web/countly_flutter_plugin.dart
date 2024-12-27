@@ -52,6 +52,8 @@ class CountlyFlutterPlugin {
       Countly.start_event(data[0]);
     } else if (call.method == 'endEvent') {
       _endEvent(data);
+    } else if (call.method == 'cancelEvent') {
+      Countly.cancel_event(data[0]);
     }
 
     // SESSIONS
