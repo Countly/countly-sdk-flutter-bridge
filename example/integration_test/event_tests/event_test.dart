@@ -52,7 +52,7 @@ void main() {
 
     // 4. event_c_s
     currentEvent = json.decode(eventList[n++]);
-    validateEvent(event: currentEvent, key: event_c_s['key'] as String, count: event_c_s['count'] as int, sum: event_c_s['sum'] as int);
+    validateEvent(event: currentEvent, key: event_c_s['key'] as String, count: event_c_s['count'] as int, sum: event_c_s['sum'] as double);
 
     // 5. event_c_d
     currentEvent = json.decode(eventList[n++]);
@@ -64,11 +64,11 @@ void main() {
 
     // 7. event_c_s_d
     currentEvent = json.decode(eventList[n++]);
-    validateEvent(event: currentEvent, key: event_c_s_d['key'] as String, count: event_c_s_d['count'] as int, sum: event_c_s_d['sum'] as int, dur: event_c_s_d['duration'] as int);
+    validateEvent(event: currentEvent, key: event_c_s_d['key'] as String, count: event_c_s_d['count'] as int, sum: event_c_s_d['sum'] as double, dur: event_c_s_d['duration'] as int);
 
     // 8. event_c_s_se
     currentEvent = json.decode(eventList[n++]);
-    validateEvent(event: currentEvent, key: event_c_s_se['key'] as String, count: event_c_s_se['count'] as int, sum: event_c_s_se['sum'] as int, segmentation: expectedSegmentation);
+    validateEvent(event: currentEvent, key: event_c_s_se['key'] as String, count: event_c_s_se['count'] as int, sum: event_c_s_se['sum'] as double, segmentation: expectedSegmentation);
 
     // 9. event_c_d_se
     currentEvent = json.decode(eventList[n++]);
@@ -76,23 +76,23 @@ void main() {
 
     // 10. event_c_s_d_se
     currentEvent = json.decode(eventList[n++]);
-    validateEvent(event: currentEvent, key: event_c_s_d_se['key'] as String, count: event_c_s_d_se['count'] as int, sum: event_c_s_d_se['sum'] as int, dur: event_c_s_d_se['duration'] as int, segmentation: expectedSegmentation);
+    validateEvent(event: currentEvent, key: event_c_s_d_se['key'] as String, count: event_c_s_d_se['count'] as int, sum: event_c_s_d_se['sum'] as double, dur: event_c_s_d_se['duration'] as int, segmentation: expectedSegmentation);
 
     // 11. event_s
     currentEvent = json.decode(eventList[n++]);
-    validateEvent(event: currentEvent, key: event_s['key'] as String, sum: event_s['sum'] as int);
+    validateEvent(event: currentEvent, key: event_s['key'] as String, sum: event_s['sum'] as double);
 
     // 12. event_s_d
     currentEvent = json.decode(eventList[n++]);
-    validateEvent(event: currentEvent, key: event_s_d['key'] as String, sum: event_s_d['sum'] as int, dur: event_s_d['duration'] as int);
+    validateEvent(event: currentEvent, key: event_s_d['key'] as String, sum: event_s_d['sum'] as double, dur: event_s_d['duration'] as int);
 
     // 13. event_s_se
     currentEvent = json.decode(eventList[n++]);
-    validateEvent(event: currentEvent, key: event_s_se['key'] as String, sum: event_s_se['sum'] as int, segmentation: expectedSegmentation);
+    validateEvent(event: currentEvent, key: event_s_se['key'] as String, sum: event_s_se['sum'] as double, segmentation: expectedSegmentation);
 
     // 14. event_s_d_se
     currentEvent = json.decode(eventList[n++]);
-    validateEvent(event: currentEvent, key: event_s_d_se['key'] as String, sum: event_s_d_se['sum'] as int, dur: event_s_d_se['duration'] as int, segmentation: expectedSegmentation);
+    validateEvent(event: currentEvent, key: event_s_d_se['key'] as String, sum: event_s_d_se['sum'] as double, dur: event_s_d_se['duration'] as int, segmentation: expectedSegmentation);
 
     // 15. event_d
     currentEvent = json.decode(eventList[n++]);
@@ -116,7 +116,7 @@ void main() {
 
     // 20. timed_event_c_s
     currentEvent = json.decode(eventList[n++]);
-    validateEvent(event: currentEvent, key: timed_event_c_s['key'] as String, count: 1, sum: timed_event_c_s['sum'] as int, isTimed: true);
+    validateEvent(event: currentEvent, key: timed_event_c_s['key'] as String, count: 1, sum: timed_event_c_s['sum'] as double, isTimed: true);
 
     // 21. timed_event_c_d
     currentEvent = json.decode(eventList[n++]);
@@ -128,11 +128,11 @@ void main() {
 
     // 23. timed_event_c_s_d
     currentEvent = json.decode(eventList[n++]);
-    validateEvent(event: currentEvent, key: timed_event_c_s_d['key'] as String, count: 1, sum: timed_event_c_s_d['sum'] as int, dur: timed_event_c_s_d['duration'] as int, isTimed: true);
+    validateEvent(event: currentEvent, key: timed_event_c_s_d['key'] as String, count: 1, sum: timed_event_c_s_d['sum'] as double, dur: timed_event_c_s_d['duration'] as int, isTimed: true);
 
     // 24. timed_event_c_s_se
     currentEvent = json.decode(eventList[n++]);
-    validateEvent(event: currentEvent, key: timed_event_c_s_se['key'] as String, count: 1, sum: timed_event_c_s_se['sum'] as int, segmentation: expectedSegmentation, isTimed: true);
+    validateEvent(event: currentEvent, key: timed_event_c_s_se['key'] as String, count: 1, sum: timed_event_c_s_se['sum'] as double, segmentation: expectedSegmentation, isTimed: true);
 
     // 25. timed_event_c_d_se
     currentEvent = json.decode(eventList[n++]);
@@ -140,23 +140,23 @@ void main() {
 
     // 26. timed_event_c_s_d_se
     currentEvent = json.decode(eventList[n++]);
-    validateEvent(event: currentEvent, key: timed_event_c_s_d_se['key'] as String, count: 1, sum: timed_event_c_s_d_se['sum'] as int, dur: timed_event_c_s_d_se['duration'] as int, segmentation: expectedSegmentation, isTimed: true);
+    validateEvent(event: currentEvent, key: timed_event_c_s_d_se['key'] as String, count: 1, sum: timed_event_c_s_d_se['sum'] as double, dur: timed_event_c_s_d_se['duration'] as int, segmentation: expectedSegmentation, isTimed: true);
 
     // 27. timed_event_s
     currentEvent = json.decode(eventList[n++]);
-    validateEvent(event: currentEvent, key: timed_event_s['key'] as String, sum: timed_event_s['sum'] as int, isTimed: true);
+    validateEvent(event: currentEvent, key: timed_event_s['key'] as String, sum: timed_event_s['sum'] as double, isTimed: true);
 
     // 28. timed_event_s_d
     currentEvent = json.decode(eventList[n++]);
-    validateEvent(event: currentEvent, key: timed_event_s_d['key'] as String, sum: timed_event_s_d['sum'] as int, dur: timed_event_s_d['duration'] as int, isTimed: true);
+    validateEvent(event: currentEvent, key: timed_event_s_d['key'] as String, sum: timed_event_s_d['sum'] as double, dur: timed_event_s_d['duration'] as int, isTimed: true);
 
     // 29. timed_event_s_se
     currentEvent = json.decode(eventList[n++]);
-    validateEvent(event: currentEvent, key: timed_event_s_se['key'] as String, sum: timed_event_s_se['sum'] as int, segmentation: expectedSegmentation, isTimed: true);
+    validateEvent(event: currentEvent, key: timed_event_s_se['key'] as String, sum: timed_event_s_se['sum'] as double, segmentation: expectedSegmentation, isTimed: true);
 
     // 30. timed_event_s_d_se
     currentEvent = json.decode(eventList[n++]);
-    validateEvent(event: currentEvent, key: timed_event_s_d_se['key'] as String, sum: timed_event_s_d_se['sum'] as int, dur: timed_event_s_d_se['duration'] as int, segmentation: expectedSegmentation, isTimed: true);
+    validateEvent(event: currentEvent, key: timed_event_s_d_se['key'] as String, sum: timed_event_s_d_se['sum'] as double, dur: timed_event_s_d_se['duration'] as int, segmentation: expectedSegmentation, isTimed: true);
 
     // 31. timed_event_d
     currentEvent = json.decode(eventList[n++]);
