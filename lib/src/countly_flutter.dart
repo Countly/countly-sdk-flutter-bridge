@@ -12,6 +12,8 @@ import 'countly_config.dart';
 import 'countly_state.dart';
 import 'device_id.dart';
 import 'device_id_internal.dart';
+import 'events.dart';
+import 'events_internal.dart';
 import 'feedback.dart';
 import 'feedback_internal.dart';
 import 'remote_config.dart';
@@ -67,6 +69,7 @@ class Countly {
     _sessionsInternal = SessionsInternal(_countlyState);
     _contentBuilderInternal = ContentBuilderInternal(_countlyState);
     _feedbackInternal = FeedbackInternal(_countlyState);
+    _eventsInternal = EventsInternal(_countlyState);
   }
   static final instance = _instance;
   static final _instance = Countly._();
@@ -93,6 +96,9 @@ class Countly {
 
   late final FeedbackInternal _feedbackInternal;
   Feedback get feedback => _feedbackInternal;
+
+  late final EventsInternal _eventsInternal;
+  Events get events => _eventsInternal;
 
   /// ignore: constant_identifier_names
   static const bool BUILDING_WITH_PUSH_DISABLED = false;
@@ -391,39 +397,37 @@ class Countly {
 
   /// Records an event
   /// returns the error or success message
+  @Deprecated('This function is deprecated, please use "recordEvent" of events instead')
   static Future<String?> recordEvent(Map<String, Object> options) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "recordEvent"';
-      log('recordEvent, $message', logLevel: LogLevel.ERROR);
+    String? key = options['key'] as String?;
+    int? count = _parseValue(options, 'count', 1);
+    double? sum = _parseValue(options, 'sum', 0);
+    int? duration = _parseValue(options, 'duration', 1);
+    Map<String, Object>? segmentation = options['segmentation'] as Map<String, Object>?;
+
+    if (key == null) {
+      String message = 'recordEvent, key is required';
+      log(message, logLevel: LogLevel.ERROR);
       return message;
     }
-    List<Object> args = [];
-    options['key'] ??= '';
-    String eventKey = options['key'].toString();
-    log('Calling "recordEvent":[$eventKey]');
 
-    if (eventKey.isEmpty) {
-      String error = 'recordEvent, Valid Countly event key is required';
-      log(error);
-      return 'Error : $error';
-    }
-    args.add(eventKey);
-    options['count'] ??= '1';
-    args.add(options['count'].toString());
+    return _instance.events.recordEvent(key, segmentation, count, sum, duration);
+  }
 
-    options['sum'] ??= '0';
-    args.add(options['sum'].toString());
+  static T _parseValue<T>(Map<String, Object> map, String key, T fallback) {
+    Object? value = map[key];
 
-    options['duration'] ??= '0';
-    args.add(options['duration'].toString());
-
-    if (options['segmentation'] != null) {
-      args.add(options['segmentation']!);
+    if (value is T) {
+      return value;
+    } else if (value is String) {
+      if (T == int) {
+        return (int.tryParse(value) ?? fallback) as T;
+      } else if (T == double) {
+        return (double.tryParse(value) ?? fallback) as T;
+      }
     }
 
-    final String? result = await _channel.invokeMethod('recordEvent', <String, dynamic>{'data': json.encode(args)});
-
-    return result;
+    return fallback;
   }
 
   /// Record custom view to Countly.
@@ -1674,58 +1678,27 @@ class Countly {
 
   /// starts a timed event
   /// returns error or success message
+  @Deprecated('This function is deprecated, please use "startEvent" of events instead')
   static Future<String?> startEvent(String key) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "startEvent"';
-      log('startEvent, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "startEvent":[$key]');
-    if (key.isEmpty) {
-      String error = "startEvent, Can't start event with empty key";
-      log(error);
-      return 'Error : $error';
-    }
-    List<String> args = [];
-    args.add(key);
-
-    final String? result = await _channel.invokeMethod('startEvent', <String, dynamic>{'data': json.encode(args)});
-
-    return result;
+    return _instance.events.startEvent(key);
   }
 
   /// ends a timed event
   /// returns error or success message
+  @Deprecated('This function is deprecated, please use "endEvent" of events instead')
   static Future<String?> endEvent(Map<String, Object> options) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "endEvent"';
-      log('endEvent, $message', logLevel: LogLevel.ERROR);
+    String? key = options['key'] as String?;
+    Map<String, Object>? segmentation = options['segmentation'] as Map<String, Object>?;
+    int? count = _parseValue(options, 'count', 1);
+    double? sum = _parseValue(options, 'sum', 0);
+
+    if (key == null) {
+      String message = 'endEvent, key cannot be null';
+      log(message);
       return message;
     }
-    String eventKey = options['key'] != null ? options['key'].toString() : '';
-    log('Calling "endEvent":[$eventKey]');
-    List<Object> args = [];
 
-    if (eventKey.isEmpty) {
-      String error = "endEvent, Can't end event with a null or empty key";
-      log(error);
-      return 'Error : $error';
-    }
-    args.add(eventKey);
-
-    options['count'] ??= '1';
-    args.add(options['count'].toString());
-
-    options['sum'] ??= '0';
-    args.add(options['sum'].toString());
-
-    if (options['segmentation'] != null) {
-      args.add(options['segmentation']!);
-    }
-
-    final String? result = await _channel.invokeMethod('endEvent', <String, dynamic>{'data': json.encode(args)});
-
-    return result;
+    return _instance.events.endEvent(key, segmentation, count, sum);
   }
 
   /// Call used for testing error handling

@@ -45,8 +45,8 @@ var expectedSegmentation = {
   'boolList': boolList,
   'mixedList': mixedList,
   'normalString': 'normalString',
-  'nestedList' : [],
-  'mapList' : [],
+  'nestedList': [],
+  'mapList': [],
   'normalInt': 1,
   'normalDouble': 1.1,
   'normalBool': true,
@@ -54,33 +54,33 @@ var expectedSegmentation = {
 
 var event = {'key': 'event'};
 var event_c = {'key': 'event_c', 'count': 1};
-var event_c_s = {'key': 'event_c_s', 'count': 1, 'sum': 3};
+var event_c_s = {'key': 'event_c_s', 'count': 1, 'sum': 3.0};
 var event_c_d = {'key': 'event_c_d', 'count': 1, 'duration': 3};
 var event_c_se = {'key': 'event_c_se', 'count': 1, 'segmentation': segment};
-var event_c_s_d = {'key': 'event_c_s_d', 'count': 1, 'sum': 3, 'duration': 3};
-var event_c_s_se = {'key': 'event_c_s_se', 'count': 1, 'sum': 3, 'segmentation': segment};
+var event_c_s_d = {'key': 'event_c_s_d', 'count': 1, 'sum': 3.0, 'duration': 3};
+var event_c_s_se = {'key': 'event_c_s_se', 'count': 1, 'sum': 3.0, 'segmentation': segment};
 var event_c_d_se = {'key': 'event_c_d_se', 'count': 1, 'duration': 3, 'segmentation': segment};
-var event_c_s_d_se = {'key': 'event_c_s_d_se', 'count': 1, 'sum': 3, 'duration': 3, 'segmentation': segment};
-var event_s = {'key': 'event_s', 'sum': 3};
-var event_s_d = {'key': 'event_s_d', 'sum': 3, 'duration': 3};
-var event_s_se = {'key': 'event_s_se', 'sum': 3, 'segmentation': segment};
-var event_s_d_se = {'key': 'event_s_d_se', 'sum': 3, 'duration': 3, 'segmentation': segment};
+var event_c_s_d_se = {'key': 'event_c_s_d_se', 'count': 1, 'sum': 3.0, 'duration': 3, 'segmentation': segment};
+var event_s = {'key': 'event_s', 'sum': 3.0};
+var event_s_d = {'key': 'event_s_d', 'sum': 3.0, 'duration': 3};
+var event_s_se = {'key': 'event_s_se', 'sum': 3.0, 'segmentation': segment};
+var event_s_d_se = {'key': 'event_s_d_se', 'sum': 3.0, 'duration': 3, 'segmentation': segment};
 var event_d = {'key': 'event_d', 'duration': 3};
 var event_d_se = {'key': 'event_d_se', 'duration': 3, 'segmentation': segment};
 var event_se = {'key': 'event_se', 'segmentation': segment};
 var timed_event = {'key': 'timed_event'};
 var timed_event_c = {'key': 'timed_event_c', 'count': 1};
-var timed_event_c_s = {'key': 'timed_event_c_s', 'count': 1, 'sum': 3};
+var timed_event_c_s = {'key': 'timed_event_c_s', 'count': 1, 'sum': 3.0};
 var timed_event_c_d = {'key': 'timed_event_c_d', 'count': 1, 'duration': 3};
 var timed_event_c_se = {'key': 'timed_event_c_se', 'count': 1, 'segmentation': segment};
-var timed_event_c_s_d = {'key': 'timed_event_c_s_d', 'count': 1, 'sum': 3, 'duration': 3};
-var timed_event_c_s_se = {'key': 'timed_event_c_s_se', 'count': 1, 'sum': 3, 'segmentation': segment};
+var timed_event_c_s_d = {'key': 'timed_event_c_s_d', 'count': 1, 'sum': 3.0, 'duration': 3};
+var timed_event_c_s_se = {'key': 'timed_event_c_s_se', 'count': 1, 'sum': 3.0, 'segmentation': segment};
 var timed_event_c_d_se = {'key': 'timed_event_c_d_se', 'count': 1, 'duration': 3, 'segmentation': segment};
-var timed_event_c_s_d_se = {'key': 'timed_event_c_s_d_se', 'count': 1, 'sum': 3, 'duration': 3, 'segmentation': segment};
-var timed_event_s = {'key': 'timed_event_s', 'sum': 3};
-var timed_event_s_d = {'key': 'timed_event_s_d', 'sum': 3, 'duration': 3};
-var timed_event_s_se = {'key': 'timed_event_s_se', 'sum': 3, 'segmentation': segment};
-var timed_event_s_d_se = {'key': 'timed_event_s_d_se', 'sum': 3, 'duration': 3, 'segmentation': segment};
+var timed_event_c_s_d_se = {'key': 'timed_event_c_s_d_se', 'count': 1, 'sum': 3.0, 'duration': 3, 'segmentation': segment};
+var timed_event_s = {'key': 'timed_event_s', 'sum': 3.0};
+var timed_event_s_d = {'key': 'timed_event_s_d', 'sum': 3.0, 'duration': 3};
+var timed_event_s_se = {'key': 'timed_event_s_se', 'sum': 3.0, 'segmentation': segment};
+var timed_event_s_d_se = {'key': 'timed_event_s_d_se', 'sum': 3.0, 'duration': 3, 'segmentation': segment};
 var timed_event_d = {'key': 'timed_event_d', 'duration': 3};
 var timed_event_d_se = {'key': 'timed_event_d_se', 'duration': 3, 'segmentation': segment};
 var timed_event_se = {'key': 'timed_event_se', 'segmentation': segment};
@@ -128,10 +128,11 @@ Future<void> generateEvents() async {
 }
 
 String idCounter = "";
-void validateEvent({dynamic event, String? key, int? count = 1, int? sum = 0, int? dur, dynamic segmentation, String? cvid = "", bool isTimed = false}) {
+void validateEvent({dynamic event, String? key, int? count = 1, double? sum = 0, int? dur, dynamic segmentation, String? cvid = "", bool isTimed = false}) {
   expect(event['key'], key);
   expect(event['count'], count);
-  expect(event['sum'], sum);
+  double sumDelta = event['sum'] - sum;
+  expect(true, -00.1 < sumDelta && sumDelta < 00.1);
   expect(event['dur'], isTimed || Platform.isIOS ? isNotNull : dur);
   expect(event['segmentation'], segmentation);
   expect(event['timestamp'], isNotNull);
