@@ -22,14 +22,10 @@ rootProject.allprojects {
 apply plugin: 'com.android.library'
 
 android {
-    // Conditional for compatibility with AGP <4.2.
-    if (project.android.hasProperty("namespace")) {
-        namespace 'ly.count.dart.countly_flutter'
-    }
-    compileSdk 35
+    compileSdkVersion 31
 
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 16
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     lintOptions {
@@ -38,5 +34,5 @@ android {
 }
 
 dependencies {
-    implementation 'ly.count.android:sdk:24.7.7'
+    implementation 'ly.count.android:sdk:25.1.1'
 }

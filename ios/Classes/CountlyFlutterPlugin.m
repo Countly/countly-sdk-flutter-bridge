@@ -28,7 +28,7 @@ BOOL BUILDING_WITH_PUSH_DISABLED = true;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
 
-NSString *const kCountlyFlutterSDKVersion = @"24.11.2";
+NSString *const kCountlyFlutterSDKVersion = @"25.1.0";
 NSString *const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 NSString *const kCountlyFlutterSDKNameNoPush = @"dart-flutterbnp-ios";
 
