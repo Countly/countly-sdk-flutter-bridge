@@ -3,6 +3,7 @@
 * Default request method is now set to "POST"
 * Updated user properties caching mechanism according to sessions.
 * Added a new function "recordMetrics: metricsOverride" to send a device metrics request.
+* Added "setRequestTimeoutDuration(requestTimeoutDuration)" init config method to change request timeout duration in seconds.
 * Added a new Consent option "metrics" for controlling "recordMetrics" method. (This has no effect on Session metrics.)
 * Improved content error handling and display mechanics.
 * Improved Health Check metric information.
