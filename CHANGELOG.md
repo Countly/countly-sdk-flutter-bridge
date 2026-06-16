@@ -1,3 +1,8 @@
+## XX.XX.XX
+* ! Minor breaking change ! The iOS plugin sources were reorganized to support Swift Package Manager. If you use a Notification Service Extension for rich push notifications, update the reference to "CountlyNotificationService.h" and "CountlyNotificationService.m" in your extension target to the new path "ios/countly_flutter/Sources/countly_flutter/countly-sdk-ios/".
+
+* Added Swift Package Manager (SwiftPM) support for iOS. CocoaPods integration is still supported.
+
 ## 26.1.0
 * Added server-side listing filters support for controlling what data gets recorded:
   * Event filters (blacklist/whitelist) to control which events are recorded
