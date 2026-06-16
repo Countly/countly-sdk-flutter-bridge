@@ -38,7 +38,7 @@ void main() {
     print('RQ length: ${requestList.length}');
     print('EQ length: ${eventList.length}');
 
-    expect(requestList.length, Platform.isIOS ? 8 : 7); // user properties and custom user properties are separately sent in iOS
+    expect(requestList.length, 7);
     expect(eventList.length, 0);
 
     // TODO: refactor this part (move to utils and make it more generic)
@@ -112,12 +112,6 @@ void main() {
         expect(userDetails['custom']['special_value'], 'something special'.substring(0, MAX_VALUE_SIZE));
         expect(userDetails['custom']['not_special_value'], 'something special cooking'.substring(0, MAX_VALUE_SIZE));
         checkUnchangingUserPropeties(userDetails, MAX_VALUE_SIZE);
-
-        if (Platform.isAndroid) {
-          checkUnchangingUserData(userDetails, null, MAX_VALUE_SIZE);
-        }
-      } else if (Platform.isIOS && a == 7) {
-        Map<String, dynamic> userDetails = json.decode(queryParams['user_details']![0]);
         checkUnchangingUserData(userDetails, null, MAX_VALUE_SIZE);
       }
 

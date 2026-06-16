@@ -3,6 +3,8 @@
 
 * Added Swift Package Manager (SwiftPM) support for iOS. CocoaPods integration is still supported.
 
+* Mitigated an issue where async native callbacks could crash with a NullPointerException when invoked after the Flutter engine had detached (e.g. hot restart, multi-engine setups) in Android.
+
 ## 26.1.0
 * Added server-side listing filters support for controlling what data gets recorded:
   * Event filters (blacklist/whitelist) to control which events are recorded

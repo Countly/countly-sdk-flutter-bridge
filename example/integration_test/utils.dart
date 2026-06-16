@@ -83,7 +83,11 @@ void testCommonRequestParams(Map<String, List<String>> requestObject) {
   expect(requestObject['app_key']?[0], APP_KEY);
   expect(
     requestObject['sdk_name']?[0],
-    "dart-flutterb-${kIsWeb ? 'web' : Platform.isIOS ? 'ios' : 'android'}",
+    "dart-flutterb-${kIsWeb
+        ? 'web'
+        : Platform.isIOS
+        ? 'ios'
+        : 'android'}",
   );
   expect(requestObject['sdk_version']?[0], '26.1.0');
   expect(
@@ -91,8 +95,8 @@ void testCommonRequestParams(Map<String, List<String>> requestObject) {
     kIsWeb
         ? '0.0'
         : Platform.isIOS
-            ? '0.0.1'
-            : '1.0.0',
+        ? '0.0.1'
+        : '1.0.0',
   );
   assert(requestObject['timestamp']?[0] != null);
 
