@@ -1,3 +1,3 @@
-[submodule "ios/Classes/countly-sdk-ios"]
-	path = ios/Classes/countly-sdk-ios
+[submodule "ios/countly_flutter/Sources/countly_flutter/countly-sdk-ios"]
+	path = ios/countly_flutter/Sources/countly_flutter/countly-sdk-ios
 	url = https://github.com/Countly/countly-sdk-ios.git
