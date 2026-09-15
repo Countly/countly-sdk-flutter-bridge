@@ -201,8 +201,11 @@ Future<List<Device>> discoverDevices() async {
     try {
       final result = await Process.run('xcrun', ['simctl', 'list', 'devices', 'booted']);
       final uuidPattern = RegExp(r'[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}', caseSensitive: false);
+      // simctl lists every runtime; only iOS sections hold devices the tests can run on.
+      var inIosSection = false;
       for (final line in result.stdout.toString().split('\n')) {
-        if (line.toLowerCase().contains('booted')) {
+        if (line.startsWith('-- ')) inIosSection = line.startsWith('-- iOS ');
+        if (inIosSection && line.toLowerCase().contains('booted')) {
           final match = uuidPattern.firstMatch(line);
           if (match != null) {
             devices.add(Device('ios', match.group(0)!));

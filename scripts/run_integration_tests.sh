@@ -118,7 +118,7 @@ discover_devices() {
       if [[ -n "$uuid" ]]; then
         devices+=("ios:$uuid")
       fi
-    done < <(xcrun simctl list devices booted 2>/dev/null | grep -i "booted")
+    done < <(xcrun simctl list devices booted 2>/dev/null | awk '/^-- /{ios=($0 ~ /^-- iOS /)} ios && /Booted/')
   fi
 
   # ── iOS: connected physical devices (via idevice_id or flutter) ──
