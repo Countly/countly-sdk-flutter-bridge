@@ -18,3 +18,6 @@
 !CountlyTests.xcscheme
 !*.plist
 !.github/
+!*.md
+!*.podspec
+!*.sh

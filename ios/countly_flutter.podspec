@@ -9,8 +9,10 @@ Pod::Spec.new do |s|
   s.social_media_url = 'https://twitter.com/gocountly'
   s.author = {'Countly' => 'hello@count.ly'}
   s.source = { :path => '.' }
-  s.source_files = 'Classes/**/*'
-  s.public_header_files = 'Classes/CountlyFlutterPlugin.h'
+  # Sources live in the Swift Package Manager layout; CocoaPods and SwiftPM share the same files.
+  s.source_files = 'countly_flutter/Sources/countly_flutter/**/*.{h,m,swift}'
+  s.public_header_files = 'countly_flutter/Sources/countly_flutter/include/countly_flutter/CountlyFlutterPlugin.h'
+  s.resource_bundles = { 'countly_flutter_privacy' => ['countly_flutter/Sources/countly_flutter/countly-sdk-ios/PrivacyInfo.xcprivacy'] }
   s.dependency 'Flutter'
   s.swift_version = '5.0'
   s.ios.deployment_target = '10.0'
