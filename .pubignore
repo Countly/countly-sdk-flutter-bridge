@@ -1,3 +1,4 @@
 .idea/
 example/android/app/google-services.json
 example/ios/Podfile.lock
+scripts/
