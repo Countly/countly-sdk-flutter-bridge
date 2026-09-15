@@ -57,10 +57,10 @@ void main(List<String> args) {
   );
 
   replaceInFile(
-    '$rootDir/ios/countly_flutter.podspec',
+    '$rootDir/ios/countly_flutter_np.podspec',
     RegExp(r"s\.version = '.+'"),
     "s.version = '$flutterVersion'",
-    'Flutter → ios/countly_flutter.podspec',
+    'Flutter → ios/countly_flutter_np.podspec',
   );
 
   replaceInFile(
@@ -71,10 +71,10 @@ void main(List<String> args) {
   );
 
   replaceInFile(
-    '$rootDir/ios/Classes/CountlyFlutterPlugin.m',
+    '$rootDir/ios/countly_flutter_np/Sources/countly_flutter_np/CountlyFlutterPlugin.m',
     RegExp(r'kCountlyFlutterSDKVersion = @".+"'),
     'kCountlyFlutterSDKVersion = @"$flutterVersion"',
-    'Flutter → ios/Classes/CountlyFlutterPlugin.m',
+    'Flutter → ios/countly_flutter_np/Sources/countly_flutter_np/CountlyFlutterPlugin.m',
   );
 
   replaceInFile(
@@ -123,7 +123,7 @@ void main(List<String> args) {
 
   // ---- iOS: submodule init & sparse checkout ----
   final iosTag = args.isNotEmpty ? args[0] : iosVersion;
-  final submodulePath = 'ios/Classes/countly-sdk-ios';
+  final submodulePath = 'ios/countly_flutter_np/Sources/countly_flutter_np/countly-sdk-ios';
   final sparseFile = '$scriptDir/config/sparse-checkout.list';
 
   print('');
@@ -170,15 +170,15 @@ void main(List<String> args) {
         'add',
         'scripts/config/sdk_versions.txt',
         'pubspec.yaml',
-        'ios/countly_flutter.podspec',
+        'ios/countly_flutter_np.podspec',
         'android/src/main/java/ly/count/dart/countly_flutter/CountlyFlutterPlugin.java',
-        'ios/Classes/CountlyFlutterPlugin.m',
+        'ios/countly_flutter_np/Sources/countly_flutter_np/CountlyFlutterPlugin.m',
         'lib/src/web/plugin_config.dart',
         'scripts/no-push-files/pubspec.yaml',
         'scripts/no-push-files/countly_flutter_np.podspec',
         'android/build.gradle',
         'scripts/no-push-files/build.gradle',
-        'ios/Classes/countly-sdk-ios',
+        'ios/countly_flutter_np/Sources/countly_flutter_np/countly-sdk-ios',
       ],
       rootDir);
   print('✅ All changed files staged');

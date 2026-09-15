@@ -25,7 +25,7 @@ void main() {
     expect(RQ.length, 0);
     expect(EQ.length, 0);
     deduplicateRequestArray(requestArray);
-    validateRequestCounts({'events': 3, 'location': 1, 'crash': 2, 'begin_session': 1, 'consent': 0, 'end_session': 1, 'session_duration': 2, 'apm': 2, 'user_details': Platform.isIOS ? 2 : 1}, requestArray);
+    validateRequestCounts({'events': 3, 'location': 1, 'crash': 2, 'begin_session': 1, 'consent': 0, 'end_session': 1, 'session_duration': 2, 'apm': 2, 'user_details': 1}, requestArray);
     validateInternalEventCounts({'orientation': 1, 'view': 6, 'nps': 1}, requestArray);
     validateImmediateCounts({'hc': 1, 'sc': 1, 'feedback': 1, 'queue': 2, 'ab': 1, 'ab_opt_out': 1, 'rc': 1}, requestArray);
   });

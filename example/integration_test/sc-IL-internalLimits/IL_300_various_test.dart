@@ -34,7 +34,7 @@ void main() {
     print('RQ length: ${requestList.length}');
     print('EQ length: ${eventList.length}');
 
-    expect(requestList.length, Platform.isIOS ? 8 : 7); // user properties and custom user properties are separately sent in iOS
+    expect(requestList.length, 7);
     expect(eventList.length, 0);
 
     // TODO: refactor this part (move to utils and make it more generic)

@@ -34,7 +34,7 @@ void main() {
     RQ = await getRequestQueueParsed();
     expect(RQ.length, 0);
     deduplicateRequestArray(requestArray);
-    validateRequestCounts({'first': 0, 'second': 1, 'events': Platform.isAndroid ? 3 : 2, 'location': 1, 'crash': 2, 'begin_session': 1, 'end_session': 1, 'session_duration': 2, 'apm': 2, 'user_details': Platform.isIOS ? 2 : 1, 'consent': 0}, requestArray);
+    validateRequestCounts({'first': 0, 'second': 1, 'events': Platform.isAndroid ? 3 : 2, 'location': 1, 'crash': 2, 'begin_session': 1, 'end_session': 1, 'session_duration': 2, 'apm': 2, 'user_details': 1, 'consent': 0}, requestArray);
     // validate that first request is deleted from the queue because of dort: 1
     validateInternalEventCounts({'orientation': 1, 'view': Platform.isAndroid ? 6 : 5, 'nps': 1}, requestArray); // 6 android
     // enter content zone is not called, but a content zone request is sent it is because server config is set cz to true
@@ -83,12 +83,11 @@ void main() {
           expect(userDetails['custom']['not_s'], 'somet');
         }
 
-        // in iOS user data requests are formed in a different request
-        if (userDetails['custom'].length > 2) {
+        if (userDetails['custom'] != null && userDetails['custom'].length > 2) {
           checkUnchangingUserData(userDetails, 5, 5);
         }
 
-        if (Platform.isAndroid || (Platform.isIOS && userDetails['custom'] == null)) {
+        if (userDetails['custom'] == null || userDetails['custom'].length > 2) {
           checkUnchangingUserPropeties(userDetails, 5);
         }
       }
