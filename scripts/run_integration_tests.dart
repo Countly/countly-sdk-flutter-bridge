@@ -1,4 +1,5 @@
 #!/usr/bin/env dart
+// @dart=3.0
 
 /// Integration Test Runner for Countly Flutter SDK
 ///
