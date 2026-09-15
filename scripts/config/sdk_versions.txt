@@ -1,4 +1,4 @@
-flutter_sdk_version=26.1.0
+flutter_sdk_version=26.1.1
 android_sdk_version=26.1.2
 ios_sdk_version=26.1.1
 web_sdk_version=26.1.1
