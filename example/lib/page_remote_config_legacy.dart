@@ -7,7 +7,9 @@ final navigatorKey = GlobalKey<NavigatorState>();
 class RemoteConfigPageLegacy extends StatelessWidget {
   @deprecated
   void getABTestingValues() {
+    // ignore: deprecated_member_use_from_same_package
     Countly.remoteConfigUpdate((result) {
+      // ignore: deprecated_member_use_from_same_package
       Countly.getRemoteConfigValueForKey('baloon', (result) {
         String alertText = "Value for 'baloon' is : ${result.toString()}";
         print(alertText);
@@ -27,6 +29,7 @@ class RemoteConfigPageLegacy extends StatelessWidget {
 
   @deprecated
   void remoteConfigUpdate() {
+    // ignore: deprecated_member_use_from_same_package
     Countly.remoteConfigUpdate((result) {
       print(result);
     });
@@ -34,6 +37,7 @@ class RemoteConfigPageLegacy extends StatelessWidget {
 
   @deprecated
   void updateRemoteConfigForKeysOnly() {
+    // ignore: deprecated_member_use_from_same_package
     Countly.updateRemoteConfigForKeysOnly(['name'], (result) {
       print(result);
     });
@@ -41,6 +45,7 @@ class RemoteConfigPageLegacy extends StatelessWidget {
 
   @deprecated
   void getRemoteConfigValueForKeyString() {
+    // ignore: deprecated_member_use_from_same_package
     Countly.getRemoteConfigValueForKey('stringValue', (result) {
       print(result);
     });
@@ -48,6 +53,7 @@ class RemoteConfigPageLegacy extends StatelessWidget {
 
   @deprecated
   void getRemoteConfigValueForKeyBoolean() {
+    // ignore: deprecated_member_use_from_same_package
     Countly.getRemoteConfigValueForKey('booleanValue', (result) {
       print(result);
     });
@@ -55,6 +61,7 @@ class RemoteConfigPageLegacy extends StatelessWidget {
 
   @deprecated
   void getRemoteConfigValueForKeyFloat() {
+    // ignore: deprecated_member_use_from_same_package
     Countly.getRemoteConfigValueForKey('floatValue', (result) {
       print(result);
     });
@@ -62,6 +69,7 @@ class RemoteConfigPageLegacy extends StatelessWidget {
 
   @deprecated
   void getRemoteConfigValueForKeyInteger() {
+    // ignore: deprecated_member_use_from_same_package
     Countly.getRemoteConfigValueForKey('integerValue', (result) {
       print(result);
     });
@@ -69,6 +77,7 @@ class RemoteConfigPageLegacy extends StatelessWidget {
 
   @deprecated
   void updateRemoteConfigExceptKeys() {
+    // ignore: deprecated_member_use_from_same_package
     Countly.updateRemoteConfigExceptKeys(['url'], (result) {
       print(result);
     });
@@ -76,6 +85,7 @@ class RemoteConfigPageLegacy extends StatelessWidget {
 
   @deprecated
   void remoteConfigClearValues() {
+    // ignore: deprecated_member_use_from_same_package
     Countly.remoteConfigClearValues((result) {
       print(result);
     });
@@ -83,6 +93,7 @@ class RemoteConfigPageLegacy extends StatelessWidget {
 
   @deprecated
   void getRemoteConfigValueForKey() {
+    // ignore: deprecated_member_use_from_same_package
     Countly.getRemoteConfigValueForKey('name', (result) {
       print(result);
     });
@@ -90,38 +101,46 @@ class RemoteConfigPageLegacy extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Remote Config'),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(15),
-        child: Center(
-            child: Column(
+    return CountlyPageScaffold(
+      title: 'Remote Config (Legacy)',
+      sections: [
+        CountlySection(
+          title: 'Legacy RC Operations',
+          subtitle: 'These methods are deprecated',
           children: [
             // ignore: deprecated_member_use_from_same_package
-            MyButton(text: 'Countly.remoteConfigUpdate (Legacy)', color: 'red', onPressed: remoteConfigUpdate),
+            MyButton(text: 'Remote Config Update', type: CountlyButtonType.outlined, onPressed: remoteConfigUpdate),
             // ignore: deprecated_member_use_from_same_package
-            MyButton(text: 'Countly.updateRemoteConfigForKeysOnly (Legacy)', color: 'red', onPressed: updateRemoteConfigForKeysOnly),
+            MyButton(text: 'Update For Keys Only', type: CountlyButtonType.outlined, onPressed: updateRemoteConfigForKeysOnly),
             // ignore: deprecated_member_use_from_same_package
-            MyButton(text: 'Countly.updateRemoteConfigExceptKeys (Legacy)', color: 'red', onPressed: updateRemoteConfigExceptKeys),
+            MyButton(text: 'Update Except Keys', type: CountlyButtonType.outlined, onPressed: updateRemoteConfigExceptKeys),
             // ignore: deprecated_member_use_from_same_package
-            MyButton(text: 'Countly.remoteConfigClearValues (Legacy)', color: 'red', onPressed: remoteConfigClearValues),
-            // ignore: deprecated_member_use_from_same_package
-            MyButton(text: 'Get String Value (Legacy)', color: 'red', onPressed: getRemoteConfigValueForKeyString),
-            // ignore: deprecated_member_use_from_same_package
-            MyButton(text: 'Get Boolean Value (Legacy)', color: 'red', onPressed: getRemoteConfigValueForKeyBoolean),
-            // ignore: deprecated_member_use_from_same_package
-            MyButton(text: 'Get Float Value (Legacy)', color: 'red', onPressed: getRemoteConfigValueForKeyFloat),
-            // ignore: deprecated_member_use_from_same_package
-            MyButton(text: 'Get Integer Value (Legacy)', color: 'red', onPressed: getRemoteConfigValueForKeyInteger),
-            // ignore: deprecated_member_use_from_same_package
-            MyButton(text: 'Get AB testing values (Legacy)', color: 'red', onPressed: getABTestingValues),
-            MyButton(text: 'Record event for goal #1', color: 'red', onPressed: eventForGoal_1),
-            MyButton(text: 'Record event for goal #2', color: 'red', onPressed: eventForGoal_2),
+            MyButton(text: 'Clear RC Values', type: CountlyButtonType.outlined, onPressed: remoteConfigClearValues),
           ],
-        )),
-      ),
+        ),
+        CountlySection(
+          title: 'Legacy Get Values',
+          children: [
+            // ignore: deprecated_member_use_from_same_package
+            MyButton(text: 'Get String Value', type: CountlyButtonType.outlined, onPressed: getRemoteConfigValueForKeyString),
+            // ignore: deprecated_member_use_from_same_package
+            MyButton(text: 'Get Boolean Value', type: CountlyButtonType.outlined, onPressed: getRemoteConfigValueForKeyBoolean),
+            // ignore: deprecated_member_use_from_same_package
+            MyButton(text: 'Get Float Value', type: CountlyButtonType.outlined, onPressed: getRemoteConfigValueForKeyFloat),
+            // ignore: deprecated_member_use_from_same_package
+            MyButton(text: 'Get Integer Value', type: CountlyButtonType.outlined, onPressed: getRemoteConfigValueForKeyInteger),
+            // ignore: deprecated_member_use_from_same_package
+            MyButton(text: 'Get AB Testing Values', type: CountlyButtonType.outlined, onPressed: getABTestingValues),
+          ],
+        ),
+        CountlySection(
+          title: 'Goal Events',
+          children: [
+            MyButton(text: 'Record Event for Goal #1', type: CountlyButtonType.tonal, onPressed: eventForGoal_1),
+            MyButton(text: 'Record Event for Goal #2', type: CountlyButtonType.tonal, onPressed: eventForGoal_2),
+          ],
+        ),
+      ],
     );
   }
 }

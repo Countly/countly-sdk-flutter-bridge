@@ -61,31 +61,42 @@ class ViewsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Views'),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(15),
-        child: Center(
-          child: Column(
-            children: [
-              MyButton(text: "Record View: 'HomePage'", color: 'olive', onPressed: recordViewHome),
-              MyButton(text: "Record View: 'Dashboard'", color: 'olive', onPressed: recordViewDashboard),
-              MyButton(text: 'Start View', color: 'yellow', onPressed: startView),
-              MyButton(text: 'Start View With Segmentation', color: 'yellow', onPressed: startViewWithSegmentation),
-              MyButton(text: 'Stop View with ID', color: 'orange', onPressed: stopViewWithID),
-              MyButton(text: 'Stop View with Name', color: 'orange', onPressed: stopViewWithName),
-              MyButton(text: 'Pause View with ID', color: 'yellow', onPressed: pauseViewWithID),
-              MyButton(text: 'Resume View with ID', color: 'yellow', onPressed: resumeViewWithID),
-              MyButton(text: 'Set Global View Segmentation', color: 'grey', onPressed: setGlobalViewSegmentation),
-              MyButton(text: 'Update Global View Segmentation', color: 'grey', onPressed: updateGlobalViewSegmentation),
-              MyButton(text: 'Add Segmentation to View with ID', color: 'grey', onPressed: addSegmentationToViewWithID),
-              MyButton(text: 'Add Segmentation to View with Name', color: 'grey', onPressed: addSegmentationToViewWithName),
-            ],
-          ),
+    return CountlyPageScaffold(
+      title: 'Views',
+      sections: [
+        CountlySection(
+          title: 'Record Views (Legacy)',
+          children: [
+            MyButton(text: "Record View HomePage", type: CountlyButtonType.tonal, onPressed: recordViewHome),
+            MyButton(text: "Record View Dashboard", type: CountlyButtonType.tonal, onPressed: recordViewDashboard),
+          ],
         ),
-      ),
+        CountlySection(
+          title: 'View Lifecycle',
+          children: [
+            MyButton(text: 'Start View', type: CountlyButtonType.filled, onPressed: startView),
+            MyButton(text: 'Start View With Segmentation', type: CountlyButtonType.filled, onPressed: startViewWithSegmentation),
+            MyButton(text: 'Pause View with ID', type: CountlyButtonType.tonal, onPressed: pauseViewWithID),
+            MyButton(text: 'Resume View with ID', type: CountlyButtonType.tonal, onPressed: resumeViewWithID),
+            MyButton(text: 'Stop View with ID', type: CountlyButtonType.outlined, onPressed: stopViewWithID),
+            MyButton(text: 'Stop View with Name', type: CountlyButtonType.outlined, onPressed: stopViewWithName),
+          ],
+        ),
+        CountlySection(
+          title: 'Global Segmentation',
+          children: [
+            MyButton(text: 'Set Global View Segmentation', type: CountlyButtonType.filled, onPressed: setGlobalViewSegmentation),
+            MyButton(text: 'Update Global View Segmentation', type: CountlyButtonType.tonal, onPressed: updateGlobalViewSegmentation),
+          ],
+        ),
+        CountlySection(
+          title: 'View Segmentation',
+          children: [
+            MyButton(text: 'Add Segmentation to View with ID', type: CountlyButtonType.tonal, onPressed: addSegmentationToViewWithID),
+            MyButton(text: 'Add Segmentation to View with Name', type: CountlyButtonType.tonal, onPressed: addSegmentationToViewWithName),
+          ],
+        ),
+      ],
     );
   }
 }

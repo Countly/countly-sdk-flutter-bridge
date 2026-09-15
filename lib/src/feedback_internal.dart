@@ -53,7 +53,7 @@ class FeedbackInternal implements Feedback {
     await invokeFeedbackMethod('presentSurvey', nameIDorTag);
   }
 
-  Future<void> invokeFeedbackMethod(String methodName, String? nameIDorTag){
+  Future<void> invokeFeedbackMethod(String methodName, String? nameIDorTag) {
     final args = [];
     nameIDorTag ??= '';
     args.add(nameIDorTag);

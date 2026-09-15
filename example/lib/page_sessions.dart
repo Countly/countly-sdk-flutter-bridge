@@ -19,21 +19,19 @@ class SessionsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Sessions'),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(15),
-        child: Center(
-            child: Column(
+    return CountlyPageScaffold(
+      title: 'Sessions',
+      sections: [
+        CountlySection(
+          title: 'Manual Session Control',
+          subtitle: 'Enable manual session handling in config first',
           children: [
-            MyButton(text: 'Begin Session', color: 'green', onPressed: beginSession),
-            MyButton(text: 'Update Session', color: 'yellow', onPressed: updateSession),
-            MyButton(text: 'End Session', color: 'orange', onPressed: endSession),
+            MyButton(text: 'Begin Session', type: CountlyButtonType.filled, onPressed: beginSession),
+            MyButton(text: 'Update Session', type: CountlyButtonType.tonal, onPressed: updateSession),
+            MyButton(text: 'End Session', type: CountlyButtonType.outlined, onPressed: endSession),
           ],
-        )),
-      ),
+        ),
+      ],
     );
   }
 }

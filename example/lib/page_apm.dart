@@ -17,6 +17,15 @@ class APMPage extends StatelessWidget {
     Countly.endTrace(traceKey, customMetric);
   }
 
+  void cancelTrace() {
+    String traceKey = 'Trace Key';
+    Countly.cancelTrace(traceKey);
+  }
+
+  void clearAllTraces() {
+    Countly.clearAllTraces();
+  }
+
   final List<int> successCodes = [100, 101, 200, 201, 202, 205, 300, 301, 303, 305];
   final List<int> failureCodes = [400, 402, 405, 408, 500, 501, 502, 505];
 
@@ -44,22 +53,26 @@ class APMPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('APM'),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(15),
-        child: Center(
-            child: Column(
+    return CountlyPageScaffold(
+      title: 'APM',
+      sections: [
+        CountlySection(
+          title: 'Custom Traces',
           children: [
-            MyButton(text: 'Start Trace', color: 'brown', onPressed: startTrace),
-            MyButton(text: 'End Trace', color: 'brown', onPressed: endTrace),
-            MyButton(text: 'Record Network Trace Success', color: 'black', onPressed: recordNetworkTraceSuccess),
-            MyButton(text: 'Record Network Trace Failure', color: 'black', onPressed: recordNetworkTraceFailure),
+            MyButton(text: 'Start Trace', type: CountlyButtonType.filled, onPressed: startTrace),
+            MyButton(text: 'End Trace', type: CountlyButtonType.tonal, onPressed: endTrace),
+            MyButton(text: 'Cancel Trace', type: CountlyButtonType.outlined, onPressed: cancelTrace),
+            MyButton(text: 'Clear All Traces', type: CountlyButtonType.outlined, onPressed: clearAllTraces),
           ],
-        )),
-      ),
+        ),
+        CountlySection(
+          title: 'Network Traces',
+          children: [
+            MyButton(text: 'Record Network Trace Success', type: CountlyButtonType.filled, onPressed: recordNetworkTraceSuccess),
+            MyButton(text: 'Record Network Trace Failure', type: CountlyButtonType.tonal, onPressed: recordNetworkTraceFailure),
+          ],
+        ),
+      ],
     );
   }
 }

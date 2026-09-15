@@ -1,3 +1,166 @@
+## 26.1.1-np
+* Added Swift Package Manager (SwiftPM) support for iOS. CocoaPods integration is still supported.
+
+* Mitigated an issue where async native callbacks could crash with a NullPointerException when invoked after the Flutter engine had detached (e.g. hot restart, multi-engine setups) in Android.
+
+* Underlying Android SDK version is 26.1.2
+* Underlying iOS SDK version is 26.1.1
+* Underlying Web SDK version is 26.1.1
+
+## 26.1.0-np
+* Added server-side listing filters support for controlling what data gets recorded:
+  * Event filters (blacklist/whitelist) to control which events are recorded
+  * User property filters (blacklist/whitelist) to control which user properties are recorded
+  * Custom event segmentation filters to control which segmentation keys are recorded across all events
+  * Custom event-specific segmentation filters to control segmentation keys per custom event
+  * User property cache limit to limit the number of user properties recorded per request (Android and iOS)
+* Added journey trigger events that automatically refresh content zones when journey trigger events are recorded.
+* Added Content feature method `previewContent(String contentId)` (Experimental!).
+* Added a new config option disableViewRestartForManualRecording to disable auto close/restart behavior of manual views on app background/foreground actions.
+* Added a new config option "setWebviewDisplayOption: WebViewDisplayOption" to control how Content and Feedback Widgets are presented.
+  * IMMERSIVE mode (default): Full-screen display (except cutouts).
+  * SAFE_AREA mode: Omits status bar, navigation bar and cutouts when displaying WebView.
+* Added "setRequestTimeoutDuration(requestTimeoutDuration)" init config method to change request timeout duration in seconds.
+* Added setting custom network request headers support for web platform.
+* Improved content display and refresh mechanics, including robust resource loading checks before displaying content.
+* Improved feedbacks response validation and added POST method support for contents in iOS.
+* Improved consent requirements and location info management when updated from server configuration in iOS.
+* Added support for Feedback Widget resizing logic (will need server update to benefit) in Web.
+* Added filtering capability to content interface through enterContentZone(contentFilterCallback) in Web.
+* Improved user property recording order with respect to sessions and events in Web.
+* Improved device metric detection capabilities and testing consistency of queuing system in Web.
+
+* Mitigated an issue where closing surveys presented via journeys was triggering an exception in Android.
+* Mitigated an issue where opening a new activity while content was loading could hide it in Android.
+* Mitigated an issue about early health check requests in temporary ID mode in iOS.
+* Mitigated issues in iOS where multiple contents could be displayed in parallel and when returning from external content links.
+* Mitigated an issue where an unintended URL was opened when closing a feedback widget after a content block was closed in Web.
+
+* Updated underlying Android SDK version to 26.1.2
+* Updated underlying iOS SDK version is 26.1.1
+* Updated underlying Web SDK version is 26.1.1
+
+## 25.4.3-np
+* Mitigated an issue in iOS class paths. 
+
+* Updated underlying Android SDK version to 25.4.8
+* Underlying iOS SDK version is 25.4.8
+* Underlying Web SDK version is 25.4.2
+
+## 25.4.2-np
+* Added a new function "addCustomNetworkRequestHeaders: customHeaderValues" for providing or overriding custom headers after init.
+* Default request method is now set to "POST"
+* Updated user properties caching mechanism according to sessions.
+* Added a new function "recordMetrics: metricsOverride" to send a device metrics request.
+* Added a new Consent option "metrics" for controlling "recordMetrics" method. (This has no effect on Session metrics.)
+* Improved content error handling and display mechanics.
+* Improved Health Check metric information.
+* Improved disk size calculation in crash reports in Android.
+* Non window contexts also now uses POST requests by default in Web.
+* Improved CPU architecture detection capabilities in iOS.
+
+* Mitigated an issue where latest fetched behavior settings were replacing the current settings instead of merging.
+* Mitigated a possible Health Check network log recording issue.
+* Mitigated a potential issue where Remote Config calls could have blocked the main UI thread processes in Android.
+* Mitigated an issue that could have happened when navigating back from a Content in Android.
+* Mitigated a persistency issue with configuration provided SBS and its initial state in Android.
+* Mitigated an issue where SBS could have been fetched twice in Android.
+* Mitigated an SBS issue while in temporary ID mode in iOS.
+* Mitigated a race condition that could happen when recording previous event name in iOS.
+* Mitigated a possible issue with request timeouts in IE11 in Web
+* Mitigated an issue where manual feedback reporting could have failed in Web.
+
+* Updated underlying Android SDK version to 25.4.7
+* Updated underlying iOS SDK version to 25.4.8
+* Updated underlying Web SDK version to 25.4.2
+
+## 25.4.1-np
+* Added fullscreen support for feedback widgets.
+* Added "disableSDKBehaviorSettingsUpdates()" init config method to disable server config updates.
+* Improved request queue handling with a built-in backoff mechanism which is enabled by default.
+* Added "disableBackoffMechanism()" init config method to disable backoff behavior.
+* Added "attemptToSendStoredRequests()" method for events that needs quick sending.
+* Added support for SDK health checks after initialization for iOS.
+* Added timezone support for Web.
+
+* Mitigated an issue when an install referrer triggered.
+
+* Updated underlying Android SDK version to 25.4.1
+* Updated underlying iOS SDK version to 25.4.2
+* Updated underlying Web SDK version to 25.4.1
+
+## 25.4.0-np
+* ! Minor breaking change ! Removed Secure.ANDROID_ID on Android and UIDevice.currentDevice.identifierForVendor on iOS usages in device ID generation. The SDKs now exclusively uses random UUIDs for device ID generation.
+* ! Minor breaking change ! SDK now has Server Configuration feature and it is enabled by default. Changes made on SDK Manager > SDK Configuration on your server will affect SDK behavior directly.
+
+* Added `refreshContentZone` method to Content interface for refreshing Content Zone requests.
+* Added `setSDKBehaviorSettings(String)` init config method for providing server configuration during first initialization.
+
+* Updated underlying Android SDK version to 25.4.0
+* Updated underlying iOS SDK version to 25.4.0
+* Updated underlying Web SDK version to 25.4.0
+
+## 25.1.1-np
+* Removed Android v1 embedding support
+
+* Underlying Android SDK version is 25.1.1
+* Underlying iOS SDK version is 25.1.1
+* Underlying Web SDK version is 25.1.0
+
+## 25.1.0-np
+* Added experimental support for the web platform in the Countly Flutter SDK. Some functionalities are not yet fully supported. Below is the list of limitations for the web platform:
+  * Hybrid sessions are the default; full manual sessions are not supported.
+  * Features Not Supported: Push Notifications, APM, and Attribution.
+  * Countly.setUserLocation and Countly.disableLocation are unavailable.
+  * In Views, the following view-related functions are not supported:
+    * startView
+    * stopViewWithName
+    * stopViewWithID
+    * stopAllViews
+    * pauseViewWithID
+    * resumeViewWithID
+    * addSegmentationToViewWithName
+    * addSegmentationToViewWithID
+    * updateGlobalViewSegmentation
+    * setGlobalViewSegmentation
+  * In Remote Config, the clearAll function is unavailable, and caching functionality is not provided.
+  * In A/B Testing the following are not supported:
+    * exitABTestsForKeys
+    * Variant-level control
+    * Experiment-level control
+  * Star Rating and related configuration options are unavailable.
+  * User properties during initialization are not supported.
+  * Custom network headers are not supported.
+  * Dropping old requests is not supported.
+  * Content zone global callback is not supported.
+  * Experimental configuration options are not supported.
+
+* Added 'event' interface for events methods which are
+  * recordEvent(String key, [Map<String, Object>? segmentation, int? count, int? sum, int? duration])
+  * startEvent(String key)
+  * endEvent(String key, [Map<String, Object>? segmentation, int? count, int? sum])
+  * cancelEvent(String key)
+* Added 'cancelEvent' to cancel a timed event, it is accesible through 'events' interface
+
+* Deprecated the following methods from the Countly
+  * 'recordEvent(options)', instead use 'events.recordEvent(key, [segmentation, count, sum, duration])
+  * 'startEvent(key)', instead use 'events.startEvent(key)'
+  * 'endEvent(options)', instead use 'events.endEvent(key, [segmentation, count, sum])'
+
+* Improved content size management for better adaptability across devices.
+* Resolved an issue where the action bar overlapped with the content display.
+* Added dynamic resizing functionality for the content zone for enhanced responsiveness.
+* Introduced a configuration option (setZoneTimerInterval) to customize the content zone timer interval.
+
+* Enhanced CertificateTrustManager to support domain-specific configurations with hostname-aware checkServerTrusted calls (Android).
+
+* Fixed an issue where the build UUID and executable name were missing from crash reports (iOS).
+* * Mitigated an issue while setting zone timer interval for content (iOS).
+
+* Updated underlying Android SDK version to 25.1.1
+* Updated underlying iOS SDK version to 25.1.1
+* Added underlying Web SDK version to 25.1.0
+
 ## 24.11.2-np
 * Improved view tracking capabilities in iOS.
 

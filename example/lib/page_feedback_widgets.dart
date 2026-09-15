@@ -302,38 +302,60 @@ class _FeedbackWidgetsPageState extends State<FeedbackWidgetsPage> {
     });
     return Scaffold(
       appBar: AppBar(
-        title: Text('FeedbackWidgets'),
+        title: const Text('Feedback Widgets'),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(15),
-        child: Center(
-            child: Column(
-          children: [
-            MyButton(text: 'Present NPS', color: 'green', onPressed: () => demoNPS(null, null)),
-            MyButton(text: 'Present Survey', color: 'green', onPressed: () => demoSurvey(null, null)),
-            MyButton(text: 'Present Rating', color: 'green', onPressed: () => demoRating(null, null)),
-            MyButton(text: 'Present NPS wCallback', color: 'green', onPressed: () => demoNPS(null, widgetCB)),
-            MyButton(text: 'Present Survey wCallback', color: 'green', onPressed: () => demoSurvey(null, widgetCB)),
-            MyButton(text: 'Present Rating wCallback', color: 'green', onPressed: () => demoRating(null, widgetCB)),
-            MyButton(text: 'Open rating modal', color: 'orange', onPressed: askForStarRating),
-            MyButton(text: 'Open feedback modal', color: 'orange', onPressed: presentRatingWidget),
-            TextField(
-              controller: ratingIdController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Rating ID, Tag or Name',
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          CountlySection(
+            title: 'Present Feedback (New API)',
+            children: [
+              MyButton(text: 'Present NPS', type: CountlyButtonType.filled, onPressed: () => demoNPS(null, null)),
+              MyButton(text: 'Present Survey', type: CountlyButtonType.filled, onPressed: () => demoSurvey(null, null)),
+              MyButton(text: 'Present Rating', type: CountlyButtonType.filled, onPressed: () => demoRating(null, null)),
+              MyButton(text: 'Present NPS wCallback', type: CountlyButtonType.tonal, onPressed: () => demoNPS(null, widgetCB)),
+              MyButton(text: 'Present Survey wCallback', type: CountlyButtonType.tonal, onPressed: () => demoSurvey(null, widgetCB)),
+              MyButton(text: 'Present Rating wCallback', type: CountlyButtonType.tonal, onPressed: () => demoRating(null, widgetCB)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          CountlySection(
+            title: 'Rating Widget (by ID/Tag)',
+            children: [
+              TextField(
+                controller: ratingIdController,
+                decoration: const InputDecoration(
+                  labelText: 'Widget Identifier',
+                  hintText: 'Rating ID, Tag or Name',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            MyButton(text: 'Show Rating using EditBox', color: 'orange', onPressed: ratingIdController.text.isNotEmpty ? presentRatingWidgetUsingEditBox : null),
-            MyButton(text: 'Show Survey', color: 'orange', onPressed: showSurvey),
-            MyButton(text: 'Show NPS', color: 'orange', onPressed: showNPS),
-            MyButton(text: 'Show Rating', color: 'orange', onPressed: showRating),
-            MyButton(text: 'Show Feedback Widget', color: 'orange', onPressed: showFeedbackWidget),
-            MyButton(text: 'Report Survey Manually', color: 'orange', onPressed: reportSurveyManually),
-            MyButton(text: 'Report NPS Manually', color: 'orange', onPressed: reportNPSManually),
-            MyButton(text: 'Report Rating Manually', color: 'orange', onPressed: reportRatingManually),
-          ],
-        )),
+              const SizedBox(height: 8),
+              MyButton(text: 'Show Rating using EditBox', type: CountlyButtonType.tonal, onPressed: ratingIdController.text.isNotEmpty ? presentRatingWidgetUsingEditBox : null),
+              MyButton(text: 'Open Rating Modal', type: CountlyButtonType.tonal, onPressed: askForStarRating),
+              MyButton(text: 'Open Feedback Modal', type: CountlyButtonType.tonal, onPressed: presentRatingWidget),
+            ],
+          ),
+          const SizedBox(height: 16),
+          CountlySection(
+            title: 'Show Available Widgets',
+            children: [
+              MyButton(text: 'Show Survey', type: CountlyButtonType.tonal, onPressed: showSurvey),
+              MyButton(text: 'Show NPS', type: CountlyButtonType.tonal, onPressed: showNPS),
+              MyButton(text: 'Show Rating', type: CountlyButtonType.tonal, onPressed: showRating),
+              MyButton(text: 'Show Feedback Widget', type: CountlyButtonType.tonal, onPressed: showFeedbackWidget),
+            ],
+          ),
+          const SizedBox(height: 16),
+          CountlySection(
+            title: 'Manual Reporting',
+            children: [
+              MyButton(text: 'Report Survey Manually', type: CountlyButtonType.tonal, onPressed: reportSurveyManually),
+              MyButton(text: 'Report NPS Manually', type: CountlyButtonType.tonal, onPressed: reportNPSManually),
+              MyButton(text: 'Report Rating Manually', type: CountlyButtonType.tonal, onPressed: reportRatingManually),
+            ],
+          ),
+        ],
       ),
     );
   }

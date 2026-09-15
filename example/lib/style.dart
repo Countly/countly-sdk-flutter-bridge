@@ -19,50 +19,70 @@ Map<String, Map<String, Color>> theColor = {
 
 // Helper function to get the color
 Map<String, Color>? getColor(color) {
-  if (color == 'green') {
-    return theColor['green'];
-  } else if (color == 'teal') {
-    return theColor['teal'];
-  } else if (color == 'red') {
-    return theColor['red'];
-  } else if (color == 'brown') {
-    return theColor['brown'];
-  } else if (color == 'grey') {
-    return theColor['grey'];
-  } else if (color == 'blue') {
-    return theColor['blue'];
-  } else if (color == 'purple') {
-    return theColor['purple'];
-  } else if (color == 'violet') {
-    return theColor['violet'];
-  } else if (color == 'black') {
-    return theColor['black'];
-  } else if (color == 'olive') {
-    return theColor['olive'];
-  } else if (color == 'orange') {
-    return theColor['orange'];
-  } else if (color == 'yellow') {
-    return theColor['yellow'];
-  } else {
-    return theColor['default'];
-  }
+  return theColor[color] ?? theColor['default'];
 }
 
 TextStyle titleStyle() {
-  return TextStyle(fontSize: 18, fontWeight: FontWeight.w900);
+  return TextStyle(fontSize: 18, fontWeight: FontWeight.w700);
 }
 
 TextStyle subTitleStyle() {
-  return TextStyle(fontSize: 16, fontWeight: FontWeight.w600);
+  return TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xff666666));
 }
 
 // Theme that we use in the app
 class AppTheme {
+  static const Color _countlyGreen = Color.fromARGB(255, 44, 174, 92);
+
   static ThemeData countlyTheme() {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: _countlyGreen,
+      brightness: Brightness.light,
+    );
     return ThemeData(
-      // This is the Countly green
-      colorScheme: ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 44, 174, 92), brightness: Brightness.light),
       useMaterial3: true,
+      colorScheme: colorScheme,
+      cardTheme: CardThemeData(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: colorScheme.outlineVariant),
+        ),
+        margin: EdgeInsets.zero,
+      ),
+      appBarTheme: AppBarTheme(
+        centerTitle: true,
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        elevation: 0,
+        scrolledUnderElevation: 1,
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          minimumSize: Size(double.infinity, 44),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: Size(double.infinity, 44),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          minimumSize: Size(double.infinity, 44),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
     );
   }
 }

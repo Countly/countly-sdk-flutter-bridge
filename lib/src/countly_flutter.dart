@@ -12,6 +12,8 @@ import 'countly_config.dart';
 import 'countly_state.dart';
 import 'device_id.dart';
 import 'device_id_internal.dart';
+import 'events.dart';
+import 'events_internal.dart';
 import 'feedback.dart';
 import 'feedback_internal.dart';
 import 'remote_config.dart';
@@ -55,6 +57,7 @@ abstract class CountlyConsent {
   static const String feedback = 'feedback';
   static const String remoteConfig = 'remote-config';
   static const String content = 'content';
+  static const String metrics = 'metrics';
 }
 
 class Countly {
@@ -67,6 +70,7 @@ class Countly {
     _sessionsInternal = SessionsInternal(_countlyState);
     _contentBuilderInternal = ContentBuilderInternal(_countlyState);
     _feedbackInternal = FeedbackInternal(_countlyState);
+    _eventsInternal = EventsInternal(_countlyState);
   }
   static final instance = _instance;
   static final _instance = Countly._();
@@ -94,8 +98,11 @@ class Countly {
   late final FeedbackInternal _feedbackInternal;
   Feedback get feedback => _feedbackInternal;
 
+  late final EventsInternal _eventsInternal;
+  Events get events => _eventsInternal;
+
   /// ignore: constant_identifier_names
-  static const bool BUILDING_WITH_PUSH_DISABLED = false;
+  static const bool BUILDING_WITH_PUSH_DISABLED = true;
   static const String _pushDisabledMsg = 'In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled';
 
   static const MethodChannel _channel = MethodChannel('countly_flutter');
@@ -114,7 +121,11 @@ class Countly {
   /// Flag to determine if manual session is enabled
   static bool _manualSessionControlEnabled = false;
 
-  static Map<String, String> messagingMode = Platform.isAndroid ? {'TEST': '2', 'PRODUCTION': '0'} : {'TEST': '1', 'PRODUCTION': '0', 'ADHOC': '2'};
+  static Map<String, String> messagingMode = kIsWeb
+      ? {}
+      : Platform.isAndroid
+          ? {'TEST': '2', 'PRODUCTION': '0'}
+          : {'TEST': '1', 'PRODUCTION': '0', 'ADHOC': '2'};
 
   static const temporaryDeviceID = 'CLYTemporaryDeviceID';
   @Deprecated('This variable is deprecated, please use "Countly.instance.deviceId.enableTemporaryDeviceID()" instead')
@@ -391,39 +402,38 @@ class Countly {
 
   /// Records an event
   /// returns the error or success message
+  @Deprecated('This function is deprecated, please use "recordEvent" of events instead')
   static Future<String?> recordEvent(Map<String, Object> options) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "recordEvent"';
-      log('recordEvent, $message', logLevel: LogLevel.ERROR);
+    String? key = options['key'] as String?;
+    int? count = _parseValue(options, 'count', 1);
+    double? sum = _parseValue(options, 'sum', 0);
+    int? duration = _parseValue(options, 'duration', 1);
+    Map<String, Object>? segmentation = options['segmentation'] as Map<String, Object>?;
+
+    if (key == null) {
+      String message = 'recordEvent, key is required';
+      log(message, logLevel: LogLevel.ERROR);
       return message;
     }
-    List<Object> args = [];
-    options['key'] ??= '';
-    String eventKey = options['key'].toString();
-    log('Calling "recordEvent":[$eventKey]');
 
-    if (eventKey.isEmpty) {
-      String error = 'recordEvent, Valid Countly event key is required';
-      log(error);
-      return 'Error : $error';
-    }
-    args.add(eventKey);
-    options['count'] ??= '1';
-    args.add(options['count'].toString());
+    await _instance.events.recordEvent(key, segmentation, count, sum, duration);
+    return 'recordEvent called';
+  }
 
-    options['sum'] ??= '0';
-    args.add(options['sum'].toString());
+  static T _parseValue<T>(Map<String, Object> map, String key, T fallback) {
+    Object? value = map[key];
 
-    options['duration'] ??= '0';
-    args.add(options['duration'].toString());
-
-    if (options['segmentation'] != null) {
-      args.add(options['segmentation']!);
+    if (value is T) {
+      return value;
+    } else if (value is String) {
+      if (T == int) {
+        return (int.tryParse(value) ?? fallback) as T;
+      } else if (T == double) {
+        return (double.tryParse(value) ?? fallback) as T;
+      }
     }
 
-    final String? result = await _channel.invokeMethod('recordEvent', <String, dynamic>{'data': json.encode(args)});
-
-    return result;
+    return fallback;
   }
 
   /// Record custom view to Countly.
@@ -544,7 +554,7 @@ class Countly {
       log('disablePushNotifications, $_pushDisabledMsg', logLevel: LogLevel.ERROR);
       return _pushDisabledMsg;
     }
-    if (!Platform.isIOS) {
+    if (kIsWeb || !Platform.isIOS) {
       return 'disablePushNotifications : To be implemented';
     }
     final String? result = await _channel.invokeMethod('disablePushNotifications');
@@ -898,7 +908,7 @@ class Countly {
     return result;
   }
 
-  /// Set to 'true' if you want HTTP POST to be used for all requests
+  /// Set to 'false' if you want HTTP POST not to be used for all requests
   /// Should be call before Countly init
   /// returns the error or success message
   @Deprecated('This functions is deprecated, please use "setHttpPostForced" of CountlyConfig instead')
@@ -1672,60 +1682,75 @@ class Countly {
     return result;
   }
 
+  /// Attempt to send all stored requests to the server.
+  Future<void> attemptToSendStoredRequests() async {
+    if (!_instance._countlyState.isInitialized) {
+      String message = '"initWithConfig" must be called before "attemptToSendStoredRequests"';
+      log('attemptToSendStoredRequests, $message', logLevel: LogLevel.ERROR);
+      return;
+    }
+    log('Calling "attemptToSendStoredRequests"');
+    await _channel.invokeMethod('attemptToSendStoredRequests');
+  }
+
+  /// Add custom headers to all network requests made by the SDK.
+  Future<void> addCustomNetworkRequestHeaders(Map<String, String> customHeaderValues) async {
+    if (!_instance._countlyState.isInitialized) {
+      log('addCustomNetworkRequestHeaders, "initWithConfig" must be called before "addCustomNetworkRequestHeaders"', logLevel: LogLevel.ERROR);
+      return;
+    }
+
+    if (customHeaderValues.isEmpty) {
+      log('addCustomNetworkRequestHeaders, customHeaderValues cannot be empty', logLevel: LogLevel.WARNING);
+      return;
+    }
+
+    log('Calling "addCustomNetworkRequestHeaders" with headers count: [${customHeaderValues.length}]');
+    List<dynamic> args = [];
+    args.add(customHeaderValues);
+
+    await _channel.invokeMethod('addCustomNetworkRequestHeaders', <String, dynamic>{'data': json.encode(args)});
+  }
+
+  /// Record device metrics manually as a standalone call
+  /// [Map<String, String> metricsOverride] - map of key value pairs to override the default metrics
+  Future<void> recordMetrics(Map<String, String> metricsOverride) async {
+    if (!_instance._countlyState.isInitialized) {
+      log('recordMetrics, "initWithConfig" must be called before "recordMetrics"', logLevel: LogLevel.ERROR);
+      return;
+    }
+
+    List<dynamic> args = [];
+    args.add(metricsOverride);
+
+    await _channel.invokeMethod('recordMetrics', <String, dynamic>{'data': json.encode(args)});
+  }
+
   /// starts a timed event
   /// returns error or success message
+  @Deprecated('This function is deprecated, please use "startEvent" of events instead')
   static Future<String?> startEvent(String key) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "startEvent"';
-      log('startEvent, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "startEvent":[$key]');
-    if (key.isEmpty) {
-      String error = "startEvent, Can't start event with empty key";
-      log(error);
-      return 'Error : $error';
-    }
-    List<String> args = [];
-    args.add(key);
-
-    final String? result = await _channel.invokeMethod('startEvent', <String, dynamic>{'data': json.encode(args)});
-
-    return result;
+    await _instance.events.startEvent(key);
+    return 'startEvent called';
   }
 
   /// ends a timed event
   /// returns error or success message
+  @Deprecated('This function is deprecated, please use "endEvent" of events instead')
   static Future<String?> endEvent(Map<String, Object> options) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "endEvent"';
-      log('endEvent, $message', logLevel: LogLevel.ERROR);
+    String? key = options['key'] as String?;
+    Map<String, Object>? segmentation = options['segmentation'] as Map<String, Object>?;
+    int? count = _parseValue(options, 'count', 1);
+    double? sum = _parseValue(options, 'sum', 0);
+
+    if (key == null) {
+      String message = 'endEvent, key cannot be null';
+      log(message);
       return message;
     }
-    String eventKey = options['key'] != null ? options['key'].toString() : '';
-    log('Calling "endEvent":[$eventKey]');
-    List<Object> args = [];
 
-    if (eventKey.isEmpty) {
-      String error = "endEvent, Can't end event with a null or empty key";
-      log(error);
-      return 'Error : $error';
-    }
-    args.add(eventKey);
-
-    options['count'] ??= '1';
-    args.add(options['count'].toString());
-
-    options['sum'] ??= '0';
-    args.add(options['sum'].toString());
-
-    if (options['segmentation'] != null) {
-      args.add(options['segmentation']!);
-    }
-
-    final String? result = await _channel.invokeMethod('endEvent', <String, dynamic>{'data': json.encode(args)});
-
-    return result;
+    await _instance.events.endEvent(key, segmentation, count, sum);
+    return 'endEvent called';
   }
 
   /// Call used for testing error handling
@@ -2024,10 +2049,12 @@ class Countly {
       return 'Error : $error';
     }
     Map<String, String> attributionValues = {};
-    if (Platform.isIOS) {
-      attributionValues[AttributionKey.IDFA] = attributionID;
-    } else {
-      attributionValues[AttributionKey.AdvertisingID] = attributionID;
+    if (!kIsWeb) {
+      if (Platform.isIOS) {
+        attributionValues[AttributionKey.IDFA] = attributionID;
+      } else {
+        attributionValues[AttributionKey.AdvertisingID] = attributionID;
+      }
     }
     final String? result = await recordIndirectAttribution(attributionValues);
     return result;
@@ -2227,6 +2254,38 @@ class Countly {
         countlyConfig['requestDropAgeHours'] = config.requestDropAgeHours;
       }
 
+      if (config.sdkBehaviorSettings != null) {
+        log('"_configToJson", value provided for sdkBehaviorSettings: [${config.sdkBehaviorSettings}]', logLevel: LogLevel.INFO);
+        countlyConfig['sdkBehaviorSettings'] = config.sdkBehaviorSettings;
+      }
+
+      if (config.backoffMechanismDisabled) {
+        log('"_configToJson", value provided for backoffMechanismDisabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['backoffMechanismDisabled'] = config.backoffMechanismDisabled;
+      }
+
+      if (config.sdkBehaviorSettingsUpdatesDisabled) {
+        log('"_configToJson", value provided for sdkBehaviorSettingsUpdatesDisabled: [${config.sdkBehaviorSettingsUpdatesDisabled}]', logLevel: LogLevel.INFO);
+        countlyConfig['sdkBehaviorSettingsUpdatesDisabled'] = config.sdkBehaviorSettingsUpdatesDisabled;
+      }
+
+      if (config.storingDefaultPushConsentDisabled) {
+        if (BUILDING_WITH_PUSH_DISABLED) {
+          log('disableStoringDefaultPushConsent, $_pushDisabledMsg', logLevel: LogLevel.DEBUG);
+        } else {
+          log(
+            '"_configToJson", value provided for disableStoringDefaultPushConsent: [${config.storingDefaultPushConsentDisabled}]',
+            logLevel: LogLevel.INFO,
+          );
+          countlyConfig['disableStoringDefaultPushConsent'] = config.storingDefaultPushConsentDisabled;
+        }
+      }
+
+      if (config.viewRestartForManualRecordingDisabled) {
+        log('"_configToJson", value provided for disableViewRestartForManualRecording is true', logLevel: LogLevel.INFO);
+        countlyConfig['disableViewRestartForManualRecording'] = config.viewRestartForManualRecordingDisabled;
+      }
+
       /// Experimental ---------------------------
       if (config.experimental.visibilityTracking) {
         log('"_configToJson", value provided for visibilityTracking: [${config.experimental.visibilityTracking}]', logLevel: LogLevel.INFO);
@@ -2238,6 +2297,19 @@ class Countly {
       }
 
       /// Experimental END ---------------------------
+
+      /// Content ---------------------------
+      if (config.content.zoneTimerInterval != null) {
+        log('"_configToJson", value provided for zoneTimerInterval: [${config.content.zoneTimerInterval}]', logLevel: LogLevel.INFO);
+        countlyConfig['zoneTimerInterval'] = config.content.zoneTimerInterval;
+      }
+      if (config.content.webviewDisplayOption != null) {
+        final optionStr = config.content.webviewDisplayOption == WebViewDisplayOption.immersive ? 'IMMERSIVE' : 'SAFE_AREA';
+        log('"_configToJson", value provided for webviewDisplayOption: [$optionStr]', logLevel: LogLevel.INFO);
+        countlyConfig['webviewDisplayOption'] = optionStr;
+      }
+
+      /// Content END ---------------------------
 
       /// APM ---------------------------
       if (config.apm.trackAppStartTime) {
@@ -2296,10 +2368,22 @@ class Countly {
 
       log('"_configToJson", value provided for remoteConfigValueCaching: [${config.remoteConfigValueCaching}]', logLevel: LogLevel.INFO);
       countlyConfig['remoteConfigValueCaching'] = config.remoteConfigValueCaching;
+
+      if (config.requestTimeoutDuration != null) {
+        log('"_configToJson", value provided for requestTimeoutDuration: [${config.requestTimeoutDuration}]', logLevel: LogLevel.INFO);
+        countlyConfig['requestTimeoutDuration'] = config.requestTimeoutDuration;
+      }
     } catch (e) {
       log('"_configToJson", Exception occur during converting config to json: $e', logLevel: LogLevel.ERROR);
     }
     return countlyConfig;
+  }
+
+  /// This method is for testing purposes only
+  /// Do not use this method in production
+  Future<void> halt() {
+    _countlyState.isInitialized = false;
+    return _channel.invokeMethod('halt');
   }
 }
 

@@ -15,7 +15,7 @@ class CountlyConfig {
   String? _locationCountryCode;
   bool? _loggingEnabled;
   bool _locationDisabled = false;
-  bool? _httpPostForced;
+  bool _httpPostForced = true;
   Map<String, String>? _customNetworkRequestHeaders;
   String? _locationGpsCoordinates;
   String? _daCampaignType;
@@ -44,6 +44,12 @@ class CountlyConfig {
   bool _enableAllConsents = false;
   bool _autoEnrollABOnDownload = false;
   int? _requestDropAgeHours;
+  String? _sdkBehaviorSettings;
+  bool _backoffMechanismDisabled = false;
+  bool _sdkBehaviorSettingsUpdatesDisabled = false;
+  int? _requestTimeoutDuration;
+  bool _storingDefaultPushConsentDisabled = false;
+  bool _viewRestartForManualRecordingDisabled = false;
 
   /// instance of CountlyConfigApm
   final CountlyConfigApm _countlyConfigApmInstance = CountlyConfigApm();
@@ -133,6 +139,18 @@ class CountlyConfig {
   bool get autoEnrollABOnDownload => _autoEnrollABOnDownload;
 
   int? get requestDropAgeHours => _requestDropAgeHours;
+
+  String? get sdkBehaviorSettings => _sdkBehaviorSettings;
+
+  bool get backoffMechanismDisabled => _backoffMechanismDisabled;
+
+  bool get sdkBehaviorSettingsUpdatesDisabled => _sdkBehaviorSettingsUpdatesDisabled;
+
+  int? get requestTimeoutDuration => _requestTimeoutDuration;
+
+  bool get storingDefaultPushConsentDisabled => _storingDefaultPushConsentDisabled;
+
+  bool get viewRestartForManualRecordingDisabled => _viewRestartForManualRecordingDisabled;
 
   /// getter for CountlyConfigApm instance that is used to access CountlyConfigApm methods
   CountlyConfigApm get apm => _countlyConfigApmInstance;
@@ -226,7 +244,7 @@ class CountlyConfig {
     return this;
   }
 
-  /// Set to 'true' if you want HTTP POST to be used for all requests
+  /// Set to 'false' if you want HTTP POST to be not used for all requests
   CountlyConfig setHttpPostForced(bool isForced) {
     _httpPostForced = isForced;
     return this;
@@ -300,6 +318,7 @@ class CountlyConfig {
   }
 
   @Deprecated('This function is deprecated, please use remoteConfigRegisterGlobalCallback instead')
+
   /// If enable, will automatically download newest remote config values.
   /// enabled set true for enabling it
   /// callback callback called after the update was done
@@ -369,6 +388,45 @@ class CountlyConfig {
   /// [int dropAgeHours] A positive integer. Requests older than the 'dropAgeHours' (with respect to now) would be dropped
   CountlyConfig setRequestDropAgeHours(int dropAgeHours) {
     _requestDropAgeHours = dropAgeHours;
+    return this;
+  }
+
+  /// Set the provided server config
+  /// [String sdkBehaviorSettings] - provided server config
+  /// This is used to provide the server config in case the server config is not available in the initializion time
+  CountlyConfig setSDKBehaviorSettings(String sdkBehaviorSettings) {
+    _sdkBehaviorSettings = sdkBehaviorSettings;
+    return this;
+  }
+
+  /// Disable the backoff mechanism
+  CountlyConfig disableBackoffMechanism() {
+    _backoffMechanismDisabled = true;
+    return this;
+  }
+
+  /// Disable the server config updates to the server
+  CountlyConfig disableSDKBehaviorSettingsUpdates() {
+    _sdkBehaviorSettingsUpdatesDisabled = true;
+    return this;
+  }
+
+  /// Set the request timeout duration in seconds
+  /// [int requestTimeoutDuration] - duration in seconds
+  CountlyConfig setRequestTimeoutDuration(int requestTimeoutDuration) {
+    _requestTimeoutDuration = requestTimeoutDuration;
+    return this;
+  }
+
+  /// Disable storing the default push consent on initialization
+  CountlyConfig disableStoringDefaultPushConsent() {
+    _storingDefaultPushConsentDisabled = true;
+    return this;
+  }
+
+  /// Disable view restart for manual recording
+  CountlyConfig disableViewRestartForManualRecording() {
+    _viewRestartForManualRecordingDisabled = true;
     return this;
   }
 }

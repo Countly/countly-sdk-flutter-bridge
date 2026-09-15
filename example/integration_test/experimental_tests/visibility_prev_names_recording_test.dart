@@ -19,10 +19,10 @@ void main() {
     await Countly.initWithConfig(config);
 
     await createMixViewsAndEvents(inForeground: true);
-    sleep(Duration(seconds: 2)); // lets add duration to session
+    await Future.delayed(const Duration(seconds: 2)); // lets add duration to session
 
     FlutterForegroundTask.minimizeApp();
-    sleep(Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 2));
 
     // record events and views in background
     await createMixViewsAndEvents(inForeground: false);
@@ -31,7 +31,7 @@ void main() {
     if (Platform.isIOS) {
       printMessageMultipleTimes('waiting for 3 seconds, now go to foreground', 3);
     }
-    sleep(Duration(seconds: 5));
+    await Future.delayed(const Duration(seconds: 5));
 
     // Get request and event queues from native side
     List<String> requestList = await getRequestQueue();

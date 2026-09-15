@@ -38,3 +38,6 @@ example/android/app/release
 example/ios/Podfile.lock
 example/android/app/debug
 example/lib/backup.dart
+
+# Test runner output
+test_results/

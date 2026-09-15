@@ -19,7 +19,7 @@ void main() {
     await testLastRequestParams({'device_id': id});
 
     await Countly.instance.deviceId.setID('test');
-    
+
     await testDeviceID('test');
     await testDeviceIDType(DeviceIdType.DEVELOPER_SUPPLIED);
     await testLastRequestParams({'old_device_id': id, 'device_id': 'test'});

@@ -101,42 +101,49 @@ class ConsentPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Sessions'),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(15),
-        child: Center(
-            child: Column(
+    return CountlyPageScaffold(
+      title: 'Consent',
+      sections: [
+        CountlySection(
+          title: 'Bulk Actions',
           children: [
-            MyButton(text: 'Give multiple consent', color: 'teal', onPressed: giveMultipleConsent),
-            MyButton(text: 'Remove multiple consent', color: 'orange', onPressed: removeMultipleConsent),
-            MyButton(text: 'Give all Consent', color: 'green', onPressed: giveAllConsent),
-            MyButton(text: 'Remove all Consent', color: 'red', onPressed: removeAllConsent),
-            MyButton(text: 'Give Consent Sessions', color: 'blue', onPressed: giveConsentSessions),
-            MyButton(text: 'Give Consent Events', color: 'blue', onPressed: giveConsentEvents),
-            MyButton(text: 'Give Consent Views', color: 'blue', onPressed: giveConsentViews),
-            MyButton(text: 'Give Consent Location', color: 'blue', onPressed: giveConsentLocation),
-            MyButton(text: 'Give Consent Crashes', color: 'blue', onPressed: giveConsentCrashes),
-            MyButton(text: 'Give Consent Attribution', color: 'blue', onPressed: giveConsentAttribution),
-            MyButton(text: 'Give Consent Users', color: 'blue', onPressed: giveConsentUsers),
-            MyButton(text: 'Give Consent Push', color: 'blue', onPressed: giveConsentPush),
-            MyButton(text: 'Give Consent starRating', color: 'blue', onPressed: giveConsentStarRating),
-            MyButton(text: 'Give Consent Performance', color: 'blue', onPressed: giveConsentAPM),
-            MyButton(text: 'Remove Consent Sessions', color: 'orange', onPressed: removeConsentsessions),
-            MyButton(text: 'Remove Consent Events', color: 'orange', onPressed: removeConsentEvents),
-            MyButton(text: 'Remove Consent Views', color: 'orange', onPressed: removeConsentViews),
-            MyButton(text: 'Remove Consent Location', color: 'orange', onPressed: removeConsentlocation),
-            MyButton(text: 'Remove Consent Crashes', color: 'orange', onPressed: removeConsentcrashes),
-            MyButton(text: 'Remove Consent Attribution', color: 'orange', onPressed: removeConsentattribution),
-            MyButton(text: 'Remove Consent Users', color: 'orange', onPressed: removeConsentusers),
-            MyButton(text: 'Remove Consent Push', color: 'orange', onPressed: removeConsentpush),
-            MyButton(text: 'Remove Consent starRating', color: 'orange', onPressed: removeConsentstarRating),
-            MyButton(text: 'Remove Consent Performance', color: 'orange', onPressed: removeConsentAPM),
+            MyButton(text: 'Give Multiple Consent', type: CountlyButtonType.filled, onPressed: giveMultipleConsent),
+            MyButton(text: 'Remove Multiple Consent', type: CountlyButtonType.outlined, onPressed: removeMultipleConsent),
+            MyButton(text: 'Give All Consent', type: CountlyButtonType.filled, onPressed: giveAllConsent),
+            MyButton(text: 'Remove All Consent', type: CountlyButtonType.outlined, onPressed: removeAllConsent),
           ],
-        )),
-      ),
+        ),
+        CountlySection(
+          title: 'Give Individual Consent',
+          children: [
+            MyButton(text: 'Sessions', type: CountlyButtonType.tonal, onPressed: giveConsentSessions),
+            MyButton(text: 'Events', type: CountlyButtonType.tonal, onPressed: giveConsentEvents),
+            MyButton(text: 'Views', type: CountlyButtonType.tonal, onPressed: giveConsentViews),
+            MyButton(text: 'Location', type: CountlyButtonType.tonal, onPressed: giveConsentLocation),
+            MyButton(text: 'Crashes', type: CountlyButtonType.tonal, onPressed: giveConsentCrashes),
+            MyButton(text: 'Attribution', type: CountlyButtonType.tonal, onPressed: giveConsentAttribution),
+            MyButton(text: 'Users', type: CountlyButtonType.tonal, onPressed: giveConsentUsers),
+            MyButton(text: 'Push', type: CountlyButtonType.tonal, onPressed: giveConsentPush),
+            MyButton(text: 'Star Rating', type: CountlyButtonType.tonal, onPressed: giveConsentStarRating),
+            MyButton(text: 'Performance', type: CountlyButtonType.tonal, onPressed: giveConsentAPM),
+          ],
+        ),
+        CountlySection(
+          title: 'Remove Individual Consent',
+          children: [
+            MyButton(text: 'Sessions', type: CountlyButtonType.outlined, onPressed: removeConsentsessions),
+            MyButton(text: 'Events', type: CountlyButtonType.outlined, onPressed: removeConsentEvents),
+            MyButton(text: 'Views', type: CountlyButtonType.outlined, onPressed: removeConsentViews),
+            MyButton(text: 'Location', type: CountlyButtonType.outlined, onPressed: removeConsentlocation),
+            MyButton(text: 'Crashes', type: CountlyButtonType.outlined, onPressed: removeConsentcrashes),
+            MyButton(text: 'Attribution', type: CountlyButtonType.outlined, onPressed: removeConsentattribution),
+            MyButton(text: 'Users', type: CountlyButtonType.outlined, onPressed: removeConsentusers),
+            MyButton(text: 'Push', type: CountlyButtonType.outlined, onPressed: removeConsentpush),
+            MyButton(text: 'Star Rating', type: CountlyButtonType.outlined, onPressed: removeConsentstarRating),
+            MyButton(text: 'Performance', type: CountlyButtonType.outlined, onPressed: removeConsentAPM),
+          ],
+        ),
+      ],
     );
   }
 }

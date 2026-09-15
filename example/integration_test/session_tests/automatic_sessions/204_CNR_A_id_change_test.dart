@@ -60,9 +60,9 @@ void main() {
 
     var i = 0;
     var androidBeginSession = [0, 4, 7];
-    var iosBeginSession = [0, 3, 6];
+    var iosBeginSession = [0, 3, 7];
     var androidMerge = [1, 8];
-    var iosMerge = [1, 7];
+    var iosMerge = [1, 6];
     var androidOrientation = [2, 5];
     var iosOrientation = [4];
     var androidEndSession = [3, 6];

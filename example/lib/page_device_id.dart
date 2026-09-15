@@ -61,23 +61,71 @@ class _DeviceIDPageState extends State<DeviceIDPage> {
       appBar: AppBar(
         title: Text('Device ID Management'),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(15),
-        child: Center(
-          child: Column(
-            children: [
-              Text(_deviceId, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
-              SizedBox(height: 10),
-              Text(_deviceIdType, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
-              MyButton(text: 'Get Device Id', color: 'olive', onPressed: getID),
-              MyButton(text: 'Get Device Id Type', color: 'green', onPressed: getIDType),
-              MyButton(text: 'Enable Temporary ID Mode', color: 'orange', onPressed: enableTemporaryIDMode),
-              MyButton(text: 'Change Device ID With Merge', color: 'yellow', onPressed: changeWithMerge),
-              MyButton(text: 'Change Device ID Without Merge', color: 'teal', onPressed: changeWithoutMerge),
-              MyButton(text: 'Set ID', color: 'brown', onPressed: setID),
-            ],
-          ),
-        ),
+      body: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: 3,
+        separatorBuilder: (_, __) => const SizedBox(height: 16),
+        itemBuilder: (_, index) {
+          switch (index) {
+            case 0:
+              return Card(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Device Info', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Text('ID: '),
+                          Expanded(
+                            child: Text(
+                              _deviceId.isEmpty ? 'N/A' : _deviceId,
+                              style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Text('Type: '),
+                          Expanded(
+                            child: Text(
+                              _deviceIdType.isEmpty ? 'N/A' : _deviceIdType,
+                              style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            case 1:
+              return CountlySection(
+                title: 'Query Device ID',
+                children: [
+                  MyButton(text: 'Get Device ID', type: CountlyButtonType.filled, onPressed: getID),
+                  MyButton(text: 'Get Device ID Type', type: CountlyButtonType.filled, onPressed: getIDType),
+                ],
+              );
+            case 2:
+              return CountlySection(
+                title: 'Change Device ID',
+                children: [
+                  MyButton(text: 'Change Device ID With Merge', type: CountlyButtonType.tonal, onPressed: changeWithMerge),
+                  MyButton(text: 'Change Device ID Without Merge', type: CountlyButtonType.tonal, onPressed: changeWithoutMerge),
+                  MyButton(text: 'Enable Temporary ID Mode', type: CountlyButtonType.outlined, onPressed: enableTemporaryIDMode),
+                  MyButton(text: 'Set ID', type: CountlyButtonType.tonal, onPressed: setID),
+                ],
+              );
+            default:
+              return const SizedBox.shrink();
+          }
+        },
       ),
     );
   }

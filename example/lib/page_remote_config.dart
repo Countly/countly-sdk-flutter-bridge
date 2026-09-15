@@ -62,6 +62,7 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
     /// Download All Test Variants [downloadAllVariants]
     /// Get All Test Variants [getAllTestVariants]
     /// Get Specific Test Variants [getSpecificTestVariants]
+    /// Enroll Into Variant [enrollIntoVariant]
 // Experiment Information
     /// Download Experiment Information [downloadExperimentInfo]
     /// Get Experiment Information [getExperimentInfo]
@@ -269,6 +270,22 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
       }
     }
 
+    /// Enroll into a specific variant for a key
+    /// Return back to [Contents]
+    Future<void> enrollIntoVariant() async {
+      await Countly.instance.remoteConfig.testingEnrollIntoVariant(
+        rcKey,
+        'variantName',
+        (rResult, error) {
+          if (error != null) {
+            showCountlyToast(context, 'Enroll into variant failed: $error', Colors.red);
+          } else {
+            showCountlyToast(context, 'Enrolled into variant: $rResult', null);
+          }
+        },
+      );
+    }
+
     /// Downloads specific test variants
     /// Return back to [Contents]
     Future<void> getSpecificTestVariants() async {
@@ -326,73 +343,116 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
       appBar: AppBar(
         title: Text('Remote Config'),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(15),
-        child: Center(
-            child: Column(
-          children: [
-            SizedBox(
-              height: 40,
-              child: TextField(
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          CountlySection(
+            title: 'RC Key',
+            children: [
+              TextField(
                 onSubmitted: (value) {
                   setState(() {
                     rcKey = value;
                   });
                 },
                 decoration: const InputDecoration(
-                  border: OutlineInputBorder(gapPadding: 4.0, borderSide: BorderSide(color: Colors.teal), borderRadius: BorderRadius.all(Radius.circular(20.0))),
+                  labelText: 'RC Key',
                   hintText: 'Enter an RC Key',
+                  border: OutlineInputBorder(),
                 ),
               ),
-            ),
-            countlySpacer(),
-            countlyTitle('Manual Download Calls'),
-            MyButton(text: 'Download All RC Values', color: 'green', onPressed: downloadAllRCValues),
-            MyButton(text: 'Download Specific RC Values', color: 'green', onPressed: downloadSpecificRCValues),
-            MyButton(text: 'Download Omitting Specific RC Values', color: 'green', onPressed: downloadOmittingSpecificRCValues),
-            countlySpacer(),
-            countlyTitle('Accessing Values'),
-            MyButton(text: 'Get All RC Values', color: 'teal', onPressed: getAllRCValues),
-            MyButton(text: 'Get Specific RC Values', color: 'teal', onPressed: getSpecificRCValues),
-            countlySpacer(),
-            countlyTitle('Clearing Values'),
-            MyButton(text: 'Clear All RC Values', color: 'red', onPressed: clearAllRCValues),
-            countlySpacer(),
-            countlyTitle('Global Download Callbacks'),
-            MyButton(text: 'Register RC Download Callback', color: 'orange', onPressed: registerRCDownloadCallback),
-            MyButton(text: 'Remove RC Download Callback', color: 'red', onPressed: removeRCDownloadCallback),
-            countlySpacer(),
-            countlyTitle('AB Testing'),
-            countlySubTitle('Enroll on Access'),
-            MyButton(text: 'Get All RC Values And Enroll', color: 'teal', onPressed: getAllRCValuesAndEnroll),
-            MyButton(text: 'Get Specific RC Values And Enroll', color: 'teal', onPressed: getSpecificRCValuesAndEnroll),
-            countlySpacerSmall(),
-            countlySubTitle('Enroll on Action'),
-            MyButton(text: 'Enroll Into Specific AB Test Keys', color: 'blue', onPressed: enrollIntoABTests),
-            MyButton(text: 'Enroll Into an AB Test', color: 'blue', onPressed: enrollIntoABExperiment),
-            countlySpacerSmall(),
-            countlySubTitle('Exiting AB Tests'),
-            MyButton(text: 'Exit from Specific AB Test Keys', color: 'red', onPressed: exitABTests),
-            MyButton(text: 'Exit an AB Test', color: 'red', onPressed: exitABExperiment),
-            countlySpacerSmall(),
-            countlySubTitle('Variant Download/Get Calls'),
-            MyButton(text: 'Download All Test Variants', color: 'green', onPressed: downloadAllVariants),
-            MyButton(text: 'Get All Test Variants', color: 'green', onPressed: getAllTestVariants),
-            MyButton(text: 'Get Specific Test Variants', color: 'green', onPressed: getSpecificTestVariants),
-            countlySpacerSmall(),
-            countlySubTitle('Experiment Information'),
-            MyButton(text: 'Download Experiment Information', color: 'yellow', onPressed: downloadExperimentInfo),
-            MyButton(text: 'Get All Experiment Information', color: 'yellow', onPressed: getExperimentInfo),
-            countlySpacer(),
-            countlyTitle('Legacy Remote Config Methods'),
-            MyButton(
-                text: 'Remote Config (Legacy)',
-                color: 'gray',
-                onPressed: () {
-                  navigateToPage(context, RemoteConfigPageLegacy());
-                }),
-          ],
-        )),
+            ],
+          ),
+          const SizedBox(height: 16),
+          CountlySection(
+            title: 'Manual Download Calls',
+            children: [
+              MyButton(text: 'Download All RC Values', type: CountlyButtonType.filled, onPressed: downloadAllRCValues),
+              MyButton(text: 'Download Specific RC Values', type: CountlyButtonType.tonal, onPressed: downloadSpecificRCValues),
+              MyButton(text: 'Download Omitting Specific RC Values', type: CountlyButtonType.tonal, onPressed: downloadOmittingSpecificRCValues),
+            ],
+          ),
+          const SizedBox(height: 16),
+          CountlySection(
+            title: 'Accessing Values',
+            children: [
+              MyButton(text: 'Get All RC Values', type: CountlyButtonType.tonal, onPressed: getAllRCValues),
+              MyButton(text: 'Get Specific RC Values', type: CountlyButtonType.tonal, onPressed: getSpecificRCValues),
+            ],
+          ),
+          const SizedBox(height: 16),
+          CountlySection(
+            title: 'Clearing Values',
+            children: [
+              MyButton(text: 'Clear All RC Values', type: CountlyButtonType.outlined, onPressed: clearAllRCValues),
+            ],
+          ),
+          const SizedBox(height: 16),
+          CountlySection(
+            title: 'Global Download Callbacks',
+            children: [
+              MyButton(text: 'Register RC Download Callback', type: CountlyButtonType.tonal, onPressed: registerRCDownloadCallback),
+              MyButton(text: 'Remove RC Download Callback', type: CountlyButtonType.outlined, onPressed: removeRCDownloadCallback),
+            ],
+          ),
+          const SizedBox(height: 16),
+          CountlySection(
+            title: 'AB Testing',
+            children: [
+              CountlySubSection(
+                title: 'Enroll on Access',
+                children: [
+                  MyButton(text: 'Get All RC Values And Enroll', type: CountlyButtonType.tonal, onPressed: getAllRCValuesAndEnroll),
+                  MyButton(text: 'Get Specific RC Values And Enroll', type: CountlyButtonType.tonal, onPressed: getSpecificRCValuesAndEnroll),
+                ],
+              ),
+              CountlySubSection(
+                title: 'Enroll on Action',
+                children: [
+                  MyButton(text: 'Enroll Into Specific AB Test Keys', type: CountlyButtonType.filled, onPressed: enrollIntoABTests),
+                  MyButton(text: 'Enroll Into an AB Test', type: CountlyButtonType.filled, onPressed: enrollIntoABExperiment),
+                ],
+              ),
+              CountlySubSection(
+                title: 'Exiting AB Tests',
+                children: [
+                  MyButton(text: 'Exit from Specific AB Test Keys', type: CountlyButtonType.outlined, onPressed: exitABTests),
+                  MyButton(text: 'Exit an AB Test', type: CountlyButtonType.outlined, onPressed: exitABExperiment),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          CountlySection(
+            title: 'Variant Download/Get Calls',
+            children: [
+              MyButton(text: 'Download All Test Variants', type: CountlyButtonType.filled, onPressed: downloadAllVariants),
+              MyButton(text: 'Get All Test Variants', type: CountlyButtonType.tonal, onPressed: getAllTestVariants),
+              MyButton(text: 'Get Specific Test Variants', type: CountlyButtonType.tonal, onPressed: getSpecificTestVariants),
+              MyButton(text: 'Enroll Into Variant', type: CountlyButtonType.filled, onPressed: enrollIntoVariant),
+            ],
+          ),
+          const SizedBox(height: 16),
+          CountlySection(
+            title: 'Experiment Information',
+            children: [
+              MyButton(text: 'Download Experiment Information', type: CountlyButtonType.filled, onPressed: downloadExperimentInfo),
+              MyButton(text: 'Get All Experiment Information', type: CountlyButtonType.tonal, onPressed: getExperimentInfo),
+            ],
+          ),
+          const SizedBox(height: 16),
+          CountlySection(
+            title: 'Legacy Remote Config Methods',
+            children: [
+              MyButton(
+                  text: 'Remote Config (Legacy)',
+                  type: CountlyButtonType.text,
+                  onPressed: () {
+                    navigateToPage(context, RemoteConfigPageLegacy());
+                  }),
+            ],
+          ),
+        ],
       ),
     );
   }

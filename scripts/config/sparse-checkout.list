@@ -1,0 +1,23 @@
+# Include everything by default
+/*
+
+# Blacklist exclusions
+!.markdownlint.json
+!.swiftpm/
+!build/
+!Pods/
+!*.xcworkspace
+!Countly.xcodeproj/
+!*.DS_Store
+!CountlyTests/
+!include/
+!Package.swift
+!Info.plist
+!*.xctestplan
+!Countly.xcsheme
+!CountlyTests.xcscheme
+!*.plist
+!.github/
+!*.md
+!*.podspec
+!*.sh

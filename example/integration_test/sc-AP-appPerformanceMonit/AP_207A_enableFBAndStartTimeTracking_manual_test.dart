@@ -1,4 +1,5 @@
 import 'package:countly_flutter_np/countly_flutter.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import '../utils.dart';
@@ -17,7 +18,14 @@ void main() {
 
     // go foreground and background
     // TODO: this automation is Android only, iOS automation is not supported yet
-    goBackgroundAndForeground();
+    FlutterForegroundTask.minimizeApp();
+
+    print('Waiting for 3 seconds in background');
+    await Future.delayed(const Duration(seconds: 3));
+
+    FlutterForegroundTask.launchApp();
+
+    await Future.delayed(const Duration(seconds: 2));
 
     // check if there is 3 apm related requests in the queue
     List<String> apmRequests = await getAndPrintWantedElementsWithParamFromAllQueues('apm');

@@ -72,10 +72,10 @@ void main() {
         // example:
         // consent: [{"sessions":true,"crashes":true,"users":true,"push":true,"feedback":true,"scrolls":true,"remote-config":true,"attribution":true,"clicks":true,"location":true,"star-rating":true,"events":true,"views":true,"apm":true}]
         Map<String, dynamic> consentInRequest = jsonDecode(queryParams['consent']![0]);
-        for (var key in ['push', 'feedback', 'crashes', 'attribution', 'users', 'events', 'remote-config', 'sessions', 'location', 'views', 'apm', 'content']) {
+        for (var key in ['push', 'feedback', 'crashes', 'attribution', 'users', 'events', 'remote-config', 'sessions', 'location', 'views', 'apm', 'content', 'metrics']) {
           expect(consentInRequest[key], false);
         }
-        expect(consentInRequest.length, Platform.isAndroid ? 15 : 12);
+        expect(consentInRequest.length, Platform.isAndroid ? 16 : 13);
       } else if (i == 1) {
         expect(queryParams['location'], ['']);
       }

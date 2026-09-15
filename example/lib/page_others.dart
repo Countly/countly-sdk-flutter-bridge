@@ -2,9 +2,15 @@ import 'dart:io';
 
 import 'package:countly_flutter_np/countly_flutter.dart';
 import 'package:countly_flutter_example/helpers.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-class OthersPage extends StatelessWidget {
+class OthersPage extends StatefulWidget {
+  @override
+  State<OthersPage> createState() => _OthersPageState();
+}
+
+class _OthersPageState extends State<OthersPage> {
   void recordDirectAttribution() {
     String campaignData = '{cid:"[PROVIDED_CAMPAIGN_ID]", cuid:"[PROVIDED_CAMPAIGN_USER_ID]"}';
     Countly.recordDirectAttribution('countly', campaignData);
@@ -12,10 +18,12 @@ class OthersPage extends StatelessWidget {
 
   void recordIndirectAttribution() {
     Map<String, String> attributionValues = {};
-    if (Platform.isIOS) {
-      attributionValues[AttributionKey.IDFA] = 'IDFA';
-    } else {
-      attributionValues[AttributionKey.AdvertisingID] = 'AdvertisingID';
+    if (!kIsWeb) {
+      if (Platform.isIOS) {
+        attributionValues[AttributionKey.IDFA] = 'IDFA';
+      } else {
+        attributionValues[AttributionKey.AdvertisingID] = 'AdvertisingID';
+      }
     }
     Countly.recordIndirectAttribution(attributionValues);
   }
@@ -79,12 +87,23 @@ class OthersPage extends StatelessWidget {
     Countly.instance.views.stopAllViews();
   }
 
-  void enterContentZone() {
-    Countly.instance.content.enterContentZone();
+  Future<void> checkIsInitialized() async {
+    bool result = await Countly.isInitialized();
+    if (mounted) {
+      showCountlyToast(context, 'isInitialized: $result', null);
+    }
   }
 
-  void exitContentZone() {
-    Countly.instance.content.exitContentZone();
+  void disablePushNotifications() {
+    Countly.disablePushNotifications();
+  }
+
+  void replaceAllAppKeys() {
+    Countly.replaceAllAppKeysInQueueWithCurrentAppKey();
+  }
+
+  void removeDifferentAppKeys() {
+    Countly.removeDifferentAppKeysFromQueue();
   }
 
   @override
@@ -93,21 +112,49 @@ class OthersPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Other Features'),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(15),
-        child: Center(
-            child: Column(
-          children: [
-            MyButton(text: 'Enter Content Zone', color: 'olive', onPressed: enterContentZone),
-            MyButton(text: 'Exit Content Zone', color: 'olive', onPressed: exitContentZone),
-            MyButton(text: 'Record Direct Attribution', color: 'olive', onPressed: recordDirectAttribution),
-            MyButton(text: 'Record Indirect Attribution', color: 'olive', onPressed: recordIndirectAttribution),
-            MyButton(text: 'Push Notification', color: 'blue', onPressed: askForNotificationPermission),
-            MyButton(text: 'Set Location', color: 'violet', onPressed: setLocation),
-            MyButton(text: 'Disable Location', color: 'violet', onPressed: disableLocation),
-            MyButton(text: 'Random List Values', color: 'violet', onPressed: randomListValues),
-          ],
-        )),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          CountlySection(
+            title: 'SDK Status',
+            children: [
+              MyButton(text: 'Is Initialized', type: CountlyButtonType.filled, onPressed: checkIsInitialized),
+            ],
+          ),
+          const SizedBox(height: 16),
+          CountlySection(
+            title: 'Attribution',
+            children: [
+              MyButton(text: 'Record Direct Attribution', type: CountlyButtonType.tonal, onPressed: recordDirectAttribution),
+              MyButton(text: 'Record Indirect Attribution', type: CountlyButtonType.tonal, onPressed: recordIndirectAttribution),
+            ],
+          ),
+          const SizedBox(height: 16),
+          CountlySection(
+            title: 'Push Notifications',
+            children: [
+              MyButton(text: 'Ask for Permission', type: CountlyButtonType.filled, onPressed: askForNotificationPermission),
+              MyButton(text: 'Disable Push Notifications', type: CountlyButtonType.outlined, onPressed: disablePushNotifications),
+            ],
+          ),
+          const SizedBox(height: 16),
+          CountlySection(
+            title: 'Location',
+            children: [
+              MyButton(text: 'Set Location', type: CountlyButtonType.filled, onPressed: setLocation),
+              MyButton(text: 'Disable Location', type: CountlyButtonType.outlined, onPressed: disableLocation),
+            ],
+          ),
+          const SizedBox(height: 16),
+          CountlySection(
+            title: 'Miscellaneous',
+            children: [
+              MyButton(text: 'Random List Values', type: CountlyButtonType.tonal, onPressed: randomListValues),
+              MyButton(text: 'Replace All App Keys In Queue', type: CountlyButtonType.tonal, onPressed: replaceAllAppKeys),
+              MyButton(text: 'Remove Different App Keys From Queue', type: CountlyButtonType.outlined, onPressed: removeDifferentAppKeys),
+            ],
+          ),
+        ],
       ),
     );
   }

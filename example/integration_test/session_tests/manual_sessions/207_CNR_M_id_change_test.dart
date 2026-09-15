@@ -51,7 +51,7 @@ void main() {
     // 3- end session
     // 4- begin session
     // 5- Orientation (android only)
-    expect(requestList.length, Platform.isAndroid ? 6 : 5); //android generates 
+    expect(requestList.length, Platform.isAndroid ? 6 : 5); //android generates
     var i = 0;
     for (var element in requestList) {
       Map<String, List<String>> queryParams = Uri.parse("?" + element).queryParametersAll;
@@ -68,7 +68,7 @@ void main() {
         expect(queryParams['end_session']?[0], '1');
         expect(queryParams['session_duration']?[0], '2');
         expect(queryParams['device_id']?[0], 'newID');
-      } else if (i == 6 && Platform.isAndroid){
+      } else if (i == 6 && Platform.isAndroid) {
         expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
       }
 

@@ -1,14 +1,13 @@
 name: countly_flutter_np
-description: Countly is an innovative, real-time, open source mobile analytics. This plugin is a flavour of the SDK without push notifications.
-
-version: 24.11.2
-homepage: https://support.count.ly/hc/en-us/articles/360037944212-Flutter
+description: Countly is an innovative, real-time, open source mobile analytics and push notifications platform.
+version: 26.1.1
+homepage: https://support.count.ly/hc/en-us/articles/360037944212
 repository: https://github.com/Countly/countly-sdk-flutter-bridge
 issue_tracker: https://github.com/Countly/countly-sdk-flutter-bridge/issues
 documentation: https://support.count.ly/hc/en-us/articles/360037944212
 platforms:
-  android:
-  ios:
+    android:
+    ios:
 
 environment:
     sdk: ">=2.12.0 <4.0.0"
@@ -18,6 +17,8 @@ dependencies:
     flutter:
         sdk: flutter
     flutter_plugin_android_lifecycle: ^2.0.2
+    flutter_web_plugins:
+        sdk: flutter
     pedantic: ^1.11.0
 
 dev_dependencies:
@@ -35,3 +36,6 @@ flutter:
                 pluginClass: CountlyFlutterPlugin
             ios:
                 pluginClass: CountlyFlutterPlugin
+            web:
+                pluginClass: CountlyFlutterPlugin
+                fileName: src/web/countly_flutter_plugin.dart

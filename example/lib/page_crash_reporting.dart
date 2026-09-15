@@ -62,33 +62,41 @@ class CrashReportingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Crash Reporting'),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(15),
-        child: Center(
-            child: Column(
+    return CountlyPageScaffold(
+      title: 'Crash Reporting',
+      sections: [
+        CountlySection(
+          title: 'Report Crashes',
           children: [
-            MyButton(text: 'Send Crash Report', color: 'violet', onPressed: addCrashLog),
-            MyButton(text: 'Cause Exception', color: 'orange', onPressed: causeException),
-            MyButton(text: 'Throw Exception', color: 'orange', onPressed: throwException),
-            MyButton(text: 'Throw Exception Async', color: 'orange', onPressed: throwExceptionAsync),
-            MyButton(text: 'Throw Native Exception', color: 'orange', onPressed: throwNativeException),
-            MyButton(text: 'Record Exception Manually', color: 'teal', onPressed: recordExceptionManually),
-            MyButton(text: 'Divided By Zero Exception', color: 'teal', onPressed: dividedByZero),
-            MyButton(text: 'Divided By Zero Exception (No catch)', color: 'teal', onPressed: dividedByZeroNoCatch),
+            MyButton(text: 'Send Crash Report', type: CountlyButtonType.filled, onPressed: addCrashLog),
+            MyButton(text: 'Record Exception Manually', type: CountlyButtonType.tonal, onPressed: recordExceptionManually),
+          ],
+        ),
+        CountlySection(
+          title: 'Trigger Exceptions',
+          subtitle: 'These will crash the app or throw exceptions',
+          children: [
+            MyButton(text: 'Cause Exception', type: CountlyButtonType.outlined, onPressed: causeException),
+            MyButton(text: 'Throw Exception', type: CountlyButtonType.outlined, onPressed: throwException),
+            MyButton(text: 'Throw Exception Async', type: CountlyButtonType.outlined, onPressed: throwExceptionAsync),
+            MyButton(text: 'Throw Native Exception', type: CountlyButtonType.outlined, onPressed: throwNativeException),
             MyButton(
               text: 'Async Error',
-              color: 'teal',
+              type: CountlyButtonType.outlined,
               onPressed: () async {
                 throw Error();
               },
             ),
           ],
-        )),
-      ),
+        ),
+        CountlySection(
+          title: 'Division By Zero',
+          children: [
+            MyButton(text: 'Divided By Zero (Caught)', type: CountlyButtonType.tonal, onPressed: dividedByZero),
+            MyButton(text: 'Divided By Zero (No Catch)', type: CountlyButtonType.outlined, onPressed: dividedByZeroNoCatch),
+          ],
+        ),
+      ],
     );
   }
 }

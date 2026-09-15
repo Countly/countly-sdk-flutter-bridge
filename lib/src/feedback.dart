@@ -9,9 +9,9 @@ class FeedbackCallback {
 }
 
 abstract class Feedback {
-  Future<void>  presentNPS([String? nameIDorTag, FeedbackCallback? feedbackCallback]);
+  Future<void> presentNPS([String? nameIDorTag, FeedbackCallback? feedbackCallback]);
 
-  Future<void>  presentRating([String? nameIDorTag, FeedbackCallback? feedbackCallback]);
+  Future<void> presentRating([String? nameIDorTag, FeedbackCallback? feedbackCallback]);
 
-  Future<void>  presentSurvey([String? nameIDorTag, FeedbackCallback? feedbackCallback]);
+  Future<void> presentSurvey([String? nameIDorTag, FeedbackCallback? feedbackCallback]);
 }
