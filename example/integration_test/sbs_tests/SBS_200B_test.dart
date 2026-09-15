@@ -1,4 +1,4 @@
-import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter_np/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -13,7 +13,7 @@ void main() {
     createServerWithConfig(requestArray, {
       'v': 1,
       't': 1750748806695,
-      'c': {'tracking': false, 'scui': 1}
+      'c': {'tracking': false, 'scui': 1},
     });
 
     // Initialize the SDK
@@ -40,7 +40,7 @@ void main() {
     expect(await getServerConfig(), {
       'v': 1,
       't': 1750748806695,
-      'c': {'tracking': false, 'scui': 1}
+      'c': {'tracking': false, 'scui': 1},
     });
 
     await Future.delayed(const Duration(seconds: 60));

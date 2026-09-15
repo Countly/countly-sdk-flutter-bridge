@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter_np/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -23,9 +23,9 @@ void main() {
         'eb': ['blocked_event', 'another_blocked'],
         'sb': ['blocked_key', 'secret_key'],
         'esw': {
-          'filtered_event': ['allowed_key1', 'allowed_key2']
-        }
-      }
+          'filtered_event': ['allowed_key1', 'allowed_key2'],
+        },
+      },
     });
 
     // Initialize the SDK
@@ -98,9 +98,9 @@ void main() {
         'eb': ['blocked_event', 'another_blocked'],
         'sb': ['blocked_key', 'secret_key'],
         'esw': {
-          'filtered_event': ['allowed_key1', 'allowed_key2']
-        }
-      }
+          'filtered_event': ['allowed_key1', 'allowed_key2'],
+        },
+      },
     });
   });
 }

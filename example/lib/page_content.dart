@@ -1,4 +1,4 @@
-import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter_np/countly_flutter.dart';
 import 'package:countly_flutter_example/helpers.dart';
 import 'package:flutter/material.dart';
 
@@ -97,10 +97,7 @@ class _ContentPageState extends State<ContentPage> {
             children: [
               TextField(
                 controller: _deviceIdController,
-                decoration: InputDecoration(
-                  labelText: 'New Device ID',
-                  hintText: 'Enter new device ID',
-                ),
+                decoration: InputDecoration(labelText: 'New Device ID', hintText: 'Enter new device ID'),
               ),
               const SizedBox(height: 8),
               MyButton(text: 'Set ID & Give All Consent', type: CountlyButtonType.filled, onPressed: changeDeviceIdAndGiveConsent),

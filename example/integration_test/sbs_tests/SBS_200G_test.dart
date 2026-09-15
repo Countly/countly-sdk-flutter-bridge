@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter_np/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -24,10 +24,10 @@ void main() {
         'ew': ['allowed_event', 'special_event'],
         'sw': ['country', 'platform'],
         'esb': {
-          'special_event': ['platform']
+          'special_event': ['platform'],
         },
         'upw': ['allowed_custom'],
-      }
+      },
     });
 
     // Initialize the SDK
@@ -102,10 +102,10 @@ void main() {
         'ew': ['allowed_event', 'special_event'],
         'sw': ['country', 'platform'],
         'esb': {
-          'special_event': ['platform']
+          'special_event': ['platform'],
         },
         'upw': ['allowed_custom'],
-      }
+      },
     });
   });
 }

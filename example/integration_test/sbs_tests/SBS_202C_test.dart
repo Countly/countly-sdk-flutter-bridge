@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter_np/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -35,7 +35,7 @@ void main() {
         'esb': 'not_an_object', // should be object
         'jte': 123, // should be array
         'upb': true, // should be array
-      }
+      },
     });
 
     // Store blacklists — these should be removed when server provides whitelists
@@ -49,7 +49,7 @@ void main() {
         'czi': 16, // exactly at minimum
         'bom_rqp': 0.5, // valid range
         'dort': 0, // exactly at minimum (0 = disabled)
-      }
+      },
     });
 
     // Initialize the SDK

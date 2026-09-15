@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter_np/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -24,13 +24,13 @@ void main() {
     createServerWithConfig(requestArray, {
       'v': 1,
       't': 1750748806695,
-      'c': {'lkl': 8}
+      'c': {'lkl': 8},
     });
 
     setServerConfig({
       'v': 1,
       't': 1750748806695,
-      'c': {'lkl': 6, 'lsv': 4}
+      'c': {'lkl': 6, 'lsv': 4},
     });
 
     // Initialize the SDK
@@ -52,7 +52,7 @@ void main() {
     expect(await getServerConfig(), {
       'v': 1,
       't': 1750748806695,
-      'c': {'lkl': 8, 'lsv': 4}
+      'c': {'lkl': 8, 'lsv': 4},
     });
   });
 }

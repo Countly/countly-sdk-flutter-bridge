@@ -1,6 +1,4 @@
-## 26.1.1
-* ! Minor breaking change ! The iOS plugin sources were reorganized to support Swift Package Manager. If you use a Notification Service Extension for rich push notifications, update the reference to "CountlyNotificationService.h" and "CountlyNotificationService.m" in your extension target to the new path "ios/countly_flutter/Sources/countly_flutter/countly-sdk-ios/".
-
+## 26.1.1-np
 * Added Swift Package Manager (SwiftPM) support for iOS. CocoaPods integration is still supported.
 
 * Mitigated an issue where async native callbacks could crash with a NullPointerException when invoked after the Flutter engine had detached (e.g. hot restart, multi-engine setups) in Android.
@@ -9,7 +7,7 @@
 * Underlying iOS SDK version is 26.1.1
 * Underlying Web SDK version is 26.1.1
 
-## 26.1.0
+## 26.1.0-np
 * Added server-side listing filters support for controlling what data gets recorded:
   * Event filters (blacklist/whitelist) to control which events are recorded
   * User property filters (blacklist/whitelist) to control which user properties are recorded
@@ -42,21 +40,14 @@
 * Updated underlying iOS SDK version is 26.1.1
 * Updated underlying Web SDK version is 26.1.1
 
-## 25.4.4
+## 25.4.3-np
 * Mitigated an issue in iOS class paths. 
-
-* Underlying Android SDK version to 25.4.8
-* Underlying iOS SDK version is 25.4.8
-* Underlying Web SDK version is 25.4.2
-
-## 25.4.3
-* Mitigated an issue where push notifications were not shown when consent was not required and app was killed in Android.
 
 * Updated underlying Android SDK version to 25.4.8
 * Underlying iOS SDK version is 25.4.8
 * Underlying Web SDK version is 25.4.2
 
-## 25.4.2
+## 25.4.2-np
 * Added a new function "addCustomNetworkRequestHeaders: customHeaderValues" for providing or overriding custom headers after init.
 * Default request method is now set to "POST"
 * Updated user properties caching mechanism according to sessions.
@@ -83,7 +74,7 @@
 * Updated underlying iOS SDK version to 25.4.8
 * Updated underlying Web SDK version to 25.4.2
 
-## 25.4.1
+## 25.4.1-np
 * Added fullscreen support for feedback widgets.
 * Added "disableSDKBehaviorSettingsUpdates()" init config method to disable server config updates.
 * Improved request queue handling with a built-in backoff mechanism which is enabled by default.
@@ -98,27 +89,25 @@
 * Updated underlying iOS SDK version to 25.4.2
 * Updated underlying Web SDK version to 25.4.1
 
-## 25.4.0
+## 25.4.0-np
 * ! Minor breaking change ! Removed Secure.ANDROID_ID on Android and UIDevice.currentDevice.identifierForVendor on iOS usages in device ID generation. The SDKs now exclusively uses random UUIDs for device ID generation.
 * ! Minor breaking change ! SDK now has Server Configuration feature and it is enabled by default. Changes made on SDK Manager > SDK Configuration on your server will affect SDK behavior directly.
 
 * Added `refreshContentZone` method to Content interface for refreshing Content Zone requests.
 * Added `setSDKBehaviorSettings(String)` init config method for providing server configuration during first initialization.
 
-* Mitigated an issue on Android that caused PN message data collision if two message with same ID was received.
-
 * Updated underlying Android SDK version to 25.4.0
 * Updated underlying iOS SDK version to 25.4.0
 * Updated underlying Web SDK version to 25.4.0
 
-## 25.1.1
+## 25.1.1-np
 * Removed Android v1 embedding support
 
 * Underlying Android SDK version is 25.1.1
 * Underlying iOS SDK version is 25.1.1
 * Underlying Web SDK version is 25.1.0
 
-## 25.1.0
+## 25.1.0-np
 * Added experimental support for the web platform in the Countly Flutter SDK. Some functionalities are not yet fully supported. Below is the list of limitations for the web platform:
   * Hybrid sessions are the default; full manual sessions are not supported.
   * Features Not Supported: Push Notifications, APM, and Attribution.
@@ -166,13 +155,13 @@
 * Enhanced CertificateTrustManager to support domain-specific configurations with hostname-aware checkServerTrusted calls (Android).
 
 * Fixed an issue where the build UUID and executable name were missing from crash reports (iOS).
-* Mitigated an issue while setting zone timer interval for content (iOS).
+* * Mitigated an issue while setting zone timer interval for content (iOS).
 
 * Updated underlying Android SDK version to 25.1.1
 * Updated underlying iOS SDK version to 25.1.1
 * Added underlying Web SDK version to 25.1.0
 
-## 24.11.2
+## 24.11.2-np
 * Improved view tracking capabilities in iOS.
 
 * Mitigated issues where:
@@ -183,7 +172,7 @@
 * Updated underlying Android SDK version to 24.7.7
 * Updated underlying iOS SDK version to 24.7.9
 
-## 24.11.1
+## 24.11.1-np
 * Added content configuration interface that has `setGlobalContentCallback` to get notified about content changes.
 * Added support for localization of content blocks.
 * Added the interface `feedback` and convenience methods that presents the first available widget to user:
@@ -199,7 +188,7 @@
 * Updated underlying Android SDK version to 24.7.6
 * Updated underlying iOS SDK version to 24.7.8
 
-## 24.11.0
+## 24.11.0-np
 * Added further intent redirection vulnerability checks in Android
 * Added support for Android 15 (API level 35)
 * Added a config flag `setCustomNetworkRequestHeaders` to add custom headers to SDK requests (thanks @sbatezat)
@@ -222,7 +211,7 @@
 * Updated underlying Android SDK version to 24.7.5
 * Updated underlying iOS SDK version to 24.7.7
 
-From this version on NP variant changelogs will be added to `-np` branches!
+From this version on NP variant changelogs will be added to this branch!
 
 ## 24.7.1
 * Added a new configuration option `enableTemporaryDeviceIDMode` to 'CountlyConfig' interface

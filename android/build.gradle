@@ -8,7 +8,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.2.1'
+        classpath 'com.android.tools.build:gradle:3.5.4'
     }
 }
 
@@ -40,5 +40,4 @@ android {
 
 dependencies {
     implementation 'ly.count.android:sdk:26.1.2'
-    implementation 'com.google.firebase:firebase-messaging:24.0.3'
 }

@@ -1,4 +1,4 @@
-name: countly_flutter
+name: countly_flutter_np
 description: Countly is an innovative, real-time, open source mobile analytics and push notifications platform.
 version: 26.1.1
 homepage: https://support.count.ly/hc/en-us/articles/360037944212
@@ -23,6 +23,10 @@ dependencies:
 
 dev_dependencies:
     flutter_lints: ^2.0.1
+    flutter_test:
+        sdk: flutter
+    integration_test:
+        sdk: flutter
 
 flutter:
     plugin:

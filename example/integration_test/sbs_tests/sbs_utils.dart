@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:countly_flutter/countly_flutter.dart';
+import 'package:countly_flutter_np/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../event_tests/event_utils.dart';
@@ -125,7 +125,7 @@ Future<void> callAllFeatures({bool disableEnterContent = false, bool disableSend
     'timestamp': 1234567890,
     'clicked': false,
     'languages': ['en', 'de', 'fr'],
-    'sub_names': ['John', 'Doe', 'Jane']
+    'sub_names': ['John', 'Doe', 'Jane'],
   };
   await Countly.instance.views.startView('Dashboard', segmentation);
 
@@ -191,32 +191,35 @@ int sbsServerDelay = 0;
 /// Creates a server with a custom handler that responds to requests based on the provided configuration.
 /// The server will respond with a JSON object containing the result of the request.
 void createServerWithConfig(List<Map<String, List<String>>> requestArray, Map<String, Object> serverConfig) {
-  createServer(requestArray, customHandler: (request, queryParams, response) async {
-    Map<String, Object> responseJson = {'result': 'Success'};
-    if (queryParams.containsKey('method')) {
-      if (queryParams['method']!.first == 'sc') {
-        responseJson = serverConfig;
-      } else if (queryParams['method']!.first == 'feedback') {
-        responseJson = {
-          'result': [
-            {'_id': 'npsID', 'type': 'nps', 'name': 'NPS Feedback'},
-            {'_id': 'surveyID', 'type': 'survey', 'name': 'Survey Feedback'},
-            {'_id': 'starID', 'type': 'rating', 'name': 'Star Rating Feedback'},
-          ]
-        };
+  createServer(
+    requestArray,
+    customHandler: (request, queryParams, response) async {
+      Map<String, Object> responseJson = {'result': 'Success'};
+      if (queryParams.containsKey('method')) {
+        if (queryParams['method']!.first == 'sc') {
+          responseJson = serverConfig;
+        } else if (queryParams['method']!.first == 'feedback') {
+          responseJson = {
+            'result': [
+              {'_id': 'npsID', 'type': 'nps', 'name': 'NPS Feedback'},
+              {'_id': 'surveyID', 'type': 'survey', 'name': 'Survey Feedback'},
+              {'_id': 'starID', 'type': 'rating', 'name': 'Star Rating Feedback'},
+            ],
+          };
+        }
       }
-    }
 
-    if (sbsServerDelay > 0 && !queryParams.containsKey('events')) {
-      await Future.delayed(Duration(seconds: sbsServerDelay));
-    }
+      if (sbsServerDelay > 0 && !queryParams.containsKey('events')) {
+        await Future.delayed(Duration(seconds: sbsServerDelay));
+      }
 
-    response
-      ..statusCode = HttpStatus.ok
-      ..headers.contentType = ContentType.json
-      ..headers.set('Access-Control-Allow-Origin', '*')
-      ..write(jsonEncode(responseJson));
-  });
+      response
+        ..statusCode = HttpStatus.ok
+        ..headers.contentType = ContentType.json
+        ..headers.set('Access-Control-Allow-Origin', '*')
+        ..write(jsonEncode(responseJson));
+    },
+  );
 }
 
 /// Validates the internal limits for events based on the provided event data.

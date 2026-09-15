@@ -102,7 +102,7 @@ class Countly {
   Events get events => _eventsInternal;
 
   /// ignore: constant_identifier_names
-  static const bool BUILDING_WITH_PUSH_DISABLED = false;
+  static const bool BUILDING_WITH_PUSH_DISABLED = true;
   static const String _pushDisabledMsg = 'In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled';
 
   static const MethodChannel _channel = MethodChannel('countly_flutter');
@@ -2270,8 +2270,15 @@ class Countly {
       }
 
       if (config.storingDefaultPushConsentDisabled) {
-        log('"_configToJson", value provided for disableStoringDefaultPushConsent: [${config.storingDefaultPushConsentDisabled}]', logLevel: LogLevel.INFO);
-        countlyConfig['disableStoringDefaultPushConsent'] = config.storingDefaultPushConsentDisabled;
+        if (BUILDING_WITH_PUSH_DISABLED) {
+          log('disableStoringDefaultPushConsent, $_pushDisabledMsg', logLevel: LogLevel.DEBUG);
+        } else {
+          log(
+            '"_configToJson", value provided for disableStoringDefaultPushConsent: [${config.storingDefaultPushConsentDisabled}]',
+            logLevel: LogLevel.INFO,
+          );
+          countlyConfig['disableStoringDefaultPushConsent'] = config.storingDefaultPushConsentDisabled;
+        }
       }
 
       if (config.viewRestartForManualRecordingDisabled) {

@@ -1,4 +1,6 @@
-import 'package:countly_flutter/countly_flutter.dart';
+import 'dart:io';
+
+import 'package:countly_flutter_np/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -14,7 +16,7 @@ void main() {
     createServerWithConfig(requestArray, {
       'v': 1,
       't': 1750748806695,
-      'c': {'st': false, 'cet': false, 'vt': false, 'eqs': 5, 'lt': false, 'crt': false, 'bom_at': 5, 'bom_d': 30, 'bom_rqp': 0.001, 'bom_ra': 1}
+      'c': {'st': false, 'cet': false, 'vt': false, 'eqs': 5, 'lt': false, 'crt': false, 'bom_at': 5, 'bom_d': 30, 'bom_rqp': 0.001, 'bom_ra': 1},
     });
     // Initialize the SDK
     CountlyConfig config = CountlyConfig(TEST_SERVER_URL, APP_KEY).enableManualSessionHandling().setLoggingEnabled(true);
@@ -48,7 +50,7 @@ void main() {
     expect(await getServerConfig(), {
       'v': 1,
       't': 1750748806695,
-      'c': {'st': false, 'cet': false, 'vt': false, 'eqs': 5, 'lt': false, 'crt': false, 'bom_at': 5, 'bom_d': 30, 'bom_rqp': 0.001, 'bom_ra': 1}
+      'c': {'st': false, 'cet': false, 'vt': false, 'eqs': 5, 'lt': false, 'crt': false, 'bom_at': 5, 'bom_d': 30, 'bom_rqp': 0.001, 'bom_ra': 1},
     });
 
     await Countly.instance.content.exitContentZone();
