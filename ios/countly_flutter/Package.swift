@@ -20,19 +20,13 @@ let package = Package(
         .target(
             name: "countly_flutter",
             dependencies: [],
-            // The Countly iOS SDK is vendored as a git submodule under countly-sdk-ios/.
-            // Exclude its non-source files, plus the unused default Swift plugin stub
-            // (SwiftPM does not allow Swift and Objective-C in the same target).
+            // The Countly iOS SDK is vendored as a git submodule under countly-sdk-ios/, checked out
+            // with scripts/config/sparse-checkout.list so only sources, LICENSE and the privacy
+            // manifest are present. Exclude the remaining non-source file plus the unused default
+            // Swift plugin stub (SwiftPM does not allow Swift and Objective-C in the same target).
             exclude: [
                 "SwiftCountlyFlutterPlugin.swift",
-                "countly-sdk-ios/CHANGELOG.md",
-                "countly-sdk-ios/README.md",
-                "countly-sdk-ios/SECURITY.md",
-                "countly-sdk-ios/LICENSE",
-                "countly-sdk-ios/Countly.podspec",
-                "countly-sdk-ios/Countly-PL.podspec",
-                "countly-sdk-ios/countly_dsym_uploader.sh",
-                "countly-sdk-ios/format.sh"
+                "countly-sdk-ios/LICENSE"
             ],
             resources: [
                 .process("countly-sdk-ios/PrivacyInfo.xcprivacy")
