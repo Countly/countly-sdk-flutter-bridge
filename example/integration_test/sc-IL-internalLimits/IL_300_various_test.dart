@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -34,7 +32,7 @@ void main() {
     print('RQ length: ${requestList.length}');
     print('EQ length: ${eventList.length}');
 
-    expect(requestList.length, Platform.isIOS ? 8 : 7); // user properties and custom user properties are separately sent in iOS
+    expect(requestList.length, 7);
     expect(eventList.length, 0);
 
     // TODO: refactor this part (move to utils and make it more generic)

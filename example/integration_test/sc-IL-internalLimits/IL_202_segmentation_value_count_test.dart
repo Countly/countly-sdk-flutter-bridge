@@ -34,7 +34,7 @@ void main() {
     print('RQ length: ${requestList.length}');
     print('EQ length: ${eventList.length}');
 
-    expect(requestList.length, Platform.isIOS ? 8 : 7); // user properties and custom user properties are separately sent in iOS
+    expect(requestList.length, 7);
     expect(eventList.length, 0);
 
     // TODO: refactor this part (move to utils and make it more generic)
@@ -95,16 +95,9 @@ void main() {
         expect(view['segmentation'].length, MAX_SEGMENTATION_COUNT + 3);
       } else if (a == 6) {
         Map<String, dynamic> userDetails = json.decode(queryParams['user_details']![0]);
-        expect(userDetails['custom'].length, Platform.isAndroid ? 10 : MAX_SEGMENTATION_COUNT); // Android does not filter custom mods
+        expect(userDetails['custom'].length, 10); // custom mods are not filtered by segmentation count limit
         checkUnchangingUserPropeties(userDetails, null);
-
-        if (Platform.isAndroid) {
-          checkUnchangingUserData(userDetails, null, null);
-        }
-      } else if (Platform.isIOS && a == 7) {
-        Map<String, dynamic> userDetails = json.decode(queryParams['user_details']![0]);
         checkUnchangingUserData(userDetails, null, null);
-        expect(userDetails['custom'].length, 10);
       }
 
       // some logs for debugging

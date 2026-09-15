@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -29,7 +27,7 @@ void main() {
     expect(RQ.length, 0);
     expect(EQ.length, 0);
     deduplicateRequestArray(requestArray);
-    validateRequestCounts({'events': 1, 'location': 1, 'crash': 0, 'begin_session': 0, 'consent': 0, 'end_session': 0, 'session_duration': 0, 'apm': 2, 'user_details': Platform.isIOS ? 2 : 1}, requestArray);
+    validateRequestCounts({'events': 1, 'location': 1, 'crash': 0, 'begin_session': 0, 'consent': 0, 'end_session': 0, 'session_duration': 0, 'apm': 2, 'user_details': 1}, requestArray);
     validateInternalEventCounts({'nps': 1}, requestArray);
     validateImmediateCounts({'hc': 1, 'sc': 1, 'feedback': 1, 'queue': 2, 'ab': 1, 'ab_opt_out': 1, 'rc': 1}, requestArray);
 

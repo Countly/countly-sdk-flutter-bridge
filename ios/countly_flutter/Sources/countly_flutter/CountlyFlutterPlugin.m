@@ -20,15 +20,15 @@
 @end
 
 @interface CountlyPersistency ()
-@property (nonatomic) NSMutableArray* queuedRequests;
-@property (nonatomic) NSMutableArray* recordedEvents;
+@property(nonatomic) NSMutableArray *queuedRequests;
+@property(nonatomic) NSMutableArray *recordedEvents;
 @end
 
 BOOL BUILDING_WITH_PUSH_DISABLED = false;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
 
-NSString *const kCountlyFlutterSDKVersion = @"26.1.0";
+NSString *const kCountlyFlutterSDKVersion = @"26.1.1";
 NSString *const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 NSString *const kCountlyFlutterSDKNameNoPush = @"dart-flutterbnp-ios";
 
@@ -114,44 +114,44 @@ FlutterMethodChannel *_channel;
         }
     } else if ([@"getRequestQueue" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSMutableArray*  queuedRequests = [CountlyPersistency.sharedInstance queuedRequests];
-            result(queuedRequests);
+          NSMutableArray *queuedRequests = [CountlyPersistency.sharedInstance queuedRequests];
+          result(queuedRequests);
         });
     } else if ([@"getEventQueue" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSMutableArray*  recordedEvents = [CountlyPersistency.sharedInstance recordedEvents];
-            NSMutableArray *recordedEventsJSON = NSMutableArray.new;
-            
-            for (id event in recordedEvents.copy) {
-                NSString *eventJson = [self toJSON:[event dictionaryRepresentation]];
-                if (eventJson) {
-                    [recordedEventsJSON addObject:eventJson];
-                }
-            }
-            result(recordedEventsJSON);
+          NSMutableArray *recordedEvents = [CountlyPersistency.sharedInstance recordedEvents];
+          NSMutableArray *recordedEventsJSON = NSMutableArray.new;
+
+          for (id event in recordedEvents.copy) {
+              NSString *eventJson = [self toJSON:[event dictionaryRepresentation]];
+              if (eventJson) {
+                  [recordedEventsJSON addObject:eventJson];
+              }
+          }
+          result(recordedEventsJSON);
         });
     } else if ([@"storeRequest" isEqualToString:call.method]) {
-         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *request = [command objectAtIndex:0];
-            NSMutableArray*  queuedRequests = [CountlyPersistency.sharedInstance queuedRequests];
-            [queuedRequests addObject:request];
-            [CountlyPersistency.sharedInstance saveToFile];
-            result(@"stored request");
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSString *request = [command objectAtIndex:0];
+          NSMutableArray *queuedRequests = [CountlyPersistency.sharedInstance queuedRequests];
+          [queuedRequests addObject:request];
+          [CountlyPersistency.sharedInstance saveToFile];
+          result(@"stored request");
         });
     } else if ([@"addDirectRequest" isEqualToString:call.method]) {
-         dispatch_async(dispatch_get_main_queue(), ^{
-            NSMutableDictionary *requestMap = [command objectAtIndex:0];
-            [Countly.sharedInstance addDirectRequest:requestMap];
-            result(@"added request to queue");
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSMutableDictionary *requestMap = [command objectAtIndex:0];
+          [Countly.sharedInstance addDirectRequest:requestMap];
+          result(@"added request to queue");
         });
     } else if ([@"setServerConfig" isEqualToString:call.method]) {
-         dispatch_async(dispatch_get_main_queue(), ^{
-            NSMutableDictionary *serverConfig = [command objectAtIndex:0];
-            [NSUserDefaults.standardUserDefaults setObject:serverConfig forKey:@"kCountlyServerConfigPersistencyKey"];
-            [NSUserDefaults.standardUserDefaults synchronize];
-            result(@"setServerConfig: success");
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSMutableDictionary *serverConfig = [command objectAtIndex:0];
+          [NSUserDefaults.standardUserDefaults setObject:serverConfig forKey:@"kCountlyServerConfigPersistencyKey"];
+          [NSUserDefaults.standardUserDefaults synchronize];
+          result(@"setServerConfig: success");
         });
-    }else if ([@"getServerConfig" isEqualToString:call.method]) {
+    } else if ([@"getServerConfig" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSDictionary *storedConfig = [NSUserDefaults.standardUserDefaults objectForKey:@"kCountlyServerConfigPersistencyKey"];
 
@@ -191,9 +191,9 @@ FlutterMethodChannel *_channel;
           int duration = [durationString intValue];
           NSDictionary *segmentation;
           if ((int)command.count > 4) {
-            segmentation = [command objectAtIndex:4];
+              segmentation = [command objectAtIndex:4];
           } else {
-            segmentation = nil;
+              segmentation = nil;
           }
 
           [[Countly sharedInstance] recordEvent:key segmentation:segmentation count:count sum:sum duration:duration];
@@ -324,14 +324,14 @@ FlutterMethodChannel *_channel;
           [Countly.sharedInstance enableTemporaryDeviceIDMode];
           result(@"enableTemporaryIDMode success!");
         });
-    }  else if ([@"changeWithMerge" isEqualToString:call.method]) {
+    } else if ([@"changeWithMerge" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *newDeviceID = [command objectAtIndex:0];
           [Countly.sharedInstance changeDeviceIDWithMerge:newDeviceID];
           result(@"changeWithMerge!");
         });
 
-    }  else if ([@"changeWithoutMerge" isEqualToString:call.method]) {
+    } else if ([@"changeWithoutMerge" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *newDeviceID = [command objectAtIndex:0];
           [Countly.sharedInstance changeDeviceIDWithoutMerge:newDeviceID];
@@ -375,9 +375,9 @@ FlutterMethodChannel *_channel;
           float sum = [sumString floatValue];
           NSDictionary *segmentation;
           if ((int)command.count > 3) {
-            segmentation = [command objectAtIndex:3];
+              segmentation = [command objectAtIndex:3];
           } else {
-            segmentation = nil;
+              segmentation = nil;
           }
           [[Countly sharedInstance] endEvent:key segmentation:segmentation count:count sum:sum];
           NSString *resultString = @"endEvent for: ";
@@ -448,17 +448,17 @@ FlutterMethodChannel *_channel;
 
           NSString *city = location[@"city"];
           if (!city || [[NSNull null] isEqual:city] || !city.length) {
-            city = nil;
+              city = nil;
           }
 
           NSString *countryCode = location[@"countryCode"];
           if (!countryCode || [[NSNull null] isEqual:countryCode] || !countryCode.length) {
-            countryCode = nil;
+              countryCode = nil;
           }
 
           NSString *ipAddress = location[@"ipAddress"];
           if (!ipAddress || [[NSNull null] isEqual:ipAddress] || !ipAddress.length) {
-            ipAddress = nil;
+              ipAddress = nil;
           }
 
           [Countly.sharedInstance recordLocation:locationCoordinate city:city ISOCountryCode:countryCode IP:ipAddress];
@@ -657,116 +657,116 @@ FlutterMethodChannel *_channel;
 
     } else if ([@"userProfile_setProperties" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSDictionary *userProperties = [command objectAtIndex:0];
-            
-            [self setUserData:userProperties];
-            NSDictionary *customeProperties = [self removePredefinedUserProperties:userProperties];
-            Countly.user.custom = customeProperties;
-            
-            result(nil);
+          NSDictionary *userProperties = [command objectAtIndex:0];
+
+          [self setUserData:userProperties];
+          NSDictionary *customeProperties = [self removePredefinedUserProperties:userProperties];
+          Countly.user.custom = customeProperties;
+
+          result(nil);
         });
-        
+
     } else if ([@"userProfile_setProperty" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *key = [command objectAtIndex:0];
-            NSNumber *value = [command objectAtIndex:1];
-            
-            [Countly.user set:key numberValue:value];
-            result(nil);
+          NSString *key = [command objectAtIndex:0];
+          NSNumber *value = [command objectAtIndex:1];
+
+          [Countly.user set:key numberValue:value];
+          result(nil);
         });
-        
+
     } else if ([@"userProfile_increment" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *key = [command objectAtIndex:0];
-            
-            [Countly.user increment:key];
-            result(nil);
+          NSString *key = [command objectAtIndex:0];
+
+          [Countly.user increment:key];
+          result(nil);
         });
-        
+
     } else if ([@"userProfile_incrementBy" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *key = [command objectAtIndex:0];
-            NSNumber *value = [command objectAtIndex:1];
-            
-            [Countly.user incrementBy:key value:value];
-            result(nil);
+          NSString *key = [command objectAtIndex:0];
+          NSNumber *value = [command objectAtIndex:1];
+
+          [Countly.user incrementBy:key value:value];
+          result(nil);
         });
-        
+
     } else if ([@"userProfile_multiply" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *key = [command objectAtIndex:0];
-            NSNumber *value = [command objectAtIndex:1];
-            
-            [Countly.user multiply:key value:value];
-            result(nil);
+          NSString *key = [command objectAtIndex:0];
+          NSNumber *value = [command objectAtIndex:1];
+
+          [Countly.user multiply:key value:value];
+          result(nil);
         });
-        
+
     } else if ([@"userProfile_saveMax" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *key = [command objectAtIndex:0];
-            NSNumber *value = [command objectAtIndex:1];
-            
-            [Countly.user max:key value:value];
-            result(nil);
+          NSString *key = [command objectAtIndex:0];
+          NSNumber *value = [command objectAtIndex:1];
+
+          [Countly.user max:key value:value];
+          result(nil);
         });
-        
+
     } else if ([@"userProfile_saveMin" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *key = [command objectAtIndex:0];
-            NSNumber *value = [command objectAtIndex:1];
-            
-            [Countly.user min:key value:value];
-            result(nil);
+          NSString *key = [command objectAtIndex:0];
+          NSNumber *value = [command objectAtIndex:1];
+
+          [Countly.user min:key value:value];
+          result(nil);
         });
-        
+
     } else if ([@"userProfile_setOnce" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *key = [command objectAtIndex:0];
-            NSString *value = [command objectAtIndex:1];
-            
-            [Countly.user setOnce:key value:value];
-            result(nil);
+          NSString *key = [command objectAtIndex:0];
+          NSString *value = [command objectAtIndex:1];
+
+          [Countly.user setOnce:key value:value];
+          result(nil);
         });
-        
+
     } else if ([@"userProfile_pushUnique" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *key = [command objectAtIndex:0];
-            NSString *value = [command objectAtIndex:1];
-            
-            [Countly.user pushUnique:key value:value];
-            result(nil);
+          NSString *key = [command objectAtIndex:0];
+          NSString *value = [command objectAtIndex:1];
+
+          [Countly.user pushUnique:key value:value];
+          result(nil);
         });
-        
+
     } else if ([@"userProfile_push" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *key = [command objectAtIndex:0];
-            NSString *value = [command objectAtIndex:1];
-            
-            [Countly.user push:key value:value];
-            result(nil);
+          NSString *key = [command objectAtIndex:0];
+          NSString *value = [command objectAtIndex:1];
+
+          [Countly.user push:key value:value];
+          result(nil);
         });
-        
+
     } else if ([@"userProfile_pull" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *key = [command objectAtIndex:0];
-            NSString *value = [command objectAtIndex:1];
-            
-            [Countly.user pull:key value:value];
-            result(nil);
+          NSString *key = [command objectAtIndex:0];
+          NSString *value = [command objectAtIndex:1];
+
+          [Countly.user pull:key value:value];
+          result(nil);
         });
-        
-    }  else if ([@"userProfile_save" isEqualToString:call.method]) {
+
+    } else if ([@"userProfile_save" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [Countly.user save];
-            result(nil);
+          [Countly.user save];
+          result(nil);
         });
-        
-    }  else if ([@"userProfile_clear" isEqualToString:call.method]) {
+
+    } else if ([@"userProfile_clear" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [Countly.user clearUserDetails];
-            result(nil);
+          [Countly.user clearUserDetails];
+          result(nil);
         });
-        
+
         // setRequiresConsent
     } else if ([@"setRequiresConsent" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -931,149 +931,150 @@ FlutterMethodChannel *_channel;
         });
     } else if ([@"remoteConfigDownloadValues" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSNumber *callbackID = [command objectAtIndex:0];
-            [Countly.sharedInstance.remoteConfig downloadKeys:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
-                [self remoteConfigDownloadCallback:callbackID response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
-            }];
-            
-            result(@"success");
+          NSNumber *callbackID = [command objectAtIndex:0];
+          [Countly.sharedInstance.remoteConfig downloadKeys:^(CLYRequestResult _Nonnull response, NSError *_Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *, CountlyRCData *> *_Nonnull downloadedValues) {
+            [self remoteConfigDownloadCallback:callbackID response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
+          }];
+
+          result(@"success");
         });
     } else if ([@"remoteConfigDownloadSpecificValue" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSNumber *callbackID = [command objectAtIndex:0];
-            NSArray *keys = [command objectAtIndex:1];
-            [Countly.sharedInstance.remoteConfig downloadSpecificKeys:keys completionHandler:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
-                [self remoteConfigDownloadCallback:callbackID response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
-            }];
-            result(@"Success!");
+          NSNumber *callbackID = [command objectAtIndex:0];
+          NSArray *keys = [command objectAtIndex:1];
+          [Countly.sharedInstance.remoteConfig downloadSpecificKeys:keys
+                                                  completionHandler:^(CLYRequestResult _Nonnull response, NSError *_Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *, CountlyRCData *> *_Nonnull downloadedValues) {
+                                                    [self remoteConfigDownloadCallback:callbackID response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
+                                                  }];
+          result(@"Success!");
         });
-        
+
     } else if ([@"remoteConfigDownloadOmittingValues" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSNumber *callbackID = [command objectAtIndex:0];
-            NSArray *omitKeys = [command objectAtIndex:1];
-            
-            [Countly.sharedInstance.remoteConfig downloadOmittingKeys:omitKeys completionHandler:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
-                [self remoteConfigDownloadCallback:callbackID response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
-            }];
-            result(@"Success!");
+          NSNumber *callbackID = [command objectAtIndex:0];
+          NSArray *omitKeys = [command objectAtIndex:1];
+
+          [Countly.sharedInstance.remoteConfig downloadOmittingKeys:omitKeys
+                                                  completionHandler:^(CLYRequestResult _Nonnull response, NSError *_Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *, CountlyRCData *> *_Nonnull downloadedValues) {
+                                                    [self remoteConfigDownloadCallback:callbackID response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
+                                                  }];
+          result(@"Success!");
         });
-        
+
     } else if ([@"remoteConfigGetAllValues" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSDictionary<NSString*, CountlyRCData *> * allRCDataValues = [Countly.sharedInstance.remoteConfig getAllValues];
-            NSDictionary* rCValues = [self getRCValues:allRCDataValues];
-            result(rCValues);
+          NSDictionary<NSString *, CountlyRCData *> *allRCDataValues = [Countly.sharedInstance.remoteConfig getAllValues];
+          NSDictionary *rCValues = [self getRCValues:allRCDataValues];
+          result(rCValues);
         });
-        
+
     } else if ([@"remoteConfigGetValue" isEqualToString:call.method]) {
         NSString *key = [command objectAtIndex:0];
         dispatch_async(dispatch_get_main_queue(), ^{
-            CountlyRCData* rcData = [Countly.sharedInstance.remoteConfig getValue:key];
-            NSDictionary* rcDataMap = [self rcDataToMap:rcData];
-            result(rcDataMap);
+          CountlyRCData *rcData = [Countly.sharedInstance.remoteConfig getValue:key];
+          NSDictionary *rcDataMap = [self rcDataToMap:rcData];
+          result(rcDataMap);
         });
-        
+
     } else if ([@"remoteConfigGetValueAndEnroll" isEqualToString:call.method]) {
         NSString *key = [command objectAtIndex:0];
         dispatch_async(dispatch_get_main_queue(), ^{
-            CountlyRCData* rcData = [Countly.sharedInstance.remoteConfig getValueAndEnroll:key];
-            NSDictionary* rcDataMap = [self rcDataToMap:rcData];
-            result(rcDataMap);
+          CountlyRCData *rcData = [Countly.sharedInstance.remoteConfig getValueAndEnroll:key];
+          NSDictionary *rcDataMap = [self rcDataToMap:rcData];
+          result(rcDataMap);
         });
 
     } else if ([@"remoteConfigGetAllValuesAndEnroll" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSDictionary<NSString*, CountlyRCData *> * allRCDataValues = [Countly.sharedInstance.remoteConfig getAllValuesAndEnroll];
-            NSDictionary* rCValues = [self getRCValues:allRCDataValues];
-            result(rCValues);
+          NSDictionary<NSString *, CountlyRCData *> *allRCDataValues = [Countly.sharedInstance.remoteConfig getAllValuesAndEnroll];
+          NSDictionary *rCValues = [self getRCValues:allRCDataValues];
+          result(rCValues);
         });
 
     } else if ([@"remoteConfigClearAllValues" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [Countly.sharedInstance.remoteConfig clearAll];
-            result(@"Success!");
+          [Countly.sharedInstance.remoteConfig clearAll];
+          result(@"Success!");
         });
-        
+
     } else if ([@"remoteConfigEnrollIntoABTestsForKeys" isEqualToString:call.method]) {
         NSArray *keys = [command objectAtIndex:0];
         dispatch_async(dispatch_get_main_queue(), ^{
-            [Countly.sharedInstance.remoteConfig enrollIntoABTestsForKeys:keys];
-            result(@"Success!");
+          [Countly.sharedInstance.remoteConfig enrollIntoABTestsForKeys:keys];
+          result(@"Success!");
         });
-        
+
     } else if ([@"remoteConfigExitABTestsForKeys" isEqualToString:call.method]) {
         NSArray *keys = [command objectAtIndex:0];
         dispatch_async(dispatch_get_main_queue(), ^{
-            [Countly.sharedInstance.remoteConfig exitABTestsForKeys:keys];
-            result(@"Success!");
+          [Countly.sharedInstance.remoteConfig exitABTestsForKeys:keys];
+          result(@"Success!");
         });
-        
+
     } else if ([@"remoteConfigTestingGetVariantsForKey" isEqualToString:call.method]) {
         NSString *key = [command objectAtIndex:0];
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSArray* variants = [Countly.sharedInstance.remoteConfig testingGetVariantsForKey:key];
-            result(variants);
+          NSArray *variants = [Countly.sharedInstance.remoteConfig testingGetVariantsForKey:key];
+          result(variants);
         });
-        
+
     } else if ([@"remoteConfigTestingGetAllVariants" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSDictionary* allVariants = [Countly.sharedInstance.remoteConfig testingGetAllVariants];
-            result(allVariants);
+          NSDictionary *allVariants = [Countly.sharedInstance.remoteConfig testingGetAllVariants];
+          result(allVariants);
         });
-        
+
     } else if ([@"remoteConfigTestingDownloadVariantInformation" isEqualToString:call.method]) {
         NSNumber *callbackID = [command objectAtIndex:0];
         dispatch_async(dispatch_get_main_queue(), ^{
-            [Countly.sharedInstance.remoteConfig testingDownloadVariantInformation:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error) {
-                [self remoteConfigVariantCallback:callbackID response:response error:error];
-            }];
-            result(@"Success!");
+          [Countly.sharedInstance.remoteConfig testingDownloadVariantInformation:^(CLYRequestResult _Nonnull response, NSError *_Nonnull error) {
+            [self remoteConfigVariantCallback:callbackID response:response error:error];
+          }];
+          result(@"Success!");
         });
-        
+
     } else if ([@"remoteConfigTestingEnrollIntoVariant" isEqualToString:call.method]) {
         NSNumber *callbackID = [command objectAtIndex:0];
         NSString *key = [command objectAtIndex:1];
         NSString *variantName = [command objectAtIndex:2];
         dispatch_async(dispatch_get_main_queue(), ^{
-            [Countly.sharedInstance.remoteConfig testingEnrollIntoVariant:key variantName:variantName completionHandler:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error) {
-                [self remoteConfigVariantCallback:callbackID response:response error:error];
-            }];
-            result(@"Success!");
+          [Countly.sharedInstance.remoteConfig testingEnrollIntoVariant:key
+                                                            variantName:variantName
+                                                      completionHandler:^(CLYRequestResult _Nonnull response, NSError *_Nonnull error) {
+                                                        [self remoteConfigVariantCallback:callbackID response:response error:error];
+                                                      }];
+          result(@"Success!");
         });
-        
+
     } else if ([@"testingDownloadExperimentInformation" isEqualToString:call.method]) {
         NSNumber *callbackID = [command objectAtIndex:0];
         dispatch_async(dispatch_get_main_queue(), ^{
-            [Countly.sharedInstance.remoteConfig testingDownloadExperimentInformation:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error) {
-                [self remoteConfigVariantCallback:callbackID response:response error:error];
-            }];
-            result(@"Success!");
+          [Countly.sharedInstance.remoteConfig testingDownloadExperimentInformation:^(CLYRequestResult _Nonnull response, NSError *_Nonnull error) {
+            [self remoteConfigVariantCallback:callbackID response:response error:error];
+          }];
+          result(@"Success!");
         });
-        
+
     } else if ([@"testingGetAllExperimentInfo" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSDictionary<NSString*, CountlyExperimentInformation*> * experiments = [Countly.sharedInstance.remoteConfig testingGetAllExperimentInfo];
-            NSMutableArray *experimentInfoArray = [NSMutableArray arrayWithCapacity:experiments.count];
-            [experiments enumerateKeysAndObjectsUsingBlock:^(NSString * key, CountlyExperimentInformation* experimentID, BOOL * stop)
-             {
-                NSMutableDictionary *experimentInfoValue = [NSMutableDictionary dictionaryWithCapacity:5];
-                experimentInfoValue[@"experimentID"] = experimentID.experimentID;
-                experimentInfoValue[@"experimentName"] = experimentID.experimentName;
-                experimentInfoValue[@"experimentDescription"] = experimentID.experimentDescription;
-                if(experimentID.currentVariant) {
-                    experimentInfoValue[@"currentVariant"] =  experimentID.currentVariant;
-                }
-                else
-                {
-                    experimentInfoValue[@"currentVariant"] = @"null";
-                }
-                experimentInfoValue[@"variants"] = experimentID.variants;
-                [experimentInfoArray addObject:experimentInfoValue];
-            }];
-            result(experimentInfoArray);
+          NSDictionary<NSString *, CountlyExperimentInformation *> *experiments = [Countly.sharedInstance.remoteConfig testingGetAllExperimentInfo];
+          NSMutableArray *experimentInfoArray = [NSMutableArray arrayWithCapacity:experiments.count];
+          [experiments enumerateKeysAndObjectsUsingBlock:^(NSString *key, CountlyExperimentInformation *experimentID, BOOL *stop) {
+            NSMutableDictionary *experimentInfoValue = [NSMutableDictionary dictionaryWithCapacity:5];
+            experimentInfoValue[@"experimentID"] = experimentID.experimentID;
+            experimentInfoValue[@"experimentName"] = experimentID.experimentName;
+            experimentInfoValue[@"experimentDescription"] = experimentID.experimentDescription;
+            if (experimentID.currentVariant) {
+                experimentInfoValue[@"currentVariant"] = experimentID.currentVariant;
+            } else {
+                experimentInfoValue[@"currentVariant"] = @"null";
+            }
+            experimentInfoValue[@"variants"] = experimentID.variants;
+            [experimentInfoArray addObject:experimentInfoValue];
+          }];
+          result(experimentInfoArray);
         });
-    }  else if ([@"presentRatingWidgetWithID" isEqualToString:call.method]) {
+    } else if ([@"presentRatingWidgetWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *widgetId = [command objectAtIndex:0];
           [Countly.sharedInstance presentRatingWidgetWithID:widgetId
@@ -1138,63 +1139,66 @@ FlutterMethodChannel *_channel;
         });
     } else if ([@"presentNPS" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *nameIDorTag = @"";
+          NSString *nameIDorTag = @"";
 
-            if (command.count != 0) {
-                nameIDorTag = [command objectAtIndex:0];
-            }
-          
-            [Countly.sharedInstance.feedback presentNPS:nameIDorTag widgetCallback:^(WidgetState state) {
-                if (state == WIDGET_CLOSED) {
-                    [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
-                    result(@"[CountlyFlutterPlugin] presentNPS, dismissed");
-                } else if (state = WIDGET_APPEARED) {
-                    [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
-                    result(@"[CountlyFlutterPlugin] presentNPS, appeared");
-                }
-            }];
+          if (command.count != 0) {
+              nameIDorTag = [command objectAtIndex:0];
+          }
 
-            result(@"[CountlyFlutterPlugin] presentNPS, success");
+          [Countly.sharedInstance.feedback presentNPS:nameIDorTag
+                                       widgetCallback:^(WidgetState state) {
+                                         if (state == WIDGET_CLOSED) {
+                                             [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
+                                             result(@"[CountlyFlutterPlugin] presentNPS, dismissed");
+                                         } else if (state = WIDGET_APPEARED) {
+                                             [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
+                                             result(@"[CountlyFlutterPlugin] presentNPS, appeared");
+                                         }
+                                       }];
+
+          result(@"[CountlyFlutterPlugin] presentNPS, success");
         });
     } else if ([@"presentRating" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *nameIDorTag = @"";
+          NSString *nameIDorTag = @"";
 
-            if (command.count != 0) {
-                nameIDorTag = [command objectAtIndex:0];
-            }
-          
-            [Countly.sharedInstance.feedback presentRating:nameIDorTag widgetCallback:^(WidgetState state) {
-                if (state == WIDGET_CLOSED) {
-                    [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
-                    result(@"[CountlyFlutterPlugin] presentRating, dismissed");
-                } else if (state = WIDGET_APPEARED) {
-                    [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
-                    result(@"[CountlyFlutterPlugin] presentRating, appeared");
-                }
-            }];
+          if (command.count != 0) {
+              nameIDorTag = [command objectAtIndex:0];
+          }
 
-            result(@"[CountlyFlutterPlugin] presentRating, success");
+          [Countly.sharedInstance.feedback presentRating:nameIDorTag
+                                          widgetCallback:^(WidgetState state) {
+                                            if (state == WIDGET_CLOSED) {
+                                                [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
+                                                result(@"[CountlyFlutterPlugin] presentRating, dismissed");
+                                            } else if (state = WIDGET_APPEARED) {
+                                                [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
+                                                result(@"[CountlyFlutterPlugin] presentRating, appeared");
+                                            }
+                                          }];
+
+          result(@"[CountlyFlutterPlugin] presentRating, success");
         });
     } else if ([@"presentSurvey" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *nameIDorTag = @"";
+          NSString *nameIDorTag = @"";
 
-            if (command.count != 0) {
-                nameIDorTag = [command objectAtIndex:0];
-            }
-          
-            [Countly.sharedInstance.feedback presentSurvey:nameIDorTag widgetCallback:^(WidgetState state) {
-                if (state == WIDGET_CLOSED) {
-                    [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
-                    result(@"CountlyFlutterPlugin] presentSurvey, dismissed");
-                } else if (state = WIDGET_APPEARED) {
-                    [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
-                    result(@"CountlyFlutterPlugin] presentSurvey, appeared");
-                }
-            }];
+          if (command.count != 0) {
+              nameIDorTag = [command objectAtIndex:0];
+          }
 
-            result(@"[CountlyFlutterPlugin] presentSurvey, success");
+          [Countly.sharedInstance.feedback presentSurvey:nameIDorTag
+                                          widgetCallback:^(WidgetState state) {
+                                            if (state == WIDGET_CLOSED) {
+                                                [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
+                                                result(@"CountlyFlutterPlugin] presentSurvey, dismissed");
+                                            } else if (state = WIDGET_APPEARED) {
+                                                [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
+                                                result(@"CountlyFlutterPlugin] presentSurvey, appeared");
+                                            }
+                                          }];
+
+          result(@"[CountlyFlutterPlugin] presentSurvey, success");
         });
     } else if ([@"getFeedbackWidgetData" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -1265,20 +1269,20 @@ FlutterMethodChannel *_channel;
         result(@"clearAllTrace: success");
     } else if ([@"endTrace" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *traceKey = [command objectAtIndex:0];
-            NSMutableDictionary *metrics = [[NSMutableDictionary alloc] init];
-            for (int i = 1, il = (int)command.count; i < il; i += 2) {
-                @try {
-                    NSString *key = [command objectAtIndex:i];
-                    NSString *valueString = [command objectAtIndex:i + 1];
-                    // Convert value string to integer
-                    NSNumber *value = @([valueString intValue]);
-                    metrics[key] = value;
-                } @catch (NSException *exception) {
-                    COUNTLY_FLUTTER_LOG(@"[endTrace], Exception occurred while parsing metric: %@", exception);
-                }
-            }
-            [Countly.sharedInstance endCustomTrace:traceKey metrics:metrics];
+          NSString *traceKey = [command objectAtIndex:0];
+          NSMutableDictionary *metrics = [[NSMutableDictionary alloc] init];
+          for (int i = 1, il = (int)command.count; i < il; i += 2) {
+              @try {
+                  NSString *key = [command objectAtIndex:i];
+                  NSString *valueString = [command objectAtIndex:i + 1];
+                  // Convert value string to integer
+                  NSNumber *value = @([valueString intValue]);
+                  metrics[key] = value;
+              } @catch (NSException *exception) {
+                  COUNTLY_FLUTTER_LOG(@"[endTrace], Exception occurred while parsing metric: %@", exception);
+              }
+          }
+          [Countly.sharedInstance endCustomTrace:traceKey metrics:metrics];
         });
         result(@"endTrace: success");
     } else if ([@"recordNetworkTrace" isEqualToString:call.method]) {
@@ -1331,35 +1335,35 @@ FlutterMethodChannel *_channel;
         });
     } else if ([@"startView" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *viewName = [command objectAtIndex:0];
-            NSDictionary* segmentation = [command objectAtIndex:1];
-            NSString *viewId = [Countly.sharedInstance.views startView:viewName segmentation:segmentation];
-            result(viewId);
+          NSString *viewName = [command objectAtIndex:0];
+          NSDictionary *segmentation = [command objectAtIndex:1];
+          NSString *viewId = [Countly.sharedInstance.views startView:viewName segmentation:segmentation];
+          result(viewId);
         });
     } else if ([@"startAutoStoppedView" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *viewName = [command objectAtIndex:0];
-            NSDictionary* segmentation = [command objectAtIndex:1];
-            NSString *viewId = [Countly.sharedInstance.views startAutoStoppedView:viewName segmentation:segmentation];
-            result(viewId);
+          NSString *viewName = [command objectAtIndex:0];
+          NSDictionary *segmentation = [command objectAtIndex:1];
+          NSString *viewId = [Countly.sharedInstance.views startAutoStoppedView:viewName segmentation:segmentation];
+          result(viewId);
         });
     } else if ([@"stopAllViews" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSDictionary* segmentation = [command objectAtIndex:0];
-            [Countly.sharedInstance.views stopAllViews:segmentation];
-            result(nil);
+          NSDictionary *segmentation = [command objectAtIndex:0];
+          [Countly.sharedInstance.views stopAllViews:segmentation];
+          result(nil);
         });
     } else if ([@"stopViewWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *viewId = [command objectAtIndex:0];
-          NSDictionary* segmentation = [command objectAtIndex:1];
+          NSDictionary *segmentation = [command objectAtIndex:1];
           [Countly.sharedInstance.views stopViewWithID:viewId segmentation:segmentation];
           result(nil);
         });
     } else if ([@"stopViewWithName" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *viewName = [command objectAtIndex:0];
-          NSDictionary* segmentation = [command objectAtIndex:1];
+          NSDictionary *segmentation = [command objectAtIndex:1];
           [Countly.sharedInstance.views stopViewWithName:viewName segmentation:segmentation];
           result(nil);
         });
@@ -1377,72 +1381,72 @@ FlutterMethodChannel *_channel;
         });
     } else if ([@"setGlobalViewSegmentation" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          NSDictionary* segmentation = [command objectAtIndex:0];
+          NSDictionary *segmentation = [command objectAtIndex:0];
           [Countly.sharedInstance.views setGlobalViewSegmentation:segmentation];
           result(nil);
         });
     } else if ([@"updateGlobalViewSegmentation" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          NSDictionary* segmentation = [command objectAtIndex:0];
+          NSDictionary *segmentation = [command objectAtIndex:0];
           [Countly.sharedInstance.views updateGlobalViewSegmentation:segmentation];
           result(nil);
         });
     } else if ([@"addSegmentationToViewWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *viewId = [command objectAtIndex:0];
-            NSDictionary* segmentation = [command objectAtIndex:1];
-            [Countly.sharedInstance.views addSegmentationToViewWithID:viewId segmentation:segmentation];
-            result(nil);
+          NSString *viewId = [command objectAtIndex:0];
+          NSDictionary *segmentation = [command objectAtIndex:1];
+          [Countly.sharedInstance.views addSegmentationToViewWithID:viewId segmentation:segmentation];
+          result(nil);
         });
     } else if ([@"addSegmentationToViewWithName" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSString *viewName = [command objectAtIndex:0];
-            NSDictionary* segmentation = [command objectAtIndex:1];
-            [Countly.sharedInstance.views addSegmentationToViewWithName:viewName segmentation:segmentation];
-            result(nil);
+          NSString *viewName = [command objectAtIndex:0];
+          NSDictionary *segmentation = [command objectAtIndex:1];
+          [Countly.sharedInstance.views addSegmentationToViewWithName:viewName segmentation:segmentation];
+          result(nil);
         });
     } else if ([@"appLoadingFinished" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           [Countly.sharedInstance appLoadingFinished];
         });
         result(@"appLoadingFinished: success");
-    }  else if ([@"enterContentZone" isEqualToString:call.method]) {
+    } else if ([@"enterContentZone" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [Countly.sharedInstance.content enterContentZone];
-            result(nil);
+          [Countly.sharedInstance.content enterContentZone];
+          result(nil);
         });
     } else if ([@"exitContentZone" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [Countly.sharedInstance.content exitContentZone];
-            result(nil);
+          [Countly.sharedInstance.content exitContentZone];
+          result(nil);
         });
-    }  else if ([@"refreshContentZone" isEqualToString:call.method]) {
+    } else if ([@"refreshContentZone" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [Countly.sharedInstance.content refreshContentZone];
-            result(nil);
+          [Countly.sharedInstance.content refreshContentZone];
+          result(nil);
         });
     } else if ([@"previewContent" isEqualToString:call.method]) {
-        NSString* contentId = call.arguments[@"contentId"];
+        NSString *contentId = call.arguments[@"contentId"];
         dispatch_async(dispatch_get_main_queue(), ^{
-            [Countly.sharedInstance.content previewContent:contentId];
-            result(nil);
+          [Countly.sharedInstance.content previewContent:contentId];
+          result(nil);
         });
     } else if ([@"attemptToSendStoredRequests" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [Countly.sharedInstance attemptToSendStoredRequests];
+          [Countly.sharedInstance attemptToSendStoredRequests];
         });
         result(@"attemptToSendStoredRequests: success");
     } else if ([@"addCustomNetworkRequestHeaders" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSDictionary* customHeaderValues = [command objectAtIndex:0];
-            [Countly.sharedInstance addCustomNetworkRequestHeaders:customHeaderValues];
-            result(nil);
+          NSDictionary *customHeaderValues = [command objectAtIndex:0];
+          [Countly.sharedInstance addCustomNetworkRequestHeaders:customHeaderValues];
+          result(nil);
         });
     } else if ([@"recordMetrics" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSDictionary* metricsOverride = [command objectAtIndex:0];
-            [Countly.sharedInstance recordMetrics:metricsOverride];
-            result(nil);
+          NSDictionary *metricsOverride = [command objectAtIndex:0];
+          [Countly.sharedInstance recordMetrics:metricsOverride];
+          result(nil);
         });
     } else {
         result(FlutterMethodNotImplemented);
@@ -1451,7 +1455,7 @@ FlutterMethodChannel *_channel;
 
 - (NSDictionary *)removePredefinedUserProperties:(NSDictionary *__nullable)userData {
     NSMutableDictionary *userProperties = [userData mutableCopy];
-    NSArray *nameFields = [[NSArray alloc] initWithObjects:NAME_KEY, USERNAME_KEY, EMAIL_KEY, ORG_KEY, PHONE_KEY, PICTURE_KEY, PICTURE_PATH_KEY, GENDER_KEY, BYEAR_KEY, nil];//TODO this should be replaced with a global array
+    NSArray *nameFields = [[NSArray alloc] initWithObjects:NAME_KEY, USERNAME_KEY, EMAIL_KEY, ORG_KEY, PHONE_KEY, PICTURE_KEY, PICTURE_PATH_KEY, GENDER_KEY, BYEAR_KEY, nil]; // TODO this should be replaced with a global array
 
     for (NSString *nameField in nameFields) {
         [userProperties removeObjectForKey:nameField];
@@ -1505,63 +1509,58 @@ FlutterMethodChannel *_channel;
     [_channel invokeMethod:@"feedbackWidgetDataCallback" arguments:feedbackWidgetData];
 }
 
-- (void)remoteConfigVariantCallback:(NSNumber*)callbackID response:(CLYRequestResult _Nonnull)response error:(NSError *__nullable)error {
+- (void)remoteConfigVariantCallback:(NSNumber *)callbackID response:(CLYRequestResult _Nonnull)response error:(NSError *__nullable)error {
     NSMutableDictionary *remoteConfigData = [[NSMutableDictionary alloc] init];
-    
-    remoteConfigData[@"id"] =  callbackID;
-    if(response == CLYResponseSuccess) {
-        remoteConfigData[@"requestResult"] =  [NSNumber numberWithInt:0];
+
+    remoteConfigData[@"id"] = callbackID;
+    if (response == CLYResponseSuccess) {
+        remoteConfigData[@"requestResult"] = [NSNumber numberWithInt:0];
+    } else if (response == CLYResponseNetworkIssue) {
+        remoteConfigData[@"requestResult"] = [NSNumber numberWithInt:1];
     }
-    else if(response == CLYResponseNetworkIssue) {
-        remoteConfigData[@"requestResult"] =  [NSNumber numberWithInt:1];
-    }
-    
+
     if (error) {
         remoteConfigData[@"error"] = error.description;
     }
-    
+
     [_channel invokeMethod:@"remoteConfigVariantCallback" arguments:remoteConfigData];
 }
 
-- (void)remoteConfigDownloadCallback:(NSNumber*)callbackID response:(CLYRequestResult _Nonnull)response fullValueUpdate:(BOOL)fullValueUpdate error:(NSError *__nullable)error downloadedValues:(NSDictionary<NSString *,CountlyRCData *> *_Nonnull)downloadedValues {
+- (void)remoteConfigDownloadCallback:(NSNumber *)callbackID response:(CLYRequestResult _Nonnull)response fullValueUpdate:(BOOL)fullValueUpdate error:(NSError *__nullable)error downloadedValues:(NSDictionary<NSString *, CountlyRCData *> *_Nonnull)downloadedValues {
     COUNTLY_FLUTTER_LOG(@"[remoteConfigDownloadCallback], about to notify flutter side callback", callbackID);
-    if([callbackID intValue] == -1) {
+    if ([callbackID intValue] == -1) {
         return;
     }
     NSMutableDictionary *remoteConfigData = [[NSMutableDictionary alloc] init];
-    
-    remoteConfigData[@"id"] =  callbackID;
-    if(response == CLYResponseSuccess) {
-        remoteConfigData[@"requestResult"] =  [NSNumber numberWithInt:0];
+
+    remoteConfigData[@"id"] = callbackID;
+    if (response == CLYResponseSuccess) {
+        remoteConfigData[@"requestResult"] = [NSNumber numberWithInt:0];
+    } else if (response == CLYResponseNetworkIssue) {
+        remoteConfigData[@"requestResult"] = [NSNumber numberWithInt:1];
     }
-    else if(response == CLYResponseNetworkIssue) {
-        remoteConfigData[@"requestResult"] =  [NSNumber numberWithInt:1];
-    }
-    
+
     remoteConfigData[@"fullValueUpdate"] = fullValueUpdate ? @YES : @NO;
-    
+
     if (downloadedValues) {
         remoteConfigData[@"downloadedValues"] = [self getRCValues:downloadedValues];
     }
     if (error) {
         remoteConfigData[@"error"] = error.description;
     }
-    
+
     [_channel invokeMethod:@"remoteConfigDownloadCallback" arguments:remoteConfigData];
 }
 
--(NSDictionary *) getRCValues:(NSDictionary<NSString *,CountlyRCData *> *_Nonnull)downloadedValues{
+- (NSDictionary *)getRCValues:(NSDictionary<NSString *, CountlyRCData *> *_Nonnull)downloadedValues {
     NSMutableDictionary *remoteConfigValues = [[NSMutableDictionary alloc] init];
-    [downloadedValues enumerateKeysAndObjectsUsingBlock:^(NSString * key, CountlyRCData * rcData, BOOL * stop)
-     {
-        remoteConfigValues[key] = [self rcDataToMap:rcData];
-        
+    [downloadedValues enumerateKeysAndObjectsUsingBlock:^(NSString *key, CountlyRCData *rcData, BOOL *stop) {
+      remoteConfigValues[key] = [self rcDataToMap:rcData];
     }];
     return remoteConfigValues;
 }
 
-- (NSDictionary*)rcDataToMap:(CountlyRCData*)rcData
-{
+- (NSDictionary *)rcDataToMap:(CountlyRCData *)rcData {
     NSMutableDictionary *rCDataMap = [[NSMutableDictionary alloc] init];
     rCDataMap[@"value"] = rcData.value;
     rCDataMap[@"isCurrentUsersData"] = rcData.isCurrentUsersData ? @YES : @NO;
@@ -1651,8 +1650,7 @@ FlutterMethodChannel *_channel;
         NSNumber *enableAllConsents = _config[@"enableAllConsents"];
         if (enableAllConsents) {
             config.enableAllConsents = [enableAllConsents boolValue];
-        }
-        else if (consents) {
+        } else if (consents) {
             config.consents = consents;
         }
 
@@ -1707,12 +1705,12 @@ FlutterMethodChannel *_channel;
         }
 
         NSString *sdkBehaviorSettings = _config[@"sdkBehaviorSettings"];
-        if(sdkBehaviorSettings) {
+        if (sdkBehaviorSettings) {
             config.sdkBehaviorSettings = sdkBehaviorSettings;
         }
 
         NSNumber *backoffMechanismDisabled = _config[@"backoffMechanismDisabled"];
-        if(backoffMechanismDisabled && [backoffMechanismDisabled boolValue]) {
+        if (backoffMechanismDisabled && [backoffMechanismDisabled boolValue]) {
             config.disableBackoffMechanism = YES;
         }
 
@@ -1746,7 +1744,7 @@ FlutterMethodChannel *_channel;
             [config.sdkInternalLimits setMaxStackTraceLinesPerThread:[maxStackTraceLinesPerThread intValue]];
         }
         // Internal Limits End ---------------------
-        
+
         NSNumber *enableUnhandledCrashReporting = _config[@"enableUnhandledCrashReporting"];
         if (enableUnhandledCrashReporting && [enableUnhandledCrashReporting boolValue]) {
             [self addCountlyFeature:CLYCrashReporting];
@@ -1782,16 +1780,16 @@ FlutterMethodChannel *_channel;
               [_channel invokeMethod:@"remoteConfigCallback" arguments:errorStr];
             };
         }
-        
-        [config remoteConfigRegisterGlobalCallback:^(CLYRequestResult _Nonnull response, NSError * _Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *,CountlyRCData *> * _Nonnull downloadedValues) {
-            [self remoteConfigDownloadCallback:[NSNumber numberWithInt:-2] response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
+
+        [config remoteConfigRegisterGlobalCallback:^(CLYRequestResult _Nonnull response, NSError *_Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *, CountlyRCData *> *_Nonnull downloadedValues) {
+          [self remoteConfigDownloadCallback:[NSNumber numberWithInt:-2] response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
         }];
-        
+
         NSNumber *remoteConfigAutomaticTriggers = _config[@"remoteConfigAutomaticTriggers"];
         if (remoteConfigAutomaticTriggers) {
             config.enableRemoteConfigAutomaticTriggers = [remoteConfigAutomaticTriggers boolValue];
         }
-        
+
         NSNumber *remoteConfigValueCaching = _config[@"remoteConfigValueCaching"];
         if (remoteConfigValueCaching) {
             config.enableRemoteConfigValueCaching = [remoteConfigValueCaching boolValue];
@@ -1847,17 +1845,17 @@ FlutterMethodChannel *_channel;
         }
 
         [config.content setGlobalContentCallback:^(ContentStatus contentStatus, NSDictionary *contentData) {
-            NSMutableDictionary *contentCallbackData = [NSMutableDictionary dictionary];
-            int contentResult = 0; // COMPLETED = 0, CLOSED = 1
+          NSMutableDictionary *contentCallbackData = [NSMutableDictionary dictionary];
+          int contentResult = 0; // COMPLETED = 0, CLOSED = 1
 
-            if (contentStatus == CLOSED) {
-                contentResult = 1;
-            }
+          if (contentStatus == CLOSED) {
+              contentResult = 1;
+          }
 
-            contentCallbackData[@"contentResult"] = @(contentResult);
-            contentCallbackData[@"contentData"] = contentData;
+          contentCallbackData[@"contentResult"] = @(contentResult);
+          contentCallbackData[@"contentData"] = contentData;
 
-            [_channel invokeMethod:@"contentCallback" arguments:contentCallbackData];
+          [_channel invokeMethod:@"contentCallback" arguments:contentCallbackData];
         }];
 
         NSNumber *zoneTimerInterval = _config[@"zoneTimerInterval"];
@@ -1928,7 +1926,7 @@ void CountlyFlutterInternalLog(NSString *format, ...) {
 - (NSString *)toJSON:(NSObject *)json {
     NSError *error;
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:NSJSONWritingPrettyPrinted error:&error];
-    
+
     if (!jsonData) {
         return @"";
     } else {
