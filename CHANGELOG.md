@@ -1,9 +1,13 @@
-## XX.XX.XX
+## 26.1.1
 * ! Minor breaking change ! The iOS plugin sources were reorganized to support Swift Package Manager. If you use a Notification Service Extension for rich push notifications, update the reference to "CountlyNotificationService.h" and "CountlyNotificationService.m" in your extension target to the new path "ios/countly_flutter/Sources/countly_flutter/countly-sdk-ios/".
 
 * Added Swift Package Manager (SwiftPM) support for iOS. CocoaPods integration is still supported.
 
 * Mitigated an issue where async native callbacks could crash with a NullPointerException when invoked after the Flutter engine had detached (e.g. hot restart, multi-engine setups) in Android.
+
+* Underlying Android SDK version is 26.1.2
+* Underlying iOS SDK version is 26.1.1
+* Underlying Web SDK version is 26.1.1
 
 ## 26.1.0
 * Added server-side listing filters support for controlling what data gets recorded:
