@@ -57,10 +57,10 @@ void main(List<String> args) {
   );
 
   replaceInFile(
-    '$rootDir/ios/countly_flutter.podspec',
+    '$rootDir/ios/countly_flutter_np.podspec',
     RegExp(r"s\.version = '.+'"),
     "s.version = '$flutterVersion'",
-    'Flutter → ios/countly_flutter.podspec',
+    'Flutter → ios/countly_flutter_np.podspec',
   );
 
   replaceInFile(
@@ -170,7 +170,7 @@ void main(List<String> args) {
         'add',
         'scripts/config/sdk_versions.txt',
         'pubspec.yaml',
-        'ios/countly_flutter.podspec',
+        'ios/countly_flutter_np.podspec',
         'android/src/main/java/ly/count/dart/countly_flutter/CountlyFlutterPlugin.java',
         'ios/countly_flutter_np/Sources/countly_flutter_np/CountlyFlutterPlugin.m',
         'lib/src/web/plugin_config.dart',
