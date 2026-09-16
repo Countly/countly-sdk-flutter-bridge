@@ -1,3 +1,30 @@
+## XX.XX.XX
+* !! Major breaking change !! CocoaPods is no longer supported on iOS. The plugin ships a Swift Package Manager manifest only and no longer has a podspec. Enable Swift Package Manager with "flutter config --enable-swift-package-manager" before upgrading. An app that has not enabled it is told so by the Flutter tool rather than failing at build time.
+
+* !! Major breaking change !! The minimum supported Flutter version is raised to 3.24.0, the first release with Swift Package Manager support for iOS.
+
+* !! Major breaking change !! The iOS platform now uses the Countly Swift SDK as a package dependency instead of vendoring the Objective-C SDK sources. The minimum supported iOS version is raised from 10.0 to 15.0. Update your Xcode deployment target.
+
+* ! Minor breaking change ! On iOS, when a segmentation exceeds the maximum segmentation value count, which keys are kept is now deterministic. Previously the surviving keys varied; they are now the first ones in sorted key order, so a different subset may reach the server than before.
+
+* ! Minor breaking change ! On iOS, an orientation event is now recorded when a session starts. The previous iOS SDK dropped it, so each session carries one more event than before. This affects anything counting events per session.
+
+* ! Minor breaking change ! On iOS, the "_nonfatal" field of a crash report is now sent as a JSON boolean instead of 1 or 0, matching the other Countly SDKs.
+
+* The deprecated star rating dialog is no longer available on iOS. "askForStarRating" and "setStarRatingDialogTexts" log a message and do nothing there, and the "starRatingTextMessage" init option is ignored. Use a rating widget instead.
+
+* ! Minor breaking change ! If you use a Notification Service Extension for rich push notifications, add the "CountlyNotificationService" library product from the Countly Swift SDK to that target instead of compiling the SDK sources into it. The extension source also has to be Swift.
+
+* ! Minor breaking change ! On iOS, setting several user properties at once now merges the given custom properties into what is already staged, instead of replacing the whole custom property set. This affects "setUserProperties", "recordMetrics" and the "providedUserProperties" init option.
+
+* ! Minor breaking change ! On iOS, the "ratingWidgetCallback" callback now always receives null. It previously carried an error string when presenting a rating widget by ID failed. Remove any branch that depends on that value being set.
+
+* The iOS test helper method "recordReservedEvent" logs a message and does nothing. Reserved event keys are internal to the underlying SDK.
+
+* Underlying Android SDK version is 26.1.2
+* Underlying iOS SDK version is 26.8.0
+* Underlying Web SDK version is 26.1.1
+
 ## 26.1.1
 * ! Minor breaking change ! The iOS plugin sources were reorganized to support Swift Package Manager. If you use a Notification Service Extension for rich push notifications, update the reference to "CountlyNotificationService.h" and "CountlyNotificationService.m" in your extension target to the new path "ios/countly_flutter/Sources/countly_flutter/countly-sdk-ios/".
 

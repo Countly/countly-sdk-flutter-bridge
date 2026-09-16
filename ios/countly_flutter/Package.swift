@@ -3,50 +3,36 @@
 
 import PackageDescription
 
+// Flipped to true by scripts/script.py when generating the no-push flavour.
+let excludePush = false
+
 let package = Package(
     name: "countly_flutter",
     platforms: [
-        // Matches the vendored Countly iOS SDK (its Package.swift and podspecs all target iOS 10),
-        // and this plugin's own CocoaPods podspec (10.0). A package floor at or below the consumer's
-        // deployment target is required — SwiftPM rejects a package minimum higher than the app target.
-        .iOS(.v10)
+        // Matches the Countly Swift SDK's own floor and this plugin's podspec.
+        // A package floor above the consumer's deployment target is rejected by
+        // SwiftPM, so the podspec must not go below this.
+        .iOS(.v15)
     ],
     products: [
         // The library name replaces "_" with "-" per SwiftPM convention.
         .library(name: "countly-flutter", targets: ["countly_flutter"])
     ],
-    dependencies: [],
+    dependencies: [
+        // Pinned to a branch because countly-sdk-swift has no tags yet. Move to a
+        // version requirement once 26.8.0 is tagged.
+        .package(url: "https://github.com/Countly/countly-sdk-swift.git", branch: "pre-release")
+    ],
     targets: [
         .target(
             name: "countly_flutter",
-            dependencies: [],
-            // The Countly iOS SDK is vendored as a git submodule under countly-sdk-ios/, checked out
-            // with scripts/config/sparse-checkout.list so only sources, LICENSE and the privacy
-            // manifest are present. Exclude the remaining non-source file plus the unused default
-            // Swift plugin stub (SwiftPM does not allow Swift and Objective-C in the same target).
-            exclude: [
-                "SwiftCountlyFlutterPlugin.swift",
-                "countly-sdk-ios/LICENSE"
+            dependencies: [
+                .product(name: "Countly", package: "countly-sdk-swift")
             ],
-            resources: [
-                .process("countly-sdk-ios/PrivacyInfo.xcprivacy")
-            ],
-            cSettings: [
-                // Resolve the flat #import "..." statements used by the bridge and the
-                // vendored Countly iOS SDK without editing every source file.
-                .headerSearchPath("include/countly_flutter"),
-                .headerSearchPath("countly-sdk-ios"),
-                .headerSearchPath(".")
-            ],
-            linkerSettings: [
-                .linkedFramework("Foundation"),
-                .linkedFramework("UIKit"),
-                .linkedFramework("UserNotifications"),
-                .linkedFramework("CoreLocation"),
-                .linkedFramework("WebKit"),
-                .linkedFramework("CoreTelephony"),
-                .linkedFramework("WatchConnectivity")
-            ]
+            // The Swift SDK ships no privacy manifest, so the plugin carries one
+            // covering the required-reason APIs the SDK uses.
+            resources: [.process("PrivacyInfo.xcprivacy")],
+            swiftSettings: excludePush ? [.define("COUNTLY_EXCLUDE_PUSHNOTIFICATIONS")] : []
         )
     ]
 )

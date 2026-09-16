@@ -1,13 +1,30 @@
-### Initializing or Updating the iOS SDK
+### The native iOS SDK
 
-The iOS SDK version is managed through `scripts/config/sdk_versions.txt`.
-Run the sync script to initialize, update, or switch all SDK versions including iOS:
+The iOS platform uses the [Countly Swift SDK](https://github.com/Countly/countly-sdk-swift)
+as a Swift Package Manager dependency. It is no longer vendored as a Git submodule.
+
+The dependency is declared in `ios/countly_flutter/Package.swift`. To change which
+version is used, edit the `.package(url:...)` requirement there.
+
+CocoaPods is not supported. The plugin ships a Swift Package Manager manifest only,
+so a consuming app needs Swift Package Manager enabled:
 
 ```bash
-dart run scripts/sync_sdk_versions.dart
+flutter config --enable-swift-package-manager
 ```
 
-#### Changing the iOS SDK Version
+An app that has not enabled it is told so by the Flutter tool rather than failing
+at build time.
 
-Update `ios_sdk_version` in `scripts/config/sdk_versions.txt`, then run `dart run scripts/sync_sdk_versions.dart`.
-The Countly iOS SDK is included as a Git submodule and will be checked out at the specified tag.
+#### Version sync
+
+`scripts/config/sdk_versions.txt` still records the intended iOS SDK version, and
+`dart run scripts/sync_sdk_versions.dart` reports it. While `Package.swift` pins
+countly-sdk-swift by branch there is nothing for the script to rewrite, so the
+version there is informational until the SDK is tagged.
+
+#### Notification service extension
+
+An extension for rich push notifications links the `CountlyNotificationService`
+library product from the Countly Swift SDK. See `example/ios/CountlyNSE/` for a
+working target.

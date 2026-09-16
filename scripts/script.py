@@ -20,9 +20,7 @@ import shutil
 # OPERATION CONSTANTS
 FILES_TO_ERASE = [
     '../android/src/main/java/ly/count/dart/countly_flutter/CountlyMessagingService.java',
-    '../ios/countly_flutter.podspec',
-    '../ios/countly_flutter/Sources/countly_flutter/CountlyFLPushNotifications.h',
-    '../ios/countly_flutter/Sources/countly_flutter/CountlyFLPushNotifications.m'
+    '../ios/countly_flutter/Sources/countly_flutter/CountlyFLPushNotifications.swift'
 ]  # array of string values. Relative path to the files. Something like: 'android/sth/sth.txt'
 FILES_TO_MOVE = [
     [
@@ -38,10 +36,6 @@ FILES_TO_MOVE = [
         '../pubspec.yaml'
     ],
     [
-        'no-push-files/countly_flutter_np.podspec',
-        '../ios/countly_flutter_np.podspec'
-    ],
-    [
         'no-push-files/settings.gradle',
         '../android/settings.gradle'
     ],
@@ -52,7 +46,7 @@ FILES_TO_MOVE = [
 ]  # array of, arrays of string tuples. Relative path to the file and the relative path to the copy directory. Something like ['android/sth/sth.txt','android2/folder']
 # paths to modify
 modPathAndroid = '../android/src/main/java/ly/count/dart/countly_flutter/CountlyFlutterPlugin.java'
-modPathIos = '../ios/countly_flutter/Sources/countly_flutter/CountlyFlutterPlugin.m'
+modPathIosPackage = '../ios/countly_flutter/Package.swift'
 modPathCountly = '../lib/src/countly_flutter.dart'
 modPathExampleYaml = '../example/pubspec.yaml'
 # paths to change packages
@@ -92,10 +86,9 @@ objectOfComModification = {
             '});'
         ]
     },
-    modPathIos: {
+    modPathIosPackage: {
         'modifications': {
-            'BOOL BUILDING_WITH_PUSH_DISABLED = false;': 'BOOL BUILDING_WITH_PUSH_DISABLED = true;',
-            '// #define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS': '#define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS'
+            'let excludePush = false': 'let excludePush = true'
         },
         'consecutiveOmits': []
     },
@@ -211,11 +204,30 @@ def update_package(directory_path, from_package, to_package):
 
                 print(f'File processed: {file_path}')
 
+# Rewrites the push-flavor iOS paths in a single file to their np equivalents.
+# Returns True if the file changed.
+def replaceIosPathsForNp(filePath):
+    if not os.path.exists(filePath):
+        return False
+    with open(filePath, 'r') as f:
+        content = f.read()
+    updated = content.replace('ios/countly_flutter/Sources/countly_flutter/',
+                              'ios/countly_flutter_np/Sources/countly_flutter_np/')
+    updated = updated.replace('ios/countly_flutter/Package.swift', 'ios/countly_flutter_np/Package.swift')
+    if updated == content:
+        return False
+    with open(filePath, 'w') as f:
+        f.write(updated)
+    return True
+
+
 # Renames the iOS Swift Package Manager package from countly_flutter to countly_flutter_np.
 # Flutter discovers a plugin's SwiftPM package at ios/<package_name>/Package.swift, and the
-# np flavor's package name is countly_flutter_np, so the package directory, target directory,
-# public-header directory, and the names inside Package.swift must all be renamed to match.
-# The Objective-C class (CountlyFlutterPlugin) and pluginClass in pubspec are unchanged.
+# np flavor's package name is countly_flutter_np, so the package directory, target directory
+# and the names inside Package.swift must all be renamed to match. The np flavor also compiles
+# the push bridging out, which in Swift is a compilation condition rather than a preprocessor
+# define, so the manifest gains one here.
+# The Swift class (CountlyFlutterPlugin) and pluginClass in pubspec are unchanged.
 def renameIosForNp(cwd):
     iosDir = os.path.join(cwd, '../ios')
     oldPkg = os.path.join(iosDir, 'countly_flutter')
@@ -224,15 +236,12 @@ def renameIosForNp(cwd):
         print('iOS SwiftPM package dir not found, skipping rename:', oldPkg)
         return
 
-    # Rename the inner target dir and its public-header dir before renaming the package dir.
+    # Rename the inner target dir before renaming the package dir.
     srcOld = os.path.join(oldPkg, 'Sources', 'countly_flutter')
-    incOld = os.path.join(srcOld, 'include', 'countly_flutter')
-    if os.path.exists(incOld):
-        os.rename(incOld, os.path.join(srcOld, 'include', 'countly_flutter_np'))
     if os.path.exists(srcOld):
         os.rename(srcOld, os.path.join(oldPkg, 'Sources', 'countly_flutter_np'))
 
-    # Rewrite the SwiftPM manifest names (package, target, product/library, header search path).
+    # Rewrite the SwiftPM manifest names and add the no-push compilation condition.
     pkgSwift = os.path.join(oldPkg, 'Package.swift')
     if os.path.exists(pkgSwift):
         with open(pkgSwift, 'r') as f:
@@ -240,7 +249,6 @@ def renameIosForNp(cwd):
         content = content.replace('name: "countly_flutter"', 'name: "countly_flutter_np"')
         content = content.replace('["countly_flutter"]', '["countly_flutter_np"]')
         content = content.replace('name: "countly-flutter"', 'name: "countly-flutter-np"')
-        content = content.replace('include/countly_flutter"', 'include/countly_flutter_np"')
         with open(pkgSwift, 'w') as f:
             f.write(content)
         print('Rewrote Package.swift names for countly_flutter_np')
@@ -256,21 +264,15 @@ def renameIosForNp(cwd):
             f.write(ad)
         print('Updated example AppDelegate import for countly_flutter_np')
 
-    # The example app's Notification Service Extension target references the vendored
-    # CountlyNotificationService files by path into the plugin; repoint it at the renamed dir.
-    pbxproj = os.path.join(cwd, '../example/ios/Runner.xcodeproj/project.pbxproj')
-    if os.path.exists(pbxproj):
-        with open(pbxproj, 'r') as f:
-            pbx = f.read()
-        pbx = pbx.replace('ios/countly_flutter/Sources/countly_flutter/',
-                          'ios/countly_flutter_np/Sources/countly_flutter_np/')
-        with open(pbxproj, 'w') as f:
-            f.write(pbx)
-        print('Updated example NSE references for countly_flutter_np')
+    # The version sync script names the iOS paths it edits and stages, so it has to
+    # follow the rename.
+    if replaceIosPathsForNp(os.path.join(cwd, 'sync_sdk_versions.dart')):
+        print('Updated iOS paths for countly_flutter_np in sync_sdk_versions.dart')
 
     # Finally rename the package directory itself.
     os.rename(oldPkg, newPkg)
     print('Renamed iOS SwiftPM package directory to countly_flutter_np')
+
 
 def main():
     # give info about set constants
@@ -282,7 +284,7 @@ def main():
         print(i, end='\n')
     print('Paths to modify:')
     print(modPathAndroid)
-    print(modPathIos)
+    print(modPathIosPackage)
     print(modPathCountly)
     print(modPathExampleYaml)
     print('Paths to change packages:')
@@ -303,7 +305,7 @@ def main():
         # modify files
         modifyFile(modPathAndroid, objectOfComModification, 'mod')
         modifyFile(modPathAndroid, objectOfComModification, 'bloc')
-        modifyFile(modPathIos, objectOfComModification, 'mod')
+        modifyFile(modPathIosPackage, objectOfComModification, 'mod')
         modifyFile(modPathCountly, objectOfComModification, 'mod')
         modifyFile(modPathExampleYaml, objectOfComModification, 'mod')
         # np package update

@@ -67,7 +67,7 @@ void main() {
       } else if (a == 5) {
         // 0) Custom Event
         var eventRaw = json.decode(queryParams['events']![0]);
-        var number = Platform.isIOS ? 0 : 1; // orientation in android
+        var number = 1; // 0 is the session-start orientation event
         Map<String, dynamic> event = eventRaw[number];
         expect(event['key'], 'Event With Sum And Segment'.substring(0, MAX_KEY_LENGTH));
         expect(event['segmentation']['Country'.substring(0, MAX_KEY_LENGTH)], 'Turkey');

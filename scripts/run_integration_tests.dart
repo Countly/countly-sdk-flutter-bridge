@@ -522,7 +522,7 @@ Future<WorkerResult> runWorker({
       logSink.writeln(line);
     });
 
-    final exitCode = await process.exitCode;
+    final exitCode = await awaitTestProcess(process, config.timeout);
     await testLogSink.close();
 
     testStopwatch.stop();
@@ -546,6 +546,68 @@ Future<WorkerResult> runWorker({
   await logSink.close();
 
   return result;
+}
+
+/// Waits for a test process, killing it if it outlives the timeout.
+///
+/// The `--timeout` passed to `flutter test` bounds each test case, not the
+/// process. A `flutter test` that hangs after reporting a failure would
+/// otherwise stall the whole run indefinitely, which is exactly when the run
+/// most needs to finish and report.
+Future<int> awaitTestProcess(Process process, String seconds) async {
+  final limit = Duration(seconds: (int.tryParse(seconds) ?? 300) + 60);
+  try {
+    return await process.exitCode.timeout(limit);
+  } on TimeoutException {
+    process.kill(ProcessSignal.sigkill);
+    await process.exitCode;
+    return 124;
+  }
+}
+
+/// Raises the app on an iOS simulator when a test asks to be foregrounded.
+///
+/// These tests are only "manual" because iOS forbids an app raising itself from
+/// the background, so `FlutterForegroundTask.launchApp()` degrades to printing a
+/// prompt and waiting for a tap. An external `simctl launch` has no such limit,
+/// so on a simulator the tap can be scripted and the whole manual set runs
+/// unattended. A physical device still needs a person.
+///
+/// Each prompt is answered once, so a test that backgrounds more than once is
+/// raised each time rather than only the first.
+class ForegroundResponder {
+  ForegroundResponder(this.device, this.bundleId);
+
+  /// Reads the host app's bundle identifier from the Xcode project rather than
+  /// assuming it, so renaming the example app does not silently stop the
+  /// foregrounding working while looking like the automation is broken.
+  static String? bundleIdFrom(String exampleDir) {
+    final pbxproj = File('$exampleDir${Platform.pathSeparator}ios${Platform.pathSeparator}Runner.xcodeproj${Platform.pathSeparator}project.pbxproj');
+    if (!pbxproj.existsSync()) return null;
+    for (final line in pbxproj.readAsLinesSync()) {
+      final match = RegExp(r'PRODUCT_BUNDLE_IDENTIFIER = ([\w.]+);').firstMatch(line);
+      // Extension targets share the app's prefix; the app itself has no suffix.
+      if (match != null && !match.group(1)!.contains('.CountlyNSE')) return match.group(1);
+    }
+    return null;
+  }
+
+  final Device device;
+  final String bundleId;
+  int _answered = 0;
+
+  bool get canAutomate => device.platform == 'ios' && device.id.contains('-');
+
+  void onOutput(String data) {
+    if (!canAutomate) return;
+    final prompts = 'go to foreground now'.allMatches(data).length;
+    for (var i = 0; i < prompts; i++) {
+      _answered++;
+      Process.run('xcrun', ['simctl', 'launch', device.id, bundleId]);
+    }
+  }
+
+  int get answered => _answered;
 }
 
 // ── Live Progress ──────────────────────────────────────────────────
@@ -985,9 +1047,18 @@ Future<void> main(List<String> args) async {
     if (refilteredManual.isEmpty) {
       stdout.writeln('\n${C.green}All manual tests already passed (cached) on ${manualDevice.platform}. Use --fresh to re-run.${C.nc}');
     } else {
+      final bundleId = ForegroundResponder.bundleIdFrom(exampleDir);
+      final responder = ForegroundResponder(manualDevice, bundleId ?? 'com.countly.demo');
+      if (bundleId == null) {
+        stdout.writeln('${C.yellow}Could not read the bundle id from the Xcode project; falling back to com.countly.demo.${C.nc}');
+      }
       stdout.writeln('');
-      stdout.write('Press Enter when ready (stay at the device)...');
-      stdin.readLineSync();
+      if (responder.canAutomate) {
+        stdout.writeln('${C.green}iOS simulator detected: foregrounding will be scripted, no interaction needed.${C.nc}');
+      } else {
+        stdout.write('Press Enter when ready (stay at the device)...');
+        stdin.readLineSync();
+      }
 
       var manualPassed = 0;
       var manualFailed = 0;
@@ -1019,13 +1090,14 @@ Future<void> main(List<String> args) async {
         process.stdout.transform(utf8.decoder).listen((data) {
           stdout.write(data);
           testLogSink.write(data);
+          responder.onOutput(data);
         });
         process.stderr.transform(utf8.decoder).listen((data) {
           stderr.write(data);
           testLogSink.write(data);
         });
 
-        final exitCode = await process.exitCode;
+        final exitCode = await awaitTestProcess(process, config.timeout);
         await testLogSink.close();
         testStopwatch.stop();
         final elapsed = testStopwatch.elapsed.inSeconds;

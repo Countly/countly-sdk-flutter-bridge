@@ -1,0 +1,15 @@
+{
+  "originHash" : "7d784183c28a92c524860d8aa4b4cd806c912477429e052d271ecbd5fe5aeee2",
+  "pins" : [
+    {
+      "identity" : "countly-sdk-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Countly/countly-sdk-swift.git",
+      "state" : {
+        "branch" : "pre-release",
+        "revision" : "4324e8e2ad21336cc9c9433e806cf2c6bbb5de28"
+      }
+    }
+  ],
+  "version" : 3
+}
