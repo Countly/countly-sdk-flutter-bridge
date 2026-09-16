@@ -1070,7 +1070,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
                         "experimentID": experiment.experimentID,
                         "experimentName": experiment.experimentName,
                         "experimentDescription": experiment.experimentDescription,
-                        "currentVariant": experiment.currentVariant.isEmpty ? "null" : experiment.currentVariant,
+                        "currentVariant": experiment.currentVariant,
                         "variants": experiment.variants,
                     ]
                 }
