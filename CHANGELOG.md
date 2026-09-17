@@ -24,6 +24,7 @@
 * Mitigated an issue on iOS where the "enrollABOnRCDownload" configuration option was ignored, so downloaded remote config keys were not enrolled into A/B tests.
 * Mitigated an issue where the deprecated "setRemoteConfigAutomaticDownload" did not complete when it was called after init, as it waited for a download that the setting no longer triggers. It now answers as soon as the setting is applied.
 * Mitigated an issue on iOS where the test helper "halt" was not implemented, so a test that reset the SDK failed on iOS while it passed on Android.
+* On Android, the plugin now compiles against the API level provided by the app's Flutter SDK instead of a fixed one. This fixes the "checkDebugAarMetadata" build failure on newer Flutter versions where another plugin requires a newer API level.
 
 * Underlying Android SDK version is 26.8.0
 * Underlying iOS SDK version is 26.8.0
