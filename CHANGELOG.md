@@ -9,14 +9,30 @@
 * ! Minor breaking change ! On iOS, setting several user properties at once now merges the given custom properties into what is already staged, instead of replacing the whole custom property set. This affects "setUserProperties", "recordMetrics" and the "providedUserProperties" init option.
 * ! Minor breaking change ! On iOS, feedback widget results and the rating widget email and comment are now truncated to the maximum value size, matching Android.
 * ! Minor breaking change ! On iOS, withdrawing consent now closes and reports any open view, and forgets the stored location so that granting consent again does not resend it.
-* ! Minor breaking change ! On iOS, the "ratingWidgetCallback" callback now always receives null. It previously carried an error string when presenting a rating widget by ID failed. Remove any branch that depends on that value being set.
 * ! Minor breaking change ! If you use a Notification Service Extension for rich push notifications, add the "CountlyNotificationService" library product from the Countly Swift SDK to that target instead of compiling the SDK sources into it. The extension source also has to be Swift.
 * ! Minor breaking change ! The deprecated star rating dialog is no longer available on iOS. "askForStarRating" and "setStarRatingDialogTexts" log a message and do nothing there, and the "starRatingTextMessage" init option is ignored. Use a rating widget instead.
-* ! Minor breaking change ! The iOS test helper method "recordReservedEvent" logs a message and does nothing. Reserved event keys are internal to the underlying SDK.
+* ! Minor breaking change ! The iOS test helper method "recordReservedEvent" only records the orientation and star rating reserved events. Any other reserved key logs a message and does nothing, as the other reserved events are produced by the underlying SDK itself.
+* ! Minor breaking change ! On web, custom traces, network traces and direct attribution are now sent to the server. These calls were ignored on web before, so an application sharing that code path across platforms starts reporting them from web too.
 
-* Underlying Android SDK version is 26.1.2
+* Added support for multiple instances, each with its own app key, server, device ID, request queue and stored data. Get a handle with "Countly.instanceWithName(name)" and initialize it yourself with "initialize(config)", and manage instances with "Countly.getInstance(name)", "Countly.listInstances()" and "Countly.removeInstance(name)".
+
+  "Countly.instance" is unchanged, so existing integrations keep working. A named instance starts from empty storage and generates its own device ID, so do not move an existing integration onto one.
+
+  Push notifications stay with the default instance, and at most one content block or feedback widget is displayed at a time across all instances. The static calls on "Countly" keep working and apply to the default instance.
+
+  On web, "Countly.removeInstance(name)" only drops the instance from the registry. The Web SDK has no way to stop an instance without erasing its stored data, so the instance keeps running until the page is unloaded.
+* Added the "consent" interface on an instance, with "giveConsent", "removeConsent", "giveAllConsent" and "removeAllConsent".
+* Added the "crashes" interface on an instance, with "recordException", "recordError" and "addCrashBreadcrumb".
+* Added the "location" interface on an instance, with "setLocation" and "disableLocation". On web the location can only be given at init.
+* Added the "apm" interface on an instance, with "startTrace", "endTrace", "cancelTrace", "cancelAllTraces", "recordNetworkTrace" and "setAppIsLoaded". Custom and network traces are now also reported on web.
+* Added the "attribution" interface on an instance, with "recordDirectAttribution" and "recordIndirectAttribution". On web only direct attribution of the "countly" campaign type is supported.
+* Added the feedback widget listing to the "feedback" interface of an instance, with "getAvailableFeedbackWidgets", "presentFeedbackWidget", "getFeedbackWidgetData", "reportFeedbackWidgetManually" and "presentRatingWidgetWithID". Each instance keeps the widgets it listed, and their callbacks reach the instance that presented them.
+
+* Mitigated an issue on iOS where the "onFinished" callback of a feedback widget presented with "presentNPS", "presentSurvey" or "presentRating" was never called, as the plugin reported it under a name the Dart side does not listen for.
+
+* Underlying Android SDK version is 26.8.0
 * Underlying iOS SDK version is 26.8.0
-* Underlying Web SDK version is 26.1.1
+* Underlying Web SDK version is 26.8.0
 
 ## 26.1.1
 * ! Minor breaking change ! The iOS plugin sources were reorganized to support Swift Package Manager. If you use a Notification Service Extension for rich push notifications, update the reference to "CountlyNotificationService.h" and "CountlyNotificationService.m" in your extension target to the new path "ios/countly_flutter/Sources/countly_flutter/countly-sdk-ios/".

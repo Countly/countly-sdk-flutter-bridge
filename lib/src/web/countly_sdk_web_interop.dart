@@ -1,95 +1,115 @@
 // ignore_for_file: non_constant_identifier_names
 import 'dart:js_interop';
 
-@JS('Countly') // Bind to the global 'Countly' object
-@staticInterop
-class Countly {
-  external static JSArray get features;
-  external static String? get salt;
+/// The global object the Web SDK installs. It holds what is shared between instances, and the
+/// members of the first instance that was initialized are copied onto it as well.
+@JS('Countly')
+external CountlyGlobal get countlyGlobal;
 
+/// Constructs an instance of the Web SDK directly, instead of going through "Countly.init".
+/// The SDK keys its own registry by app key, so two Countly instances sharing one app key would be
+/// the same object there. Named instances are built here and kept in the plugin's own registry.
+@JS('Countly.CountlyClass')
+extension type CountlyClass._(JSObject _) implements JSObject {
+  external CountlyClass(JSAny config);
+}
+
+extension type CountlyGlobal._(JSObject _) implements JSObject {
+  external JSArray get features;
+
+  /// Initializes and registers the instance for the app key in the given configuration.
+  external Countly init(JSAny config);
+}
+
+extension type Countly._(JSObject _) implements JSObject {
   // SDK
-  external static void init(JSAny config);
-  external static void halt();
+  external void halt();
 
   // Events
-  external static void add_event(JSAny event);
-  external static void start_event(String key);
-  external static void end_event(JSAny event);
-  external static void cancel_event(String key);
+  external void add_event(JSAny event);
+  external void start_event(String key);
+  external void end_event(JSAny event);
+  external void cancel_event(String key);
 
   // Session Management
-  external static void begin_session();
-  external static void track_sessions(); // Auto session tracking
-  external static void end_session();
+  external void begin_session();
+  external void track_sessions(); // Auto session tracking
+  external void end_session();
 
   // Device ID Management
-  external static String get_device_id();
-  external static void set_id(String id);
-  external static int get_device_id_type();
-  external static void change_id(String newId, bool merge);
-  external static void enable_offline_mode();
+  external String get_device_id();
+  external void set_id(String id);
+  external int get_device_id_type();
+  external void change_id(String newId, bool merge);
+  external void enable_offline_mode();
 
   // Consents
-  external static void add_consent(JSAny consents);
-  external static void remove_consent(JSAny consents);
+  external void add_consent(JSAny consents);
+  external void remove_consent(JSAny consents);
 
   // View Management
-  external static void track_pageview(String? page, JSArray? ignoreList, JSAny? segments);
+  external void track_pageview(String? page, JSArray? ignoreList, JSAny? segments);
 
   // Crashes
-  external static void track_errors(JSAny? globalSegmennts);
-  external static void recordError(JSAny error, bool nonfatal, JSAny? segments);
-  external static void add_log(String log); // breadcrumb
+  external void track_errors(JSAny? globalSegmennts);
+  external void recordError(JSAny error, bool nonfatal, JSAny? segments);
+  external void add_log(String log); // breadcrumb
 
   // User Profiles
-  external static void user_details(JSAny userDetails);
+  external void user_details(JSAny userDetails);
 
   // Feedback
-  external static void get_available_feedback_widgets(JSAny? callback);
-  external static void present_feedback_widget(JSAny? presentableFeedback, String? id, String? className, JSAny? feedbackWidgetSegmentation);
-  external static void getFeedbackWidgetData(JSAny? CountlyFeedbackWidget, JSAny? callback);
-  external static void reportFeedbackWidgetManually(JSAny? CountlyFeedbackWidget, JSAny? CountlyWidgetData, JSAny? widgetResult);
+  external void get_available_feedback_widgets(JSAny? callback);
+  external void present_feedback_widget(JSAny? presentableFeedback, String? id, String? className, JSAny? feedbackWidgetSegmentation);
+  external void getFeedbackWidgetData(JSAny? CountlyFeedbackWidget, JSAny? callback);
+  external void reportFeedbackWidgetManually(JSAny? CountlyFeedbackWidget, JSAny? CountlyWidgetData, JSAny? widgetResult);
+
+  // Performance monitoring
+  external void report_trace(JSAny trace);
+
+  // Attribution
+  external void recordDirectAttribution(String? campaignId, String? campaignUserId);
 
   // Remote Config
-  external static void fetch_remote_config(JSAny? keys, JSAny? omit_keys, JSAny? callback);
-  external static JSAny? get_remote_config([String? key]);
-  external static void enrollUserToAb(JSAny? keys);
+  external void fetch_remote_config(JSAny? keys, JSAny? omit_keys, JSAny? callback);
+  external JSAny? get_remote_config([String? key]);
+  external void enrollUserToAb(JSAny? keys);
+
+  // Sub interfaces
+  external CountlyContent get content;
+  external CountlyUserData get userData;
+  external CountlyFeedback get feedback;
+
+  @JS('_internals')
+  external CountlyInternal get internals;
 }
 
-@JS('Countly.content') // Bind to 'Countly.content'
-@staticInterop
-class CountlyContent {
-  external static void enterContentZone();
-  external static void exitContentZone();
+extension type CountlyContent._(JSObject _) implements JSObject {
+  external void enterContentZone();
+  external void exitContentZone();
 }
 
-@JS('Countly.userData') // Bind to 'Countly.userData'
-@staticInterop
-class CountlyUserData {
-  external static void set(String key, JSAny? value);
-  external static void set_once(String key, JSAny? value);
-  external static void increment(String key);
-  external static void increment_by(String key, int value);
-  external static void multiply(String key, int value);
-  external static void max(String key, int value);
-  external static void min(String key, int value);
-  external static void push(String key, JSAny? value);
-  external static void push_unique(String key, JSAny? value);
-  external static void pull(String key, JSAny? value);
-  external static void save();
+extension type CountlyUserData._(JSObject _) implements JSObject {
+  external void set(String key, JSAny? value);
+  external void set_once(String key, JSAny? value);
+  external void increment(String key);
+  external void increment_by(String key, int value);
+  external void multiply(String key, int value);
+  external void max(String key, int value);
+  external void min(String key, int value);
+  external void push(String key, JSAny? value);
+  external void push_unique(String key, JSAny? value);
+  external void pull(String key, JSAny? value);
+  external void save();
 }
 
-@JS('Countly.feedback') // Bind to 'Countly.feedback'
-@staticInterop
-class CountlyFeedback {
-  external static void showNPS(String? nameTagOrID);
-  external static void showSurvey(String? nameTagOrID);
-  external static void showRating(String? nameTagOrID);
+extension type CountlyFeedback._(JSObject _) implements JSObject {
+  external void showNPS(String? nameTagOrID);
+  external void showSurvey(String? nameTagOrID);
+  external void showRating(String? nameTagOrID);
 }
 
-@JS('Countly._internals') // Bind to 'Countly._internals'
-@staticInterop
-class CountlyInternal {
-  external static JSArray getRequestQueue();
-  external static JSArray getEventQueue();
+extension type CountlyInternal._(JSObject _) implements JSObject {
+  external JSArray getRequestQueue();
+  external JSArray getEventQueue();
 }

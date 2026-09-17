@@ -18,7 +18,7 @@ class ViewsInternal implements Views {
     final List<Object> args = [];
     args.add(viewID);
     args.add(segmentation);
-    await _countlyState.channel.invokeMethod('stopViewWithID', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('stopViewWithID', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -31,7 +31,7 @@ class ViewsInternal implements Views {
     final List<Object> args = [];
     args.add(viewName);
     args.add(segmentation);
-    await _countlyState.channel.invokeMethod('stopViewWithName', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('stopViewWithName', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -44,7 +44,7 @@ class ViewsInternal implements Views {
     final List<Object> args = [];
     args.add(viewID);
     args.add(segmentation);
-    await _countlyState.channel.invokeMethod('pauseViewWithID', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('pauseViewWithID', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -57,7 +57,7 @@ class ViewsInternal implements Views {
     final List<Object> args = [];
     args.add(viewID);
     args.add(segmentation);
-    await _countlyState.channel.invokeMethod('resumeViewWithID', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('resumeViewWithID', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -70,7 +70,7 @@ class ViewsInternal implements Views {
     final List<Object> args = [];
     args.add(viewName);
     args.add(segmentation);
-    final String? viewId = await _countlyState.channel.invokeMethod('startView', <String, dynamic>{'data': json.encode(args)});
+    final String? viewId = await _countlyState.channel.invokeMethod('startView', _countlyState.arguments(json.encode(args)));
     return viewId;
   }
 
@@ -83,7 +83,7 @@ class ViewsInternal implements Views {
     Countly.log('Calling "[Views] setGlobalViewSegmentation"');
     final List<Object> args = [];
     args.add(segmentation);
-    await _countlyState.channel.invokeMethod('setGlobalViewSegmentation', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('setGlobalViewSegmentation', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -95,7 +95,7 @@ class ViewsInternal implements Views {
     Countly.log('Calling "[Views] updateGlobalViewSegmentation"');
     final List<Object> args = [];
     args.add(segmentation);
-    await _countlyState.channel.invokeMethod('updateGlobalViewSegmentation', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('updateGlobalViewSegmentation', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -108,7 +108,7 @@ class ViewsInternal implements Views {
     final List<Object> args = [];
     args.add(viewName);
     args.add(segmentation);
-    final String? viewId = await _countlyState.channel.invokeMethod('startAutoStoppedView', <String, dynamic>{'data': json.encode(args)});
+    final String? viewId = await _countlyState.channel.invokeMethod('startAutoStoppedView', _countlyState.arguments(json.encode(args)));
     return viewId;
   }
 
@@ -121,7 +121,7 @@ class ViewsInternal implements Views {
     Countly.log('Calling "[Views] stopAllViews"');
     final List<Object> args = [];
     args.add(segmentation);
-    await _countlyState.channel.invokeMethod('stopAllViews', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('stopAllViews', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -138,7 +138,7 @@ class ViewsInternal implements Views {
     final List<Object> args = [];
     args.add(viewID);
     args.add(segmentation);
-    await _countlyState.channel.invokeMethod('addSegmentationToViewWithID', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('addSegmentationToViewWithID', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -155,6 +155,6 @@ class ViewsInternal implements Views {
     final List<Object> args = [];
     args.add(viewName);
     args.add(segmentation);
-    await _countlyState.channel.invokeMethod('addSegmentationToViewWithName', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('addSegmentationToViewWithName', _countlyState.arguments(json.encode(args)));
   }
 }

@@ -16,7 +16,7 @@ class UserProfileInternal implements UserProfile {
       return;
     }
     Countly.log('Calling "clear"');
-    await _countlyState.channel.invokeMethod('userProfile_clear');
+    await _countlyState.channel.invokeMethod('userProfile_clear', _countlyState.arguments());
   }
 
   @override
@@ -32,7 +32,7 @@ class UserProfileInternal implements UserProfile {
     }
     List<String> args = [];
     args.add(key);
-    await _countlyState.channel.invokeMethod('userProfile_increment', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('userProfile_increment', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -49,7 +49,7 @@ class UserProfileInternal implements UserProfile {
     List<Object> args = [];
     args.add(key);
     args.add(value);
-    await _countlyState.channel.invokeMethod('userProfile_incrementBy', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('userProfile_incrementBy', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -66,7 +66,7 @@ class UserProfileInternal implements UserProfile {
     List<Object> args = [];
     args.add(key);
     args.add(value);
-    await _countlyState.channel.invokeMethod('userProfile_multiply', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('userProfile_multiply', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -83,7 +83,7 @@ class UserProfileInternal implements UserProfile {
     List<String> args = [];
     args.add(key);
     args.add(value);
-    await _countlyState.channel.invokeMethod('userProfile_pull', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('userProfile_pull', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -100,7 +100,7 @@ class UserProfileInternal implements UserProfile {
     List<String> args = [];
     args.add(key);
     args.add(value);
-    await _countlyState.channel.invokeMethod('userProfile_push', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('userProfile_push', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -117,7 +117,7 @@ class UserProfileInternal implements UserProfile {
     List<String> args = [];
     args.add(key);
     args.add(value);
-    await _countlyState.channel.invokeMethod('userProfile_pushUnique', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('userProfile_pushUnique', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -127,7 +127,7 @@ class UserProfileInternal implements UserProfile {
       return;
     }
     Countly.log('Calling "save"');
-    await _countlyState.channel.invokeMethod('userProfile_save');
+    await _countlyState.channel.invokeMethod('userProfile_save', _countlyState.arguments());
   }
 
   @override
@@ -144,7 +144,7 @@ class UserProfileInternal implements UserProfile {
     List<Object> args = [];
     args.add(key);
     args.add(value);
-    await _countlyState.channel.invokeMethod('userProfile_saveMax', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('userProfile_saveMax', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -161,7 +161,7 @@ class UserProfileInternal implements UserProfile {
     List<Object> args = [];
     args.add(key);
     args.add(value);
-    await _countlyState.channel.invokeMethod('userProfile_saveMin', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('userProfile_saveMin', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -178,7 +178,7 @@ class UserProfileInternal implements UserProfile {
     List<String> args = [];
     args.add(key);
     args.add(value);
-    await _countlyState.channel.invokeMethod('userProfile_setOnce', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('userProfile_setOnce', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -195,7 +195,7 @@ class UserProfileInternal implements UserProfile {
     List<Object> args = [];
     args.add(key);
     args.add(value);
-    await _countlyState.channel.invokeMethod('userProfile_setProperty', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('userProfile_setProperty', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -212,7 +212,7 @@ class UserProfileInternal implements UserProfile {
     _predefinedPropertiesToString(userProperties);
     List<Object> args = [];
     args.add(userProperties);
-    await _countlyState.channel.invokeMethod('userProfile_setProperties', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('userProfile_setProperties', _countlyState.arguments(json.encode(args)));
   }
 
   void _predefinedPropertiesToString(Map<String, Object> userProperties) {

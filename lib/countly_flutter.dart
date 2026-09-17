@@ -1,8 +1,13 @@
+export 'src/apm.dart';
+export 'src/attribution.dart';
+export 'src/consent.dart';
 export 'src/content_builder.dart';
 export 'src/countly_config.dart';
 export 'src/countly_flutter.dart';
+export 'src/crashes.dart';
 export 'src/events.dart';
 export 'src/feedback.dart';
+export 'src/location.dart';
 export 'src/remote_config.dart';
 export 'src/sessions.dart';
 export 'src/user_profile.dart';

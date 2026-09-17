@@ -18,7 +18,7 @@ let BUILDING_WITH_PUSH_DISABLED = true
 let BUILDING_WITH_PUSH_DISABLED = false
 #endif
 
-let kCountlyFlutterSDKVersion = "26.1.1"
+let kCountlyFlutterSDKVersion = "26.8.0"
 let kCountlyFlutterSDKName = "dart-flutterb-ios"
 let kCountlyFlutterSDKNameNoPush = "dart-flutterbnp-ios"
 
@@ -27,9 +27,11 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
 
     static var channel: FlutterMethodChannel?
 
+    // Recreated after every default init, so options an earlier init set do not stick to the next one in the same process.
     private var config = CountlyConfig()
-    private var isInitialized = false
-    private var feedbackWidgetList: [CountlyFeedbackWidget] = []
+    private var isDebugLogging = false
+    /// The widgets each instance last listed, keyed by instance name, so a widget ID is presented on the instance that fetched it.
+    private var feedbackWidgetLists: [String: [CountlyFeedbackWidget]] = [:]
 
     /// Registers the plugin with the Flutter engine.
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -67,7 +69,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
     /// Logs a plugin-level message, gated at runtime only. A compile-time guard
     /// would hide these from release builds, where support needs them most.
     private func log(_ message: @autoclosure () -> String) {
-        guard config.enableDebug else { return }
+        guard isDebugLogging || config.enableDebug else { return }
         NSLog("[CountlyFlutterPlugin] %@", message())
     }
 
@@ -162,14 +164,14 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
     ///
     /// Stands in for the deprecated Objective-C `enablePerformanceMonitoring`, which
     /// was itself only a shorthand for setting these three.
-    private func setPerformanceMonitoringEnabled(_ enabled: Bool) {
+    private func setPerformanceMonitoringEnabled(_ enabled: Bool, on config: CountlyConfig) {
         config.apm.enableForegroundBackgroundTracking = enabled
         config.apm.enableAppStartTimeTracking = enabled
         config.apm.enableManualAppLoadedTrigger = enabled
     }
 
     /// Adds an init-time feature, keeping the accumulated set on the config.
-    private func addCountlyFeature(_ feature: CountlyFeature) {
+    private func addCountlyFeature(_ feature: CountlyFeature, on config: CountlyConfig) {
         guard !config.features.contains(feature) else { return }
         config.features.append(feature)
     }
@@ -188,11 +190,11 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
 
     /// The code the Dart side expects for a request outcome. Absent for an outcome
     /// it has no code for, which leaves the key out as it always has.
-    private func requestResultCode(_ response: RequestResult) -> Int? {
+    private func requestResultCode(_ response: RequestResult) -> Int {
         switch response {
         case .success: return 0
         case .networkIssue: return 1
-        default: return nil
+        default: return 2
         }
     }
 
@@ -201,8 +203,8 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         array(command, index)?.compactMap { $0 as? String } ?? []
     }
 
-    private func findFeedbackWidget(_ widgetID: String) -> CountlyFeedbackWidget? {
-        feedbackWidgetList.first { $0.id == widgetID }
+    private func findFeedbackWidget(_ instanceName: String?, _ widgetID: String) -> CountlyFeedbackWidget? {
+        feedbackWidgetLists[instanceName ?? ""]?.first { $0.id == widgetID }
     }
 
     /// The message returned when the Dart side names a widget that was never fetched.
@@ -229,7 +231,20 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
 
     // MARK: - Callbacks to Dart
 
+    /// Tags a callback payload with the instance it belongs to, so the Dart side can route it.
+    /// - Parameters:
+    ///   - instanceName: the instance the callback belongs to, or nil for the default instance
+    ///   - data: the payload to tag
+    /// - Returns: the payload, with the instance name added when there is one
+    private static func tagged(_ instanceName: String?, _ data: [String: Any] = [:]) -> [String: Any] {
+        guard let instanceName else { return data }
+        var tagged = data
+        tagged["instanceName"] = instanceName
+        return tagged
+    }
+
     private func remoteConfigDownloadCallback(_ callbackID: NSNumber,
+                                              instanceName: String?,
                                               result response: RequestResult,
                                               fullValueUpdate: Bool,
                                               error: Error?,
@@ -237,7 +252,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         log("[remoteConfigDownloadCallback], about to notify flutter side callback \(callbackID)")
         if callbackID.intValue == -1 { return }
 
-        var data: [String: Any] = ["id": callbackID, "fullValueUpdate": fullValueUpdate]
+        var data = Self.tagged(instanceName, ["id": callbackID, "fullValueUpdate": fullValueUpdate])
         data["requestResult"] = requestResultCode(response)
         data["downloadedValues"] = map(downloadedValues)
         if let error { data["error"] = String(describing: error) }
@@ -245,16 +260,16 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         Self.channel?.invokeMethod("remoteConfigDownloadCallback", arguments: data)
     }
 
-    private func remoteConfigVariantCallback(_ callbackID: NSNumber, result response: RequestResult, error: Error?) {
-        var data: [String: Any] = ["id": callbackID]
+    private func remoteConfigVariantCallback(_ callbackID: NSNumber, instanceName: String?, result response: RequestResult, error: Error?) {
+        var data = Self.tagged(instanceName, ["id": callbackID])
         data["requestResult"] = requestResultCode(response)
         if let error { data["error"] = String(describing: error) }
 
         Self.channel?.invokeMethod("remoteConfigVariantCallback", arguments: data)
     }
 
-    private func feedbackWidgetDataCallback(_ widgetData: [String: Any]?, error: String?) {
-        var data: [String: Any] = [:]
+    private func feedbackWidgetDataCallback(_ widgetData: [String: Any]?, instanceName: String?, error: String?) {
+        var data = Self.tagged(instanceName)
         if let widgetData { data["widgetData"] = widgetData }
         if let error { data["error"] = error }
         Self.channel?.invokeMethod("feedbackWidgetDataCallback", arguments: data)
@@ -267,6 +282,35 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         let commandString = arguments?["data"] as? String ?? "[]"
         let command = (try? JSONSerialization.jsonObject(with: Data(commandString.utf8))) as? [Any] ?? []
 
+        // Calls from the default instance carry no name, so they keep reaching the shared instance.
+        let instanceName = (arguments?["instanceName"] as? String).flatMap { $0.isEmpty || $0 == Countly.defaultInstanceName ? nil : $0 }
+
+        // Answered before an instance is resolved, resolving one would create it as a side effect.
+        switch call.method {
+        case "removeInstance":
+            guard let instanceName else {
+                result("removeInstance: the default instance can not be removed")
+                return
+            }
+            feedbackWidgetLists.removeValue(forKey: instanceName)
+            Countly.removeInstance(named: instanceName)
+            result("removeInstance: success")
+            return
+        case "haltAllInstances":
+            feedbackWidgetLists.removeAll()
+            Countly.haltAllInstances(clearStorage: true)
+            result("haltAllInstances: success")
+            return
+        case "isInitialized":
+            let existing = instanceName.map { Countly.getInstance(named: $0) } ?? Countly.shared
+            result((existing?.isStarted ?? false) ? "true" : "false")
+            return
+        default:
+            break
+        }
+
+        let cly = Countly.instance(named: instanceName)
+
         switch call.method {
 
         // MARK: Lifecycle
@@ -276,26 +320,35 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
                 result("initialization failed!")
                 return
             }
-            populateConfig(configMap)
-            config.internalLogLevel = .verbose
+            // The default instance keeps the shared config so the deprecated pre-init setters still reach it.
+            let instanceConfig = instanceName == nil ? config : CountlyConfig()
+            populateConfig(configMap, into: instanceConfig, instanceName: instanceName)
+            instanceConfig.internalLogLevel = .verbose
+            instanceConfig.instanceName = instanceName
 
             // The plugin reports itself rather than the underlying native SDK, so that
             // a Flutter integration is attributed to the Flutter SDK on the dashboard.
-            config.sdkName = BUILDING_WITH_PUSH_DISABLED ? kCountlyFlutterSDKNameNoPush : kCountlyFlutterSDKName
-            config.sdkVersion = kCountlyFlutterSDKVersion
+            instanceConfig.sdkName = BUILDING_WITH_PUSH_DISABLED ? kCountlyFlutterSDKNameNoPush : kCountlyFlutterSDKName
+            instanceConfig.sdkVersion = kCountlyFlutterSDKVersion
 
             #if !COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
-            if CountlyFLPushNotifications.shared.enablePushNotifications {
-                addCountlyFeature(.pushNotifications)
+            // Push is process wide and stays with the default instance.
+            if instanceName == nil && CountlyFLPushNotifications.shared.enablePushNotifications {
+                addCountlyFeature(.pushNotifications, on: instanceConfig)
             }
             #endif
 
-            if !config.host.isEmpty {
+            if !instanceConfig.host.isEmpty {
+                if instanceName == nil {
+                    isDebugLogging = instanceConfig.enableDebug
+                    config = CountlyConfig()
+                }
                 DispatchQueue.main.async {
-                    self.isInitialized = true
-                    Countly.shared.start(with: self.config)
+                    cly.start(with: instanceConfig)
                     #if !COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
-                    CountlyFLPushNotifications.shared.recordPushActions()
+                    if instanceName == nil {
+                        CountlyFLPushNotifications.shared.recordPushActions()
+                    }
                     #endif
                 }
                 result("initialized.")
@@ -303,21 +356,26 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
                 result("initialization failed!")
             }
 
-        case "isInitialized":
-            result(isInitialized ? "true" : "false")
+        case "halt":
+            // Testing purposes only, like the Android plugin: the instance is torn down and its stored data erased.
+            DispatchQueue.main.async {
+                cly.halt(clearStorage: true)
+                result("halt: success")
+            }
+
 
         // MARK: Queue introspection (test-only)
 
         case "getRequestQueue":
-            DispatchQueue.main.async { result(Countly.shared.requestQueue.queuedRequests()) }
+            DispatchQueue.main.async { result(cly.requestQueue.queuedRequests()) }
 
         case "getEventQueue":
-            DispatchQueue.main.async { result(Countly.shared.events.recordedEvents()) }
+            DispatchQueue.main.async { result(cly.events.recordedEvents()) }
 
         case "storeRequest":
             DispatchQueue.main.async {
                 guard let request = self.string(command, 0) else { result("stored request"); return }
-                Countly.shared.requestQueue.store(request)
+                cly.requestQueue.store(request)
                 result("stored request")
             }
 
@@ -328,14 +386,14 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
                     self.unavailable("recordReservedEvent", "not a reserved key a host may record", result)
                     return
                 }
-                Countly.shared.events.recordReservedEvent(event, segmentation: self.dictionary(command, 1))
+                cly.events.recordReservedEvent(event, segmentation: self.dictionary(command, 1))
                 result("recordReservedEvent for: " + key)
             }
 
         case "addDirectRequest":
             DispatchQueue.main.async {
                 let requestMap = self.dictionary(command, 0) as? [String: String] ?? [:]
-                Countly.shared.addDirectRequest(requestMap)
+                cly.addDirectRequest(requestMap)
                 result("added request to queue")
             }
 
@@ -361,19 +419,19 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
                 let sum = self.number(command, 2)?.doubleValue ?? 0
                 let duration = self.number(command, 3)?.doubleValue ?? 0
                 let segmentation = self.dictionary(command, 4)
-                Countly.shared.events.recordEvent(key, segmentation: segmentation, count: count, sum: sum, duration: duration)
+                cly.events.recordEvent(key, segmentation: segmentation, count: count, sum: sum, duration: duration)
                 result("recordEvent for: " + key)
             }
 
         case "startEvent":
             DispatchQueue.main.async {
-                if let key = self.string(command, 0) { Countly.shared.events.startEvent(key) }
+                if let key = self.string(command, 0) { cly.events.startEvent(key) }
                 result("startEvent!")
             }
 
         case "cancelEvent":
             DispatchQueue.main.async {
-                if let key = self.string(command, 0) { Countly.shared.events.cancelEvent(key) }
+                if let key = self.string(command, 0) { cly.events.cancelEvent(key) }
                 result("cancelEvent!")
             }
 
@@ -383,7 +441,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
                 let count = self.number(command, 1)?.intValue ?? 1
                 let sum = self.number(command, 2)?.doubleValue ?? 0
                 let segmentation = self.dictionary(command, 3)
-                Countly.shared.events.endEvent(key, segmentation: segmentation, count: count, sum: sum)
+                cly.events.endEvent(key, segmentation: segmentation, count: count, sum: sum)
                 result("endEvent for: " + key)
             }
 
@@ -399,32 +457,32 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
             DispatchQueue.main.async {
                 guard let viewName = self.string(command, 0) else { result("recordView Sent!"); return }
                 // The deprecated Objective-C recordView forwarded to startAutoStoppedView.
-                Countly.shared.views.startAutoStoppedView(viewName, segmentation: self.segmentation(from: command, startingAt: 1))
+                cly.views.startAutoStoppedView(viewName, segmentation: self.segmentation(from: command, startingAt: 1))
                 result("recordView Sent!")
             }
 
         case "startView":
             DispatchQueue.main.async {
                 guard let viewName = self.string(command, 0) else { result(nil); return }
-                result(Countly.shared.views.startView(viewName, segmentation: self.dictionary(command, 1)))
+                result(cly.views.startView(viewName, segmentation: self.dictionary(command, 1)))
             }
 
         case "startAutoStoppedView":
             DispatchQueue.main.async {
                 guard let viewName = self.string(command, 0) else { result(nil); return }
-                result(Countly.shared.views.startAutoStoppedView(viewName, segmentation: self.dictionary(command, 1)))
+                result(cly.views.startAutoStoppedView(viewName, segmentation: self.dictionary(command, 1)))
             }
 
         case "stopAllViews":
             DispatchQueue.main.async {
-                Countly.shared.views.stopAllViews(segmentation: self.dictionary(command, 0))
+                cly.views.stopAllViews(segmentation: self.dictionary(command, 0))
                 result(nil)
             }
 
         case "stopViewWithID":
             DispatchQueue.main.async {
                 if let viewID = self.string(command, 0) {
-                    Countly.shared.views.stopView(id: viewID, segmentation: self.dictionary(command, 1))
+                    cly.views.stopView(id: viewID, segmentation: self.dictionary(command, 1))
                 }
                 result(nil)
             }
@@ -432,39 +490,39 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "stopViewWithName":
             DispatchQueue.main.async {
                 if let viewName = self.string(command, 0) {
-                    Countly.shared.views.stopView(name: viewName, segmentation: self.dictionary(command, 1))
+                    cly.views.stopView(name: viewName, segmentation: self.dictionary(command, 1))
                 }
                 result(nil)
             }
 
         case "pauseViewWithID":
             DispatchQueue.main.async {
-                if let viewID = self.string(command, 0) { Countly.shared.views.pauseView(id: viewID) }
+                if let viewID = self.string(command, 0) { cly.views.pauseView(id: viewID) }
                 result(nil)
             }
 
         case "resumeViewWithID":
             DispatchQueue.main.async {
-                if let viewID = self.string(command, 0) { Countly.shared.views.resumeView(id: viewID) }
+                if let viewID = self.string(command, 0) { cly.views.resumeView(id: viewID) }
                 result(nil)
             }
 
         case "setGlobalViewSegmentation":
             DispatchQueue.main.async {
-                Countly.shared.views.setGlobalViewSegmentation(self.dictionary(command, 0) ?? [:])
+                cly.views.setGlobalViewSegmentation(self.dictionary(command, 0) ?? [:])
                 result(nil)
             }
 
         case "updateGlobalViewSegmentation":
             DispatchQueue.main.async {
-                Countly.shared.views.updateGlobalViewSegmentation(self.dictionary(command, 0) ?? [:])
+                cly.views.updateGlobalViewSegmentation(self.dictionary(command, 0) ?? [:])
                 result(nil)
             }
 
         case "addSegmentationToViewWithID":
             DispatchQueue.main.async {
                 if let viewID = self.string(command, 0) {
-                    Countly.shared.views.addSegmentation(toViewWithID: viewID, segmentation: self.dictionary(command, 1) ?? [:])
+                    cly.views.addSegmentation(toViewWithID: viewID, segmentation: self.dictionary(command, 1) ?? [:])
                 }
                 result(nil)
             }
@@ -472,7 +530,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "addSegmentationToViewWithName":
             DispatchQueue.main.async {
                 if let viewName = self.string(command, 0) {
-                    Countly.shared.views.addSegmentation(toViewWithName: viewName, segmentation: self.dictionary(command, 1) ?? [:])
+                    cly.views.addSegmentation(toViewWithName: viewName, segmentation: self.dictionary(command, 1) ?? [:])
                 }
                 result(nil)
             }
@@ -480,13 +538,13 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         // MARK: Sessions
 
         case "beginSession":
-            DispatchQueue.main.async { Countly.shared.sessions.beginSession(); result("beginSession!") }
+            DispatchQueue.main.async { cly.sessions.beginSession(); result("beginSession!") }
 
         case "updateSession":
-            DispatchQueue.main.async { Countly.shared.sessions.updateSession(); result("updateSession!") }
+            DispatchQueue.main.async { cly.sessions.updateSession(); result("updateSession!") }
 
         case "endSession":
-            DispatchQueue.main.async { Countly.shared.sessions.endSession(); result("endSession!") }
+            DispatchQueue.main.async { cly.sessions.endSession(); result("endSession!") }
 
         case "manualSessionHandling":
             DispatchQueue.main.async { self.config.manualSessionHandling = true; result("manualSessionHandling!") }
@@ -506,10 +564,10 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         // MARK: Device ID
 
         case "getID":
-            result(Countly.shared.deviceID.current)
+            result(cly.deviceID.current)
 
         case "getIDType":
-            switch Countly.shared.deviceID.type {
+            switch cly.deviceID.type {
             case .developerSupplied: result("DS")
             case .temporary: result("TID")
             default: result("SG")
@@ -517,25 +575,25 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
 
         case "setID":
             DispatchQueue.main.async {
-                if let deviceID = self.string(command, 0) { Countly.shared.deviceID.setID(deviceID) }
+                if let deviceID = self.string(command, 0) { cly.deviceID.setID(deviceID) }
                 result("setID success!")
             }
 
         case "enableTemporaryIDMode":
             DispatchQueue.main.async {
-                Countly.shared.deviceID.enableTemporaryIDMode()
+                cly.deviceID.enableTemporaryIDMode()
                 result("enableTemporaryIDMode success!")
             }
 
         case "changeWithMerge":
             DispatchQueue.main.async {
-                if let deviceID = self.string(command, 0) { Countly.shared.deviceID.changeWithMerge(deviceID) }
+                if let deviceID = self.string(command, 0) { cly.deviceID.changeWithMerge(deviceID) }
                 result("changeWithMerge!")
             }
 
         case "changeWithoutMerge":
             DispatchQueue.main.async {
-                if let deviceID = self.string(command, 0) { Countly.shared.deviceID.changeWithoutMerge(deviceID) }
+                if let deviceID = self.string(command, 0) { cly.deviceID.changeWithoutMerge(deviceID) }
                 result("changeWithoutMerge!")
             }
 
@@ -560,27 +618,27 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
             }
 
         case "attemptToSendStoredRequests":
-            DispatchQueue.main.async { Countly.shared.requestQueue.attemptToSendStoredRequests() }
+            DispatchQueue.main.async { cly.requestQueue.attemptToSendStoredRequests() }
             result("attemptToSendStoredRequests: success")
 
         case "addCustomNetworkRequestHeaders":
             DispatchQueue.main.async {
-                Countly.shared.addCustomNetworkRequestHeaders(self.dictionary(command, 0) as? [String: String])
+                cly.addCustomNetworkRequestHeaders(self.dictionary(command, 0) as? [String: String])
                 result(nil)
             }
 
         case "recordMetrics":
             DispatchQueue.main.async {
-                Countly.shared.recordMetrics(self.dictionary(command, 0) as? [String: String])
+                cly.recordMetrics(self.dictionary(command, 0) as? [String: String])
                 result(nil)
             }
 
         case "replaceAllAppKeysInQueueWithCurrentAppKey":
-            DispatchQueue.main.async { Countly.shared.requestQueue.replaceAllAppKeysInQueueWithCurrentAppKey() }
+            DispatchQueue.main.async { cly.requestQueue.replaceAllAppKeysInQueueWithCurrentAppKey() }
             result("replaceAllAppKeysInQueueWithCurrentAppKey: success")
 
         case "removeDifferentAppKeysFromQueue":
-            DispatchQueue.main.async { Countly.shared.requestQueue.removeDifferentAppKeysFromQueue() }
+            DispatchQueue.main.async { cly.requestQueue.removeDifferentAppKeysFromQueue() }
             result("removeDifferentAppKeysFromQueue: success")
 
         // MARK: Location
@@ -613,13 +671,13 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
                 let city = (location["city"] as? String).flatMap { $0.isEmpty ? nil : $0 }
                 let countryCode = (location["countryCode"] as? String).flatMap { $0.isEmpty ? nil : $0 }
                 let ipAddress = (location["ipAddress"] as? String).flatMap { $0.isEmpty ? nil : $0 }
-                Countly.shared.location.recordLocation(coordinate, city: city, isoCountryCode: countryCode, ipAddress: ipAddress)
+                cly.location.recordLocation(coordinate, city: city, isoCountryCode: countryCode, ipAddress: ipAddress)
                 result("setUserLocation!")
             }
 
         case "disableLocation":
             DispatchQueue.main.async {
-                Countly.shared.location.disableLocationInfo()
+                cly.location.disableLocationInfo()
                 result("disableLocation!")
             }
 
@@ -636,7 +694,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
                     coordinate = CLLocationCoordinate2D(latitude: (latitude as NSString).doubleValue,
                                                         longitude: (longitude as NSString).doubleValue)
                 }
-                Countly.shared.location.recordLocation(coordinate, city: city, isoCountryCode: country, ipAddress: ipAddress)
+                cly.location.recordLocation(coordinate, city: city, isoCountryCode: country, ipAddress: ipAddress)
                 result("setOptionalParametersForInitialization!")
             }
 
@@ -644,13 +702,13 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
 
         case "enableCrashReporting":
             DispatchQueue.main.async {
-                self.addCountlyFeature(.crashReporting)
+                self.addCountlyFeature(.crashReporting, on: self.config)
                 result("enableCrashReporting!")
             }
 
         case "addCrashLog":
             DispatchQueue.main.async {
-                if let record = self.string(command, 0) { Countly.shared.crashes.addCrashBreadcrumb(record) }
+                if let record = self.string(command, 0) { cly.crashes.addCrashBreadcrumb(record) }
                 result("addCrashLog!")
             }
 
@@ -661,7 +719,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
                 let stackTrace = exception.components(separatedBy: "\n")
                 let segmentation = self.segmentation(from: command, startingAt: 2)
                 let nsException = NSException(name: NSExceptionName("Exception"), reason: exception, userInfo: nil)
-                Countly.shared.crashes.recordException(nsException, isFatal: isFatal, stackTrace: stackTrace, segmentation: segmentation)
+                cly.crashes.recordException(nsException, isFatal: isFatal, stackTrace: stackTrace, segmentation: segmentation)
                 result("logException!")
             }
 
@@ -680,16 +738,16 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
 
         case "setuserdata":
             DispatchQueue.main.async {
-                Countly.shared.userProfile.setProperties(self.dictionary(command, 0) ?? [:])
-                Countly.shared.userProfile.save()
+                cly.userProfile.setProperties(self.dictionary(command, 0) ?? [:])
+                cly.userProfile.save()
                 result("setuserdata!")
             }
 
         case "userData_setProperty":
             DispatchQueue.main.async {
                 if let key = self.string(command, 0) {
-                    Countly.shared.userProfile.setCustomProperty(key, value: self.string(command, 1))
-                    Countly.shared.userProfile.save()
+                    cly.userProfile.setCustomProperty(key, value: self.string(command, 1))
+                    cly.userProfile.save()
                 }
                 result("userData_setProperty!")
             }
@@ -697,8 +755,8 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "userData_increment":
             DispatchQueue.main.async {
                 if let key = self.string(command, 0) {
-                    Countly.shared.userProfile.increment(key)
-                    Countly.shared.userProfile.save()
+                    cly.userProfile.increment(key)
+                    cly.userProfile.save()
                 }
                 result("userData_increment!")
             }
@@ -706,8 +764,8 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "userData_incrementBy":
             DispatchQueue.main.async {
                 if let key = self.string(command, 0) {
-                    Countly.shared.userProfile.incrementBy(key, value: self.number(command, 1)?.doubleValue ?? 0)
-                    Countly.shared.userProfile.save()
+                    cly.userProfile.incrementBy(key, value: self.number(command, 1)?.doubleValue ?? 0)
+                    cly.userProfile.save()
                 }
                 result("userData_incrementBy!")
             }
@@ -715,8 +773,8 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "userData_multiply":
             DispatchQueue.main.async {
                 if let key = self.string(command, 0) {
-                    Countly.shared.userProfile.multiply(key, value: self.number(command, 1)?.doubleValue ?? 0)
-                    Countly.shared.userProfile.save()
+                    cly.userProfile.multiply(key, value: self.number(command, 1)?.doubleValue ?? 0)
+                    cly.userProfile.save()
                 }
                 result("userData_multiply!")
             }
@@ -724,8 +782,8 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "userData_saveMax":
             DispatchQueue.main.async {
                 if let key = self.string(command, 0) {
-                    Countly.shared.userProfile.max(key, value: self.number(command, 1)?.doubleValue ?? 0)
-                    Countly.shared.userProfile.save()
+                    cly.userProfile.max(key, value: self.number(command, 1)?.doubleValue ?? 0)
+                    cly.userProfile.save()
                 }
                 result("userData_saveMax!")
             }
@@ -733,8 +791,8 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "userData_saveMin":
             DispatchQueue.main.async {
                 if let key = self.string(command, 0) {
-                    Countly.shared.userProfile.min(key, value: self.number(command, 1)?.doubleValue ?? 0)
-                    Countly.shared.userProfile.save()
+                    cly.userProfile.min(key, value: self.number(command, 1)?.doubleValue ?? 0)
+                    cly.userProfile.save()
                 }
                 result("userData_saveMin!")
             }
@@ -742,8 +800,8 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "userData_setOnce":
             DispatchQueue.main.async {
                 if let key = self.string(command, 0), let value = self.string(command, 1) {
-                    Countly.shared.userProfile.setOnce(key, value: value)
-                    Countly.shared.userProfile.save()
+                    cly.userProfile.setOnce(key, value: value)
+                    cly.userProfile.save()
                 }
                 result("userData_setOnce!")
             }
@@ -751,8 +809,8 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "userData_pushUniqueValue":
             DispatchQueue.main.async {
                 if let key = self.string(command, 0), let value = self.string(command, 1) {
-                    Countly.shared.userProfile.pushUnique(key, value: value)
-                    Countly.shared.userProfile.save()
+                    cly.userProfile.pushUnique(key, value: value)
+                    cly.userProfile.save()
                 }
                 result("userData_pushUniqueValue!")
             }
@@ -760,8 +818,8 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "userData_pushValue":
             DispatchQueue.main.async {
                 if let key = self.string(command, 0), let value = self.string(command, 1) {
-                    Countly.shared.userProfile.push(key, value: value)
-                    Countly.shared.userProfile.save()
+                    cly.userProfile.push(key, value: value)
+                    cly.userProfile.save()
                 }
                 result("userData_pushValue!")
             }
@@ -769,8 +827,8 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "userData_pullValue":
             DispatchQueue.main.async {
                 if let key = self.string(command, 0), let value = self.string(command, 1) {
-                    Countly.shared.userProfile.pull(key, value: value)
-                    Countly.shared.userProfile.save()
+                    cly.userProfile.pull(key, value: value)
+                    cly.userProfile.save()
                 }
                 result("userData_pullValue!")
             }
@@ -779,7 +837,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
 
         case "userProfile_setProperties":
             DispatchQueue.main.async {
-                Countly.shared.userProfile.setProperties(self.dictionary(command, 0) ?? [:])
+                cly.userProfile.setProperties(self.dictionary(command, 0) ?? [:])
                 result(nil)
             }
 
@@ -788,21 +846,21 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
                 // Passed through uncoerced: the Objective-C NSNumber type was never
                 // enforced, so a non-numeric value must not become 0.
                 if let key = self.string(command, 0) {
-                    Countly.shared.userProfile.setCustomProperty(key, value: self.value(command, 1))
+                    cly.userProfile.setCustomProperty(key, value: self.value(command, 1))
                 }
                 result(nil)
             }
 
         case "userProfile_increment":
             DispatchQueue.main.async {
-                if let key = self.string(command, 0) { Countly.shared.userProfile.increment(key) }
+                if let key = self.string(command, 0) { cly.userProfile.increment(key) }
                 result(nil)
             }
 
         case "userProfile_incrementBy":
             DispatchQueue.main.async {
                 if let key = self.string(command, 0) {
-                    Countly.shared.userProfile.incrementBy(key, value: self.number(command, 1)?.doubleValue ?? 0)
+                    cly.userProfile.incrementBy(key, value: self.number(command, 1)?.doubleValue ?? 0)
                 }
                 result(nil)
             }
@@ -810,7 +868,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "userProfile_multiply":
             DispatchQueue.main.async {
                 if let key = self.string(command, 0) {
-                    Countly.shared.userProfile.multiply(key, value: self.number(command, 1)?.doubleValue ?? 0)
+                    cly.userProfile.multiply(key, value: self.number(command, 1)?.doubleValue ?? 0)
                 }
                 result(nil)
             }
@@ -818,7 +876,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "userProfile_saveMax":
             DispatchQueue.main.async {
                 if let key = self.string(command, 0) {
-                    Countly.shared.userProfile.max(key, value: self.number(command, 1)?.doubleValue ?? 0)
+                    cly.userProfile.max(key, value: self.number(command, 1)?.doubleValue ?? 0)
                 }
                 result(nil)
             }
@@ -826,7 +884,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "userProfile_saveMin":
             DispatchQueue.main.async {
                 if let key = self.string(command, 0) {
-                    Countly.shared.userProfile.min(key, value: self.number(command, 1)?.doubleValue ?? 0)
+                    cly.userProfile.min(key, value: self.number(command, 1)?.doubleValue ?? 0)
                 }
                 result(nil)
             }
@@ -834,7 +892,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "userProfile_setOnce":
             DispatchQueue.main.async {
                 if let key = self.string(command, 0), let value = self.value(command, 1) {
-                    Countly.shared.userProfile.setOnce(key, value: value)
+                    cly.userProfile.setOnce(key, value: value)
                 }
                 result(nil)
             }
@@ -842,7 +900,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "userProfile_pushUnique":
             DispatchQueue.main.async {
                 if let key = self.string(command, 0), let value = self.value(command, 1) {
-                    Countly.shared.userProfile.pushUnique(key, value: value)
+                    cly.userProfile.pushUnique(key, value: value)
                 }
                 result(nil)
             }
@@ -850,7 +908,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "userProfile_push":
             DispatchQueue.main.async {
                 if let key = self.string(command, 0), let value = self.value(command, 1) {
-                    Countly.shared.userProfile.push(key, value: value)
+                    cly.userProfile.push(key, value: value)
                 }
                 result(nil)
             }
@@ -858,16 +916,16 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "userProfile_pull":
             DispatchQueue.main.async {
                 if let key = self.string(command, 0), let value = self.value(command, 1) {
-                    Countly.shared.userProfile.pull(key, value: value)
+                    cly.userProfile.pull(key, value: value)
                 }
                 result(nil)
             }
 
         case "userProfile_save":
-            DispatchQueue.main.async { Countly.shared.userProfile.save(); result(nil) }
+            DispatchQueue.main.async { cly.userProfile.save(); result(nil) }
 
         case "userProfile_clear":
-            DispatchQueue.main.async { Countly.shared.userProfile.clear(); result(nil) }
+            DispatchQueue.main.async { cly.userProfile.clear(); result(nil) }
 
         // MARK: Consent
 
@@ -885,45 +943,34 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
 
         case "giveConsent":
             DispatchQueue.main.async {
-                Countly.shared.consent.giveConsent(for: self.consentFeatures(from: command))
+                cly.consent.giveConsent(for: self.consentFeatures(from: command))
                 result("giveConsent!")
             }
 
         case "removeConsent":
             DispatchQueue.main.async {
-                Countly.shared.consent.cancelConsent(for: self.consentFeatures(from: command))
+                cly.consent.cancelConsent(for: self.consentFeatures(from: command))
                 result("removeConsent!")
             }
 
         case "giveAllConsent":
-            DispatchQueue.main.async { Countly.shared.consent.giveAllConsents(); result("giveAllConsent!") }
+            DispatchQueue.main.async { cly.consent.giveAllConsents(); result("giveAllConsent!") }
 
         case "removeAllConsent":
-            DispatchQueue.main.async { Countly.shared.consent.cancelAllConsents(); result("removeAllConsent!") }
+            DispatchQueue.main.async { cly.consent.cancelAllConsents(); result("removeAllConsent!") }
 
         // MARK: Remote config
 
         case "setRemoteConfigAutomaticDownload":
-            // The callback fires on every later download, but a FlutterResult may
-            // only be delivered once, so the first outcome answers and the rest return.
+            // Answered right away: the setting only takes effect at start, so waiting for a download would hang a post-start call.
             DispatchQueue.main.async {
                 self.config.enableRemoteConfigAutomaticTriggers = true
-                var answer: FlutterResult? = result
-                self.config.remoteConfigRegisterGlobalCallback { response, error, _, _ in
-                    guard let pending = answer else { return }
-                    // The callback outlives the call; do not retain the result.
-                    answer = nil
-                    if let error {
-                        pending("Error :" + String(describing: error))
-                    } else {
-                        pending(response == .success ? "Success!" : "Error :no result")
-                    }
-                }
+                result("setRemoteConfigAutomaticDownload: success")
             }
 
         case "remoteConfigUpdate":
             DispatchQueue.main.async {
-                Countly.shared.remoteConfig.downloadKeys { _, error, _, _ in
+                cly.remoteConfig.downloadKeys { _, error, _, _ in
                     result(error.map { "Error :" + String(describing: $0) } ?? "Success!")
                 }
             }
@@ -931,7 +978,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "updateRemoteConfigForKeysOnly":
             DispatchQueue.main.async {
                 let keys = command.compactMap { $0 as? String }
-                Countly.shared.remoteConfig.downloadSpecificKeys(keys) { _, error, _, _ in
+                cly.remoteConfig.downloadSpecificKeys(keys) { _, error, _, _ in
                     result(error.map { "Error :" + String(describing: $0) } ?? "Success!")
                 }
             }
@@ -939,21 +986,21 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "updateRemoteConfigExceptKeys":
             DispatchQueue.main.async {
                 let keys = command.compactMap { $0 as? String }
-                Countly.shared.remoteConfig.downloadOmittingKeys(keys) { _, error, _, _ in
+                cly.remoteConfig.downloadOmittingKeys(keys) { _, error, _, _ in
                     result(error.map { "Error :" + String(describing: $0) } ?? "Success!")
                 }
             }
 
         case "remoteConfigClearValues", "remoteConfigClearAllValues":
             DispatchQueue.main.async {
-                Countly.shared.remoteConfig.clearAll()
+                cly.remoteConfig.clearAll()
                 result("Success!")
             }
 
         case "getRemoteConfigValueForKey":
             DispatchQueue.main.async {
                 guard let key = self.string(command, 0) else { result("Default Value"); return }
-                guard let value = Countly.shared.remoteConfig.getValue(key).value else {
+                guard let value = cly.remoteConfig.getValue(key).value else {
                     result("Default Value")
                     return
                 }
@@ -963,8 +1010,8 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "remoteConfigDownloadValues":
             DispatchQueue.main.async {
                 let callbackID = self.number(command, 0) ?? 0
-                Countly.shared.remoteConfig.downloadKeys { response, error, fullValueUpdate, values in
-                    self.remoteConfigDownloadCallback(callbackID, result: response, fullValueUpdate: fullValueUpdate,
+                cly.remoteConfig.downloadKeys { response, error, fullValueUpdate, values in
+                    self.remoteConfigDownloadCallback(callbackID, instanceName: instanceName, result: response, fullValueUpdate: fullValueUpdate,
                                                       error: error, downloadedValues: values)
                 }
                 result("success")
@@ -974,8 +1021,8 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
             DispatchQueue.main.async {
                 let callbackID = self.number(command, 0) ?? 0
                 let keys = self.stringArray(command, 1)
-                Countly.shared.remoteConfig.downloadSpecificKeys(keys) { response, error, fullValueUpdate, values in
-                    self.remoteConfigDownloadCallback(callbackID, result: response, fullValueUpdate: fullValueUpdate,
+                cly.remoteConfig.downloadSpecificKeys(keys) { response, error, fullValueUpdate, values in
+                    self.remoteConfigDownloadCallback(callbackID, instanceName: instanceName, result: response, fullValueUpdate: fullValueUpdate,
                                                       error: error, downloadedValues: values)
                 }
                 result("Success!")
@@ -985,57 +1032,57 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
             DispatchQueue.main.async {
                 let callbackID = self.number(command, 0) ?? 0
                 let keys = self.stringArray(command, 1)
-                Countly.shared.remoteConfig.downloadOmittingKeys(keys) { response, error, fullValueUpdate, values in
-                    self.remoteConfigDownloadCallback(callbackID, result: response, fullValueUpdate: fullValueUpdate,
+                cly.remoteConfig.downloadOmittingKeys(keys) { response, error, fullValueUpdate, values in
+                    self.remoteConfigDownloadCallback(callbackID, instanceName: instanceName, result: response, fullValueUpdate: fullValueUpdate,
                                                       error: error, downloadedValues: values)
                 }
                 result("Success!")
             }
 
         case "remoteConfigGetAllValues":
-            DispatchQueue.main.async { result(self.map(Countly.shared.remoteConfig.getAllValues())) }
+            DispatchQueue.main.async { result(self.map(cly.remoteConfig.getAllValues())) }
 
         case "remoteConfigGetValue":
             DispatchQueue.main.async {
                 guard let key = self.string(command, 0) else { result(nil); return }
-                result(self.map(Countly.shared.remoteConfig.getValue(key)))
+                result(self.map(cly.remoteConfig.getValue(key)))
             }
 
         case "remoteConfigGetValueAndEnroll":
             DispatchQueue.main.async {
                 guard let key = self.string(command, 0) else { result(nil); return }
-                result(self.map(Countly.shared.remoteConfig.getValueAndEnroll(key)))
+                result(self.map(cly.remoteConfig.getValueAndEnroll(key)))
             }
 
         case "remoteConfigGetAllValuesAndEnroll":
-            DispatchQueue.main.async { result(self.map(Countly.shared.remoteConfig.getAllValuesAndEnroll())) }
+            DispatchQueue.main.async { result(self.map(cly.remoteConfig.getAllValuesAndEnroll())) }
 
         case "remoteConfigEnrollIntoABTestsForKeys":
             DispatchQueue.main.async {
-                Countly.shared.remoteConfig.enrollIntoABTests(forKeys: self.stringArray(command, 0))
+                cly.remoteConfig.enrollIntoABTests(forKeys: self.stringArray(command, 0))
                 result("Success!")
             }
 
         case "remoteConfigExitABTestsForKeys":
             DispatchQueue.main.async {
-                Countly.shared.remoteConfig.exitABTests(forKeys: self.stringArray(command, 0))
+                cly.remoteConfig.exitABTests(forKeys: self.stringArray(command, 0))
                 result("Success!")
             }
 
         case "remoteConfigTestingGetVariantsForKey":
             DispatchQueue.main.async {
                 guard let key = self.string(command, 0) else { result([]); return }
-                result(Countly.shared.remoteConfig.testingGetVariants(forKey: key))
+                result(cly.remoteConfig.testingGetVariants(forKey: key))
             }
 
         case "remoteConfigTestingGetAllVariants":
-            DispatchQueue.main.async { result(Countly.shared.remoteConfig.testingGetAllVariants()) }
+            DispatchQueue.main.async { result(cly.remoteConfig.testingGetAllVariants()) }
 
         case "remoteConfigTestingDownloadVariantInformation":
             DispatchQueue.main.async {
                 let callbackID = self.number(command, 0) ?? 0
-                Countly.shared.remoteConfig.testingDownloadVariantInformation { response, error in
-                    self.remoteConfigVariantCallback(callbackID, result: response, error: error)
+                cly.remoteConfig.testingDownloadVariantInformation { response, error in
+                    self.remoteConfigVariantCallback(callbackID, instanceName: instanceName, result: response, error: error)
                 }
                 result("Success!")
             }
@@ -1047,8 +1094,8 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
                     result("Success!")
                     return
                 }
-                Countly.shared.remoteConfig.testingEnrollIntoVariant(key: key, variantName: variantName) { response, error in
-                    self.remoteConfigVariantCallback(callbackID, result: response, error: error)
+                cly.remoteConfig.testingEnrollIntoVariant(key: key, variantName: variantName) { response, error in
+                    self.remoteConfigVariantCallback(callbackID, instanceName: instanceName, result: response, error: error)
                 }
                 result("Success!")
             }
@@ -1056,15 +1103,15 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "testingDownloadExperimentInformation":
             DispatchQueue.main.async {
                 let callbackID = self.number(command, 0) ?? 0
-                Countly.shared.remoteConfig.testingDownloadExperimentInformation { response, error in
-                    self.remoteConfigVariantCallback(callbackID, result: response, error: error)
+                cly.remoteConfig.testingDownloadExperimentInformation { response, error in
+                    self.remoteConfigVariantCallback(callbackID, instanceName: instanceName, result: response, error: error)
                 }
                 result("Success!")
             }
 
         case "testingGetAllExperimentInfo":
             DispatchQueue.main.async {
-                let experiments = Countly.shared.remoteConfig.testingGetAllExperimentInfo()
+                let experiments = cly.remoteConfig.testingGetAllExperimentInfo()
                 let payload = experiments.values.map { experiment -> [String: Any] in
                     [
                         "experimentID": experiment.experimentID,
@@ -1088,42 +1135,50 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         // MARK: Feedback
 
         case "presentRatingWidgetWithID":
-            // The Swift SDK reports widget state rather than an error, so the Dart
-            // callback always carries nil where the error string used to be.
+            // Like the Android SDK: exactly the rating widget with this ID, or an error, never another widget.
             DispatchQueue.main.async {
-                guard let widgetID = self.string(command, 0) else {
+                guard let widgetID = self.string(command, 0), !widgetID.isEmpty else {
                     result("presentRatingWidgetWithID failed: no widget id given")
                     return
                 }
-                Countly.shared.feedback.presentRating(widgetID) { state in
-                    if state == .closed {
-                        Self.channel?.invokeMethod("ratingWidgetCallback", arguments: nil)
+                cly.feedback.getAvailableFeedbackWidgets { widgets, error in
+                    guard error == nil, let widget = widgets?.first(where: { $0.id == widgetID && $0.type == .rating }) else {
+                        let message = "presentRatingWidgetWithID failed: " + (error.map { String(describing: $0) } ?? "no rating widget with the id [\(widgetID)]")
+                        result(message)
+                        Self.channel?.invokeMethod("ratingWidgetCallback", arguments: Self.tagged(instanceName, ["error": message]))
+                        return
                     }
+                    widget.present(callback: { state in
+                        if state == .appeared {
+                            Self.channel?.invokeMethod("ratingWidgetCallback", arguments: Self.tagged(instanceName))
+                        }
+                    })
+                    result("presentRatingWidgetWithID success.")
                 }
-                result("presentRatingWidgetWithID success.")
             }
 
         case "getAvailableFeedbackWidgets":
             DispatchQueue.main.async {
-                Countly.shared.feedback.getAvailableFeedbackWidgets { widgets, _ in
-                    self.feedbackWidgetList = widgets ?? []
-                    result(self.feedbackWidgetList.map { ["id": $0.id, "type": $0.type.wireName, "name": $0.name] })
+                cly.feedback.getAvailableFeedbackWidgets { widgets, _ in
+                    let listed = widgets ?? []
+                    self.feedbackWidgetLists[instanceName ?? ""] = listed
+                    result(listed.map { ["id": $0.id, "type": $0.type.wireName, "name": $0.name] })
                 }
             }
 
         case "presentFeedbackWidget":
             DispatchQueue.main.async {
                 guard let widgetID = self.string(command, 0) else { result(nil); return }
-                guard let widget = self.findFeedbackWidget(widgetID) else {
+                guard let widget = self.findFeedbackWidget(instanceName, widgetID) else {
                     let message = self.missingWidget("presentFeedbackWidget", widgetID)
                     result(message)
                     return
                 }
                 widget.present(appearBlock: {
-                    Self.channel?.invokeMethod("widgetShown", arguments: nil)
+                    Self.channel?.invokeMethod("widgetShown", arguments: Self.tagged(instanceName))
                     result("appeared")
                 }, dismissBlock: {
-                    Self.channel?.invokeMethod("widgetClosed", arguments: nil)
+                    Self.channel?.invokeMethod("widgetClosed", arguments: Self.tagged(instanceName))
                     result("dismissed")
                 })
             }
@@ -1132,16 +1187,17 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
             DispatchQueue.main.async {
                 let nameIDorTag = self.string(command, 0) ?? ""
                 let callback: WidgetCallback = { state in
+                    let arguments = Self.tagged(instanceName)
                     if state == .closed {
-                        Self.channel?.invokeMethod("feedbackCallback_onClosed", arguments: nil)
+                        Self.channel?.invokeMethod("feedbackCallback_onClosed", arguments: arguments)
                     } else {
-                        Self.channel?.invokeMethod("feedbackCallback_Finished", arguments: nil)
+                        Self.channel?.invokeMethod("feedbackCallback_onFinished", arguments: arguments)
                     }
                 }
                 switch call.method {
-                case "presentNPS": Countly.shared.feedback.presentNPS(nameIDorTag, callback: callback)
-                case "presentSurvey": Countly.shared.feedback.presentSurvey(nameIDorTag, callback: callback)
-                default: Countly.shared.feedback.presentRating(nameIDorTag, callback: callback)
+                case "presentNPS": cly.feedback.presentNPS(nameIDorTag, callback: callback)
+                case "presentSurvey": cly.feedback.presentSurvey(nameIDorTag, callback: callback)
+                default: cly.feedback.presentRating(nameIDorTag, callback: callback)
                 }
                 result("[CountlyFlutterPlugin] \(call.method), success")
             }
@@ -1149,20 +1205,20 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "getFeedbackWidgetData":
             DispatchQueue.main.async {
                 guard let widgetID = self.string(command, 0) else { result(nil); return }
-                guard let widget = self.findFeedbackWidget(widgetID) else {
+                guard let widget = self.findFeedbackWidget(instanceName, widgetID) else {
                     let message = self.missingWidget("getFeedbackWidgetData", widgetID)
                     result(message)
-                    self.feedbackWidgetDataCallback(nil, error: message)
+                    self.feedbackWidgetDataCallback(nil, instanceName: instanceName, error: message)
                     return
                 }
                 widget.getWidgetData { widgetData, error in
                     if let error {
                         let message = "getFeedbackWidgetData failed: " + String(describing: error)
                         result(message)
-                        self.feedbackWidgetDataCallback(nil, error: message)
+                        self.feedbackWidgetDataCallback(nil, instanceName: instanceName, error: message)
                     } else {
                         result(widgetData)
-                        self.feedbackWidgetDataCallback(widgetData, error: nil)
+                        self.feedbackWidgetDataCallback(widgetData, instanceName: instanceName, error: nil)
                     }
                 }
             }
@@ -1173,7 +1229,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
                     result(nil)
                     return
                 }
-                guard let widget = self.findFeedbackWidget(widgetID) else {
+                guard let widget = self.findFeedbackWidget(instanceName, widgetID) else {
                     let message = self.missingWidget("reportFeedbackWidgetManually", widgetID)
                     result(message)
                     return
@@ -1186,18 +1242,18 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
 
         case "startTrace":
             DispatchQueue.main.async {
-                if let traceKey = self.string(command, 0) { Countly.shared.performance.startCustomTrace(traceKey) }
+                if let traceKey = self.string(command, 0) { cly.performance.startCustomTrace(traceKey) }
             }
             result("startTrace: success")
 
         case "cancelTrace":
             DispatchQueue.main.async {
-                if let traceKey = self.string(command, 0) { Countly.shared.performance.cancelCustomTrace(traceKey) }
+                if let traceKey = self.string(command, 0) { cly.performance.cancelCustomTrace(traceKey) }
             }
             result("cancelTrace: success")
 
         case "clearAllTraces":
-            DispatchQueue.main.async { Countly.shared.performance.clearAllCustomTraces() }
+            DispatchQueue.main.async { cly.performance.clearAllCustomTraces() }
             result("clearAllTrace: success")
 
         case "endTrace":
@@ -1205,14 +1261,14 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
                 guard let traceKey = self.string(command, 0) else { return }
                 let metrics = self.segmentation(from: command, startingAt: 1)
                     .compactMapValues { ($0 as? NSNumber)?.intValue ?? Int(($0 as? String) ?? "") }
-                Countly.shared.performance.endCustomTrace(traceKey, metrics: metrics)
+                cly.performance.endCustomTrace(traceKey, metrics: metrics)
             }
             result("endTrace: success")
 
         case "recordNetworkTrace":
             DispatchQueue.main.async {
                 guard let traceKey = self.string(command, 0) else { return }
-                Countly.shared.performance.recordNetworkTrace(
+                cly.performance.recordNetworkTrace(
                     traceKey,
                     requestPayloadSize: self.number(command, 2)?.intValue ?? 0,
                     responsePayloadSize: self.number(command, 3)?.intValue ?? 0,
@@ -1223,12 +1279,12 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
             result("recordNetworkTrace: success")
 
         case "appLoadingFinished":
-            DispatchQueue.main.async { Countly.shared.performance.appLoadingFinished() }
+            DispatchQueue.main.async { cly.performance.appLoadingFinished() }
             result("appLoadingFinished: success")
 
         case "enableApm":
             // The deprecated Objective-C master switch only set these three.
-            DispatchQueue.main.async { self.setPerformanceMonitoringEnabled(true) }
+            DispatchQueue.main.async { self.setPerformanceMonitoringEnabled(true, on: self.config) }
             result("enableApm: success")
 
         // MARK: Attribution
@@ -1239,8 +1295,8 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
                     result(nil)
                     return
                 }
-                if Countly.shared.isStarted {
-                    Countly.shared.attribution.recordDirectAttribution(campaignType: campaignType, campaignData: campaignData)
+                if cly.isStarted {
+                    cly.attribution.recordDirectAttribution(campaignType: campaignType, campaignData: campaignData)
                 } else {
                     self.config.campaignType = campaignType
                     self.config.campaignData = campaignData
@@ -1251,8 +1307,8 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         case "recordIndirectAttribution":
             DispatchQueue.main.async {
                 let attribution = self.dictionary(command, 0) as? [String: String] ?? [:]
-                if Countly.shared.isStarted {
-                    Countly.shared.attribution.recordIndirectAttribution(attribution)
+                if cly.isStarted {
+                    cly.attribution.recordIndirectAttribution(attribution)
                 } else {
                     self.config.indirectAttribution = attribution
                 }
@@ -1262,18 +1318,18 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         // MARK: Content
 
         case "enterContentZone":
-            DispatchQueue.main.async { Countly.shared.content.enterContentZone(); result(nil) }
+            DispatchQueue.main.async { cly.content.enterContentZone(); result(nil) }
 
         case "exitContentZone":
-            DispatchQueue.main.async { Countly.shared.content.exitContentZone(); result(nil) }
+            DispatchQueue.main.async { cly.content.exitContentZone(); result(nil) }
 
         case "refreshContentZone":
-            DispatchQueue.main.async { Countly.shared.content.refreshContentZone(); result(nil) }
+            DispatchQueue.main.async { cly.content.refreshContentZone(); result(nil) }
 
         case "previewContent":
             DispatchQueue.main.async {
                 let contentID = arguments?["contentId"] as? String ?? ""
-                Countly.shared.content.previewContent(contentID)
+                cly.content.previewContent(contentID)
                 result(nil)
             }
 
@@ -1320,7 +1376,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
     // MARK: - Config
 
     /// Translates the Dart config map onto `CountlyConfig`.
-    private func populateConfig(_ configMap: [String: Any]) {
+    private func populateConfig(_ configMap: [String: Any], into config: CountlyConfig, instanceName: String?) {
         if let appKey = configMap["appKey"] as? String { config.appKey = appKey }
         if let host = configMap["serverURL"] as? String { config.host = host }
 
@@ -1363,7 +1419,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
 
         // The deprecated Objective-C master switch only set these three.
         if let recordAppStartTime = configMap["recordAppStartTime"] as? Bool {
-            setPerformanceMonitoringEnabled(recordAppStartTime)
+            setPerformanceMonitoringEnabled(recordAppStartTime, on: config)
         }
         if let enableForegroundBackground = configMap["enableForegroundBackground"] as? Bool {
             config.apm.enableForegroundBackgroundTracking = enableForegroundBackground
@@ -1397,7 +1453,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         if let value = configMap["maxStackTraceLinesPerThread"] as? Int { config.sdkInternalLimits.maxStackTraceLinesPerThread = value }
 
         if let enableUnhandledCrashReporting = configMap["enableUnhandledCrashReporting"] as? Bool, enableUnhandledCrashReporting {
-            addCountlyFeature(.crashReporting)
+            addCountlyFeature(.crashReporting, on: config)
         }
 
         if let value = configMap["maxRequestQueueSize"] as? Int { config.storedRequestsLimit = value }
@@ -1410,10 +1466,11 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
 
 
         // Captured, so the long-lived callback does not retain the whole config map.
-        let notifiesDart = configMap["enableRemoteConfigAutomaticDownload"] as? Bool == true
+        // The deprecated automatic download callback has one static slot on the Dart side, for the default instance.
+        let notifiesDart = configMap["enableRemoteConfigAutomaticDownload"] as? Bool == true && instanceName == nil
         config.remoteConfigRegisterGlobalCallback { [weak self] response, error, fullValueUpdate, downloadedValues in
             guard let self else { return }
-            self.remoteConfigDownloadCallback(NSNumber(value: -2), result: response, fullValueUpdate: fullValueUpdate,
+            self.remoteConfigDownloadCallback(NSNumber(value: -2), instanceName: instanceName, result: response, fullValueUpdate: fullValueUpdate,
                                               error: error, downloadedValues: downloadedValues)
             if notifiesDart {
                 Self.channel?.invokeMethod("remoteConfigCallback", arguments: error.map { String(describing: $0) })
@@ -1426,6 +1483,9 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         config.enableRemoteConfigAutomaticTriggers = notifiesDart || automaticTriggers
         if let caching = configMap["remoteConfigValueCaching"] as? Bool {
             config.enableRemoteConfigValueCaching = caching
+        }
+        if let autoEnroll = configMap["autoEnrollABOnDownload"] as? Bool, autoEnroll {
+            config.enrollABOnRCDownload = true
         }
 
         if let globalViewSegmentation = configMap["globalViewSegmentation"] as? [String: Any] {
@@ -1457,10 +1517,11 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         }
 
         config.content.globalContentCallback = { status, data in
-            Self.channel?.invokeMethod("contentCallback", arguments: [
+            let arguments = Self.tagged(instanceName, [
                 "contentResult": status == .closed ? 1 : 0,
                 "contentData": data,
             ])
+            Self.channel?.invokeMethod("contentCallback", arguments: arguments)
         }
 
         if let zoneTimerInterval = configMap["zoneTimerInterval"] as? Int {

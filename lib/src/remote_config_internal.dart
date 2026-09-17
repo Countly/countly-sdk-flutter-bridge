@@ -9,12 +9,20 @@ class RemoteConfigInternal implements RemoteConfig {
   RemoteConfigInternal(this._countlyState);
 
   final CountlyState _countlyState;
-  static final Map<int, RCDownloadInnerCallback> _remoteConfigDownloadCallbacks = {};
-  static final Map<int, RCVariantInnerCallback> _remoteConfigVariantInnerCallbacks = {};
+  final Map<int, RCDownloadInnerCallback> _remoteConfigDownloadCallbacks = {};
+  final Map<int, RCVariantInnerCallback> _remoteConfigVariantInnerCallbacks = {};
   final _downloadKeysToRemove = <int>[];
   final _variantKeysToRemove = <int>[];
   final _requestIDNoCallback = -1;
   final _requestIDGlobalCallback = -2;
+
+  /// Drops every registered callback, after the instance was halted or removed.
+  void forgetCallbacks() {
+    _remoteConfigDownloadCallbacks.clear();
+    _remoteConfigVariantInnerCallbacks.clear();
+    _downloadKeysToRemove.clear();
+    _variantKeysToRemove.clear();
+  }
 
   void notifyDownloadCallbacks(RequestResult requestResult, String? error, bool fullValueUpdate, Map<dynamic, dynamic> downloadedValues, int id) {
     final values = _parseDownloadedValues(downloadedValues, 'notifyDownloadCallbacks');
@@ -45,7 +53,7 @@ class RemoteConfigInternal implements RemoteConfig {
       return;
     }
     Countly.log('Calling "remoteConfigClearAllValues"');
-    await _countlyState.channel.invokeMethod('remoteConfigClearAllValues');
+    await _countlyState.channel.invokeMethod('remoteConfigClearAllValues', _countlyState.arguments());
   }
 
   @override
@@ -66,7 +74,7 @@ class RemoteConfigInternal implements RemoteConfig {
     args.add(requestID);
     args.add(omittedKeys);
 
-    await _countlyState.channel.invokeMethod('remoteConfigDownloadOmittingValues', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('remoteConfigDownloadOmittingValues', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -87,7 +95,7 @@ class RemoteConfigInternal implements RemoteConfig {
     args.add(requestID);
     args.add(keys);
 
-    await _countlyState.channel.invokeMethod('remoteConfigDownloadSpecificValue', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('remoteConfigDownloadSpecificValue', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -102,7 +110,7 @@ class RemoteConfigInternal implements RemoteConfig {
 
     List<int> args = [];
     args.add(requestID);
-    return await _countlyState.channel.invokeMethod('remoteConfigDownloadValues', <String, dynamic>{'data': json.encode(args)});
+    return await _countlyState.channel.invokeMethod('remoteConfigDownloadValues', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -162,7 +170,7 @@ class RemoteConfigInternal implements RemoteConfig {
     Countly.log(keys.toString());
     List<dynamic> args = [];
     args.add(keys);
-    return await _countlyState.channel.invokeMethod('remoteConfigEnrollIntoABTestsForKeys', <String, dynamic>{'data': json.encode(args)});
+    return await _countlyState.channel.invokeMethod('remoteConfigEnrollIntoABTestsForKeys', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -178,7 +186,7 @@ class RemoteConfigInternal implements RemoteConfig {
     Countly.log(keys.toString());
     List<dynamic> args = [];
     args.add(keys);
-    return await _countlyState.channel.invokeMethod('remoteConfigExitABTestsForKeys', <String, dynamic>{'data': json.encode(args)});
+    return await _countlyState.channel.invokeMethod('remoteConfigExitABTestsForKeys', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -188,7 +196,7 @@ class RemoteConfigInternal implements RemoteConfig {
       return {};
     }
 
-    final Map<dynamic, dynamic> allValues = await _countlyState.channel.invokeMethod('remoteConfigGetAllValues');
+    final Map<dynamic, dynamic> allValues = await _countlyState.channel.invokeMethod('remoteConfigGetAllValues', _countlyState.arguments());
     Countly.log('"getAllValues" returned values:$allValues', logLevel: LogLevel.DEBUG);
     Map<String, RCData> returnValue = _parseDownloadedValues(allValues, 'getAllValues');
 
@@ -224,7 +232,7 @@ class RemoteConfigInternal implements RemoteConfig {
     List<String> args = [];
     args.add(key);
 
-    final valueMap = await _countlyState.channel.invokeMethod('remoteConfigGetValue', <String, dynamic>{'data': json.encode(args)});
+    final valueMap = await _countlyState.channel.invokeMethod('remoteConfigGetValue', _countlyState.arguments(json.encode(args)));
 
     RCData? returnValue;
     if (valueMap != null) {
@@ -249,7 +257,7 @@ class RemoteConfigInternal implements RemoteConfig {
     List<String> args = [];
     args.add(key);
 
-    final valueMap = await _countlyState.channel.invokeMethod('remoteConfigGetValueAndEnroll', <String, dynamic>{'data': json.encode(args)});
+    final valueMap = await _countlyState.channel.invokeMethod('remoteConfigGetValueAndEnroll', _countlyState.arguments(json.encode(args)));
 
     RCData? returnValue;
     if (valueMap != null) {
@@ -267,7 +275,7 @@ class RemoteConfigInternal implements RemoteConfig {
       return {};
     }
 
-    final Map<dynamic, dynamic> allValues = await _countlyState.channel.invokeMethod('remoteConfigGetAllValuesAndEnroll');
+    final Map<dynamic, dynamic> allValues = await _countlyState.channel.invokeMethod('remoteConfigGetAllValuesAndEnroll', _countlyState.arguments());
     Countly.log('"getAllValuesAndEnroll" returned values:$allValues', logLevel: LogLevel.DEBUG);
     Map<String, RCData> returnValue = _parseDownloadedValues(allValues, 'getAllValues');
 
@@ -325,7 +333,7 @@ class RemoteConfigInternal implements RemoteConfig {
     List<dynamic> args = [];
     args.add(requestID);
 
-    return await _countlyState.channel.invokeMethod('remoteConfigTestingDownloadVariantInformation', <String, dynamic>{'data': json.encode(args)});
+    return await _countlyState.channel.invokeMethod('remoteConfigTestingDownloadVariantInformation', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -346,7 +354,7 @@ class RemoteConfigInternal implements RemoteConfig {
     args.add(keyName);
     args.add(variantName);
 
-    return await _countlyState.channel.invokeMethod('remoteConfigTestingEnrollIntoVariant', <String, dynamic>{'data': json.encode(args)});
+    return await _countlyState.channel.invokeMethod('remoteConfigTestingEnrollIntoVariant', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -356,7 +364,7 @@ class RemoteConfigInternal implements RemoteConfig {
       return {};
     }
 
-    Map<dynamic, dynamic>? returnValue = await _countlyState.channel.invokeMethod('remoteConfigTestingGetAllVariants');
+    Map<dynamic, dynamic>? returnValue = await _countlyState.channel.invokeMethod('remoteConfigTestingGetAllVariants', _countlyState.arguments());
 
     Map<String, List<String>>? variants;
     variants = returnValue?.map((key, value) => MapEntry(key, List<String>.from(value)));
@@ -381,7 +389,7 @@ class RemoteConfigInternal implements RemoteConfig {
     final List<String> args = [];
     args.add(key);
 
-    List<dynamic>? returnValue = await _countlyState.channel.invokeMethod('remoteConfigTestingGetVariantsForKey', <String, dynamic>{'data': json.encode(args)});
+    List<dynamic>? returnValue = await _countlyState.channel.invokeMethod('remoteConfigTestingGetVariantsForKey', _countlyState.arguments(json.encode(args)));
 
     returnValue ??= [];
 
@@ -402,7 +410,7 @@ class RemoteConfigInternal implements RemoteConfig {
     final List<dynamic> args = [];
     args.add(requestID);
 
-    return await _countlyState.channel.invokeMethod('testingDownloadExperimentInformation', <String, dynamic>{'data': json.encode(args)});
+    return await _countlyState.channel.invokeMethod('testingDownloadExperimentInformation', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -412,7 +420,7 @@ class RemoteConfigInternal implements RemoteConfig {
       return {};
     }
 
-    final List<dynamic>? experimentsInfo = await _countlyState.channel.invokeMethod('testingGetAllExperimentInfo');
+    final List<dynamic>? experimentsInfo = await _countlyState.channel.invokeMethod('testingGetAllExperimentInfo', _countlyState.arguments());
     if (experimentsInfo == null) {
       return {};
     }

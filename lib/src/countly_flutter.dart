@@ -6,16 +6,26 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pedantic/pedantic.dart';
 
+import 'apm.dart';
+import 'apm_internal.dart';
+import 'attribution.dart';
+import 'attribution_internal.dart';
+import 'consent.dart';
+import 'consent_internal.dart';
 import 'content_builder.dart';
 import 'content_builder_internal.dart';
 import 'countly_config.dart';
 import 'countly_state.dart';
+import 'crashes.dart';
+import 'crashes_internal.dart';
 import 'device_id.dart';
 import 'device_id_internal.dart';
 import 'events.dart';
 import 'events_internal.dart';
 import 'feedback.dart';
 import 'feedback_internal.dart';
+import 'location.dart';
+import 'location_internal.dart';
 import 'remote_config.dart';
 import 'remote_config_internal.dart';
 import 'sessions.dart';
@@ -61,8 +71,8 @@ abstract class CountlyConsent {
 }
 
 class Countly {
-  Countly._() {
-    _countlyState = CountlyState(this);
+  Countly._([this._instanceName]) {
+    _countlyState = CountlyState(this, _instanceName);
     _deviceIdInternal = DeviceIDInternal(_countlyState);
     _remoteConfigInternal = RemoteConfigInternal(_countlyState);
     _userProfileInternal = UserProfileInternal(_countlyState);
@@ -71,9 +81,121 @@ class Countly {
     _contentBuilderInternal = ContentBuilderInternal(_countlyState);
     _feedbackInternal = FeedbackInternal(_countlyState);
     _eventsInternal = EventsInternal(_countlyState);
+    _consentInternal = ConsentInternal(_countlyState);
+    _crashesInternal = CrashesInternal(_countlyState);
+    _locationInternal = LocationInternal(_countlyState);
+    _apmInternal = ApmInternal(_countlyState);
+    _attributionInternal = AttributionInternal(_countlyState);
   }
+
+  /// The name the default instance is listed under by [listInstances].
+  static const String defaultInstanceName = '[CLY]_default_instance';
+
+  /// Name of this instance, "null" for the default one.
+  final String? _instanceName;
+
   static final instance = _instance;
   static final _instance = Countly._();
+
+  /// Every instance handed out so far, the default one first.
+  static List<Countly> get _allInstances => <Countly>[_instance, ..._namedInstances.values];
+
+  /// Installs the process wide Dart error handlers once. They report to every initialized instance that
+  /// asked for unhandled crash reporting, see [_crashReportingInstances].
+  static void _installCrashHandlers() {
+    if (_crashHandlersInstalled) {
+      return;
+    }
+    _crashHandlersInstalled = true;
+    // Errors thrown within the Flutter framework
+    FlutterError.onError = _recordFlutterError;
+    // Asynchronous errors are not caught by the Flutter framework, for example a throw inside an "onPressed" async closure
+    PlatformDispatcher.instance.onError = (e, s) {
+      _internalRecordError(e, s);
+      return true;
+    };
+  }
+
+  /// Forgets what the Dart side knows about this instance's native state, after a halt or a removal,
+  /// including the callbacks that were waiting on the native side.
+  void _forgetNativeState() {
+    _countlyState.isInitialized = false;
+    _crashesInternal.unhandledCrashReportingEnabled = false;
+    _feedbackInternal.forgetCallbacks();
+    _remoteConfigInternal.forgetCallbacks();
+    _contentBuilderInternal.forgetCallbacks();
+  }
+
+  /// Every initialized instance that asked for unhandled crash reporting.
+  static Iterable<Countly> get _crashReportingInstances =>
+      _allInstances.where((cly) => cly._countlyState.isInitialized && cly._crashesInternal.unhandledCrashReportingEnabled);
+
+  /// Whether a name refers to the default instance. An empty name does, as does the reserved name
+  /// the default instance is listed under.
+  static bool _isDefaultName(String? name) => name == null || name.isEmpty || name == defaultInstanceName;
+
+  /// Resolves the instance a native callback was meant for.
+  /// A name that is no longer registered belonged to a removed instance, and returns "null" so the
+  /// callback is dropped rather than delivered to the default instance.
+  static Countly? _instanceFor(Object? name) => getInstance(name is String ? name : '');
+
+  /// Every named instance handed out by [instanceWithName], keyed by its name.
+  static final Map<String, Countly> _namedInstances = <String, Countly>{};
+
+  /// Returns the instance registered under [name], creating an uninitialized one if there is none.
+  /// Getting a handle never starts it, call [initialize] on it yourself.
+  /// A named instance starts from empty storage and resolves its own device ID, so do not move an
+  /// existing integration onto one.
+  /// Push notifications stay with the default instance, and at most one content or feedback widget
+  /// is displayed at a time across all instances.
+  /// [String name]: the name of the instance, an empty name refers to the default instance
+  static Countly instanceWithName(String name) {
+    if (_isDefaultName(name)) {
+      return _instance;
+    }
+    return _namedInstances.putIfAbsent(name, () => Countly._(name));
+  }
+
+  /// Returns the instance registered under [name], or "null" when there is none.
+  /// Unlike [instanceWithName] this never creates one.
+  /// [String name]: the name of the instance, an empty name refers to the default instance
+  static Countly? getInstance(String name) {
+    return _isDefaultName(name) ? _instance : _namedInstances[name];
+  }
+
+  /// Returns the names of every instance handed out so far, the default one included under
+  /// [defaultInstanceName]. An instance is listed from the moment it is created, whether or not it
+  /// has been initialized.
+  static List<String> listInstances() => <String>[defaultInstanceName, ..._namedInstances.keys];
+
+  /// Stops the named instance and drops it from the registry, keeping its stored data, so
+  /// initializing that name again resumes where it left off. On web the instance is only dropped and
+  /// keeps running until the page is unloaded, as the Web SDK has no teardown that keeps stored data.
+  /// The default instance can not be removed, use [halt] to reset it instead.
+  /// [String name]: the name of the instance to remove
+  static Future<void> removeInstance(String name) async {
+    if (_isDefaultName(name)) {
+      log('removeInstance, the default instance can not be removed, use "halt" to reset it instead', logLevel: LogLevel.WARNING);
+      return;
+    }
+    final Countly? removed = _namedInstances.remove(name);
+    if (removed == null) {
+      log('removeInstance, no instance registered under [$name], nothing to remove', logLevel: LogLevel.WARNING);
+      return;
+    }
+    removed._forgetNativeState();
+    await _channel.invokeMethod('removeInstance', removed._countlyState.arguments());
+  }
+
+  /// Halts every instance, the default one included, and erases the data they stored.
+  /// This method is for testing purposes only, do not use it in production.
+  static Future<void> haltAllInstances() async {
+    for (final Countly cly in _allInstances) {
+      cly._forgetNativeState();
+    }
+    _namedInstances.clear();
+    await _channel.invokeMethod('haltAllInstances');
+  }
 
   late final CountlyState _countlyState;
 
@@ -101,6 +223,21 @@ class Countly {
   late final EventsInternal _eventsInternal;
   Events get events => _eventsInternal;
 
+  late final ConsentInternal _consentInternal;
+  Consent get consent => _consentInternal;
+
+  late final CrashesInternal _crashesInternal;
+  Crashes get crashes => _crashesInternal;
+
+  late final LocationInternal _locationInternal;
+  Location get location => _locationInternal;
+
+  late final ApmInternal _apmInternal;
+  Apm get apm => _apmInternal;
+
+  late final AttributionInternal _attributionInternal;
+  Attribution get attribution => _attributionInternal;
+
   /// ignore: constant_identifier_names
   static const bool BUILDING_WITH_PUSH_DISABLED = false;
   static const String _pushDisabledMsg = 'In this plugin Push notification is disabled, Countly has separate plugin with push notification enabled';
@@ -113,13 +250,9 @@ class Countly {
 
   static const String tag = 'CountlyFlutter';
 
-  /// Flag to determine if crash logging functionality should be enabled
-  /// If false the intercepted crashes will be ignored
-  /// Set true when user enabled crash logging
-  static bool _enableCrashReportingFlag = false;
 
-  /// Flag to determine if manual session is enabled
-  static bool _manualSessionControlEnabled = false;
+  /// Whether the process wide Dart error handlers are installed, they are shared by every instance.
+  static bool _crashHandlersInstalled = false;
 
   static Map<String, String> messagingMode = kIsWeb
       ? {}
@@ -138,30 +271,21 @@ class Countly {
     }
   }
 
-  /// [VoidCallback? _widgetShown] Callback to be executed when feedback widget is displayed
-  /// [VoidCallback? _widgetClosed] Callback to be executed when feedback widget is closed
-  static VoidCallback? _widgetShown;
-  static VoidCallback? _widgetClosed;
   static Function(String? error)? _remoteConfigCallback;
   static int lastUsedRCID = 0;
-  static Function(String? error)? _ratingWidgetCallback;
-  static Function(Map<String, dynamic> widgetData, String? error)? _feedbackWidgetDataCallback;
+
+  /// The arguments of a native callback as a map, empty when the native side sent none.
+  static Map<Object?, Object?> _callbackArguments(MethodCall call) => call.arguments is Map ? call.arguments as Map<Object?, Object?> : const <Object?, Object?>{};
 
   /// Callback handler to handle function calls from native iOS/Android to Dart.
   static Future<void> _methodCallHandler(MethodCall call) async {
     log('[FMethodCallH] ${call.method}', logLevel: LogLevel.VERBOSE);
     switch (call.method) {
       case 'widgetShown':
-        if (_widgetShown != null) {
-          _widgetShown!();
-        }
+        _instanceFor(_callbackArguments(call)['instanceName'])?._feedbackInternal.onWidgetShown();
         break;
       case 'widgetClosed':
-        if (_widgetClosed != null) {
-          _widgetClosed!();
-          _widgetShown = null;
-          _widgetClosed = null;
-        }
+        _instanceFor(_callbackArguments(call)['instanceName'])?._feedbackInternal.onWidgetClosed();
         break;
       case 'remoteConfigCallback':
         if (_remoteConfigCallback != null) {
@@ -170,22 +294,15 @@ class Countly {
         }
         break;
       case 'ratingWidgetCallback':
-        if (_ratingWidgetCallback != null) {
-          _ratingWidgetCallback!(call.arguments);
-          _ratingWidgetCallback = null;
-        }
+        final Map<Object?, Object?> ratingArguments = _callbackArguments(call);
+        _instanceFor(ratingArguments['instanceName'])?._feedbackInternal.onRatingWidgetResult(ratingArguments['error'] as String?);
         break;
       case 'feedbackWidgetDataCallback':
-        if (_feedbackWidgetDataCallback != null) {
-          Map<String, dynamic> widgetData = {};
-          Map<String, dynamic> argumentsMap = Map<String, dynamic>.from(call.arguments);
-          String? error = argumentsMap['error'];
-          if (error == null) {
-            widgetData = Map<String, dynamic>.from(argumentsMap['widgetData']);
-          }
-          _feedbackWidgetDataCallback!(widgetData, error);
-          _feedbackWidgetDataCallback = null;
-        }
+        final Map<Object?, Object?> widgetArguments = _callbackArguments(call);
+        final String? widgetError = widgetArguments['error'] as String?;
+        final Object? rawWidgetData = widgetArguments['widgetData'];
+        final Map<String, dynamic> widgetData = widgetError == null && rawWidgetData is Map ? Map<String, dynamic>.from(rawWidgetData) : {};
+        _instanceFor(widgetArguments['instanceName'])?._feedbackInternal.onFeedbackWidgetData(widgetData, widgetError);
         break;
       case 'remoteConfigDownloadCallback':
         try {
@@ -204,7 +321,7 @@ class Countly {
           final Map<dynamic, dynamic> downloadedValuesObject = argumentsMap['downloadedValues'];
           final int id = argumentsMap['id'];
 
-          Countly.instance._remoteConfigInternal.notifyDownloadCallbacks(requestResult, error, fullValueUpdate, downloadedValuesObject, id);
+          _instanceFor(argumentsMap['instanceName'])?._remoteConfigInternal.notifyDownloadCallbacks(requestResult, error, fullValueUpdate, downloadedValuesObject, id);
         } catch (e) {
           log('[FMethodCallH] Method call for remoteConfigDownloadCallback had a problem: $e', logLevel: LogLevel.ERROR);
         }
@@ -224,21 +341,23 @@ class Countly {
           final String? error = argumentsMap['error'];
           final int id = argumentsMap['id'];
 
-          Countly.instance._remoteConfigInternal.notifyVariantCallbacks(requestResult, error, id);
+          _instanceFor(argumentsMap['instanceName'])?._remoteConfigInternal.notifyVariantCallbacks(requestResult, error, id);
         } catch (e) {
           log('[FMethodCallH] $e', logLevel: LogLevel.ERROR);
         }
         break;
       case 'feedbackCallback_onClosed':
-        if (_instance._feedbackInternal.feedbackCallback != null) {
-          _instance._feedbackInternal.feedbackCallback!.onClosed();
-          _instance._feedbackInternal.feedbackCallback = null;
-        }
-        break;
       case 'feedbackCallback_onFinished':
-        if (_instance._feedbackInternal.feedbackCallback != null) {
-          _instance._feedbackInternal.feedbackCallback!.onFinished(call.arguments);
-          _instance._feedbackInternal.feedbackCallback = null;
+        final Map<Object?, Object?> feedbackArguments = _callbackArguments(call);
+        final Countly? feedbackOwner = _instanceFor(feedbackArguments['instanceName']);
+        final FeedbackCallback? feedbackCallback = feedbackOwner?._feedbackInternal.feedbackCallback;
+        if (feedbackCallback != null) {
+          feedbackOwner!._feedbackInternal.feedbackCallback = null;
+          if (call.method == 'feedbackCallback_onClosed') {
+            feedbackCallback.onClosed();
+          } else {
+            feedbackCallback.onFinished(feedbackArguments['error'] as String? ?? '');
+          }
         }
         break;
       case 'contentCallback':
@@ -250,7 +369,7 @@ class Countly {
         }
         Map<String, dynamic> contentData = Map<String, dynamic>.from(argumentsMap['contentData']);
 
-        Countly.instance._contentBuilderInternal.onContentCallback(contentStatus, contentData);
+        _instanceFor(argumentsMap['instanceName'])?._contentBuilderInternal.onContentCallback(contentStatus, contentData);
         break;
     }
   }
@@ -275,75 +394,75 @@ class Countly {
     return await initWithConfig(config);
   }
 
-  /// Initialize the SDK
+  /// Initialize the default instance of the SDK
   /// This should only be called once
+  /// To initialize a named instance, call [initialize] on the handle [instanceWithName] returns
   /// returns the error or success message
   static Future<String?> initWithConfig(CountlyConfig config) async {
+    return _instance.initialize(config);
+  }
+
+  /// Initialize this instance of the SDK
+  /// This should only be called once per instance
+  /// returns the error or success message
+  Future<String?> initialize(CountlyConfig config) async {
     if (config.loggingEnabled != null) {
-      _isDebug = config.loggingEnabled!;
+      // Logging is process wide: the default instance decides, a named instance can only switch it on.
+      _isDebug = _instanceName == null ? config.loggingEnabled! : (_isDebug || config.loggingEnabled!);
     }
-    log('Calling "initWithConfig"');
-    if (_instance._countlyState.isInitialized) {
-      String msg = 'initWithConfig, SDK is already initialized';
+    log('Calling "initialize" for instance:[${_instanceName ?? defaultInstanceName}]');
+    if (_instanceName != null && !identical(_namedInstances.putIfAbsent(_instanceName!, () => this), this)) {
+      String msg = 'initialize, another handle is registered under [$_instanceName], get it with "instanceWithName"';
+      log(msg, logLevel: LogLevel.ERROR);
+      return msg;
+    }
+    if (_countlyState.isInitialized) {
+      String msg = 'initialize, SDK is already initialized';
       log(msg, logLevel: LogLevel.ERROR);
       return msg;
     }
     if (config.serverURL.isEmpty) {
-      String msg = 'initWithConfig, serverURL cannot be empty';
+      String msg = 'initialize, serverURL cannot be empty';
       log(msg, logLevel: LogLevel.ERROR);
       return msg;
     }
     if (config.appKey.isEmpty) {
-      String msg = 'initWithConfig, appKey cannot be empty';
+      String msg = 'initialize, appKey cannot be empty';
       log(msg, logLevel: LogLevel.ERROR);
       return msg;
     }
-    if (config.manualSessionEnabled != null) {
-      _manualSessionControlEnabled = config.manualSessionEnabled!;
-      if (config.manualSessionEnabled!) {
-        _instance._sessionsInternal.enableManualSession();
-      }
+    if (config.manualSessionEnabled == true) {
+      _sessionsInternal.enableManualSession();
     }
-    if (config.enableUnhandledCrashReporting != null) {
-      // To catch all errors thrown within the flutter framework, we use
-      FlutterError.onError = _recordFlutterError;
-
-      // Asynchronous errors are not caught by the Flutter framework. For example
-      // ElevatedButton(
-      //   onPressed: () async {
-      //     throw Error();
-      //   }
-      // )
-      // To catch such errors, we use
-      PlatformDispatcher.instance.onError = (e, s) {
-        _internalRecordError(e, s);
-        return true;
-      };
-
-      _enableCrashReportingFlag = config.enableUnhandledCrashReporting!;
+    _crashesInternal.unhandledCrashReportingEnabled = config.enableUnhandledCrashReporting ?? false;
+    if (_crashesInternal.unhandledCrashReportingEnabled) {
+      _installCrashHandlers();
     }
     _channel.setMethodCallHandler(_methodCallHandler);
 
     List<dynamic> args = [];
     args.add(_configToJson(config));
 
-    final String? result = await _channel.invokeMethod('init', <String, dynamic>{'data': json.encode(args)});
-    _instance._countlyState.isInitialized = true;
+    final String? result = await _channel.invokeMethod('init', _countlyState.arguments(json.encode(args)));
+    _countlyState.isInitialized = true;
 
     if (config.remoteConfigGlobalCallbacks.isNotEmpty) {
-      log('[initWithConfig] About to register ${config.remoteConfigGlobalCallbacks.length} callbacks', logLevel: LogLevel.VERBOSE);
+      log('[initialize] About to register ${config.remoteConfigGlobalCallbacks.length} callbacks', logLevel: LogLevel.VERBOSE);
     }
     for (final callback in config.remoteConfigGlobalCallbacks) {
-      Countly.instance._remoteConfigInternal.registerDownloadCallback(callback);
+      _remoteConfigInternal.registerDownloadCallback(callback);
     }
 
     if (config.content.contentCallback != null) {
-      log('[initWithConfig] About to register content callback', logLevel: LogLevel.VERBOSE);
-      Countly.instance._contentBuilderInternal.registerContentCallback(config.content.contentCallback!);
+      log('[initialize] About to register content callback', logLevel: LogLevel.VERBOSE);
+      _contentBuilderInternal.registerContentCallback(config.content.contentCallback!);
     }
 
     return result;
   }
+
+  /// returns if this instance is initialized, as the Dart layer last saw it
+  bool get isStarted => _countlyState.isInitialized;
 
   /// returns if SDK is initialized
   static Future<bool> isInitialized() async {
@@ -388,16 +507,8 @@ class Countly {
   /// Call this function when app is loaded, so that the app launch duration can be recorded.
   /// Should be called after init.
   /// returns the error or success message
-  static Future<String?> appLoadingFinished() async {
-    log('Calling "appLoadingFinished"');
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "appLoadingFinished"';
-      log('appLoadingFinished, $message', logLevel: LogLevel.WARNING);
-      return message;
-    }
-    final String? result = await _channel.invokeMethod('appLoadingFinished');
-
-    return result;
+  static Future<String?> appLoadingFinished() {
+    return _instance._apmInternal.setAppIsLoaded();
   }
 
   /// Records an event
@@ -606,66 +717,24 @@ class Countly {
   /// This method needs to be called for starting a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "beginSession" of Countly.instance.sessions instead')
-  static Future<String?> beginSession() async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "beginSession"';
-      log('beginSession, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "beginSession", manual session control enabled:[$_manualSessionControlEnabled]');
-
-    if (!_manualSessionControlEnabled) {
-      String error = '"beginSession" will be ignored since manual session control is not enabled';
-      log(error);
-      return error;
-    }
-    final String? result = await _channel.invokeMethod('beginSession');
-
-    return result;
+  static Future<String?> beginSession() {
+    return _instance._sessionsInternal.beginSession();
   }
 
   /// Update session for manual session handling.
   /// This method needs to be called for updating a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "updateSession" of Countly.instance.sessions instead')
-  static Future<String?> updateSession() async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "updateSession"';
-      log('updateSession, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "updateSession", manual session control enabled:[$_manualSessionControlEnabled]');
-
-    if (!_manualSessionControlEnabled) {
-      String error = '"updateSession" will be ignored since manual session control is not enabled';
-      log(error);
-      return error;
-    }
-    final String? result = await _channel.invokeMethod('updateSession');
-
-    return result;
+  static Future<String?> updateSession() {
+    return _instance._sessionsInternal.updateSession();
   }
 
   /// End session for manual session handling.
   /// This method needs to be called for ending a session only if manual session handling is enabled by calling the 'enableManualSessionHandling' method of 'CountlyConfig'.
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "endSession" of Countly.instance.sessions instead')
-  static Future<String?> endSession() async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "endSession"';
-      log('endSession, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "endSession", manual session control enabled:[$_manualSessionControlEnabled]');
-
-    if (!_manualSessionControlEnabled) {
-      String error = '"endSession" will be ignored since manual session control is not enabled';
-      log(error);
-      return error;
-    }
-    final String? result = await _channel.invokeMethod('endSession');
-
-    return result;
+  static Future<String?> endSession() {
+    return _instance._sessionsInternal.endSession();
   }
 
   /// Starts automatic session tracking.
@@ -852,24 +921,8 @@ class Countly {
   /// add logs to your crash report.
   /// You can leave crash breadcrumbs which would describe previous steps that were taken in your app before the crash. They will be sent together with the crash report if the app crashes.
   /// returns the error or success message
-  static Future<String?> addCrashLog(String logs) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "addCrashLog"';
-      log('addCrashLog, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "addCrashLog":[$logs]');
-    if (logs.isEmpty) {
-      String error = "addCrashLog, Can't add a null or empty crash logs";
-      log(error);
-      return 'Error : $error';
-    }
-    List<String> args = [];
-    args.add(logs);
-
-    final String? result = await _channel.invokeMethod('addCrashLog', <String, dynamic>{'data': json.encode(args)});
-
-    return result;
+  static Future<String?> addCrashLog(String logs) {
+    return _instance._crashesInternal.addCrashBreadcrumb(logs);
   }
 
   /// Set to true if you want to enable countly internal debugging logs
@@ -974,33 +1027,14 @@ class Countly {
   /// [String ipAddress] - ip address
   ///  All parameters are optional, but at least one has to be set
   /// returns the error or success message
-  static Future<String?> setUserLocation({String? countryCode, String? city, String? gpsCoordinates, String? ipAddress}) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "setUserLocation"';
-      log('setUserLocation, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    Map<String, String?> location = {};
-    location['countryCode'] = countryCode;
-    location['city'] = city;
-    location['gpsCoordinates'] = gpsCoordinates;
-    location['ipAddress'] = ipAddress;
-    List<dynamic> args = [];
-    args.add(location);
-    final String? result = await _channel.invokeMethod('setUserLocation', <String, dynamic>{'data': json.encode(args)});
-    return result;
+  static Future<String?> setUserLocation({String? countryCode, String? city, String? gpsCoordinates, String? ipAddress}) {
+    return _instance._locationInternal.setLocation(countryCode: countryCode, city: city, gpsCoordinates: gpsCoordinates, ipAddress: ipAddress);
   }
 
   /// Disable User Location tracking
   /// returns the error or success message
-  static Future<String?> disableLocation() async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "disableLocation"';
-      log('disableLocation, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    final String? result = await _channel.invokeMethod('disableLocation');
-    return result;
+  static Future<String?> disableLocation() {
+    return _instance._locationInternal.disableLocation();
   }
 
   /// Set custom user property
@@ -1303,71 +1337,27 @@ class Countly {
 
   /// Give consent for specific features.
   /// returns the error or success message
-  static Future<String?> giveConsent(List<String> consents) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "giveConsent"';
-      log('giveConsent, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    String consentsString = consents.toString();
-    log('Calling "giveConsent":[$consentsString]');
-    if (consents.isEmpty) {
-      String error = 'giveConsent, consents List is empty';
-      log(error, logLevel: LogLevel.WARNING);
-    }
-    log(consents.toString());
-    final String? result = await _channel.invokeMethod('giveConsent', <String, dynamic>{'data': json.encode(consents)});
-
-    return result;
+  static Future<String?> giveConsent(List<String> consents) {
+    return _instance._consentInternal.giveConsent(consents);
   }
 
   /// Remove consent for specific features.
   /// returns the error or success message
-  static Future<String?> removeConsent(List<String> consents) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "removeConsent"';
-      log('removeConsent, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    String consentsString = consents.toString();
-    log('Calling "removeConsent":[$consentsString]');
-    if (consents.isEmpty) {
-      String error = 'removeConsent, consents List is empty';
-      log(error, logLevel: LogLevel.WARNING);
-    }
-    log(consents.toString());
-    final String? result = await _channel.invokeMethod('removeConsent', <String, dynamic>{'data': json.encode(consents)});
-
-    return result;
+  static Future<String?> removeConsent(List<String> consents) {
+    return _instance._consentInternal.removeConsent(consents);
   }
 
   /// Give consent for all features
   /// Should be call after Countly init
   /// returns the error or success message
-  static Future<String?> giveAllConsent() async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "giveAllConsent"';
-      log('giveAllConsent, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "giveAllConsent"');
-    final String? result = await _channel.invokeMethod('giveAllConsent');
-
-    return result;
+  static Future<String?> giveAllConsent() {
+    return _instance._consentInternal.giveAllConsent();
   }
 
   /// Remove consent for all features.
   /// returns the error or success message
-  static Future<String?> removeAllConsent() async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "removeAllConsent"';
-      log('removeAllConsent, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "removeAllConsent"');
-    final String? result = await _channel.invokeMethod('removeAllConsent');
-
-    return result;
+  static Future<String?> removeAllConsent() {
+    return _instance._consentInternal.removeAllConsent();
   }
 
   /// Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
@@ -1375,6 +1365,7 @@ class Countly {
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "remoteConfigRegisterDownloadCallback" of CountlyConfig instead')
   static Future<String?> setRemoteConfigAutomaticDownload(Function(String?) callback) async {
+    // The callback receives the result of applying the setting, not the outcome of a download.
     log('Calling "setRemoteConfigAutomaticDownload"');
     log('setRemoteConfigAutomaticDownload is deprecated, use setRemoteConfigAutomaticDownload of CountlyConfig instead', logLevel: LogLevel.WARNING);
     final String? result = await _channel.invokeMethod('setRemoteConfigAutomaticDownload');
@@ -1538,49 +1529,14 @@ class Countly {
 
   /// Displays the feedback widget for the given ID
   /// returns the error or success message
-  static Future<String?> presentRatingWidgetWithID(String widgetId, {String? closeButtonText, Function(String? error)? ratingWidgetCallback}) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "presentRatingWidgetWithID"';
-      log('presentRatingWidgetWithID, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    bool isCallback = ratingWidgetCallback != null ? true : false;
-    log('Calling "presentRatingWidgetWithID":[$widgetId] with callback:[$isCallback]');
-    if (widgetId.isEmpty) {
-      String error = 'presentRatingWidgetWithID, widgetId cannot be empty';
-      log(error);
-      return 'Error : $error';
-    }
-    _ratingWidgetCallback = ratingWidgetCallback;
-    closeButtonText = closeButtonText ??= '';
-    List<String> args = [];
-    args.add(widgetId);
-    args.add(closeButtonText);
-    final String? result = await _channel.invokeMethod('presentRatingWidgetWithID', <String, dynamic>{'data': json.encode(args)});
-    return result;
+  static Future<String?> presentRatingWidgetWithID(String widgetId, {String? closeButtonText, Function(String? error)? ratingWidgetCallback}) {
+    return _instance._feedbackInternal.presentRatingWidgetWithID(widgetId, closeButtonText: closeButtonText, ratingWidgetCallback: ratingWidgetCallback);
   }
 
   /// Get a list of available feedback widgets for this device ID
   /// returns FeedbackWidgetsResponse
-  static Future<FeedbackWidgetsResponse> getAvailableFeedbackWidgets() async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "getAvailableFeedbackWidgets"';
-      log('getAvailableFeedbackWidgets, $message', logLevel: LogLevel.ERROR);
-      return FeedbackWidgetsResponse([], message);
-    }
-    log('Calling "getAvailableFeedbackWidgets"');
-    List<CountlyPresentableFeedback> presentableFeedback = [];
-    String? error;
-    try {
-      final List<dynamic> retrievedWidgets = await _channel.invokeMethod('getAvailableFeedbackWidgets');
-      presentableFeedback = retrievedWidgets.map((e) => CountlyPresentableFeedback.fromJson(e)).toList();
-    } on PlatformException catch (e) {
-      error = e.message;
-      log('getAvailableFeedbackWidgets Error : $error');
-    }
-    FeedbackWidgetsResponse feedbackWidgetsResponse = FeedbackWidgetsResponse(presentableFeedback, error);
-
-    return feedbackWidgetsResponse;
+  static Future<FeedbackWidgetsResponse> getAvailableFeedbackWidgets() {
+    return _instance._feedbackInternal.getAvailableFeedbackWidgets();
   }
 
   /// Present a chosen feedback widget
@@ -1590,62 +1546,15 @@ class Countly {
   /// [VoidCallback? widgetClosed] Callback to be executed when feedback widget is closed
   /// Note: widgetClosed is only implemented for iOS
   /// returns error or success message
-  static Future<String?> presentFeedbackWidget(CountlyPresentableFeedback widgetInfo, String closeButtonText, {VoidCallback? widgetShown, VoidCallback? widgetClosed}) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "presentFeedbackWidget"';
-      log('presentFeedbackWidget, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    String widgetId = widgetInfo.widgetId;
-    String widgetType = widgetInfo.type;
-    log('Calling "presentFeedbackWidget":[$presentFeedbackWidget] with Type:[$widgetType]');
-    _widgetShown = widgetShown;
-    _widgetClosed = widgetClosed;
-
-    List<String> args = [];
-    args.add(widgetId);
-    args.add(widgetType);
-    args.add(widgetInfo.name);
-    args.add(closeButtonText);
-
-    String? result;
-    try {
-      result = await _channel.invokeMethod('presentFeedbackWidget', <String, dynamic>{'data': json.encode(args)});
-    } on PlatformException catch (e) {
-      result = e.message;
-    }
-
-    return result;
+  static Future<String?> presentFeedbackWidget(CountlyPresentableFeedback widgetInfo, String closeButtonText, {VoidCallback? widgetShown, VoidCallback? widgetClosed}) {
+    return _instance._feedbackInternal.presentFeedbackWidget(widgetInfo, closeButtonText, widgetShown: widgetShown, widgetClosed: widgetClosed);
   }
 
   /// Downloads widget info and returns [widgetData, error]
   /// [CountlyPresentableFeedback widgetInfo] - identifies the specific widget for which you want to download widget data
   /// returns a List [widgetData and error message] if any.
-  static Future<List> getFeedbackWidgetData(CountlyPresentableFeedback widgetInfo, {Function(Map<String, dynamic> widgetData, String? error)? onFinished}) async {
-    Map<String, dynamic> widgetData = {};
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "getFeedbackWidgetData"';
-      log('getFeedbackWidgetData, $message', logLevel: LogLevel.ERROR);
-      return [widgetData, message];
-    }
-    _feedbackWidgetDataCallback = onFinished;
-    String widgetId = widgetInfo.widgetId;
-    String widgetType = widgetInfo.type;
-    log('Calling "getFeedbackWidgetData":[$presentFeedbackWidget] with Type:[$widgetType]');
-    String? error;
-    List<String> args = [];
-    args.add(widgetId);
-    args.add(widgetType);
-    args.add(widgetInfo.name);
-
-    try {
-      Map<dynamic, dynamic> retrievedWidgetData = await _channel.invokeMethod('getFeedbackWidgetData', <String, dynamic>{'data': json.encode(args)});
-      widgetData = Map<String, dynamic>.from(retrievedWidgetData);
-    } on PlatformException catch (e) {
-      error = e.message;
-      log('getFeedbackWidgetData Error : $error');
-    }
-    return [widgetData, error];
+  static Future<List> getFeedbackWidgetData(CountlyPresentableFeedback widgetInfo, {Function(Map<String, dynamic> widgetData, String? error)? onFinished}) {
+    return _instance._feedbackInternal.getFeedbackWidgetData(widgetInfo, onFinished: onFinished);
   }
 
   /// Report widget info and do data validation
@@ -1653,33 +1562,8 @@ class Countly {
   /// [Map<String, dynamic> widgetData] - widget data for this specific widget
   /// [Map<String, Object> widgetResult] - segmentation of the filled out feedback. If this segmentation is null, it will be assumed that the survey was closed before completion and mark it appropriately
   /// returns error or success message
-  static Future<String?> reportFeedbackWidgetManually(CountlyPresentableFeedback widgetInfo, Map<String, dynamic> widgetData, Map<String, Object> widgetResult) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "reportFeedbackWidgetManually"';
-      log('reportFeedbackWidgetManually, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    String widgetId = widgetInfo.widgetId;
-    String widgetType = widgetInfo.type;
-    log('Calling "reportFeedbackWidgetManually":[$presentFeedbackWidget] with Type:[$widgetType]');
-    List<String> widgetInfoList = [];
-    widgetInfoList.add(widgetId);
-    widgetInfoList.add(widgetType);
-    widgetInfoList.add(widgetInfo.name);
-
-    List<dynamic> args = [];
-    args.add(widgetInfoList);
-    args.add(widgetData);
-    args.add(widgetResult);
-
-    String? result;
-    try {
-      result = await _channel.invokeMethod('reportFeedbackWidgetManually', <String, dynamic>{'data': json.encode(args)});
-    } on PlatformException catch (e) {
-      result = e.message;
-    }
-
-    return result;
+  static Future<String?> reportFeedbackWidgetManually(CountlyPresentableFeedback widgetInfo, Map<String, dynamic> widgetData, Map<String, Object> widgetResult) {
+    return _instance._feedbackInternal.reportFeedbackWidgetManually(widgetInfo, widgetData, widgetResult);
   }
 
   /// Attempt to send all stored requests to the server.
@@ -1769,12 +1653,8 @@ class Countly {
   static Future<String?> enableCrashReporting() async {
     log('Calling "enableCrashReporting"');
     log('enableCrashReporting is deprecated, use enableCrashReporting of CountlyConfig instead', logLevel: LogLevel.WARNING);
-    FlutterError.onError = _recordFlutterError;
-    PlatformDispatcher.instance.onError = (e, s) {
-      _internalRecordError(e, s);
-      return true;
-    };
-    _enableCrashReportingFlag = true;
+    _installCrashHandlers();
+    _instance._crashesInternal.unhandledCrashReportingEnabled = true;
     final String? result = await _channel.invokeMethod('enableCrashReporting');
 
     return result;
@@ -1791,26 +1671,8 @@ class Countly {
   /// [bool nonfatal] - reports if the error was fatal or not
   /// [Map<String, Object> segmentation] - allows to add optional segmentation
   /// returns error or success message
-  static Future<String?> logException(String exception, bool nonfatal, [Map<String, Object>? segmentation]) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "logException"';
-      log('logException, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    int segCount = segmentation != null ? segmentation.length : 0;
-    log('Calling "logException":[$exception] nonfatal:[$nonfatal]: with segmentation count:[$segCount]');
-    List<String> args = [];
-    args.add(exception);
-    args.add(nonfatal.toString());
-    if (segmentation != null) {
-      segmentation.forEach((k, v) {
-        args.add(k.toString());
-        args.add(v.toString());
-      });
-    }
-    final String? result = await _channel.invokeMethod('logException', <String, dynamic>{'data': json.encode(args)});
-
-    return result;
+  static Future<String?> logException(String exception, bool nonfatal, [Map<String, Object>? segmentation]) {
+    return _instance._crashesInternal.recordException(exception, nonfatal, segmentation);
   }
 
   /// Set optional key/value segment added for crash reports.
@@ -1834,96 +1696,32 @@ class Countly {
 
   /// record duration of application processes
   /// returns error or success message
-  static Future<String?> startTrace(String traceKey) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "startTrace"';
-      log('startTrace, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "startTrace":[$traceKey]');
-    List<String> args = [];
-    args.add(traceKey);
-
-    final String? result = await _channel.invokeMethod('startTrace', <String, dynamic>{'data': json.encode(args)});
-
-    return result;
+  static Future<String?> startTrace(String traceKey) {
+    return _instance._apmInternal.startTrace(traceKey);
   }
 
   /// cancel a trace
   /// returns error or success message
-  static Future<String?> cancelTrace(String traceKey) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "cancelTrace"';
-      log('cancelTrace, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "cancelTrace":[$traceKey]');
-    List<String> args = [];
-    args.add(traceKey);
-
-    final String? result = await _channel.invokeMethod('cancelTrace', <String, dynamic>{'data': json.encode(args)});
-
-    return result;
+  static Future<String?> cancelTrace(String traceKey) {
+    return _instance._apmInternal.cancelTrace(traceKey);
   }
 
   /// cancel all traces
   /// returns error or success message
-  static Future<String?> clearAllTraces() async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "clearAllTraces"';
-      log('clearAllTraces, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "clearAllTraces"');
-    final String? result = await _channel.invokeMethod('clearAllTraces');
-
-    return result;
+  static Future<String?> clearAllTraces() {
+    return _instance._apmInternal.cancelAllTraces();
   }
 
   /// end a trace
   /// returns error or success message
-  static Future<String?> endTrace(String traceKey, Map<String, int>? customMetric) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "endTrace"';
-      log('endTrace, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    int metricCount = customMetric != null ? customMetric.length : 0;
-    log('Calling "endTrace":[$traceKey] with metric count:[$metricCount]');
-    List<String> args = [];
-    args.add(traceKey);
-    if (customMetric != null) {
-      customMetric.forEach((k, v) {
-        args.add(k.toString());
-        args.add(v.toString());
-      });
-    }
-
-    final String? result = await _channel.invokeMethod('endTrace', <String, dynamic>{'data': json.encode(args)});
-
-    return result;
+  static Future<String?> endTrace(String traceKey, Map<String, int>? customMetric) {
+    return _instance._apmInternal.endTrace(traceKey, customMetric);
   }
 
   /// record a network trace
   /// returns error or success message
-  static Future<String?> recordNetworkTrace(String networkTraceKey, int responseCode, int requestPayloadSize, int responsePayloadSize, int startTime, int endTime) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "recordNetworkTrace"';
-      log('recordNetworkTrace, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "recordNetworkTrace":[$networkTraceKey] with response Code:[$responseCode]');
-    List<String> args = [];
-    args.add(networkTraceKey);
-    args.add(responseCode.toString());
-    args.add(requestPayloadSize.toString());
-    args.add(responsePayloadSize.toString());
-    args.add(startTime.toString());
-    args.add(endTime.toString());
-
-    final String? result = await _channel.invokeMethod('recordNetworkTrace', <String, dynamic>{'data': json.encode(args)});
-
-    return result;
+  static Future<String?> recordNetworkTrace(String networkTraceKey, int responseCode, int requestPayloadSize, int responsePayloadSize, int startTime, int endTime) {
+    return _instance._apmInternal.recordNetworkTrace(networkTraceKey, responseCode, requestPayloadSize, responsePayloadSize, startTime, endTime);
   }
 
   /// Enable APM features, which includes the recording of app start time.
@@ -1978,11 +1776,6 @@ class Countly {
   /// Must call [enableCrashReporting()] to enable it
   static void _recordFlutterError(FlutterErrorDetails details) {
     log('_recordFlutterError, Flutter error caught by Countly:');
-    if (!_enableCrashReportingFlag) {
-      log('_recordFlutterError, Crash Reporting must be enabled to report crash on Countly', logLevel: LogLevel.WARNING);
-      return;
-    }
-
     _internalRecordError(details.exceptionAsString(), details.stack);
   }
 
@@ -1990,10 +1783,6 @@ class Countly {
   ///
   static Future<void> recordDartError(exception, StackTrace stack) async {
     log('recordDartError, Error caught by Countly :');
-    if (!_enableCrashReportingFlag) {
-      log('recordDartError, Crash Reporting must be enabled to report crash on Countly', logLevel: LogLevel.WARNING);
-      return;
-    }
     _internalRecordError(exception, stack);
   }
 
@@ -2001,21 +1790,24 @@ class Countly {
   ///
   /// They are then further reported to countly
   static void _internalRecordError(exception, StackTrace? stack) {
-    if (!_instance._countlyState.isInitialized) {
-      log('_internalRecordError, countly is not initialized', logLevel: LogLevel.WARNING);
-      return;
+    final String message = exception.toString();
+    final StackTrace trace = stack ?? StackTrace.fromString('');
+    bool reported = false;
+
+    // Process wide handlers, so every initialized instance that asked for crash reporting gets the error.
+    for (final cly in _crashReportingInstances) {
+      reported = true;
+      try {
+        unawaited(cly._crashesInternal.recordError(message, trace));
+      } catch (e) {
+        log('_internalRecordError, Sending crash report to Countly failed: $e');
+      }
     }
 
-    log('_internalRecordError, Exception : ${exception.toString()}');
-    if (stack != null) {
-      log('\n_internalRecordError, Stack : $stack');
-    }
-
-    stack ??= StackTrace.fromString('');
-    try {
-      unawaited(logException('${exception.toString()}\n$stack', true));
-    } catch (e) {
-      log('_internalRecordError, Sending crash report to Countly failed: $e');
+    if (reported) {
+      log('_internalRecordError, Exception : $message\n$trace');
+    } else {
+      log('_internalRecordError, no instance with crash reporting enabled is initialized', logLevel: LogLevel.WARNING);
     }
   }
 
@@ -2063,46 +1855,14 @@ class Countly {
   /// set indirect attribution Id for campaign attribution reporting.
   /// Use 'AttributionKey' to set key of IDFA and ADID
   /// returns error or success message
-  static Future<String?> recordIndirectAttribution(Map<String, String> attributionValues) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "recordIndirectAttribution"';
-      log('recordIndirectAttribution, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    int attributionValuesCount = attributionValues.length;
-    log('Calling recordIndirectAttribution: [$attributionValuesCount]');
-    attributionValues.forEach((k, v) {
-      if (k.isEmpty) {
-        String error = 'recordIndirectAttribution, Key should not be empty, ignoring that key-value pair';
-        log(error);
-        attributionValues.removeWhere((key, value) => key == k && value == v);
-      }
-    });
-    List<dynamic> args = [];
-    args.add(attributionValues);
-    final String? result = await _channel.invokeMethod('recordIndirectAttribution', <String, dynamic>{'data': json.encode(args)});
-    return result;
+  static Future<String?> recordIndirectAttribution(Map<String, String> attributionValues) {
+    return _instance._attributionInternal.recordIndirectAttribution(attributionValues);
   }
 
   /// set direct attribution Id for campaign attribution reporting.
   /// returns error or success message
-  static Future<String?> recordDirectAttribution(String campaignType, String campaignData) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "recordDirectAttribution"';
-      log('recordDirectAttribution, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling recordDirectAttribution: [$campaignType] with campaignData: [$campaignData]');
-    if (campaignType.isEmpty) {
-      String error = 'recordDirectAttribution, campaignId cannot be empty';
-      log(error);
-      return 'Error : $error';
-    }
-    List<String> args = [];
-    args.add(campaignType);
-    args.add(campaignData);
-    final String? result = await _channel.invokeMethod('recordDirectAttribution', <String, dynamic>{'data': json.encode(args)});
-    return result;
+  static Future<String?> recordDirectAttribution(String campaignType, String campaignData) {
+    return _instance._attributionInternal.recordDirectAttribution(campaignType, campaignData);
   }
 
   static Map<String, dynamic> _configToJson(CountlyConfig config) {
@@ -2375,8 +2135,8 @@ class Countly {
   /// This method is for testing purposes only
   /// Do not use this method in production
   Future<void> halt() {
-    _countlyState.isInitialized = false;
-    return _channel.invokeMethod('halt');
+    _forgetNativeState();
+    return _countlyState.channel.invokeMethod('halt', _countlyState.arguments());
   }
 }
 

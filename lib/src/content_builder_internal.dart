@@ -15,7 +15,7 @@ class ContentBuilderInternal implements ContentBuilder {
       return;
     }
     Countly.log('Calling "enterContentZone"');
-    await _countlyState.channel.invokeMethod('enterContentZone');
+    await _countlyState.channel.invokeMethod('enterContentZone', _countlyState.arguments());
   }
 
   @override
@@ -25,7 +25,7 @@ class ContentBuilderInternal implements ContentBuilder {
       return;
     }
     Countly.log('Calling "exitContentZone"');
-    await _countlyState.channel.invokeMethod('exitContentZone');
+    await _countlyState.channel.invokeMethod('exitContentZone', _countlyState.arguments());
   }
 
   @override
@@ -35,7 +35,7 @@ class ContentBuilderInternal implements ContentBuilder {
       return;
     }
     Countly.log('Calling "refreshContentZone"');
-    await _countlyState.channel.invokeMethod('refreshContentZone');
+    await _countlyState.channel.invokeMethod('refreshContentZone', _countlyState.arguments());
   }
 
   @override
@@ -49,11 +49,16 @@ class ContentBuilderInternal implements ContentBuilder {
       return;
     }
     Countly.log('Calling "previewContent" with contentId: [$contentId]');
-    await _countlyState.channel.invokeMethod('previewContent', {'contentId': contentId});
+    await _countlyState.channel.invokeMethod('previewContent', _countlyState.arguments(null, {'contentId': contentId}));
   }
 
   void registerContentCallback(ContentCallback callback) {
     _contentCallback = callback;
+  }
+
+  /// Drops the registered callback, after the instance was halted or removed.
+  void forgetCallbacks() {
+    _contentCallback = null;
   }
 
   void onContentCallback(ContentStatus contentStatus, Map<String, dynamic> contentData) {
