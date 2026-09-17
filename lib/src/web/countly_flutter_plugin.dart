@@ -16,6 +16,11 @@ class CountlyFlutterPlugin {
   List<Map<Object?, Object?>> retrievedWidgetList = [];
   MethodChannel? methodChannel;
 
+  /// "onNotification" asks for one notification at a time and re-registers after each one, so an
+  /// event that arrives while nobody is waiting is held here until the next registration.
+  final List<Completer<String>> _notificationWaiters = [];
+  final List<String> _bufferedNotifications = [];
+
   static const int requestIDNoCallback = -1;
   static const int requestIDGlobalCallback = -2;
 
@@ -301,6 +306,15 @@ class CountlyFlutterPlugin {
       Countly.enrollUserToAb(data[0]);
     }
 
+    // PUSH NOTIFICATIONS
+    else if (call.method == 'askForNotificationPermission') {
+      return _describePushResult(Countly.enable_push_notifications(), 'subscribed');
+    } else if (call.method == 'disablePushNotifications') {
+      return _describePushResult(Countly.disable_push_notifications(), 'unsubscribed');
+    } else if (call.method == 'registerForNotification') {
+      return _nextNotification();
+    }
+
     // CONTENT ZONE
     else if (call.method == 'enterContentZone') {
       CountlyContent.enterContentZone();
@@ -310,6 +324,53 @@ class CountlyFlutterPlugin {
       cly.Countly.log('[CountlyFlutterPluginWeb] handleMethodCall, The method ${call.method} does not implemented', logLevel: cly.LogLevel.ERROR);
     }
     return Future.value();
+  }
+
+  /// Turns the object the web SDK resolves its push promises with into the message string the
+  /// method channel hands back to Dart. A rejection is reported the same way rather than reaching
+  /// Dart as a thrown PlatformException, which the push API never signals with.
+  Future<String> _describePushResult(JSAny promise, String successKey) async {
+    dynamic settled;
+    try {
+      settled = (await promiseToFuture<JSAny?>(promise))?.dartify();
+    } catch (e) {
+      cly.Countly.log('[CountlyFlutterPluginWeb] $successKey, the call failed: $e', logLevel: cly.LogLevel.ERROR);
+      return '$successKey: failed, reason: error';
+    }
+    final Map<Object?, Object?> resolved = settled is Map ? settled : const <Object?, Object?>{};
+    if (resolved[successKey] == true) {
+      return '$successKey: success';
+    }
+    return '$successKey: failed, reason: ${resolved['reason'] ?? 'unknown'}';
+  }
+
+  Future<String> _nextNotification() {
+    if (_bufferedNotifications.isNotEmpty) {
+      return Future.value(_bufferedNotifications.removeAt(0));
+    }
+    final Completer<String> waiter = Completer<String>();
+    _notificationWaiters.add(waiter);
+    return waiter.future;
+  }
+
+  /// Called by the web SDK for every push notification that is received, clicked or closed.
+  void _onPushNotification(JSAny? event) {
+    final dynamic notification = event?.dartify();
+    String payload;
+    try {
+      payload = json.encode(notification);
+    } catch (e) {
+      cly.Countly.log('[CountlyFlutterPluginWeb] _onPushNotification, could not encode the notification: $e', logLevel: cly.LogLevel.ERROR);
+      payload = notification?.toString() ?? '';
+    }
+    if (_notificationWaiters.isEmpty) {
+      _bufferedNotifications.add(payload);
+      return;
+    }
+    for (final Completer<String> waiter in _notificationWaiters) {
+      waiter.complete(payload);
+    }
+    _notificationWaiters.clear();
   }
 
   Map<String, Object?> prepareCallbackData(Object? data, String? error) {
@@ -619,6 +680,20 @@ class CountlyFlutterPlugin {
     configMap['disable_behavior_settings_updates'] = config['sdkBehaviorSettingsUpdatesDisabled'];
 
     configMap['headers'] = config['customNetworkRequestHeaders'];
+
+    // Push. Without a VAPID public key the SDK can not subscribe at all, so an application that does
+    // not use web push is left alone rather than given a service worker scope and a listener.
+    if (config['vapidPublicKey'] != null) {
+      configMap['push_vapid_public_key'] = config['vapidPublicKey'];
+      configMap['push_service_worker_path'] = config['pushServiceWorkerPath'];
+      configMap['push_service_worker_scope'] = config['pushServiceWorkerScope'];
+      configMap['push_subscribe_timeout'] = config['pushSubscribeTimeout'];
+      if (config['pushAutomaticRegistrationDisabled'] == true) {
+        configMap['push_auto_register'] = false;
+      }
+      // Given at init so a click the service worker replays on page load is not missed.
+      configMap['push_notification_listener'] = allowInterop(_onPushNotification).jsify();
+    }
 
     configMap.removeWhere((key, value) => value == null);
 

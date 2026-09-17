@@ -9,14 +9,15 @@
 * ! Minor breaking change ! On iOS, setting several user properties at once now merges the given custom properties into what is already staged, instead of replacing the whole custom property set. This affects "setUserProperties", "recordMetrics" and the "providedUserProperties" init option.
 * ! Minor breaking change ! On iOS, feedback widget results and the rating widget email and comment are now truncated to the maximum value size, matching Android.
 * ! Minor breaking change ! On iOS, withdrawing consent now closes and reports any open view, and forgets the stored location so that granting consent again does not resend it.
-* ! Minor breaking change ! On iOS, the "ratingWidgetCallback" callback now always receives null. It previously carried an error string when presenting a rating widget by ID failed. Remove any branch that depends on that value being set.
 * ! Minor breaking change ! If you use a Notification Service Extension for rich push notifications, add the "CountlyNotificationService" library product from the Countly Swift SDK to that target instead of compiling the SDK sources into it. The extension source also has to be Swift.
 * ! Minor breaking change ! The deprecated star rating dialog is no longer available on iOS. "askForStarRating" and "setStarRatingDialogTexts" log a message and do nothing there, and the "starRatingTextMessage" init option is ignored. Use a rating widget instead.
-* ! Minor breaking change ! The iOS test helper method "recordReservedEvent" logs a message and does nothing. Reserved event keys are internal to the underlying SDK.
+* ! Minor breaking change ! The iOS test helper method "recordReservedEvent" only records the orientation and star rating reserved events. Any other reserved key logs a message and does nothing, as the other reserved events are produced by the underlying SDK itself.
 
-* Underlying Android SDK version is 26.1.2
+* Added web push notification support. Give the SDK the "push" consent and the VAPID public key from your application's settings through "CountlyConfig.push.setVapidPublicKey", copy "countly_sw.js" into your application's "web" folder, and call "askForNotificationPermission" from a user gesture. "disablePushNotifications" unsubscribes again and is remembered across page loads. "onNotification" reports notifications that are received, clicked or closed.
+
+* Underlying Android SDK version is 26.8.0
 * Underlying iOS SDK version is 26.8.0
-* Underlying Web SDK version is 26.1.1
+* Underlying Web SDK version is 26.8.0
 
 ## 26.1.1
 * ! Minor breaking change ! The iOS plugin sources were reorganized to support Swift Package Manager. If you use a Notification Service Extension for rich push notifications, update the reference to "CountlyNotificationService.h" and "CountlyNotificationService.m" in your extension target to the new path "ios/countly_flutter/Sources/countly_flutter/countly-sdk-ios/".

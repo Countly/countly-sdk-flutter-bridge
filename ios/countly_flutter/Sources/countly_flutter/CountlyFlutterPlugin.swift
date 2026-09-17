@@ -18,7 +18,7 @@ let BUILDING_WITH_PUSH_DISABLED = true
 let BUILDING_WITH_PUSH_DISABLED = false
 #endif
 
-let kCountlyFlutterSDKVersion = "26.1.1"
+let kCountlyFlutterSDKVersion = "26.8.0"
 let kCountlyFlutterSDKName = "dart-flutterb-ios"
 let kCountlyFlutterSDKNameNoPush = "dart-flutterbnp-ios"
 

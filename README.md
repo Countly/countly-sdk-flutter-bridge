@@ -243,6 +243,42 @@ Countly.giveAllConsent();
 Countly.removeAllConsent();
 ```
 
+## Push notifications on the web
+
+The web platform subscribes through the browser's Push API, so it needs two things your Android and
+iOS targets do not.
+
+First, copy `countly_sw.js` into your application's `web` folder. The example application has one you
+can take as is; it imports the worker from the Web SDK release this plugin ships with.
+
+Then give the SDK the VAPID public key from your application's settings in the Countly dashboard, and
+ask for permission from a user gesture such as a button tap. The browser refuses a permission prompt
+that does not come from one.
+
+```dart
+final CountlyConfig config = CountlyConfig(SERVER_URL, APP_KEY)
+  ..setConsentEnabled([CountlyConsent.push]);
+config.push.setVapidPublicKey('YOUR_VAPID_PUBLIC_KEY');
+await Countly.initWithConfig(config);
+
+// from a button tap
+await Countly.askForNotificationPermission();
+
+// to be told what happens to notifications on this origin
+Countly.onNotification((String notification) {
+  // a JSON object carrying "type" ("received", "clicked" or "closed"), the message and its payload
+  print(notification);
+});
+
+// to unsubscribe again, remembered across page loads
+await Countly.disablePushNotifications();
+```
+
+The SDK registers its worker under the `/countly-push/` scope, leaving the service worker Flutter
+registers at the root alone. If your application already runs a worker you would rather use, import
+`countly_sw.js` into it and set the scope you registered it under with
+`config.push.setServiceWorkerScope`.
+
 ## Acknowledgements
 
 From 2014 to 2020 it was maintained by Trinisoft Technologies developers (trinisofttechnologies@gmail.com).

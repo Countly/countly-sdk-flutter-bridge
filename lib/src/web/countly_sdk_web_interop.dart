@@ -50,6 +50,10 @@ class Countly {
   external static void getFeedbackWidgetData(JSAny? CountlyFeedbackWidget, JSAny? callback);
   external static void reportFeedbackWidgetManually(JSAny? CountlyFeedbackWidget, JSAny? CountlyWidgetData, JSAny? widgetResult);
 
+  // Push Notifications
+  external static JSAny enable_push_notifications();
+  external static JSAny disable_push_notifications();
+
   // Remote Config
   external static void fetch_remote_config(JSAny? keys, JSAny? omit_keys, JSAny? callback);
   external static JSAny? get_remote_config([String? key]);

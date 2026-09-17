@@ -89,7 +89,7 @@ void testCommonRequestParams(Map<String, List<String>> requestObject) {
         ? 'ios'
         : 'android'}",
   );
-  expect(requestObject['sdk_version']?[0], '26.1.1');
+  expect(requestObject['sdk_version']?[0], '26.8.0');
   expect(
     requestObject['av']?[0],
     kIsWeb
