@@ -20,6 +20,7 @@ import ly.count.android.sdk.FeedbackRatingCallback;
 import ly.count.android.sdk.ModuleFeedback.*;
 import ly.count.android.sdk.DeviceIdType;
 import ly.count.android.sdk.ContentCallback;
+import ly.count.android.sdk.ContentUrlHandler;
 import ly.count.android.sdk.ContentStatus;
 import ly.count.android.sdk.WebViewDisplayOption;
 
@@ -38,6 +39,7 @@ import org.json.JSONObject;
 import android.util.Log;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.ArrayList;
 
 //Push Plugin
@@ -68,7 +70,7 @@ import com.google.firebase.FirebaseApp;
  */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
     private static final String TAG = "CountlyFlutterPlugin";
-    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "26.1.1";
+    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "26.8.0";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterbnp-android";
 
@@ -149,7 +151,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private Context context;
     private Activity activity;
     private static Boolean isDebug = false;
-    private final CountlyConfig config = new CountlyConfig();
+    // Recreated after every init, so options an earlier init set do not stick to the next one in the same process.
+    private CountlyConfig config = new CountlyConfig();
     private static Callback notificationListener = null;
     private static String lastStoredNotification = null;
     private MethodChannel methodChannel;
@@ -284,6 +287,22 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         log("CountlyFlutterPlugin", LogLevel.INFO);
     }
 
+    /**
+     * Whether a URL starts with one of the given prefixes, both already lower cased.
+     *
+     * @param url the URL a content web view is opening
+     * @param prefixes the beginnings of the URLs the application handles itself
+     * @return true when one of the prefixes matches
+     */
+    private static boolean hasAnyPrefix(String url, List<String> prefixes) {
+        for (String prefix : prefixes) {
+            if (url.startsWith(prefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     //-------------METHOD CALL HANDLER------------------
     @Override
     public void onMethodCall(MethodCall call, final Result result) {
@@ -324,6 +343,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     this.config.setApplication(activity.getApplication());
                 }
                 Countly.sharedInstance().init(this.config);
+                this.config = new CountlyConfig();
                 result.success("initialized!");
             } else if ("isInitialized".equals(call.method)) {
                 boolean isInitialized = Countly.sharedInstance().isInitialized();
@@ -835,17 +855,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
                 result.success("setOptionalParametersForInitialization sent.");
             } else if ("setRemoteConfigAutomaticDownload".equals(call.method)) {
+                // Answered right away: the setting only takes effect at init, so waiting for a download would hang a post-init call.
                 this.config.setRemoteConfigAutomaticDownload(true, new RemoteConfigCallback() {
                     @Override
                     public void callback(String error) {
-                        if (error == null) {
-                            result.success("Success");
-                        } else {
-                            result.success("Error: " + error);
-                        }
+                        log("setRemoteConfigAutomaticDownload, automatic download finished, error: [" + error + "]", LogLevel.DEBUG);
                     }
                 });
-
+                result.success("setRemoteConfigAutomaticDownload: success");
             } else if ("remoteConfigUpdate".equals(call.method)) {
                 Countly.sharedInstance().remoteConfig().update(new RemoteConfigCallback() {
                     @Override
@@ -1738,6 +1755,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.disableStoringDefaultPushConsent();
         }
 
+        if (_config.has("clearStoredDeviceId") && _config.getBoolean("clearStoredDeviceId")) {
+            this.config.enableClearStoredDeviceId();
+        }
+
+        if (_config.has("trackOrientationChanges")) {
+            this.config.setTrackOrientationChanges(_config.getBoolean("trackOrientationChanges"));
+        }
+
         // APM ------------------------------------------------
         if (_config.has("trackAppStartTime")) {
             this.config.apm.enableAppStartTimeTracking();
@@ -1775,6 +1800,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if (_config.has("maxStackTraceLinesPerThread")) {
             this.config.sdkInternalLimits.setMaxStackTraceLinesPerThread(_config.getInt("maxStackTraceLinesPerThread"));
         }        
+        if (_config.has("maxValueSizePicture")) {
+            this.config.sdkInternalLimits.setMaxValueSizePicture(_config.getInt("maxValueSizePicture"));
+        }
         // Internal Limits END --------------------------------
 
         if (_config.has("enableUnhandledCrashReporting") && _config.getBoolean("enableUnhandledCrashReporting")) {
@@ -1889,6 +1917,35 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("SAFE_AREA".equals(option)) {
                 this.config.setWebviewDisplayOption(WebViewDisplayOption.SAFE_AREA);
             }
+        }
+
+        if (_config.has("contentUrlHandler") && _config.getBoolean("contentUrlHandler")) {
+            // The Dart handler can not answer synchronously over the method channel, so the decision is made
+            // here from the prefixes given at init: a matching link is handed over and reported as handled,
+            // any other link is left to the SDK. Without prefixes every link is handed over.
+            final List<String> urlPrefixes = new ArrayList<>();
+            if (_config.has("contentUrlPrefixes")) {
+                JSONArray prefixes = _config.getJSONArray("contentUrlPrefixes");
+                for (int i = 0; i < prefixes.length(); i++) {
+                    urlPrefixes.add(prefixes.getString(i).toLowerCase(Locale.ROOT));
+                }
+            }
+            this.config.content.setContentUrlHandler(new ContentUrlHandler() {
+                @Override
+                public boolean onContentUrl(String url) {
+                    if (!urlPrefixes.isEmpty() && !hasAnyPrefix(url.toLowerCase(Locale.ROOT), urlPrefixes)) {
+                        return false;
+                    }
+                    Map<String, Object> urlData = new HashMap<>();
+                    urlData.put("url", url);
+                    safeInvokeMethod("contentUrlHandler", urlData);
+                    return true;
+                }
+            });
+        }
+
+        if (_config.has("metricOverride")) {
+            this.config.setMetricOverride(toMapString(_config.getJSONObject("metricOverride")));
         }
 
         this.config.content.setGlobalContentCallback(new ContentCallback() {

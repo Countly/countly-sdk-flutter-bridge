@@ -28,6 +28,8 @@ import countly_flutter
         let userInfo: NSDictionary = notification.request.content.userInfo as NSDictionary
         // print("\(userInfo)")
         CountlyFlutterPlugin.onNotification(userInfo as? [AnyHashable : Any])
+        // The host decides how a foreground notification is shown, the plugin forwards the decision to it.
+        completionHandler([.banner, .list, .sound])
      }
 
     @available(iOS 10.0, *)
@@ -37,5 +39,6 @@ import countly_flutter
         let userInfo: NSDictionary = response.notification.request.content.userInfo as NSDictionary
         // print("\(userInfo)")
         CountlyFlutterPlugin.onNotification(userInfo as? [AnyHashable : Any])
+        completionHandler()
     }
 }

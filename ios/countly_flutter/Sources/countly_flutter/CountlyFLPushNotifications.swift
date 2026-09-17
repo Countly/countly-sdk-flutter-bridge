@@ -33,8 +33,10 @@ public class CountlyFLPushNotifications: NSObject {
     private var notificationListener: FlutterResult?
     private var lastStoredNotification: [AnyHashable: Any]?
 
-    /// Responses that arrived before the SDK was started, awaiting replay.
+    /// Responses that arrived before the SDK was started, awaiting replay. Bounded, since an
+    /// application that never starts the SDK would otherwise hold every tap for its lifetime.
     private var pendingResponses: [UNNotificationResponse] = []
+    private static let pendingResponsesLimit = 10
 
     /// The delegate this object displaced, kept so the host application and any
     /// other notification plugin still receive what they registered for.
@@ -113,6 +115,9 @@ public class CountlyFLPushNotifications: NSObject {
         let isStillFrontDelegate = UNUserNotificationCenter.current().delegate === self
         if isStillFrontDelegate, !Countly.shared.isStarted {
             pendingResponses.append(response)
+            if pendingResponses.count > Self.pendingResponsesLimit {
+                pendingResponses.removeFirst(pendingResponses.count - Self.pendingResponsesLimit)
+            }
         }
 
         onNotification(response.notification.request.content.userInfo)

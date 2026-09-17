@@ -8,6 +8,7 @@ class CountlyConfigSDKInternalLimits {
   int _maxBreadcrumbCount = 0;
   int _maxStackTraceLinesPerThread = 0;
   int _maxStackTraceLineLength = 0;
+  int _maxValueSizePicture = 0;
 
   /// getters
   int get maxKeyLength => _maxKeyLength;
@@ -16,6 +17,7 @@ class CountlyConfigSDKInternalLimits {
   int get maxBreadcrumbCount => _maxBreadcrumbCount;
   int get maxStackTraceLinesPerThread => _maxStackTraceLinesPerThread;
   int get maxStackTraceLineLength => _maxStackTraceLineLength;
+  int get maxValueSizePicture => _maxValueSizePicture;
 
   /// setters / methods
 
@@ -64,6 +66,18 @@ class CountlyConfigSDKInternalLimits {
   /// [stackTraceLineLengthLimit] is the max length of each stack trace line (default 200)
   CountlyConfigSDKInternalLimits setMaxStackTraceLineLength(int stackTraceLineLengthLimit) {
     _maxStackTraceLineLength = stackTraceLineLengthLimit;
+    return this;
+  }
+
+  /// Limits the maximum size of the user profile picture URL or path, which is not covered by
+  /// [setMaxValueSize] because a picture URL is regularly longer than any other value
+  /// Not supported on web
+  ///
+  /// [pictureValueSizeLimit] is the maximum char size of the picture value (default 4096 chars)
+  CountlyConfigSDKInternalLimits setMaxValueSizePicture(int pictureValueSizeLimit) {
+    if (pictureValueSizeLimit > 0) {
+      _maxValueSizePicture = pictureValueSizeLimit;
+    }
     return this;
   }
 }

@@ -9,14 +9,25 @@
 * ! Minor breaking change ! On iOS, setting several user properties at once now merges the given custom properties into what is already staged, instead of replacing the whole custom property set. This affects "setUserProperties", "recordMetrics" and the "providedUserProperties" init option.
 * ! Minor breaking change ! On iOS, feedback widget results and the rating widget email and comment are now truncated to the maximum value size, matching Android.
 * ! Minor breaking change ! On iOS, withdrawing consent now closes and reports any open view, and forgets the stored location so that granting consent again does not resend it.
-* ! Minor breaking change ! On iOS, the "ratingWidgetCallback" callback now always receives null. It previously carried an error string when presenting a rating widget by ID failed. Remove any branch that depends on that value being set.
 * ! Minor breaking change ! If you use a Notification Service Extension for rich push notifications, add the "CountlyNotificationService" library product from the Countly Swift SDK to that target instead of compiling the SDK sources into it. The extension source also has to be Swift.
 * ! Minor breaking change ! The deprecated star rating dialog is no longer available on iOS. "askForStarRating" and "setStarRatingDialogTexts" log a message and do nothing there, and the "starRatingTextMessage" init option is ignored. Use a rating widget instead.
-* ! Minor breaking change ! The iOS test helper method "recordReservedEvent" logs a message and does nothing. Reserved event keys are internal to the underlying SDK.
+* ! Minor breaking change ! The iOS test helper method "recordReservedEvent" only records the orientation and star rating reserved events. Any other reserved key logs a message and does nothing, as the other reserved events are produced by the underlying SDK itself.
 
-* Underlying Android SDK version is 26.1.2
+* Added a new configuration option "enableClearStoredDeviceId()" that clears the stored device ID during init, so the SDK resolves a device ID from scratch instead of reusing the stored one.
+* Added a new configuration option "setTrackOrientationChanges(bool)" that controls whether the SDK reports device orientation changes. It is enabled by default.
+* Added a new configuration option "setMetricOverride(Map)" that replaces the device metrics the SDK detects with the provided values, keyed by their wire names.
+* Added a content configuration option "setContentUrlHandler(handler, urlPrefixes)" that hands the links opened from content blocks and feedback widgets to the application, so it can route its own deep links instead of the SDK opening them. Links starting with one of the given prefixes go to the handler and the SDK opens the rest; without prefixes every link is handed over. Not supported on web.
+* Added an internal limit configuration option "setMaxValueSizePicture(int)" that controls the maximum size of the user profile picture URL or path separately from the other values (default 4096). Not supported on web.
+* Added the content configuration options "setOverlayCornerRadius(double)" and "showWidgetsWithinApp()" for showing content blocks and feedback widgets inside the application's own window. They only apply to macOS and are ignored on every other platform.
+
+* Mitigated an issue on iOS where the remote config download and variant callbacks were not called when the request failed, as the result was reported without a request result code.
+* Mitigated an issue on iOS where the "enrollABOnRCDownload" configuration option was ignored, so downloaded remote config keys were not enrolled into A/B tests.
+* Mitigated an issue where the deprecated "setRemoteConfigAutomaticDownload" did not complete when it was called after init, as it waited for a download that the setting no longer triggers. It now answers as soon as the setting is applied.
+* Mitigated an issue on iOS where the test helper "halt" was not implemented, so a test that reset the SDK failed on iOS while it passed on Android.
+
+* Underlying Android SDK version is 26.8.0
 * Underlying iOS SDK version is 26.8.0
-* Underlying Web SDK version is 26.1.1
+* Underlying Web SDK version is 26.8.0
 
 ## 26.1.1
 * ! Minor breaking change ! The iOS plugin sources were reorganized to support Swift Package Manager. If you use a Notification Service Extension for rich push notifications, update the reference to "CountlyNotificationService.h" and "CountlyNotificationService.m" in your extension target to the new path "ios/countly_flutter/Sources/countly_flutter/countly-sdk-ios/".

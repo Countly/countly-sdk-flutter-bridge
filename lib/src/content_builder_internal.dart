@@ -7,6 +7,7 @@ class ContentBuilderInternal implements ContentBuilder {
 
   final CountlyState _countlyState;
   ContentCallback? _contentCallback;
+  ContentUrlHandler? _contentUrlHandler;
 
   @override
   Future<void> enterContentZone() async {
@@ -60,5 +61,16 @@ class ContentBuilderInternal implements ContentBuilder {
     if (_contentCallback != null) {
       _contentCallback!(contentStatus, contentData);
     }
+  }
+
+  /// Keeps the handler the native side hands content links to.
+  void registerContentUrlHandler(ContentUrlHandler handler) {
+    _contentUrlHandler = handler;
+  }
+
+  /// Called by the native side with a link opened from content or a feedback widget.
+  void onContentUrl(String url) {
+    Countly.log('[ContentBuilderInternal] onContentUrl, url:[$url]');
+    _contentUrlHandler?.call(url);
   }
 }

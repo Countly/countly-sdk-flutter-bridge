@@ -87,7 +87,10 @@ class Device {
   final String platform; // 'android' or 'ios'
   final String id;
 
-  Device(this.platform, this.id);
+  /// Whether the device is an iOS simulator, which the runner can drive with simctl.
+  final bool isSimulator;
+
+  Device(this.platform, this.id, {this.isSimulator = false});
 
   @override
   String toString() => '$platform:$id';
@@ -208,7 +211,7 @@ Future<List<Device>> discoverDevices() async {
         if (inIosSection && line.toLowerCase().contains('booted')) {
           final match = uuidPattern.firstMatch(line);
           if (match != null) {
-            devices.add(Device('ios', match.group(0)!));
+            devices.add(Device('ios', match.group(0)!, isSimulator: true));
           }
         }
       }
@@ -555,7 +558,8 @@ Future<WorkerResult> runWorker({
 /// otherwise stall the whole run indefinitely, which is exactly when the run
 /// most needs to finish and report.
 Future<int> awaitTestProcess(Process process, String seconds) async {
-  final limit = Duration(seconds: (int.tryParse(seconds) ?? 300) + 60);
+  // The value is passed on to "flutter test" as given, so it may carry the "s" suffix the default has.
+  final limit = Duration(seconds: (int.tryParse(seconds.replaceAll(RegExp(r'[^0-9]'), '')) ?? 300) + 60);
   try {
     return await process.exitCode.timeout(limit);
   } on TimeoutException {
@@ -584,8 +588,9 @@ class ForegroundResponder {
   static String? bundleIdFrom(String exampleDir) {
     final pbxproj = File('$exampleDir${Platform.pathSeparator}ios${Platform.pathSeparator}Runner.xcodeproj${Platform.pathSeparator}project.pbxproj');
     if (!pbxproj.existsSync()) return null;
+    final bundleIdPattern = RegExp(r'PRODUCT_BUNDLE_IDENTIFIER = ([\w.]+);');
     for (final line in pbxproj.readAsLinesSync()) {
-      final match = RegExp(r'PRODUCT_BUNDLE_IDENTIFIER = ([\w.]+);').firstMatch(line);
+      final match = bundleIdPattern.firstMatch(line);
       // Extension targets share the app's prefix; the app itself has no suffix.
       if (match != null && !match.group(1)!.contains('.CountlyNSE')) return match.group(1);
     }
@@ -596,14 +601,18 @@ class ForegroundResponder {
   final String bundleId;
   int _answered = 0;
 
-  bool get canAutomate => device.platform == 'ios' && device.id.contains('-');
+  bool get canAutomate => device.isSimulator;
 
   void onOutput(String data) {
     if (!canAutomate) return;
     final prompts = 'go to foreground now'.allMatches(data).length;
     for (var i = 0; i < prompts; i++) {
       _answered++;
-      Process.run('xcrun', ['simctl', 'launch', device.id, bundleId]);
+      // A failed launch must not take the runner down with an unhandled asynchronous error.
+      Process.run('xcrun', ['simctl', 'launch', device.id, bundleId]).catchError((Object error) {
+        stderr.writeln('Could not foreground the app on ${device.id}: $error');
+        return ProcessResult(0, 1, '', '$error');
+      });
     }
   }
 

@@ -29,6 +29,24 @@ Future<List<String>> getEventQueue() async {
   return eq.cast<String>();
 }
 
+/// Get the keys of the events waiting in the event queue, in the order they were recorded
+Future<List<String>> getEventKeys() async {
+  final events = await getEventQueue();
+  return events.map((event) => json.decode(event)['key'] as String).toList();
+}
+
+/// The parameters of the first queued request that carries the given key, "null" when none does
+/// [String key]: the request parameter to look for, for example "begin_session" or "user_details"
+Future<Map<String, List<String>>?> getRequestWithParam(String key) async {
+  for (final String request in await getRequestQueue()) {
+    final Map<String, List<String>> params = Uri.parse('?$request').queryParametersAll;
+    if (params.containsKey(key)) {
+      return params;
+    }
+  }
+  return null;
+}
+
 /// Add request to native sides
 void storeRequest(Map<String, dynamic> request) async {
   await _channelTest.invokeMethod('storeRequest', <String, dynamic>{
@@ -89,7 +107,7 @@ void testCommonRequestParams(Map<String, List<String>> requestObject) {
         ? 'ios'
         : 'android'}",
   );
-  expect(requestObject['sdk_version']?[0], '26.1.1');
+  expect(requestObject['sdk_version']?[0], '26.8.0');
   expect(
     requestObject['av']?[0],
     kIsWeb
