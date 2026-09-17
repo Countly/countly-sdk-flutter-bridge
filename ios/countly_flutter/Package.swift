@@ -19,9 +19,8 @@ let package = Package(
         .library(name: "countly-flutter", targets: ["countly_flutter"])
     ],
     dependencies: [
-        // Pinned to a branch because countly-sdk-swift has no tags yet. Move to a
-        // version requirement once 26.8.0 is tagged.
-        .package(url: "https://github.com/Countly/countly-sdk-swift.git", branch: "pre-release")
+        // Kept in step with scripts/config/sdk_versions.txt by scripts/sync_sdk_versions.dart.
+        .package(url: "https://github.com/Countly/countly-sdk-swift.git", from: "26.8.0")
     ],
     targets: [
         .target(

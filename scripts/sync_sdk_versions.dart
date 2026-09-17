@@ -92,6 +92,13 @@ void main(List<String> args) {
     'Web     → plugin_config.dart',
   );
 
+  replaceInFile(
+    '$rootDir/example/web/countly_sw.js',
+    RegExp(r'countly-sdk-web@[^/]+/lib/countly_sw\.js'),
+    'countly-sdk-web@$webVersion/lib/countly_sw.js',
+    'Web     → example/web/countly_sw.js',
+  );
+
   // ---- Android version ----
   replaceInFile(
     '$rootDir/android/build.gradle',
