@@ -241,6 +241,10 @@ class Countly {
           _instance._feedbackInternal.feedbackCallback = null;
         }
         break;
+      case 'contentUrlHandler':
+        final Map<String, dynamic> urlArguments = Map<String, dynamic>.from(call.arguments);
+        Countly.instance._contentBuilderInternal.onContentUrl(urlArguments['url'] as String? ?? '');
+        break;
       case 'contentCallback':
         Map<String, dynamic> argumentsMap = Map<String, dynamic>.from(call.arguments);
         final int contentResult = argumentsMap['contentResult'];
@@ -340,6 +344,11 @@ class Countly {
     if (config.content.contentCallback != null) {
       log('[initWithConfig] About to register content callback', logLevel: LogLevel.VERBOSE);
       Countly.instance._contentBuilderInternal.registerContentCallback(config.content.contentCallback!);
+    }
+
+    if (config.content.contentUrlHandler != null) {
+      log('[initWithConfig] About to register content URL handler', logLevel: LogLevel.VERBOSE);
+      Countly.instance._contentBuilderInternal.registerContentUrlHandler(config.content.contentUrlHandler!);
     }
 
     return result;
@@ -1375,6 +1384,7 @@ class Countly {
   /// returns the error or success message
   @Deprecated('This function is deprecated, please use "remoteConfigRegisterDownloadCallback" of CountlyConfig instead')
   static Future<String?> setRemoteConfigAutomaticDownload(Function(String?) callback) async {
+    // The callback receives the result of applying the setting, not the outcome of a download.
     log('Calling "setRemoteConfigAutomaticDownload"');
     log('setRemoteConfigAutomaticDownload is deprecated, use setRemoteConfigAutomaticDownload of CountlyConfig instead', logLevel: LogLevel.WARNING);
     final String? result = await _channel.invokeMethod('setRemoteConfigAutomaticDownload');
@@ -1639,8 +1649,13 @@ class Countly {
     args.add(widgetInfo.name);
 
     try {
-      Map<dynamic, dynamic> retrievedWidgetData = await _channel.invokeMethod('getFeedbackWidgetData', <String, dynamic>{'data': json.encode(args)});
-      widgetData = Map<String, dynamic>.from(retrievedWidgetData);
+      final dynamic retrievedWidgetData = await _channel.invokeMethod('getFeedbackWidgetData', <String, dynamic>{'data': json.encode(args)});
+      if (retrievedWidgetData is Map) {
+        widgetData = Map<String, dynamic>.from(retrievedWidgetData);
+      } else {
+        // iOS answers with the failure message instead of throwing
+        error = retrievedWidgetData?.toString();
+      }
     } on PlatformException catch (e) {
       error = e.message;
       log('getFeedbackWidgetData Error : $error');
@@ -2105,6 +2120,13 @@ class Countly {
     return result;
   }
 
+  /// Logs that a configuration option has no effect on web, where the plugin is running there.
+  static void _warnUnsupportedOnWeb(String option) {
+    if (kIsWeb) {
+      log('"_configToJson", $option is not supported on web and is ignored', logLevel: LogLevel.WARNING);
+    }
+  }
+
   static Map<String, dynamic> _configToJson(CountlyConfig config) {
     final Map<String, dynamic> countlyConfig = {};
     try {
@@ -2279,6 +2301,21 @@ class Countly {
         countlyConfig['disableViewRestartForManualRecording'] = config.viewRestartForManualRecordingDisabled;
       }
 
+      if (config.clearStoredDeviceIdEnabled) {
+        log('"_configToJson", value provided for clearStoredDeviceId is true', logLevel: LogLevel.INFO);
+        countlyConfig['clearStoredDeviceId'] = config.clearStoredDeviceIdEnabled;
+      }
+
+      if (config.trackOrientationChanges != null) {
+        log('"_configToJson", value provided for trackOrientationChanges: [${config.trackOrientationChanges}]', logLevel: LogLevel.INFO);
+        countlyConfig['trackOrientationChanges'] = config.trackOrientationChanges;
+      }
+
+      if (config.metricOverride != null) {
+        log('"_configToJson", value provided for metricOverride: [${config.metricOverride}]', logLevel: LogLevel.INFO);
+        countlyConfig['metricOverride'] = config.metricOverride;
+      }
+
       /// Experimental ---------------------------
       if (config.experimental.visibilityTracking) {
         log('"_configToJson", value provided for visibilityTracking: [${config.experimental.visibilityTracking}]', logLevel: LogLevel.INFO);
@@ -2300,6 +2337,22 @@ class Countly {
         final optionStr = config.content.webviewDisplayOption == WebViewDisplayOption.immersive ? 'IMMERSIVE' : 'SAFE_AREA';
         log('"_configToJson", value provided for webviewDisplayOption: [$optionStr]', logLevel: LogLevel.INFO);
         countlyConfig['webviewDisplayOption'] = optionStr;
+      }
+      if (config.content.contentUrlHandler != null) {
+        log('"_configToJson", a content URL handler is provided', logLevel: LogLevel.INFO);
+        _warnUnsupportedOnWeb('setContentUrlHandler');
+        countlyConfig['contentUrlHandler'] = true;
+        countlyConfig['contentUrlPrefixes'] = config.content.contentUrlPrefixes;
+      }
+      if (config.content.overlayCornerRadius != null) {
+        log('"_configToJson", value provided for overlayCornerRadius: [${config.content.overlayCornerRadius}]', logLevel: LogLevel.INFO);
+        log('"_configToJson", setOverlayCornerRadius only applies to macOS and is ignored on this platform', logLevel: LogLevel.WARNING);
+        countlyConfig['overlayCornerRadius'] = config.content.overlayCornerRadius;
+      }
+      if (config.content.widgetsWithinAppEnabled) {
+        log('"_configToJson", value provided for showWidgetsWithinApp is true', logLevel: LogLevel.INFO);
+        log('"_configToJson", showWidgetsWithinApp only applies to macOS and is ignored on this platform', logLevel: LogLevel.WARNING);
+        countlyConfig['showWidgetsWithinApp'] = config.content.widgetsWithinAppEnabled;
       }
 
       /// Content END ---------------------------
@@ -2353,6 +2406,11 @@ class Countly {
       if (config.sdkInternalLimits.maxStackTraceLinesPerThread > 0) {
         log('"_configToJson", value provided for maxStackTraceLinesPerThread: [${config.sdkInternalLimits.maxStackTraceLinesPerThread}]', logLevel: LogLevel.INFO);
         countlyConfig['maxStackTraceLinesPerThread'] = config.sdkInternalLimits.maxStackTraceLinesPerThread;
+      }
+      if (config.sdkInternalLimits.maxValueSizePicture > 0) {
+        log('"_configToJson", value provided for maxValueSizePicture: [${config.sdkInternalLimits.maxValueSizePicture}]', logLevel: LogLevel.INFO);
+        _warnUnsupportedOnWeb('setMaxValueSizePicture');
+        countlyConfig['maxValueSizePicture'] = config.sdkInternalLimits.maxValueSizePicture;
       }
 
       /// Internal Limits END ---------------------------

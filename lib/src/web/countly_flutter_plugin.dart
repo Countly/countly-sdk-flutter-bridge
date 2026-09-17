@@ -582,6 +582,8 @@ class CountlyFlutterPlugin {
       'salt': config['tamperingProtectionSalt'],
       'disable_sdk_behavior_settings_updates': config['sdkBehaviorSettingsUpdatesDisabled'] ?? false,
       'disable_backoff_mechanism': config['backoffMechanismDisabled'] ?? false,
+      'clear_stored_id': config['clearStoredDeviceId'],
+      'enable_orientation_tracking': config['trackOrientationChanges'],
     };
 
     var deviceID = config['deviceID'];
@@ -619,6 +621,7 @@ class CountlyFlutterPlugin {
     configMap['disable_behavior_settings_updates'] = config['sdkBehaviorSettingsUpdatesDisabled'];
 
     configMap['headers'] = config['customNetworkRequestHeaders'];
+    configMap['metrics'] = config['metricOverride'];
 
     configMap.removeWhere((key, value) => value == null);
 

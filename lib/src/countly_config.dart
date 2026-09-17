@@ -50,6 +50,9 @@ class CountlyConfig {
   int? _requestTimeoutDuration;
   bool _storingDefaultPushConsentDisabled = false;
   bool _viewRestartForManualRecordingDisabled = false;
+  bool _clearStoredDeviceIdEnabled = false;
+  bool? _trackOrientationChanges;
+  Map<String, String>? _metricOverride;
 
   /// instance of CountlyConfigApm
   final CountlyConfigApm _countlyConfigApmInstance = CountlyConfigApm();
@@ -151,6 +154,12 @@ class CountlyConfig {
   bool get storingDefaultPushConsentDisabled => _storingDefaultPushConsentDisabled;
 
   bool get viewRestartForManualRecordingDisabled => _viewRestartForManualRecordingDisabled;
+
+  bool get clearStoredDeviceIdEnabled => _clearStoredDeviceIdEnabled;
+
+  bool? get trackOrientationChanges => _trackOrientationChanges;
+
+  Map<String, String>? get metricOverride => _metricOverride;
 
   /// getter for CountlyConfigApm instance that is used to access CountlyConfigApm methods
   CountlyConfigApm get apm => _countlyConfigApmInstance;
@@ -427,6 +436,31 @@ class CountlyConfig {
   /// Disable view restart for manual recording
   CountlyConfig disableViewRestartForManualRecording() {
     _viewRestartForManualRecordingDisabled = true;
+    return this;
+  }
+
+  /// Clear the stored device ID during initialization so the SDK resolves a device ID from scratch
+  /// instead of reusing the one it persisted on an earlier run.
+  /// A provided device ID wins, otherwise temporary ID mode is applied if requested, otherwise a new ID is generated.
+  /// On web the events still queued under the old ID are flushed before it is cleared, the mobile platforms do not flush them.
+  CountlyConfig enableClearStoredDeviceId() {
+    _clearStoredDeviceIdEnabled = true;
+    return this;
+  }
+
+  /// Set whether the SDK reports device orientation changes
+  /// [bool shouldTrack]: "false" stops the orientation reporting, it is enabled by default
+  CountlyConfig setTrackOrientationChanges(bool shouldTrack) {
+    _trackOrientationChanges = shouldTrack;
+    return this;
+  }
+
+  /// Override the device metrics the SDK reports, keyed by their wire names such as "_os", "_os_version",
+  /// "_device", "_manufacturer", "_resolution", "_density", "_carrier", "_locale", "_app_version",
+  /// "_store" and "_device_type". A key the platform does not detect itself is sent as an additional metric.
+  /// [Map<String, String> metrics]: the metric values to report in place of the detected ones
+  CountlyConfig setMetricOverride(Map<String, String> metrics) {
+    _metricOverride = metrics;
     return this;
   }
 }

@@ -18,7 +18,7 @@ let BUILDING_WITH_PUSH_DISABLED = true
 let BUILDING_WITH_PUSH_DISABLED = false
 #endif
 
-let kCountlyFlutterSDKVersion = "26.1.1"
+let kCountlyFlutterSDKVersion = "26.8.0"
 let kCountlyFlutterSDKName = "dart-flutterb-ios"
 let kCountlyFlutterSDKNameNoPush = "dart-flutterbnp-ios"
 
@@ -27,8 +27,10 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
 
     static var channel: FlutterMethodChannel?
 
+    // Recreated after every init, so options an earlier init set do not stick to the next one in the same process.
     private var config = CountlyConfig()
     private var isInitialized = false
+    private var isDebugLogging = false
     private var feedbackWidgetList: [CountlyFeedbackWidget] = []
 
     /// Registers the plugin with the Flutter engine.
@@ -67,7 +69,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
     /// Logs a plugin-level message, gated at runtime only. A compile-time guard
     /// would hide these from release builds, where support needs them most.
     private func log(_ message: @autoclosure () -> String) {
-        guard config.enableDebug else { return }
+        guard isDebugLogging || config.enableDebug else { return }
         NSLog("[CountlyFlutterPlugin] %@", message())
     }
 
@@ -188,11 +190,11 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
 
     /// The code the Dart side expects for a request outcome. Absent for an outcome
     /// it has no code for, which leaves the key out as it always has.
-    private func requestResultCode(_ response: RequestResult) -> Int? {
+    private func requestResultCode(_ response: RequestResult) -> Int {
         switch response {
         case .success: return 0
         case .networkIssue: return 1
-        default: return nil
+        default: return 2
         }
     }
 
@@ -291,9 +293,12 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
             #endif
 
             if !config.host.isEmpty {
+                let startConfig = config
+                isDebugLogging = startConfig.enableDebug
+                config = CountlyConfig()
                 DispatchQueue.main.async {
                     self.isInitialized = true
-                    Countly.shared.start(with: self.config)
+                    Countly.shared.start(with: startConfig)
                     #if !COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
                     CountlyFLPushNotifications.shared.recordPushActions()
                     #endif
@@ -305,6 +310,14 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
 
         case "isInitialized":
             result(isInitialized ? "true" : "false")
+
+        case "halt":
+            // Testing purposes only, like the Android plugin: the instance is torn down and its stored data erased.
+            DispatchQueue.main.async {
+                self.isInitialized = false
+                Countly.shared.halt(clearStorage: true)
+                result("halt: success")
+            }
 
         // MARK: Queue introspection (test-only)
 
@@ -904,21 +917,10 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         // MARK: Remote config
 
         case "setRemoteConfigAutomaticDownload":
-            // The callback fires on every later download, but a FlutterResult may
-            // only be delivered once, so the first outcome answers and the rest return.
+            // Answered right away: the setting only takes effect at start, so waiting for a download would hang a post-start call.
             DispatchQueue.main.async {
                 self.config.enableRemoteConfigAutomaticTriggers = true
-                var answer: FlutterResult? = result
-                self.config.remoteConfigRegisterGlobalCallback { response, error, _, _ in
-                    guard let pending = answer else { return }
-                    // The callback outlives the call; do not retain the result.
-                    answer = nil
-                    if let error {
-                        pending("Error :" + String(describing: error))
-                    } else {
-                        pending(response == .success ? "Success!" : "Error :no result")
-                    }
-                }
+                result("setRemoteConfigAutomaticDownload: success")
             }
 
         case "remoteConfigUpdate":
@@ -1088,19 +1090,26 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         // MARK: Feedback
 
         case "presentRatingWidgetWithID":
-            // The Swift SDK reports widget state rather than an error, so the Dart
-            // callback always carries nil where the error string used to be.
+            // Like the Android SDK: exactly the rating widget with this ID, or an error, never another widget.
             DispatchQueue.main.async {
-                guard let widgetID = self.string(command, 0) else {
+                guard let widgetID = self.string(command, 0), !widgetID.isEmpty else {
                     result("presentRatingWidgetWithID failed: no widget id given")
                     return
                 }
-                Countly.shared.feedback.presentRating(widgetID) { state in
-                    if state == .closed {
-                        Self.channel?.invokeMethod("ratingWidgetCallback", arguments: nil)
+                Countly.shared.feedback.getAvailableFeedbackWidgets { widgets, error in
+                    guard error == nil, let widget = widgets?.first(where: { $0.id == widgetID && $0.type == .rating }) else {
+                        let message = "presentRatingWidgetWithID failed: " + (error.map { String(describing: $0) } ?? "no rating widget with the id [\(widgetID)]")
+                        result(message)
+                        Self.channel?.invokeMethod("ratingWidgetCallback", arguments: message)
+                        return
                     }
+                    widget.present(callback: { state in
+                        if state == .appeared {
+                            Self.channel?.invokeMethod("ratingWidgetCallback", arguments: nil)
+                        }
+                    })
+                    result("presentRatingWidgetWithID success.")
                 }
-                result("presentRatingWidgetWithID success.")
             }
 
         case "getAvailableFeedbackWidgets":
@@ -1388,6 +1397,13 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
             config.disableSDKBehaviorSettingsUpdates = true
         }
 
+        if let clearStoredDeviceId = configMap["clearStoredDeviceId"] as? Bool, clearStoredDeviceId {
+            config.resetStoredDeviceID = true
+        }
+        if let trackOrientationChanges = configMap["trackOrientationChanges"] as? Bool {
+            config.enableOrientationTracking = trackOrientationChanges
+        }
+
         // Internal limits
         if let value = configMap["maxKeyLength"] as? Int { config.sdkInternalLimits.maxKeyLength = value }
         if let value = configMap["maxValueSize"] as? Int { config.sdkInternalLimits.maxValueSize = value }
@@ -1395,6 +1411,7 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         if let value = configMap["maxBreadcrumbCount"] as? Int { config.sdkInternalLimits.maxBreadcrumbCount = value }
         if let value = configMap["maxStackTraceLineLength"] as? Int { config.sdkInternalLimits.maxStackTraceLineLength = value }
         if let value = configMap["maxStackTraceLinesPerThread"] as? Int { config.sdkInternalLimits.maxStackTraceLinesPerThread = value }
+        if let value = configMap["maxValueSizePicture"] as? Int { config.sdkInternalLimits.maxValueSizePicture = value }
 
         if let enableUnhandledCrashReporting = configMap["enableUnhandledCrashReporting"] as? Bool, enableUnhandledCrashReporting {
             addCountlyFeature(.crashReporting)
@@ -1426,6 +1443,9 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
         config.enableRemoteConfigAutomaticTriggers = notifiesDart || automaticTriggers
         if let caching = configMap["remoteConfigValueCaching"] as? Bool {
             config.enableRemoteConfigValueCaching = caching
+        }
+        if let autoEnroll = configMap["autoEnrollABOnDownload"] as? Bool, autoEnroll {
+            config.enrollABOnRCDownload = true
         }
 
         if let globalViewSegmentation = configMap["globalViewSegmentation"] as? [String: Any] {
@@ -1472,6 +1492,29 @@ public class CountlyFlutterPlugin: NSObject, FlutterPlugin {
             case "SAFE_AREA": config.content.webViewDisplayOption = .safeArea
             default: break
             }
+        }
+        if let hasContentUrlHandler = configMap["contentUrlHandler"] as? Bool, hasContentUrlHandler {
+            // The Dart handler can not answer synchronously over the method channel, so the decision is
+            // made here from the prefixes given at init: a matching link is handed over and reported as
+            // handled, any other link is left to the SDK. Without prefixes every link is handed over.
+            let urlPrefixes = (configMap["contentUrlPrefixes"] as? [String] ?? []).map { $0.lowercased() }
+            config.content.contentURLHandler = { url in
+                let link = url.absoluteString
+                if !urlPrefixes.isEmpty, !urlPrefixes.contains(where: { link.lowercased().hasPrefix($0) }) {
+                    return false
+                }
+                Self.channel?.invokeMethod("contentUrlHandler", arguments: ["url": link])
+                return true
+            }
+        }
+        if let overlayCornerRadius = configMap["overlayCornerRadius"] as? Double {
+            config.content.overlayCornerRadius = CGFloat(overlayCornerRadius)
+        }
+        if let showWidgetsWithinApp = configMap["showWidgetsWithinApp"] as? Bool, showWidgetsWithinApp {
+            config.content.showWidgetsWithinApp = true
+        }
+        if let metricOverride = configMap["metricOverride"] as? [String: String] {
+            config.customMetrics = metricOverride
         }
     }
 }

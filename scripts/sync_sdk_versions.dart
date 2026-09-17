@@ -48,6 +48,25 @@ void main(List<String> args) {
   print('   Web:     $webVersion');
   print('');
 
+  // ---- iOS: native SDK dependency ----
+  // The native iOS SDK is a SwiftPM dependency, so its version lives in
+  // Package.swift rather than in a checked-out tree.
+  final iosTag = args.isNotEmpty ? args[0] : iosVersion;
+  final packageSwift = '$rootDir/ios/countly_flutter/Package.swift';
+  final pinnedByBranch = File(packageSwift).existsSync() &&
+      RegExp(r'countly-sdk-swift\.git",\s*branch:').hasMatch(File(packageSwift).readAsStringSync());
+
+  print('');
+  if (pinnedByBranch) {
+    // Fail rather than print: a releaser who sees a success banner will ship
+    // believing the version was written, and nothing else records it.
+    stderr.writeln('❌ ios/countly_flutter/Package.swift pins countly-sdk-swift by branch, not by version.');
+    stderr.writeln('   The iOS SDK version cannot be synced while that is true, so this would');
+    stderr.writeln('   report $iosTag while the build resolves whatever the branch HEAD is.');
+    stderr.writeln('   Move Package.swift to a version requirement, then re-run.');
+    exit(1);
+  }
+
   // ---- Flutter version files ----
   replaceInFile(
     '$rootDir/pubspec.yaml',
@@ -75,6 +94,13 @@ void main(List<String> args) {
     RegExp(r"static const String SDK_VERSION_STRING = '.+'"),
     "static const String SDK_VERSION_STRING = '$flutterVersion'",
     'Flutter → plugin_config.dart',
+  );
+
+  replaceInFile(
+    '$rootDir/example/integration_test/utils.dart',
+    RegExp(r"expect\(requestObject\['sdk_version'\]\?\[0\], '.+'\);"),
+    "expect(requestObject['sdk_version']?[0], '$flutterVersion');",
+    'Flutter → example/integration_test/utils.dart',
   );
 
   replaceInFile(
@@ -106,25 +132,6 @@ void main(List<String> args) {
     "implementation 'ly.count.android:sdk:$androidVersion'",
     'Android → no-push-files/build.gradle',
   );
-
-  // ---- iOS: native SDK dependency ----
-  // The native iOS SDK is a SwiftPM dependency, so its version lives in
-  // Package.swift rather than in a checked-out tree.
-  final iosTag = args.isNotEmpty ? args[0] : iosVersion;
-  final packageSwift = '$rootDir/ios/countly_flutter/Package.swift';
-  final pinnedByBranch = File(packageSwift).existsSync() &&
-      RegExp(r'countly-sdk-swift\.git",\s*branch:').hasMatch(File(packageSwift).readAsStringSync());
-
-  print('');
-  if (pinnedByBranch) {
-    // Fail rather than print: a releaser who sees a success banner will ship
-    // believing the version was written, and nothing else records it.
-    stderr.writeln('❌ ios/countly_flutter/Package.swift pins countly-sdk-swift by branch, not by version.');
-    stderr.writeln('   The iOS SDK version cannot be synced while that is true, so this would');
-    stderr.writeln('   report $iosTag while the build resolves whatever the branch HEAD is.');
-    stderr.writeln('   Move Package.swift to a version requirement, then re-run.');
-    exit(1);
-  }
 
   replaceInFile(
     packageSwift,

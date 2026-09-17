@@ -6,6 +6,10 @@ enum WebViewDisplayOption { immersive, safeArea }
 
 typedef ContentCallback = void Function(ContentStatus contentStatus, Map<String, dynamic> contentData);
 
+/// Called with every link opened from a content block or a feedback widget once a handler is set,
+/// so the application can route its own deep links. The SDK does not open the link itself then.
+typedef ContentUrlHandler = void Function(String url);
+
 abstract class ContentBuilder {
   /// Enables content fetching and updates for the user.
   /// This method opts the user into receiving content updates
