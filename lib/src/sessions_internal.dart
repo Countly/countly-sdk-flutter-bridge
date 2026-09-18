@@ -9,51 +9,31 @@ class SessionsInternal implements Sessions {
   bool _manualSessionEnabled = false;
 
   @override
-  Future<void> beginSession() async {
-    if (!_countlyState.isInitialized) {
-      Countly.log('"initWithConfig" must be called before "beginSession"', logLevel: LogLevel.ERROR);
-      return;
-    }
-    Countly.log('Calling "beginSession", manual session control enabled:[$_manualSessionEnabled]');
-
-    if (!_manualSessionEnabled) {
-      Countly.log('"beginSession" will be ignored since manual session control is not enabled');
-      return;
-    }
-    await _countlyState.channel.invokeMethod('beginSession');
-  }
+  Future<String?> beginSession() => _sendSessionCall('beginSession');
 
   @override
-  Future<void> endSession() async {
-    if (!_countlyState.isInitialized) {
-      Countly.log('"initWithConfig" must be called before "endSession"', logLevel: LogLevel.ERROR);
-      return;
-    }
-    Countly.log('Calling "endSession", manual session control enabled:[$_manualSessionEnabled]');
-
-    if (!_manualSessionEnabled) {
-      Countly.log('"endSession" will be ignored since manual session control is not enabled');
-      return;
-    }
-    await _countlyState.channel.invokeMethod('endSession');
-  }
+  Future<String?> endSession() => _sendSessionCall('endSession');
 
   @override
-  Future<void> updateSession() async {
-    if (!_countlyState.isInitialized) {
-      Countly.log('"initWithConfig" must be called before "updateSession"', logLevel: LogLevel.ERROR);
-      return;
-    }
-    Countly.log('Calling "updateSession", manual session control enabled:[$_manualSessionEnabled]');
-
-    if (!_manualSessionEnabled) {
-      Countly.log('"updateSession" will be ignored since manual session control is not enabled');
-      return;
-    }
-    await _countlyState.channel.invokeMethod('updateSession');
-  }
+  Future<String?> updateSession() => _sendSessionCall('updateSession');
 
   void enableManualSession() {
     _manualSessionEnabled = true;
+  }
+
+  /// Sends a manual session call and hands back what the native side reported, or the reason the call
+  /// was not made. Also serves the deprecated static session calls on [Countly].
+  Future<String?> _sendSessionCall(String method) async {
+    final String? notReady = _countlyState.requireInit('SessionsInternal', method);
+    if (notReady != null) {
+      return notReady;
+    }
+    Countly.log('[SessionsInternal] $method, manual session control enabled:[$_manualSessionEnabled]');
+    if (!_manualSessionEnabled) {
+      final String error = '"$method" will be ignored since manual session control is not enabled';
+      Countly.log('[SessionsInternal] $error');
+      return error;
+    }
+    return _countlyState.channel.invokeMethod(method, _countlyState.arguments());
   }
 }

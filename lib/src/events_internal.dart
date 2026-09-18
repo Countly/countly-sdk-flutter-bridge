@@ -48,7 +48,7 @@ class EventsInternal implements Events {
     args.add(duration?.toString());
     args.add(segmentation);
 
-    final String? result = await _countlyState.channel.invokeMethod(method, <String, dynamic>{'data': json.encode(args.where((item) => item != null).toList())});
+    final String? result = await _countlyState.channel.invokeMethod(method, _countlyState.arguments(json.encode(args.where((item) => item != null).toList())));
     Countly.log('[EventsInternal] $method, result:[$result]');
   }
 }

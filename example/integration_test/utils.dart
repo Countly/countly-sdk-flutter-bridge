@@ -18,39 +18,56 @@ final int TEST_SERVER_PORT = int.tryParse(const String.fromEnvironment('TEST_SER
 final String TEST_SERVER_URL = 'http://0.0.0.0:$TEST_SERVER_PORT';
 
 /// Get request queue from native side (list of strings)
-Future<List<String>> getRequestQueue() async {
-  final List<dynamic> rq = await _channelTest.invokeMethod('getRequestQueue');
+/// [String? instanceName] - the named instance to read from, "null" for the default one
+Future<List<String>> getRequestQueue({String? instanceName}) async {
+  final List<dynamic> rq = await _channelTest.invokeMethod('getRequestQueue', _instanceArguments(instanceName));
   return rq.cast<String>();
 }
 
 /// Get event queue from native side (list of json objects)
-Future<List<String>> getEventQueue() async {
-  final List<dynamic> eq = await _channelTest.invokeMethod('getEventQueue');
+/// [String? instanceName] - the named instance to read from, "null" for the default one
+Future<List<String>> getEventQueue({String? instanceName}) async {
+  final List<dynamic> eq = await _channelTest.invokeMethod('getEventQueue', _instanceArguments(instanceName));
   return eq.cast<String>();
 }
 
+/// Get the keys of the events waiting in the event queue, in the order they were recorded
+/// [String? instanceName] - the named instance to read from, "null" for the default one
+Future<List<String>> getEventKeys({String? instanceName}) async {
+  final events = await getEventQueue(instanceName: instanceName);
+  return events.map((event) => json.decode(event)['key'] as String).toList();
+}
+
+/// Method channel arguments that tag a test helper call with the instance it is meant for, the same
+/// shape the plugin builds for its own calls
+/// [String? instanceName]: the named instance, "null" for the default one
+/// [String? data]: the JSON encoded positional arguments, if the call takes any
+Map<String, dynamic>? _instanceArguments(String? instanceName, [String? data]) {
+  if (instanceName == null && data == null) {
+    return null;
+  }
+  return <String, dynamic>{
+    if (data != null) 'data': data,
+    if (instanceName != null) 'instanceName': instanceName,
+  };
+}
+
 /// Add request to native sides
-void storeRequest(Map<String, dynamic> request) async {
-  await _channelTest.invokeMethod('storeRequest', <String, dynamic>{
-    'data': json.encode([Uri(queryParameters: request).query]),
-  });
+void storeRequest(Map<String, dynamic> request, {String? instanceName}) async {
+  await _channelTest.invokeMethod('storeRequest', _instanceArguments(instanceName, json.encode([Uri(queryParameters: request).query])));
 }
 
-void addDirectRequest(Map<String, String> request) async {
-  await _channelTest.invokeMethod('addDirectRequest', <String, dynamic>{
-    'data': json.encode([request]),
-  });
+void addDirectRequest(Map<String, String> request, {String? instanceName}) async {
+  await _channelTest.invokeMethod('addDirectRequest', _instanceArguments(instanceName, json.encode([request])));
 }
 
-void setServerConfig(Map<String, dynamic> serverConfig) async {
-  await _channelTest.invokeMethod('setServerConfig', <String, dynamic>{
-    'data': json.encode([serverConfig]),
-  });
+void setServerConfig(Map<String, dynamic> serverConfig, {String? instanceName}) async {
+  await _channelTest.invokeMethod('setServerConfig', _instanceArguments(instanceName, json.encode([serverConfig])));
 }
 
 /// Retrieve the server configuration from the native side
-Future<Map<String, dynamic>> getServerConfig() async {
-  final Map<Object?, Object?> sc = await _channelTest.invokeMethod('getServerConfig');
+Future<Map<String, dynamic>> getServerConfig({String? instanceName}) async {
+  final Map<Object?, Object?> sc = await _channelTest.invokeMethod('getServerConfig', _instanceArguments(instanceName));
   return _deepCastMap(sc);
 }
 
@@ -89,7 +106,7 @@ void testCommonRequestParams(Map<String, List<String>> requestObject) {
         ? 'ios'
         : 'android'}",
   );
-  expect(requestObject['sdk_version']?[0], '26.1.1');
+  expect(requestObject['sdk_version']?[0], '26.8.0');
   expect(
     requestObject['av']?[0],
     kIsWeb

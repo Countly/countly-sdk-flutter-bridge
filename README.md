@@ -243,6 +243,32 @@ Countly.giveAllConsent();
 Countly.removeAllConsent();
 ```
 
+## Multiple instances
+
+Alongside the default instance the SDK can run named instances, each with its own app key, server,
+device ID, request queue and stored data. Getting a handle never starts it, so initialize it yourself.
+
+```dart
+final Countly second = Countly.instanceWithName('second');
+await second.initialize(CountlyConfig(SERVER_URL, OTHER_APP_KEY));
+
+await second.events.recordEvent('purchase');
+await second.views.startAutoStoppedView('Checkout');
+await second.consent.giveConsent([CountlyConsent.events]);
+
+Countly.getInstance('second');   // the handle, or null when there is none
+Countly.listInstances();         // every name, the default one included
+await Countly.removeInstance('second'); // stops it, keeps what it stored
+```
+
+A named instance starts from empty storage and resolves its own device ID, so do not move an
+existing integration onto one. Push notifications stay with the default instance, and at most one
+content block or feedback widget is displayed at a time across all instances.
+
+Every feature is reached through the instance: `events`, `views`, `sessions`, `deviceId`,
+`userProfile`, `remoteConfig`, `feedback`, `content`, `consent`, `crashes`, `location`, `apm` and
+`attribution`. The static calls on `Countly` keep working and apply to the default instance.
+
 ## Acknowledgements
 
 From 2014 to 2020 it was maintained by Trinisoft Technologies developers (trinisofttechnologies@gmail.com).

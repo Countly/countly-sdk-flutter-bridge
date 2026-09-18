@@ -24,7 +24,7 @@ class DeviceIDInternal implements DeviceID {
     final args = [];
     args.add(newDeviceID);
 
-    await _countlyState.channel.invokeMethod('changeWithMerge', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('changeWithMerge', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -43,7 +43,7 @@ class DeviceIDInternal implements DeviceID {
     final args = [];
     args.add(newDeviceID);
 
-    await _countlyState.channel.invokeMethod('changeWithoutMerge', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('changeWithoutMerge', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -54,7 +54,7 @@ class DeviceIDInternal implements DeviceID {
       Countly.log('[DeviceIDModule] getID, "initWithConfig" must be called before "getID"', logLevel: LogLevel.WARNING);
       return null;
     }
-    final String? result = await _countlyState.channel.invokeMethod('getID');
+    final String? result = await _countlyState.channel.invokeMethod('getID', _countlyState.arguments());
 
     return result;
   }
@@ -67,7 +67,7 @@ class DeviceIDInternal implements DeviceID {
       Countly.log('[DeviceIDModule] getIDType, "initWithConfig" must be called before "getIDType"', logLevel: LogLevel.WARNING);
       return null;
     }
-    final String result = await _countlyState.channel.invokeMethod('getIDType');
+    final String result = await _countlyState.channel.invokeMethod('getIDType', _countlyState.arguments());
     return _getDeviceIdType(result);
   }
 
@@ -102,7 +102,7 @@ class DeviceIDInternal implements DeviceID {
 
     final args = [];
     args.add(newDeviceID);
-    await _countlyState.channel.invokeMethod('setID', <String, dynamic>{'data': json.encode(args)});
+    await _countlyState.channel.invokeMethod('setID', _countlyState.arguments(json.encode(args)));
   }
 
   @override
@@ -114,6 +114,6 @@ class DeviceIDInternal implements DeviceID {
       return;
     }
 
-    await _countlyState.channel.invokeMethod('enableTemporaryIDMode');
+    await _countlyState.channel.invokeMethod('enableTemporaryIDMode', _countlyState.arguments());
   }
 }
