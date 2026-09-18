@@ -1,0 +1,195 @@
+name: Build the SDK
+
+# `contents: read` is what lets actions/checkout clone. Declaring any permissions block
+# replaces the default token scopes outright rather than adding to them, so leaving it out
+# drops read access to the repository itself.
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - master
+      - staging
+      - swift_sdk
+  # No branch filter: feature branches are reviewed as pull requests into an integration
+  # branch rather than into master, and those are exactly the runs worth having.
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # The cheapest signal, and the one everything else waits on: a Dart error should not cost
+  # three platform builds. Both Flutter versions run because the plugin declares a floor in
+  # pubspec.yaml, and an API newer than that floor compiles fine for the developer who added
+  # it while breaking every integrator sitting on the minimum.
+  analyze:
+    name: Analyze (Flutter ${{ matrix.flutter.label }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        flutter:
+          # The floor declared in pubspec.yaml. Raise both together.
+          - { version: "3.24.0", label: "3.24.0, the declared floor" }
+          # An empty version means the newest release of the channel.
+          - { version: "", label: "latest stable" }
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ matrix.flutter.version }}
+          channel: stable
+          cache: true
+
+      - name: Report the toolchain
+        run: flutter --version
+
+      - name: Resolve the plugin dependencies
+        run: flutter pub get
+
+      - name: Resolve the example dependencies
+        working-directory: example
+        run: flutter pub get
+
+      # `--no-fatal-infos` because the lint set in analysis_options.yaml reports style
+      # preferences as infos across the example and the integration tests. Errors and
+      # warnings still fail, which is what this gate is for.
+      - name: Analyze the plugin and the example
+        run: flutter analyze --no-fatal-infos lib example
+
+  # What pub.dev will see. It catches a missing LICENSE, a bad description, an oversized
+  # archive and a dependency that cannot resolve, none of which any build step notices.
+  package:
+    name: Package for pub.dev
+    runs-on: ubuntu-latest
+    needs: analyze
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve the plugin dependencies
+        run: flutter pub get
+
+      # The dry run exits non-zero for any validation warning, including the long standing and
+      # harmless one about checked in files that a `.gitignore` also matches, so its output is
+      # kept and judged rather than its exit code.
+      - name: Dry run the publish
+        run: flutter pub publish --dry-run 2>&1 | tee pub-dry-run.txt || true
+
+      - name: Check what the archive would carry
+        run: python3 .github/scripts/check_package_contents.py pub-dry-run.txt
+
+      - name: Upload the dry run output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pub-dry-run
+          path: pub-dry-run.txt
+          if-no-files-found: warn
+
+  build:
+    name: Build the example (${{ matrix.target.name }})
+    needs: analyze
+    runs-on: ${{ matrix.target.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { name: "Android", os: "ubuntu-latest" }
+          - { name: "iOS", os: "macos-15" }
+          - { name: "Web", os: "ubuntu-latest" }
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@v4
+
+      # Gradle 8.9 in the example needs a JDK 17 toolchain.
+      - name: Set up Java
+        if: matrix.target.name == 'Android'
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # The iOS plugin ships a Swift Package Manager manifest and no podspec, so the Flutter
+      # tool refuses to resolve it until Swift Package Manager is switched on.
+      - name: Enable Swift Package Manager
+        if: matrix.target.name == 'iOS'
+        run: flutter config --enable-swift-package-manager
+
+      - name: Resolve the plugin dependencies
+        run: flutter pub get
+
+      - name: Build the example
+        working-directory: example
+        run: |
+          case "${{ matrix.target.name }}" in
+            Android) flutter build apk --debug ;;
+            iOS)     flutter build ios --simulator --no-codesign ;;
+            Web)     flutter build web ;;
+          esac
+
+  # The no-push flavour (`countly_flutter_np`) is generated from this tree rather than stored
+  # in it, so nothing else notices when a rename or a new file breaks the generator. This runs
+  # it on a throwaway copy and analyzes what comes out.
+  no-push-flavour:
+    name: Generate the no-push flavour
+    needs: analyze
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # Generated in a copy so the checkout the other steps would use is left alone, and so a
+      # half-finished generation cannot be mistaken for the real tree.
+      - name: Generate the flavour
+        run: |
+          set -euo pipefail
+          cp -R "$GITHUB_WORKSPACE" /tmp/np
+          cd /tmp/np/scripts
+          python3 script.py
+
+      - name: Analyze the generated flavour
+        working-directory: /tmp/np
+        run: |
+          set -euo pipefail
+          grep -q "name: countly_flutter_np" pubspec.yaml
+          flutter pub get
+          flutter analyze --no-fatal-infos lib
+
+  # Every file that carries a version is generated from scripts/config/sdk_versions.txt by
+  # scripts/sync_sdk_versions.dart. Nothing stops a hand edit to one of them, and the result is
+  # an SDK that reports one version on the wire and another in the changelog.
+  version-consistency:
+    name: Versions are consistent
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@v4
+
+      - name: Compare every file that carries a version
+        run: python3 .github/scripts/check_version_consistency.py

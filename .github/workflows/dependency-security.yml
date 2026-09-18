@@ -1,0 +1,58 @@
+name: Dependency Security Scan
+
+# Runs on pushes and pull requests so a bad upgrade is caught immediately, and on a schedule
+# because a dependency can become vulnerable without this repository changing at all.
+on:
+  push:
+    branches:
+      - master
+      - staging
+      - swift_sdk
+  pull_request:
+  schedule:
+    # Mondays 06:00 UTC
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Both lockfiles are scanned. The plugin's dependencies are what every integrator inherits;
+  # the example's are not shipped, but a vulnerable one there still runs on a maintainer's
+  # machine and in the integration test workflow.
+  #
+  # OSV-Scanner ships these as reusable workflows rather than as a step level action, so they
+  # are called with `uses` at the job level and cannot carry steps of their own. Both lockfiles
+  # are committed, so no resolve step is needed before the scan.
+  scan-pull-request:
+    name: OSV scan (changed dependencies)
+    if: github.event_name == 'pull_request'
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.6.0"
+    with:
+      scan-args: |-
+        --lockfile=./pubspec.lock
+        --lockfile=./example/pubspec.lock
+
+  # The same scan over everything, for pushes and for the weekly run. A dependency that was
+  # clean when it was added and is vulnerable now is only ever caught here.
+  scan-all:
+    name: OSV scan (all dependencies)
+    if: github.event_name != 'pull_request'
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.6.0"
+    with:
+      scan-args: |-
+        --lockfile=./pubspec.lock
+        --lockfile=./example/pubspec.lock

@@ -1,0 +1,176 @@
+name: Test the SDK
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - master
+      - staging
+      - swift_sdk
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      categories:
+        description: "Test categories to run, as flags for scripts/run_integration_tests.dart"
+        required: false
+        default: "--server --light"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # The runner's own categories. `--manual` needs a human to background and foreground the app,
+  # and `--rc` talks to a real Countly server with credentials this workflow does not hold, so
+  # neither can run here. `--fresh` because the pass cache lives in the working tree and a fresh
+  # checkout would find it empty anyway; being explicit stops a cached checkout skipping tests.
+  TEST_CATEGORIES: ${{ github.event.inputs.categories || '--server --light' }}
+
+jobs:
+  # The whole integration suite, on a real emulator, driven by the repository's own runner so CI
+  # and a developer's machine run the same thing rather than two implementations of it.
+  android:
+    name: Integration tests (Android)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve the plugin dependencies
+        run: flutter pub get
+
+      # The emulator needs hardware acceleration to be usable. The runner image ships /dev/kvm
+      # but does not grant it to the job's user.
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      # The action boots the emulator, waits for it, and runs `script` with it attached to adb,
+      # which is what the repository's runner discovers devices through.
+      - name: Run the integration tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 31
+          target: google_apis
+          arch: x86_64
+          profile: pixel_5
+          ram-size: 4096M
+          disable-animations: true
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: dart run scripts/run_integration_tests.dart ${{ env.TEST_CATEGORIES }} --fresh
+
+      - name: Upload the test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-logs-android
+          path: test_results/
+          if-no-files-found: warn
+
+  ios:
+    name: Integration tests (iOS)
+    runs-on: macos-15
+    timeout-minutes: 90
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Enable Swift Package Manager
+        run: flutter config --enable-swift-package-manager
+
+      - name: Resolve the plugin dependencies
+        run: flutter pub get
+
+      # The repository's runner discovers booted simulators through simctl, so one has to be
+      # running before it starts. Taking the newest installed iOS runtime rather than naming a
+      # device keeps this working when the runner image changes underneath.
+      - name: Boot an iOS simulator
+        run: |
+          python3 - <<'PYEOF'
+          import json, subprocess, sys
+
+          def version(text):
+              return tuple(int(part) if part.isdigit() else 0 for part in text.split("."))
+
+          listing = json.loads(subprocess.run(
+              ["xcrun", "simctl", "list", "-j"], capture_output=True, text=True, check=True).stdout)
+
+          runtimes = [r for r in listing["runtimes"] if r.get("isAvailable") and r.get("platform") == "iOS"]
+          if not runtimes:
+              sys.exit("::error::No iOS simulator runtime is installed on this runner.")
+          runtime = max(runtimes, key=lambda r: version(r.get("version", "0")))
+
+          usable = [d for d in listing["devices"].get(runtime["identifier"], []) if d.get("isAvailable")]
+          if usable:
+              udid = usable[0]["udid"]
+          else:
+              types = runtime.get("supportedDeviceTypes") or []
+              if not types:
+                  sys.exit("::error::No device type supports iOS %s." % runtime.get("version"))
+              udid = subprocess.run(
+                  ["xcrun", "simctl", "create", "cly-ci", types[0]["identifier"], runtime["identifier"]],
+                  capture_output=True, text=True, check=True).stdout.strip()
+
+          subprocess.run(["xcrun", "simctl", "boot", udid], check=False)
+          subprocess.run(["xcrun", "simctl", "bootstatus", udid, "-b"], check=True)
+          print("Booted %s on iOS %s" % (udid, runtime.get("version")))
+          PYEOF
+
+      - name: Run the integration tests
+        run: dart run scripts/run_integration_tests.dart ${{ env.TEST_CATEGORIES }} --fresh
+
+      - name: Upload the test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-logs-ios
+          path: test_results/
+          if-no-files-found: warn
+
+  # Web has no integration tests to run: example/integration_test/utils.dart imports `dart:io`
+  # unconditionally, so every suite that uses it fails to compile for the web target, including
+  # the suites written as web only. Until that import is made conditional, this job builds the
+  # web example instead, which is what stops a web-only break reaching a release.
+  web:
+    name: Build the web example
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve the plugin dependencies
+        run: flutter pub get
+
+      - name: Build the web example
+        working-directory: example
+        run: flutter build web
