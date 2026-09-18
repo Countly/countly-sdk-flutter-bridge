@@ -57,13 +57,6 @@ void main(List<String> args) {
   );
 
   replaceInFile(
-    '$rootDir/ios/countly_flutter.podspec',
-    RegExp(r"s\.version = '.+'"),
-    "s.version = '$flutterVersion'",
-    'Flutter → ios/countly_flutter.podspec',
-  );
-
-  replaceInFile(
     '$rootDir/android/src/main/java/ly/count/dart/countly_flutter/CountlyFlutterPlugin.java',
     RegExp(r'COUNTLY_FLUTTER_SDK_VERSION_STRING = ".+"'),
     'COUNTLY_FLUTTER_SDK_VERSION_STRING = "$flutterVersion"',
@@ -71,10 +64,10 @@ void main(List<String> args) {
   );
 
   replaceInFile(
-    '$rootDir/ios/countly_flutter/Sources/countly_flutter/CountlyFlutterPlugin.m',
-    RegExp(r'kCountlyFlutterSDKVersion = @".+"'),
-    'kCountlyFlutterSDKVersion = @"$flutterVersion"',
-    'Flutter → ios/countly_flutter/Sources/countly_flutter/CountlyFlutterPlugin.m',
+    '$rootDir/ios/countly_flutter/Sources/countly_flutter/CountlyFlutterPlugin.swift',
+    RegExp(r'kCountlyFlutterSDKVersion = ".+"'),
+    'kCountlyFlutterSDKVersion = "$flutterVersion"',
+    'Flutter → ios/countly_flutter/Sources/countly_flutter/CountlyFlutterPlugin.swift',
   );
 
   replaceInFile(
@@ -89,13 +82,6 @@ void main(List<String> args) {
     RegExp(r'^version: .+', multiLine: true),
     'version: $flutterVersion',
     'Flutter → no-push-files/pubspec.yaml',
-  );
-
-  replaceInFile(
-    '$scriptDir/no-push-files/countly_flutter_np.podspec',
-    RegExp(r"s\.version = '.+'"),
-    "s.version = '$flutterVersion'",
-    'Flutter → no-push-files/countly_flutter_np.podspec',
   );
 
   // ---- Web version ----
@@ -121,45 +107,32 @@ void main(List<String> args) {
     'Android → no-push-files/build.gradle',
   );
 
-  // ---- iOS: submodule init & sparse checkout ----
+  // ---- iOS: native SDK dependency ----
+  // The native iOS SDK is a SwiftPM dependency, so its version lives in
+  // Package.swift rather than in a checked-out tree.
   final iosTag = args.isNotEmpty ? args[0] : iosVersion;
-  final submodulePath = 'ios/countly_flutter/Sources/countly_flutter/countly-sdk-ios';
-  final sparseFile = '$scriptDir/config/sparse-checkout.list';
+  final packageSwift = '$rootDir/ios/countly_flutter/Package.swift';
+  final pinnedByBranch = File(packageSwift).existsSync() &&
+      RegExp(r'countly-sdk-swift\.git",\s*branch:').hasMatch(File(packageSwift).readAsStringSync());
 
   print('');
-  print('🔧 Initializing iOS SDK submodule...');
-  print('   Tag: $iosTag');
-  print('   Path: $submodulePath');
-  print('');
-
-  run('git', ['submodule', 'update', '--init', '--recursive', submodulePath], rootDir);
-
-  run('git', ['fetch', '--all', '--tags'], '$rootDir/$submodulePath');
-
-  final checkoutResult = Process.runSync('git', ['checkout', iosTag], workingDirectory: '$rootDir/$submodulePath');
-  if (checkoutResult.exitCode != 0) {
-    stderr.writeln('❌ Tag not found: $iosTag');
-    stderr.writeln(checkoutResult.stderr);
-    exit(1);
-  }
-  print('📥 Checked out tag $iosTag');
-
-  if (!File(sparseFile).existsSync()) {
-    stderr.writeln('❌ Missing sparse-checkout rules at: $sparseFile');
+  if (pinnedByBranch) {
+    // Fail rather than print: a releaser who sees a success banner will ship
+    // believing the version was written, and nothing else records it.
+    stderr.writeln('❌ ios/countly_flutter/Package.swift pins countly-sdk-swift by branch, not by version.');
+    stderr.writeln('   The iOS SDK version cannot be synced while that is true, so this would');
+    stderr.writeln('   report $iosTag while the build resolves whatever the branch HEAD is.');
+    stderr.writeln('   Move Package.swift to a version requirement, then re-run.');
     exit(1);
   }
 
-  run('git', ['sparse-checkout', 'init', '--no-cone'], '$rootDir/$submodulePath');
-
-  final gitPathResult = Process.runSync('git', ['rev-parse', '--git-path', 'info/sparse-checkout'], workingDirectory: '$rootDir/$submodulePath');
-  final sparseTarget = gitPathResult.stdout.toString().trim();
-  // git rev-parse may return a relative or absolute path
-  final sparseTargetPath = sparseTarget.startsWith('/') ? sparseTarget : '$rootDir/$submodulePath/$sparseTarget';
-  File(sparseFile).copySync(sparseTargetPath);
-
-  run('git', ['read-tree', '-mu', 'HEAD'], '$rootDir/$submodulePath');
-
-  print('✅ iOS     → submodule checked out at $iosTag');
+  replaceInFile(
+    packageSwift,
+    RegExp(r'countly-sdk-swift\.git", from: "[^"]+"'),
+    'countly-sdk-swift.git", from: "$iosTag"',
+    'iOS      → Package.swift',
+  );
+  print('');
 
   // ---- Stage all modified files ----
   print('');
@@ -170,15 +143,13 @@ void main(List<String> args) {
         'add',
         'scripts/config/sdk_versions.txt',
         'pubspec.yaml',
-        'ios/countly_flutter.podspec',
         'android/src/main/java/ly/count/dart/countly_flutter/CountlyFlutterPlugin.java',
-        'ios/countly_flutter/Sources/countly_flutter/CountlyFlutterPlugin.m',
+        'ios/countly_flutter/Sources/countly_flutter/CountlyFlutterPlugin.swift',
         'lib/src/web/plugin_config.dart',
         'scripts/no-push-files/pubspec.yaml',
-        'scripts/no-push-files/countly_flutter_np.podspec',
         'android/build.gradle',
         'scripts/no-push-files/build.gradle',
-        'ios/countly_flutter/Sources/countly_flutter/countly-sdk-ios',
+        'ios/countly_flutter/Package.swift',
       ],
       rootDir);
   print('✅ All changed files staged');

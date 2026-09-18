@@ -22,11 +22,11 @@ flutter pub get
 
 Then you should change the SERVER_URL and APP_KEY values in 'config_object.dart' to values that you get from your Countly server. 
 
-At this point if you are using Mac you would also need to do the following:
+At this point if you are building for iOS you also need Swift Package Manager
+enabled, which the plugin requires:
 
 ```bash
-cd ios
-pod install
+flutter config --enable-swift-package-manager
 ```
 
 Next you can run the app in an emulator/simulator or a real device by:
@@ -57,9 +57,8 @@ You should first check if this project builds and run by:
 
 ```bash
 flutter pub get
-# for Mac also:
-# cd ios
-# pod install
+# for iOS, once per machine:
+# flutter config --enable-swift-package-manager
 flutter run
 ```
 
@@ -67,9 +66,8 @@ If it is working then you should copy and paste the 'lib' folder over to this ne
 
 ```bash
 flutter pub add countly_flutter
-# for Mac also:
-# cd ios
-# pod install
+# for iOS, once per machine:
+# flutter config --enable-swift-package-manager
 flutter run
 ```
 

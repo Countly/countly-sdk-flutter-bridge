@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -35,10 +34,14 @@ void main() {
       testCommonRequestParams(queryParams); // tests
     }
 
-    // Verify some parameters of a single event
+    // Verify some parameters of a single event.
+    // Both platforms report the session-start orientation before any view. The
+    // Objective-C iOS SDK used to drop it, because it read its own
+    // enableOrientationTracking flag in beginSession before startWithConfig had
+    // assigned it, so iOS previously saw one event fewer and a view event first.
     Map<String, dynamic> event = json.decode(eventList[0]);
-    expect(Platform.isAndroid ? "[CLY]_orientation" : "[CLY]_view", event['key']);
+    expect("[CLY]_orientation", event['key']);
     expect(1, event['count']);
-    expect(Platform.isAndroid ? 4 : 3, eventList.length);
+    expect(4, eventList.length);
   });
 }

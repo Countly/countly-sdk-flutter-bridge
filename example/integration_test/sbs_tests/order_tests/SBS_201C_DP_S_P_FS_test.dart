@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -47,7 +48,9 @@ void main() {
     expect(rq.length, 0);
     expect(eq.length, 1);
 
-    validateEvent(event: jsonDecode(eq.first), key: 'ThisWill', segmentation: {'no1': 'value', 'no4': 'value', 'no3': 'value', 'no5': 'value'});
+    validateEvent(event: jsonDecode(eq.first), key: 'ThisWill', segmentation: Platform.isAndroid
+            ? {'no1': 'value', 'no3': 'value', 'no4': 'value', 'no5': 'value'}
+            : {'no1': 'value', 'no2': 'value', 'no3': 'value', 'no4': 'value'});
 
     expect(await getServerConfig(), {
       'v': 1,

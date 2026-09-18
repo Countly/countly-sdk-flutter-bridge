@@ -67,7 +67,7 @@ void main() {
       } else if (a == 5) {
         // 0) Custom Event
         List<dynamic> eventList = json.decode(queryParams['events']![0]);
-        int eventIdx = Platform.isAndroid ? 1 : 0; // why 1 for android, because android adds orientation
+        int eventIdx = 1; // 0 is the session-start orientation event, on both platforms
         var event = eventList[eventIdx];
         expect(event['key'], 'Event With Sum And Segment');
         expect(event['segmentation'].length, MAX_SEGMENTATION_COUNT);

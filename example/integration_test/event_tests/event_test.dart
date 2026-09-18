@@ -4,7 +4,6 @@ import 'package:integration_test/integration_test.dart';
 import '../utils.dart';
 import 'event_utils.dart';
 import 'dart:convert';
-import 'dart:io';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +25,7 @@ void main() {
     print('EQ length: ${eventList.length}');
 
     expect(requestList.length, 1);
-    expect(eventList.length, Platform.isAndroid ? 33 : 32);
+    expect(eventList.length, 33);
 
     // begin session
     Map<String, List<String>> queryParams = Uri.parse("?" + requestList[0]).queryParametersAll;
@@ -34,13 +33,11 @@ void main() {
 
     int n = 0;
     Map<String, dynamic> currentEvent;
-    if (Platform.isAndroid) {
-      currentEvent = json.decode(eventList[n]);
-      // 1. orientation event
-      expect("[CLY]_orientation", currentEvent['key']);
-      expect(1, currentEvent['count']);
-      n++;
-    }
+    // 1. orientation event, recorded at session start on both platforms
+    currentEvent = json.decode(eventList[n]);
+    expect("[CLY]_orientation", currentEvent['key']);
+    expect(1, currentEvent['count']);
+    n++;
 
     // 2. event
     currentEvent = json.decode(eventList[n++]);
