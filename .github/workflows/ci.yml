@@ -1,0 +1,282 @@
+name: CI
+
+on:
+  push:
+    branches: [master, staging]
+  pull_request:
+    branches: [master, staging]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.32.0'
+
+jobs:
+  # ── Analyze & Format ──────────────────────────────────────────────
+  analyze:
+    name: Analyze & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Check formatting
+        run: dart format --set-exit-if-changed --line-length=300 lib/
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+
+  # ── Build Android ─────────────────────────────────────────────────
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build example APK
+        working-directory: example
+        run: flutter build apk --debug
+
+  # ── Build iOS ─────────────────────────────────────────────────────
+  build-ios:
+    name: Build iOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build example (iOS Simulator)
+        working-directory: example
+        run: flutter build ios --simulator --no-codesign
+
+  # ── Integration Tests (iOS) ───────────────────────────────────────
+  test-ios:
+    name: "Tests iOS: ${{ matrix.category }}"
+    runs-on: macos-latest
+    needs: build-ios
+    strategy:
+      fail-fast: false
+      matrix:
+        category: [light, server]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Boot iOS Simulator
+        run: |
+          DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c "
+          import json,sys
+          data=json.load(sys.stdin)
+          for runtime,devices in data['devices'].items():
+            if 'iOS' in runtime:
+              for d in devices:
+                if d['isAvailable'] and 'iPhone' in d['name']:
+                  print(d['udid']); sys.exit()
+          ")
+          xcrun simctl boot "${DEVICE_ID}" 2>/dev/null || true
+          echo "DEVICE_ID=${DEVICE_ID}" >> "${GITHUB_ENV}"
+
+      - name: Run tests
+        env:
+          TEST_CATEGORY: ${{ matrix.category }}
+        working-directory: example
+        run: ../scripts/run_integration_tests.sh --"${TEST_CATEGORY}" --device "${DEVICE_ID}" --fresh
+        timeout-minutes: 30
+
+      - name: Generate summary
+        if: always()
+        run: |
+          PASSED=$(grep -rh "PASSED" test_results/*/worker_*.log 2>/dev/null | wc -l | tr -d ' ')
+          FAILED=$(grep -rh "FAILED" test_results/*/worker_*.log 2>/dev/null | wc -l | tr -d ' ')
+          FAILED_LIST=$(grep -rh "FAILED" test_results/*/worker_*.log 2>/dev/null | sed 's/.*FAILED (\(.*\)).*/\1/' | tr '\n' ',' | sed 's/,$//')
+          echo "{\"platform\":\"iOS\",\"category\":\"${{ matrix.category }}\",\"passed\":${PASSED:-0},\"failed\":${FAILED:-0},\"failed_tests\":\"${FAILED_LIST}\"}" > test_results/summary.json
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-ios-${{ matrix.category }}
+          path: test_results/
+          retention-days: 14
+
+  # ── Integration Tests (Android) ───────────────────────────────────
+  test-android:
+    name: "Tests Android: ${{ matrix.category }}"
+    runs-on: ubuntu-latest
+    needs: build-android
+    strategy:
+      fail-fast: false
+      matrix:
+        category: [light, server]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run tests
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          TEST_CATEGORY: ${{ matrix.category }}
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_6
+          emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect
+          script: cd example && ../scripts/run_integration_tests.sh --"${TEST_CATEGORY}" --fresh
+        timeout-minutes: 45
+
+      - name: Generate summary
+        if: always()
+        run: |
+          PASSED=$(grep -rh "PASSED" test_results/*/worker_*.log 2>/dev/null | wc -l | tr -d ' ')
+          FAILED=$(grep -rh "FAILED" test_results/*/worker_*.log 2>/dev/null | wc -l | tr -d ' ')
+          FAILED_LIST=$(grep -rh "FAILED" test_results/*/worker_*.log 2>/dev/null | sed 's/.*FAILED (\(.*\)).*/\1/' | tr '\n' ',' | sed 's/,$//')
+          echo "{\"platform\":\"Android\",\"category\":\"${{ matrix.category }}\",\"passed\":${PASSED:-0},\"failed\":${FAILED:-0},\"failed_tests\":\"${FAILED_LIST}\"}" > test_results/summary.json
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-android-${{ matrix.category }}
+          path: test_results/
+          retention-days: 14
+
+  # ── Report Results to PR ──────────────────────────────────────────
+  report:
+    name: Report Results
+    if: always() && github.event_name == 'pull_request'
+    needs: [analyze, test-ios, test-android]
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-results-*
+          path: results/
+
+      - name: Build report and comment on PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          ANALYZE_RESULT: ${{ needs.analyze.result }}
+        run: |
+          BODY="## CI Test Results\n\n"
+
+          if [ "${ANALYZE_RESULT}" = "success" ]; then
+            BODY+="**Analyze & Format:** :white_check_mark: Passed\n\n"
+          else
+            BODY+="**Analyze & Format:** :x: Failed\n\n"
+          fi
+
+          BODY+="### Integration Tests\n\n"
+          BODY+="| Platform | Category | Passed | Failed | Status |\n"
+          BODY+="|----------|----------|--------|--------|--------|\n"
+
+          TOTAL_PASSED=0
+          TOTAL_FAILED=0
+          FAILED_DETAILS=""
+
+          for summary in results/*/summary.json; do
+            [ -f "$summary" ] || continue
+            PLATFORM=$(python3 -c "import json; d=json.load(open('$summary')); print(d['platform'])")
+            CATEGORY=$(python3 -c "import json; d=json.load(open('$summary')); print(d['category'])")
+            PASSED=$(python3 -c "import json; d=json.load(open('$summary')); print(d['passed'])")
+            FAILED=$(python3 -c "import json; d=json.load(open('$summary')); print(d['failed'])")
+            FAILED_TESTS=$(python3 -c "import json; d=json.load(open('$summary')); print(d.get('failed_tests',''))")
+
+            TOTAL_PASSED=$((TOTAL_PASSED + PASSED))
+            TOTAL_FAILED=$((TOTAL_FAILED + FAILED))
+
+            if [ "$FAILED" -gt 0 ]; then
+              STATUS=":x: Failed"
+              FAILED_DETAILS+="\n**${PLATFORM} - ${CATEGORY}:** ${FAILED_TESTS}"
+            else
+              STATUS=":white_check_mark: Passed"
+            fi
+
+            BODY+="| ${PLATFORM} | ${CATEGORY} | ${PASSED} | ${FAILED} | ${STATUS} |\n"
+          done
+
+          BODY+="\n**Total: ${TOTAL_PASSED} passed, ${TOTAL_FAILED} failed**\n"
+
+          if [ -n "$FAILED_DETAILS" ]; then
+            BODY+="\n<details><summary>Failed tests</summary>\n${FAILED_DETAILS}\n</details>\n"
+          fi
+
+          COMMENT_TAG="<!-- ci-test-results -->"
+          BODY="${COMMENT_TAG}\n${BODY}"
+
+          EXISTING=$(gh api "repos/${REPO}/issues/${PR_NUMBER}/comments" --jq ".[] | select(.body | contains(\"${COMMENT_TAG}\")) | .id" | head -1)
+
+          if [ -n "$EXISTING" ]; then
+            printf "$BODY" | gh api "repos/${REPO}/issues/comments/${EXISTING}" -X PATCH -F "body=@-"
+          else
+            printf "$BODY" | gh api "repos/${REPO}/issues/${PR_NUMBER}/comments" -F "body=@-"
+          fi
