@@ -33,9 +33,10 @@ jobs:
       fail-fast: false
       matrix:
         flutter:
-          - { version: "3.24.0", label: "3.24.0, the oldest checked", targets: "lib", pubGetArgs: "--no-example" }
+          # 3.24's `flutter pub get --no-example` still loads the example's package config and fails.
+          - { version: "3.24.0", label: "3.24.0, the oldest checked", targets: "lib", pubGet: "dart pub get --no-example" }
           # An empty version means the newest release of the channel.
-          - { version: "", label: "latest stable", targets: "lib example", pubGetArgs: "" }
+          - { version: "", label: "latest stable", targets: "lib example", pubGet: "flutter pub get" }
     steps:
       - name: Checkout SDK code
         uses: actions/checkout@v4
@@ -51,13 +52,14 @@ jobs:
         run: flutter --version
 
       - name: Resolve the dependencies
-        run: flutter pub get ${{ matrix.flutter.pubGetArgs }}
+        run: ${{ matrix.flutter.pubGet }}
 
       # `--no-fatal-infos` because the lint set in analysis_options.yaml reports style
       # preferences as infos across the example and the integration tests. Errors and
-      # warnings still fail, which is what this gate is for.
+      # warnings still fail, which is what this gate is for. `--no-pub` keeps analyze from
+      # rerunning `flutter pub get`, which fails on 3.24.
       - name: Analyze
-        run: flutter analyze --no-fatal-infos ${{ matrix.flutter.targets }}
+        run: flutter analyze --no-pub --no-fatal-infos ${{ matrix.flutter.targets }}
 
   # What pub.dev will see. It catches a missing LICENSE, a bad description, an oversized
   # archive, a missing iOS SDK and a dependency that cannot resolve, none of which any build
@@ -102,6 +104,10 @@ jobs:
     name: Build the example (${{ matrix.target.name }})
     needs: analyze
     runs-on: ${{ matrix.target.os }}
+    # SwiftPM rejects the example's local plugin override unless the plugin root is named countly_flutter.
+    defaults:
+      run:
+        working-directory: countly_flutter
     strategy:
       fail-fast: false
       matrix:
@@ -115,6 +121,8 @@ jobs:
     steps:
       - name: Checkout SDK code
         uses: actions/checkout@v4
+        with:
+          path: countly_flutter
 
       # Gradle in the example needs a JDK 17 toolchain.
       - name: Set up Java
@@ -149,7 +157,7 @@ jobs:
         run: flutter pub get
 
       - name: Build the example
-        working-directory: example
+        working-directory: countly_flutter/example
         run: |
           case "${{ matrix.target.name }}" in
             Android) flutter build apk --debug ;;

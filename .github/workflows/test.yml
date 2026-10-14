@@ -9,12 +9,8 @@ on:
       - master
       - staging
   pull_request:
+  # No inputs: a manual run must test exactly what an automatic one does (Checkov CKV_GHA_7).
   workflow_dispatch:
-    inputs:
-      categories:
-        description: "Test categories to run, as flags for scripts/run_integration_tests.dart"
-        required: false
-        default: "--server --light"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,7 +21,7 @@ env:
   # and `--rc` talks to a real Countly server with credentials this workflow does not hold, so
   # neither can run here. `--fresh` because the pass cache lives in the working tree and a fresh
   # checkout would find it empty anyway; being explicit stops a cached checkout skipping tests.
-  TEST_CATEGORIES: ${{ github.event.inputs.categories || '--server --light' }}
+  TEST_CATEGORIES: "--server --light"
 
 jobs:
   # The whole integration suite, on a real emulator, driven by the repository's own runner so CI
@@ -88,9 +84,15 @@ jobs:
     name: Integration tests (iOS)
     runs-on: macos-15
     timeout-minutes: 90
+    # SwiftPM rejects the example's local plugin override unless the plugin root is named countly_flutter.
+    defaults:
+      run:
+        working-directory: countly_flutter
     steps:
       - name: Checkout SDK code
         uses: actions/checkout@v4
+        with:
+          path: countly_flutter
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -149,7 +151,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: integration-logs-ios
-          path: test_results/
+          path: countly_flutter/test_results/
           if-no-files-found: warn
 
   # Web has no integration tests to run: example/integration_test/utils.dart imports `dart:io`

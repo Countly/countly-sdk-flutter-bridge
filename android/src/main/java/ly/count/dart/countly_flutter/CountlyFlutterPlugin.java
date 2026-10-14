@@ -80,6 +80,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
     private final boolean BUILDING_WITH_PUSH_DISABLED = false;
     private static final int DATA_SCHEMA_VERSIONS = 4;
+    private static final int MAX_PENDING_NOTIFICATIONS = 50;
+    private static final String POST_NOTIFICATIONS_PERMISSION = "android.permission.POST_NOTIFICATIONS";
+    private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 4119;
+    private static final ArrayDeque<String> pendingNotifications = new ArrayDeque<>();
 
     public void notifyPublicChannelRCDL(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues, Integer requestID) {
         Map<String, Object> data = new HashMap<>();
@@ -151,11 +155,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private Activity activity;
     private static Boolean isDebug = false;
     private final CountlyConfig config = new CountlyConfig();
-    private static final int MAX_PENDING_NOTIFICATIONS = 50;
-    private static final String POST_NOTIFICATIONS_PERMISSION = "android.permission.POST_NOTIFICATIONS";
-    private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 4119;
     private static Callback notificationListener = null;
-    private static final ArrayDeque<String> pendingNotifications = new ArrayDeque<>();
     private MethodChannel methodChannel;
     // Channel of the engine that receives native SDK callbacks, chosen by bindCallbackChannel.
     private static volatile MethodChannel sharedChannel;
