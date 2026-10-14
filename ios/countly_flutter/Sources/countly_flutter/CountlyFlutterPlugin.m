@@ -24,6 +24,11 @@
 @property(nonatomic) NSMutableArray *recordedEvents;
 @end
 
+@interface CountlyFlutterPlugin ()
+@property(nonatomic, strong) FlutterMethodChannel *channel;
+@property(nonatomic, weak) NSObject<FlutterPluginRegistrar> *registrar;
+@end
+
 BOOL BUILDING_WITH_PUSH_DISABLED = false;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
@@ -45,17 +50,53 @@ NSString *const PICTURE_PATH_KEY = @"picturePath";
 NSString *const GENDER_KEY = @"gender";
 NSString *const BYEAR_KEY = @"byear";
 NSString *const CUSTOM_KEY = @"custom";
+NSString *const CountlyStarRatingConsent = @"star-rating";
 
 @implementation CountlyFlutterPlugin
 
 CountlyConfig *config = nil;
 Boolean isInitialized = false;
 NSMutableDictionary *networkRequest = nil;
-FlutterMethodChannel *_channel;
+// Channel of the engine that receives native callbacks: the first engine registered, until an engine
+// with UI initializes the SDK.
+static FlutterMethodChannel *callbackChannel = nil;
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
-    _channel = [FlutterMethodChannel methodChannelWithName:@"countly_flutter" binaryMessenger:[registrar messenger]];
+    FlutterMethodChannel *channel = [FlutterMethodChannel methodChannelWithName:@"countly_flutter" binaryMessenger:[registrar messenger]];
     CountlyFlutterPlugin *instance = [[CountlyFlutterPlugin alloc] init];
-    [registrar addMethodCallDelegate:instance channel:_channel];
+    instance.channel = channel;
+    instance.registrar = registrar;
+    if (callbackChannel == nil) {
+        callbackChannel = channel;
+    }
+    [registrar addMethodCallDelegate:instance channel:channel];
+}
+
+/**
+ * Stops sending native callbacks to this engine once it is torn down.
+ */
+- (void)detachFromEngineForRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
+    if (callbackChannel == self.channel) {
+        callbackChannel = nil;
+    }
+}
+
+/**
+ * Makes this engine the target of native callbacks when no engine is, or when this engine shows the
+ * app's UI, so a headless engine that calls init cannot take callbacks away from the UI.
+ */
+- (void)bindCallbackChannel {
+    if (callbackChannel == nil || [self hasViewController]) {
+        callbackChannel = self.channel;
+    }
+}
+
+/**
+ * Whether this plugin's engine is attached to a view controller. Headless engines, such as ones
+ * started for background work, are not. Older Flutter versions do not expose the view controller.
+ */
+- (BOOL)hasViewController {
+    NSObject<FlutterPluginRegistrar> *registrar = self.registrar;
+    return [registrar respondsToSelector:@selector(viewController)] && [(NSObject *)registrar valueForKey:@"viewController"] != nil;
 }
 
 - (void)handleMethodCall:(FlutterMethodCall *)call result:(FlutterResult)result {
@@ -72,6 +113,7 @@ FlutterMethodChannel *_channel;
     }
 
     if ([@"init" isEqualToString:call.method]) {
+        [self bindCallbackChannel];
         NSDictionary *_config = [command objectAtIndex:0];
         [self populateConfig:_config];
         config.internalLogLevel = CLYInternalLogLevelVerbose;
@@ -151,6 +193,14 @@ FlutterMethodChannel *_channel;
           [NSUserDefaults.standardUserDefaults synchronize];
           result(@"setServerConfig: success");
         });
+    } else if ([@"testOnNotification" isEqualToString:call.method]) {
+#ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
+        NSArray *payloads = [command objectAtIndex:0];
+        for (NSDictionary *payload in payloads) {
+            [CountlyFLPushNotifications.sharedInstance onNotification:payload];
+        }
+#endif
+        result(nil);
     } else if ([@"getServerConfig" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSDictionary *storedConfig = [NSUserDefaults.standardUserDefaults objectForKey:@"kCountlyServerConfigPersistencyKey"];
@@ -186,7 +236,7 @@ FlutterMethodChannel *_channel;
           NSString *countString = [command objectAtIndex:1];
           int count = [countString intValue];
           NSString *sumString = [command objectAtIndex:2];
-          float sum = [sumString floatValue];
+          double sum = [sumString doubleValue];
           NSString *durationString = [command objectAtIndex:3];
           int duration = [durationString intValue];
           NSDictionary *segmentation;
@@ -201,23 +251,6 @@ FlutterMethodChannel *_channel;
           NSString *resultString = @"recordEvent for: ";
           resultString = [resultString stringByAppendingString:key];
           result(resultString);
-        });
-    } else if ([@"recordView" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          NSString *recordView = [command objectAtIndex:0];
-          NSMutableDictionary *segments = [[NSMutableDictionary alloc] init];
-          int il = (int)command.count;
-          if (il > 2) {
-              for (int i = 1; i < il; i += 2) {
-                  @try {
-                      segments[[command objectAtIndex:i]] = [command objectAtIndex:i + 1];
-                  } @catch (NSException *exception) {
-                      COUNTLY_FLUTTER_LOG(@"recordView: Exception occured while parsing segments: %@", exception);
-                  }
-              }
-          }
-          [Countly.sharedInstance recordView:recordView segmentation:segments];
-          result(@"recordView Sent!");
         });
     } else if ([@"setLoggingEnabled" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -292,13 +325,12 @@ FlutterMethodChannel *_channel;
         });
 
     } else if ([@"storedRequestsLimit" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          config.storedRequestsLimit = 1;
-          result(@"storedRequestsLimit!");
-        });
+        COUNTLY_FLUTTER_LOG(@"storedRequestsLimit is deprecated and has no effect, use 'setMaxRequestQueueSize' of CountlyConfig instead");
+        result(@"storedRequestsLimit: deprecated, no effect");
 
     } else if ([@"getID" isEqualToString:call.method]) {
-        NSString *deviceId = [Countly.sharedInstance deviceID];
+        // Countly.deviceID returns the ID URL-escaped for requests; Dart needs the ID as it was set.
+        NSString *deviceId = CountlyDeviceInfo.sharedInstance.deviceID;
         result(deviceId);
     } else if ([@"getIDType" isEqualToString:call.method]) {
         CLYDeviceIDType deviceIDType = [Countly.sharedInstance deviceIDType];
@@ -372,7 +404,7 @@ FlutterMethodChannel *_channel;
           NSString *countString = [command objectAtIndex:1];
           int count = [countString intValue];
           NSString *sumString = [command objectAtIndex:2];
-          float sum = [sumString floatValue];
+          double sum = [sumString doubleValue];
           NSDictionary *segmentation;
           if ((int)command.count > 3) {
               segmentation = [command objectAtIndex:3];
@@ -471,13 +503,6 @@ FlutterMethodChannel *_channel;
           result(@"disableLocation!");
         });
 
-    } else if ([@"enableCrashReporting" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          // config.features = @[CLYCrashReporting];
-          [self addCountlyFeature:CLYCrashReporting];
-          result(@"enableCrashReporting!");
-        });
-
     } else if ([@"addCrashLog" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *record = [command objectAtIndex:0];
@@ -504,15 +529,6 @@ FlutterMethodChannel *_channel;
           result(@"logException!");
         });
 
-    } else if ([@"setCustomCrashSegment" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-          for (int i = 0, il = (int)command.count; i < il; i += 2) {
-              dict[[command objectAtIndex:i]] = [command objectAtIndex:i + 1];
-          }
-          config.crashSegmentation = dict;
-        });
-        result(@"setCustomCrashSegment!");
     } else if ([@"disablePushNotifications" isEqualToString:call.method]) {
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
         [CountlyFLPushNotifications.sharedInstance disablePushNotifications];
@@ -526,7 +542,6 @@ FlutterMethodChannel *_channel;
     } else if ([@"pushTokenType" isEqualToString:call.method]) {
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
         dispatch_async(dispatch_get_main_queue(), ^{
-          config.sendPushTokenAlways = YES;
           NSString *tokenType = [command objectAtIndex:0];
           config.pushTestMode = CLYPushTestModeProduction;
 
@@ -658,20 +673,18 @@ FlutterMethodChannel *_channel;
     } else if ([@"userProfile_setProperties" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSDictionary *userProperties = [command objectAtIndex:0];
-
-          [self setUserData:userProperties];
-          NSDictionary *customeProperties = [self removePredefinedUserProperties:userProperties];
-          Countly.user.custom = customeProperties;
-
+          if ([userProperties isKindOfClass:NSDictionary.class]) {
+              [Countly.sharedInstance.userProfile setProperties:userProperties];
+          }
           result(nil);
         });
 
     } else if ([@"userProfile_setProperty" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *key = [command objectAtIndex:0];
-          NSNumber *value = [command objectAtIndex:1];
+          id value = [command objectAtIndex:1];
 
-          [Countly.user set:key numberValue:value];
+          [Countly.sharedInstance.userProfile setProperty:key value:value];
           result(nil);
         });
 
@@ -777,19 +790,19 @@ FlutterMethodChannel *_channel;
 
     } else if ([@"giveConsentInit" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          config.consents = command;
+          config.consents = [self iOSConsentsFrom:command];
           result(@"giveConsentInit!");
         });
 
     } else if ([@"giveConsent" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          [Countly.sharedInstance giveConsentForFeatures:command];
+          [Countly.sharedInstance giveConsentForFeatures:[self iOSConsentsFrom:command]];
           result(@"giveConsent!");
         });
 
     } else if ([@"removeConsent" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          [Countly.sharedInstance cancelConsentForFeatures:command];
+          [Countly.sharedInstance cancelConsentForFeatures:[self iOSConsentsFrom:command]];
           result(@"removeConsent!");
         });
 
@@ -827,7 +840,7 @@ FlutterMethodChannel *_channel;
           if ([@"null" isEqualToString:ipAddress]) {
               ipAddress = nil;
           }
-          CLLocationCoordinate2D location;
+          CLLocationCoordinate2D location = kCLLocationCoordinate2DInvalid;
           if (latitudeString != nil && longitudeString != nil) {
               @try {
                   double latitudeDouble = [latitudeString doubleValue];
@@ -842,96 +855,13 @@ FlutterMethodChannel *_channel;
           result(@"setOptionalParametersForInitialization!");
         });
 
-    } else if ([@"setRemoteConfigAutomaticDownload" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          config.enableRemoteConfig = YES;
-          config.remoteConfigCompletionHandler = ^(NSError *error) {
-            if (!error) {
-                result(@"Success!");
-            } else {
-                result([@"Error :" stringByAppendingString:error.localizedDescription]);
-            }
-          };
-        });
-
-    } else if ([@"remoteConfigUpdate" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          [Countly.sharedInstance updateRemoteConfigWithCompletionHandler:^(NSError *error) {
-            if (!error) {
-                result(@"Success!");
-            } else {
-                result([@"Error :" stringByAppendingString:error.localizedDescription]);
-            }
-          }];
-        });
-
-    } else if ([@"updateRemoteConfigForKeysOnly" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          NSMutableArray *randomSelection = [[NSMutableArray alloc] init];
-          for (int i = 0; i < (int)command.count; i++) {
-              [randomSelection addObject:[command objectAtIndex:i]];
-          }
-          NSArray *keysOnly = [randomSelection copy];
-
-          // NSArray * keysOnly[] = {};
-          // for(int i=0,il=(int)command.count;i<il;i++){
-          //     keysOnly[i] = [command objectAtIndex:i];
-          // }
-          [Countly.sharedInstance updateRemoteConfigOnlyForKeys:keysOnly
-                                              completionHandler:^(NSError *error) {
-                                                if (!error) {
-                                                    result(@"Success!");
-                                                } else {
-                                                    result([@"Error :" stringByAppendingString:error.localizedDescription]);
-                                                }
-                                              }];
-        });
-
-    } else if ([@"updateRemoteConfigExceptKeys" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          NSMutableArray *randomSelection = [[NSMutableArray alloc] init];
-          for (int i = 0; i < (int)command.count; i++) {
-              [randomSelection addObject:[command objectAtIndex:i]];
-          }
-          NSArray *exceptKeys = [randomSelection copy];
-
-          // NSArray * exceptKeys[] = {};
-          // for(int i=0,il=(int)command.count;i<il;i++){
-          //     exceptKeys[i] = [command objectAtIndex:i];
-          // }
-          [Countly.sharedInstance updateRemoteConfigExceptForKeys:exceptKeys
-                                                completionHandler:^(NSError *error) {
-                                                  if (!error) {
-                                                      result(@"Success!");
-                                                  } else {
-                                                      result([@"Error :" stringByAppendingString:error.localizedDescription]);
-                                                  }
-                                                }];
-        });
-
-    } else if ([@"remoteConfigClearValues" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          [CountlyRemoteConfig.sharedInstance clearAll];
-          result(@"Success!");
-        });
-
-    } else if ([@"getRemoteConfigValueForKey" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          NSString *key = [command objectAtIndex:0];
-          id value = [Countly.sharedInstance remoteConfigValueForKey:key];
-          if (!value) {
-              value = @"Default Value";
-          }
-          NSString *theType = NSStringFromClass([value class]);
-          if ([theType isEqualToString:@"NSTaggedPointerString"] || [theType isEqualToString:@"__NSCFConstantString"]) {
-              result(value);
-          } else {
-              result([value stringValue]);
-          }
-        });
     } else if ([@"remoteConfigDownloadValues" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSNumber *callbackID = [command objectAtIndex:0];
+          if ([self rejectRemoteConfigDownloadIfUnavailable:callbackID]) {
+              result(@"success");
+              return;
+          }
           [Countly.sharedInstance.remoteConfig downloadKeys:^(CLYRequestResult _Nonnull response, NSError *_Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *, CountlyRCData *> *_Nonnull downloadedValues) {
             [self remoteConfigDownloadCallback:callbackID response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
           }];
@@ -942,6 +872,10 @@ FlutterMethodChannel *_channel;
         dispatch_async(dispatch_get_main_queue(), ^{
           NSNumber *callbackID = [command objectAtIndex:0];
           NSArray *keys = [command objectAtIndex:1];
+          if ([self rejectRemoteConfigDownloadIfUnavailable:callbackID]) {
+              result(@"Success!");
+              return;
+          }
           [Countly.sharedInstance.remoteConfig downloadSpecificKeys:keys
                                                   completionHandler:^(CLYRequestResult _Nonnull response, NSError *_Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *, CountlyRCData *> *_Nonnull downloadedValues) {
                                                     [self remoteConfigDownloadCallback:callbackID response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
@@ -953,6 +887,10 @@ FlutterMethodChannel *_channel;
         dispatch_async(dispatch_get_main_queue(), ^{
           NSNumber *callbackID = [command objectAtIndex:0];
           NSArray *omitKeys = [command objectAtIndex:1];
+          if ([self rejectRemoteConfigDownloadIfUnavailable:callbackID]) {
+              result(@"Success!");
+              return;
+          }
 
           [Countly.sharedInstance.remoteConfig downloadOmittingKeys:omitKeys
                                                   completionHandler:^(CLYRequestResult _Nonnull response, NSError *_Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *, CountlyRCData *> *_Nonnull downloadedValues) {
@@ -1077,6 +1015,12 @@ FlutterMethodChannel *_channel;
     } else if ([@"presentRatingWidgetWithID" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *widgetId = [command objectAtIndex:0];
+          NSString *unavailableReason = [self ratingWidgetUnavailableReason];
+          if (unavailableReason) {
+              result([@"presentRatingWidgetWithID failed: " stringByAppendingString:unavailableReason]);
+              [callbackChannel invokeMethod:@"ratingWidgetCallback" arguments:unavailableReason];
+              return;
+          }
           [Countly.sharedInstance presentRatingWidgetWithID:widgetId
                                           completionHandler:^(NSError *error) {
                                             NSString *errorStr = nil;
@@ -1087,7 +1031,7 @@ FlutterMethodChannel *_channel;
                                             } else {
                                                 result(@"presentRatingWidgetWithID success.");
                                             }
-                                            [_channel invokeMethod:@"ratingWidgetCallback" arguments:errorStr];
+                                            [callbackChannel invokeMethod:@"ratingWidgetCallback" arguments:errorStr];
                                           }];
         });
     } else if ([@"setStarRatingDialogTexts" isEqualToString:call.method]) {
@@ -1098,6 +1042,10 @@ FlutterMethodChannel *_channel;
         });
     } else if ([@"askForStarRating" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
+          if (!CountlyConsentManager.sharedInstance.consentForFeedback) {
+              result(@"askForStarRating failed: feedback consent is not given");
+              return;
+          }
           [Countly.sharedInstance askForStarRating:^(NSInteger rating) {
             result([NSString stringWithFormat:@"Rating:%d", (int)rating]);
           }];
@@ -1105,6 +1053,10 @@ FlutterMethodChannel *_channel;
     } else if ([@"getAvailableFeedbackWidgets" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           [Countly.sharedInstance.feedback getAvailableFeedbackWidgets:^(NSArray<CountlyFeedbackWidget *> *feedbackWidgets, NSError *error) {
+            if (error) {
+                result([FlutterError errorWithCode:@"getAvailableFeedbackWidgets" message:error.localizedDescription details:nil]);
+                return;
+            }
             feedbackWidgetList = [NSArray arrayWithArray:feedbackWidgets];
             NSMutableArray *feedbackWidgetsArray = [NSMutableArray arrayWithCapacity:feedbackWidgets.count];
             for (CountlyFeedbackWidget *retrievedWidget in feedbackWidgets) {
@@ -1125,19 +1077,29 @@ FlutterMethodChannel *_channel;
               NSString *errorMessage = [NSString stringWithFormat:@"[presentFeedbackWidget], No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId];
               COUNTLY_FLUTTER_LOG(errorMessage);
               result(errorMessage);
+          } else if (!CountlyConsentManager.sharedInstance.consentForFeedback) {
+              result(@"presentFeedbackWidget failed: feedback consent is not given");
           } else {
+              // The call is answered when the widget appears, or when it closes if it never appeared.
+              __block BOOL answered = NO;
               [feedbackWidget
                   presentWithAppearBlock:^{
-                    [_channel invokeMethod:@"widgetShown" arguments:nil];
-                    result(@"appeared");
+                    [callbackChannel invokeMethod:@"widgetShown" arguments:nil];
+                    if (!answered) {
+                        answered = YES;
+                        result(@"appeared");
+                    }
                   }
                   andDismissBlock:^{
-                    [_channel invokeMethod:@"widgetClosed" arguments:nil];
-                    result(@"dismissed");
+                    [callbackChannel invokeMethod:@"widgetClosed" arguments:nil];
+                    if (!answered) {
+                        answered = YES;
+                        result(@"dismissed");
+                    }
                   }];
           }
         });
-    } else if ([@"presentNPS" isEqualToString:call.method]) {
+    } else if ([@"presentNPS" isEqualToString:call.method] || [@"presentRating" isEqualToString:call.method] || [@"presentSurvey" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *nameIDorTag = @"";
 
@@ -1145,82 +1107,50 @@ FlutterMethodChannel *_channel;
               nameIDorTag = [command objectAtIndex:0];
           }
 
-          [Countly.sharedInstance.feedback presentNPS:nameIDorTag
-                                       widgetCallback:^(WidgetState state) {
-                                         if (state == WIDGET_CLOSED) {
-                                             [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
-                                             result(@"[CountlyFlutterPlugin] presentNPS, dismissed");
-                                         } else if (state = WIDGET_APPEARED) {
-                                             [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
-                                             result(@"[CountlyFlutterPlugin] presentNPS, appeared");
-                                         }
-                                       }];
+          WidgetCallback widgetCallback = ^(WidgetState state) {
+            if (state == WIDGET_CLOSED) {
+                [callbackChannel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
+            } else if (state == WIDGET_APPEARED) {
+                [callbackChannel invokeMethod:@"feedbackCallback_onFinished" arguments:nil];
+            }
+          };
 
-          result(@"[CountlyFlutterPlugin] presentNPS, success");
-        });
-    } else if ([@"presentRating" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          NSString *nameIDorTag = @"";
-
-          if (command.count != 0) {
-              nameIDorTag = [command objectAtIndex:0];
+          if ([@"presentNPS" isEqualToString:call.method]) {
+              [Countly.sharedInstance.feedback presentNPS:nameIDorTag widgetCallback:widgetCallback];
+          } else if ([@"presentRating" isEqualToString:call.method]) {
+              [Countly.sharedInstance.feedback presentRating:nameIDorTag widgetCallback:widgetCallback];
+          } else {
+              [Countly.sharedInstance.feedback presentSurvey:nameIDorTag widgetCallback:widgetCallback];
           }
 
-          [Countly.sharedInstance.feedback presentRating:nameIDorTag
-                                          widgetCallback:^(WidgetState state) {
-                                            if (state == WIDGET_CLOSED) {
-                                                [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
-                                                result(@"[CountlyFlutterPlugin] presentRating, dismissed");
-                                            } else if (state = WIDGET_APPEARED) {
-                                                [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
-                                                result(@"[CountlyFlutterPlugin] presentRating, appeared");
-                                            }
-                                          }];
-
-          result(@"[CountlyFlutterPlugin] presentRating, success");
-        });
-    } else if ([@"presentSurvey" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          NSString *nameIDorTag = @"";
-
-          if (command.count != 0) {
-              nameIDorTag = [command objectAtIndex:0];
-          }
-
-          [Countly.sharedInstance.feedback presentSurvey:nameIDorTag
-                                          widgetCallback:^(WidgetState state) {
-                                            if (state == WIDGET_CLOSED) {
-                                                [_channel invokeMethod:@"feedbackCallback_onClosed" arguments:nil];
-                                                result(@"CountlyFlutterPlugin] presentSurvey, dismissed");
-                                            } else if (state = WIDGET_APPEARED) {
-                                                [_channel invokeMethod:@"feedbackCallback_Finished" arguments:nil];
-                                                result(@"CountlyFlutterPlugin] presentSurvey, appeared");
-                                            }
-                                          }];
-
-          result(@"[CountlyFlutterPlugin] presentSurvey, success");
+          result([NSString stringWithFormat:@"[CountlyFlutterPlugin] %@, success", call.method]);
         });
     } else if ([@"getFeedbackWidgetData" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSString *widgetId = [command objectAtIndex:0];
           CountlyFeedbackWidget *feedbackWidget = [self getFeedbackWidget:widgetId];
+          NSString *errorMessage = nil;
           if (feedbackWidget == nil) {
-              NSString *errorMessage = [NSString stringWithFormat:@"[getFeedbackWidgetData], No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId];
-              COUNTLY_FLUTTER_LOG(errorMessage);
-              result(errorMessage);
-              [self feedbackWidgetDataCallback:NULL error:errorMessage];
-          } else {
-              [feedbackWidget getWidgetData:^(NSDictionary *_Nullable widgetData, NSError *_Nullable error) {
-                if (error) {
-                    NSString *theError = [@"getFeedbackWidgetData failed: " stringByAppendingString:error.localizedDescription];
-                    result(theError);
-                    [self feedbackWidgetDataCallback:NULL error:theError];
-                } else {
-                    result(widgetData);
-                    [self feedbackWidgetDataCallback:widgetData error:NULL];
-                }
-              }];
+              errorMessage = [NSString stringWithFormat:@"[getFeedbackWidgetData], No feedbackWidget is found against widget Id : '%@', always call 'getFeedbackWidgets' to get updated list of feedback widgets.", widgetId];
+          } else if (!CountlyServerConfig.sharedInstance.networkingEnabled) {
+              errorMessage = @"[getFeedbackWidgetData], SDK networking is disabled by SDK behavior settings";
           }
+          if (errorMessage) {
+              COUNTLY_FLUTTER_LOG(errorMessage);
+              result([FlutterError errorWithCode:@"getFeedbackWidgetData" message:errorMessage details:nil]);
+              [self feedbackWidgetDataCallback:NULL error:errorMessage];
+              return;
+          }
+          [feedbackWidget getWidgetData:^(NSDictionary *_Nullable widgetData, NSError *_Nullable error) {
+            if (error) {
+                NSString *theError = [@"getFeedbackWidgetData failed: " stringByAppendingString:error.localizedDescription];
+                result([FlutterError errorWithCode:@"getFeedbackWidgetData" message:theError details:nil]);
+                [self feedbackWidgetDataCallback:NULL error:theError];
+            } else {
+                result(widgetData);
+                [self feedbackWidgetDataCallback:widgetData error:NULL];
+            }
+          }];
         });
     } else if ([@"reportFeedbackWidgetManually" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -1300,12 +1230,6 @@ FlutterMethodChannel *_channel;
           }
         });
         result(@"recordNetworkTrace: success");
-    } else if ([@"enableApm" isEqualToString:call.method]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-          config.enablePerformanceMonitoring = YES;
-        });
-        result(@"enableApm: success");
-
     } else if ([@"throwNativeException" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSException *e = [NSException exceptionWithName:@"Native Exception Crash!" reason:@"Throw Native Exception..." userInfo:nil];
@@ -1453,16 +1377,6 @@ FlutterMethodChannel *_channel;
     }
 }
 
-- (NSDictionary *)removePredefinedUserProperties:(NSDictionary *__nullable)userData {
-    NSMutableDictionary *userProperties = [userData mutableCopy];
-    NSArray *nameFields = [[NSArray alloc] initWithObjects:NAME_KEY, USERNAME_KEY, EMAIL_KEY, ORG_KEY, PHONE_KEY, PICTURE_KEY, PICTURE_PATH_KEY, GENDER_KEY, BYEAR_KEY, nil]; // TODO this should be replaced with a global array
-
-    for (NSString *nameField in nameFields) {
-        [userProperties removeObjectForKey:nameField];
-    }
-    return userProperties;
-}
-
 - (void)setUserData:(NSDictionary *__nullable)userData {
     NSString *name = userData[NAME_KEY];
     NSString *username = userData[USERNAME_KEY];
@@ -1470,6 +1384,7 @@ FlutterMethodChannel *_channel;
     NSString *organization = userData[ORG_KEY];
     NSString *phone = userData[PHONE_KEY];
     NSString *picture = userData[PICTURE_KEY];
+    NSString *picturePath = userData[PICTURE_PATH_KEY];
     NSString *gender = userData[GENDER_KEY];
     NSString *byear = userData[BYEAR_KEY];
 
@@ -1491,6 +1406,9 @@ FlutterMethodChannel *_channel;
     if (picture) {
         Countly.user.pictureURL = picture;
     }
+    if (picturePath) {
+        Countly.user.pictureLocalPath = picturePath;
+    }
     if (gender) {
         Countly.user.gender = gender;
     }
@@ -1506,7 +1424,7 @@ FlutterMethodChannel *_channel;
     if (error) {
         feedbackWidgetData[@"error"] = error;
     }
-    [_channel invokeMethod:@"feedbackWidgetDataCallback" arguments:feedbackWidgetData];
+    [callbackChannel invokeMethod:@"feedbackWidgetDataCallback" arguments:feedbackWidgetData];
 }
 
 - (void)remoteConfigVariantCallback:(NSNumber *)callbackID response:(CLYRequestResult _Nonnull)response error:(NSError *__nullable)error {
@@ -1517,13 +1435,15 @@ FlutterMethodChannel *_channel;
         remoteConfigData[@"requestResult"] = [NSNumber numberWithInt:0];
     } else if (response == CLYResponseNetworkIssue) {
         remoteConfigData[@"requestResult"] = [NSNumber numberWithInt:1];
+    } else {
+        remoteConfigData[@"requestResult"] = [NSNumber numberWithInt:2];
     }
 
     if (error) {
         remoteConfigData[@"error"] = error.description;
     }
 
-    [_channel invokeMethod:@"remoteConfigVariantCallback" arguments:remoteConfigData];
+    [callbackChannel invokeMethod:@"remoteConfigVariantCallback" arguments:remoteConfigData];
 }
 
 - (void)remoteConfigDownloadCallback:(NSNumber *)callbackID response:(CLYRequestResult _Nonnull)response fullValueUpdate:(BOOL)fullValueUpdate error:(NSError *__nullable)error downloadedValues:(NSDictionary<NSString *, CountlyRCData *> *_Nonnull)downloadedValues {
@@ -1538,6 +1458,8 @@ FlutterMethodChannel *_channel;
         remoteConfigData[@"requestResult"] = [NSNumber numberWithInt:0];
     } else if (response == CLYResponseNetworkIssue) {
         remoteConfigData[@"requestResult"] = [NSNumber numberWithInt:1];
+    } else {
+        remoteConfigData[@"requestResult"] = [NSNumber numberWithInt:2];
     }
 
     remoteConfigData[@"fullValueUpdate"] = fullValueUpdate ? @YES : @NO;
@@ -1549,7 +1471,7 @@ FlutterMethodChannel *_channel;
         remoteConfigData[@"error"] = error.description;
     }
 
-    [_channel invokeMethod:@"remoteConfigDownloadCallback" arguments:remoteConfigData];
+    [callbackChannel invokeMethod:@"remoteConfigDownloadCallback" arguments:remoteConfigData];
 }
 
 - (NSDictionary *)getRCValues:(NSDictionary<NSString *, CountlyRCData *> *_Nonnull)downloadedValues {
@@ -1608,15 +1530,15 @@ FlutterMethodChannel *_channel;
 
 - (void)populateConfig:(NSDictionary *)_config {
     @try {
-        NSString *appKey = _config[@"appKey"];
+        NSString *appKey = [self configValueFrom:_config key:@"appKey" ofClass:NSString.class];
         if (appKey) {
             config.appKey = appKey;
         }
-        NSString *host = _config[@"serverURL"];
+        NSString *host = [self configValueFrom:_config key:@"serverURL" ofClass:NSString.class];
         if (host) {
             config.host = host;
         }
-        NSString *deviceID = _config[@"deviceID"];
+        NSString *deviceID = [self configValueFrom:_config key:@"deviceID" ofClass:NSString.class];
         if (deviceID) {
             if ([@"CLYTemporaryDeviceID" isEqualToString:deviceID]) {
                 [config enableTemporaryDeviceIDMode];
@@ -1624,92 +1546,90 @@ FlutterMethodChannel *_channel;
                 config.deviceID = deviceID;
             }
         }
-        NSNumber *loggingEnabled = _config[@"loggingEnabled"];
+        NSNumber *loggingEnabled = [self configValueFrom:_config key:@"loggingEnabled" ofClass:NSNumber.class];
         if (loggingEnabled) {
             config.enableDebug = [loggingEnabled boolValue];
         }
-        NSNumber *locationDisabled = _config[@"locationDisabled"];
+        NSNumber *locationDisabled = [self configValueFrom:_config key:@"locationDisabled" ofClass:NSNumber.class];
         if (locationDisabled) {
             config.disableLocation = [locationDisabled boolValue];
         }
-        NSNumber *httpPostForced = _config[@"httpPostForced"];
+        NSNumber *httpPostForced = [self configValueFrom:_config key:@"httpPostForced" ofClass:NSNumber.class];
         if (httpPostForced) {
             config.alwaysUsePOST = [httpPostForced boolValue];
         }
-        NSDictionary *customNetworkRequestHeaders = _config[@"customNetworkRequestHeaders"];
+        NSDictionary *customNetworkRequestHeaders = [self configValueFrom:_config key:@"customNetworkRequestHeaders" ofClass:NSDictionary.class];
         if (customNetworkRequestHeaders) {
             NSURLSessionConfiguration *session = [NSURLSessionConfiguration defaultSessionConfiguration];
             session.HTTPAdditionalHeaders = customNetworkRequestHeaders;
             config.URLSessionConfiguration = session;
         }
-        NSNumber *shouldRequireConsent = _config[@"shouldRequireConsent"];
+        NSNumber *shouldRequireConsent = [self configValueFrom:_config key:@"shouldRequireConsent" ofClass:NSNumber.class];
         if (shouldRequireConsent) {
             config.requiresConsent = [shouldRequireConsent boolValue];
         }
-        NSArray *consents = _config[@"consents"];
-        NSNumber *enableAllConsents = _config[@"enableAllConsents"];
+        NSArray *consents = [self configValueFrom:_config key:@"consents" ofClass:NSArray.class];
+        NSNumber *enableAllConsents = [self configValueFrom:_config key:@"enableAllConsents" ofClass:NSNumber.class];
         if (enableAllConsents) {
             config.enableAllConsents = [enableAllConsents boolValue];
         } else if (consents) {
-            config.consents = consents;
+            config.consents = [self iOSConsentsFrom:consents];
         }
 
-        NSNumber *eventQueueSizeThreshold = _config[@"eventQueueSizeThreshold"];
+        NSNumber *eventQueueSizeThreshold = [self configValueFrom:_config key:@"eventQueueSizeThreshold" ofClass:NSNumber.class];
         if (eventQueueSizeThreshold) {
             config.eventSendThreshold = [eventQueueSizeThreshold intValue];
         }
-        NSNumber *sessionUpdateTimerDelay = _config[@"sessionUpdateTimerDelay"];
+        NSNumber *sessionUpdateTimerDelay = [self configValueFrom:_config key:@"sessionUpdateTimerDelay" ofClass:NSNumber.class];
         if (sessionUpdateTimerDelay) {
-            config.updateSessionPeriod = [sessionUpdateTimerDelay intValue];
+            if ([sessionUpdateTimerDelay intValue] >= 1) {
+                config.updateSessionPeriod = [sessionUpdateTimerDelay intValue];
+            } else {
+                COUNTLY_FLUTTER_LOG(@"[populateConfig], sessionUpdateTimerDelay must be at least 1 second, ignoring [%@]", sessionUpdateTimerDelay);
+            }
         }
-        NSString *salt = _config[@"tamperingProtectionSalt"];
+        NSString *salt = [self configValueFrom:_config key:@"tamperingProtectionSalt" ofClass:NSString.class];
         if (salt) {
             config.secretSalt = salt;
         }
 
-        NSDictionary *crashSegmentation = _config[@"customCrashSegment"];
+        NSDictionary *crashSegmentation = [self configValueFrom:_config key:@"customCrashSegment" ofClass:NSDictionary.class];
         if (crashSegmentation) {
             config.crashSegmentation = crashSegmentation;
         }
 
-        NSDictionary *providedUserProperties = _config[@"providedUserProperties"];
+        NSDictionary *providedUserProperties = [self configValueFrom:_config key:@"providedUserProperties" ofClass:NSDictionary.class];
         if (providedUserProperties) {
-            [self setUserData:providedUserProperties];
-            NSDictionary *customeProperties = [self removePredefinedUserProperties:providedUserProperties];
-            Countly.user.custom = customeProperties;
+            config.providedUserProperties = providedUserProperties;
         }
 
-        NSString *starRatingTextMessage = _config[@"starRatingTextMessage"];
+        NSString *starRatingTextMessage = [self configValueFrom:_config key:@"starRatingTextMessage" ofClass:NSString.class];
         if (starRatingTextMessage) {
             config.starRatingMessage = starRatingTextMessage;
         }
-        NSNumber *recordAppStartTime = _config[@"recordAppStartTime"];
-        if (recordAppStartTime) {
-            config.enablePerformanceMonitoring = [recordAppStartTime boolValue];
-        }
-        NSNumber *enableForegroundBackground = _config[@"enableForegroundBackground"];
+        NSNumber *enableForegroundBackground = [self configValueFrom:_config key:@"enableForegroundBackground" ofClass:NSNumber.class];
         if (enableForegroundBackground) {
             config.apm.enableForegroundBackgroundTracking = [enableForegroundBackground boolValue];
         }
-        NSNumber *enableManualAppLoaded = _config[@"enableManualAppLoaded"];
+        NSNumber *enableManualAppLoaded = [self configValueFrom:_config key:@"enableManualAppLoaded" ofClass:NSNumber.class];
         if (enableManualAppLoaded) {
             config.apm.enableManualAppLoadedTrigger = [enableManualAppLoaded boolValue];
         }
-        NSNumber *trackAppStartTime = _config[@"trackAppStartTime"];
+        NSNumber *trackAppStartTime = [self configValueFrom:_config key:@"trackAppStartTime" ofClass:NSNumber.class];
         if (trackAppStartTime) {
             config.apm.enableAppStartTimeTracking = [trackAppStartTime boolValue];
         }
-        NSNumber *startTSOverride = _config[@"startTSOverride"];
+        NSNumber *startTSOverride = [self configValueFrom:_config key:@"startTSOverride" ofClass:NSNumber.class];
         if (startTSOverride) {
             [config.apm setAppStartTimestampOverride:[startTSOverride longLongValue]];
         }
 
-        NSString *sdkBehaviorSettings = _config[@"sdkBehaviorSettings"];
+        NSString *sdkBehaviorSettings = [self configValueFrom:_config key:@"sdkBehaviorSettings" ofClass:NSString.class];
         if (sdkBehaviorSettings) {
             config.sdkBehaviorSettings = sdkBehaviorSettings;
         }
 
-        NSNumber *backoffMechanismDisabled = _config[@"backoffMechanismDisabled"];
+        NSNumber *backoffMechanismDisabled = [self configValueFrom:_config key:@"backoffMechanismDisabled" ofClass:NSNumber.class];
         if (backoffMechanismDisabled && [backoffMechanismDisabled boolValue]) {
             config.disableBackoffMechanism = YES;
         }
@@ -1719,130 +1639,130 @@ FlutterMethodChannel *_channel;
         }
 
         // Internal Limits ---------------------
-        NSNumber *maxKeyLength = _config[@"maxKeyLength"];
+        NSNumber *maxKeyLength = [self configValueFrom:_config key:@"maxKeyLength" ofClass:NSNumber.class];
         if (maxKeyLength) {
             [config.sdkInternalLimits setMaxKeyLength:[maxKeyLength intValue]];
         }
-        NSNumber *maxValueSize = _config[@"maxValueSize"];
+        NSNumber *maxValueSize = [self configValueFrom:_config key:@"maxValueSize" ofClass:NSNumber.class];
         if (maxValueSize) {
             [config.sdkInternalLimits setMaxValueSize:[maxValueSize intValue]];
         }
-        NSNumber *maxSegmentationValues = _config[@"maxSegmentationValues"];
+        NSNumber *maxSegmentationValues = [self configValueFrom:_config key:@"maxSegmentationValues" ofClass:NSNumber.class];
         if (maxSegmentationValues) {
             [config.sdkInternalLimits setMaxSegmentationValues:[maxSegmentationValues intValue]];
         }
-        NSNumber *maxBreadcrumbCount = _config[@"maxBreadcrumbCount"];
+        NSNumber *maxBreadcrumbCount = [self configValueFrom:_config key:@"maxBreadcrumbCount" ofClass:NSNumber.class];
         if (maxBreadcrumbCount) {
             [config.sdkInternalLimits setMaxBreadcrumbCount:[maxBreadcrumbCount intValue]];
         }
-        NSNumber *maxStackTraceLineLength = _config[@"maxStackTraceLineLength"];
+        NSNumber *maxStackTraceLineLength = [self configValueFrom:_config key:@"maxStackTraceLineLength" ofClass:NSNumber.class];
         if (maxStackTraceLineLength) {
             [config.sdkInternalLimits setMaxStackTraceLineLength:[maxStackTraceLineLength intValue]];
         }
-        NSNumber *maxStackTraceLinesPerThread = _config[@"maxStackTraceLinesPerThread"];
+        NSNumber *maxStackTraceLinesPerThread = [self configValueFrom:_config key:@"maxStackTraceLinesPerThread" ofClass:NSNumber.class];
         if (maxStackTraceLinesPerThread) {
             [config.sdkInternalLimits setMaxStackTraceLinesPerThread:[maxStackTraceLinesPerThread intValue]];
         }
         // Internal Limits End ---------------------
 
-        NSNumber *enableUnhandledCrashReporting = _config[@"enableUnhandledCrashReporting"];
+        NSNumber *enableUnhandledCrashReporting = [self configValueFrom:_config key:@"enableUnhandledCrashReporting" ofClass:NSNumber.class];
         if (enableUnhandledCrashReporting && [enableUnhandledCrashReporting boolValue]) {
             [self addCountlyFeature:CLYCrashReporting];
         }
 
-        NSNumber *maxRequestQueueSize = _config[@"maxRequestQueueSize"];
+        NSNumber *maxRequestQueueSize = [self configValueFrom:_config key:@"maxRequestQueueSize" ofClass:NSNumber.class];
         if (maxRequestQueueSize) {
             config.storedRequestsLimit = [maxRequestQueueSize intValue];
         }
 
-        NSNumber *requestDropAgeHours = _config[@"requestDropAgeHours"];
+        NSNumber *requestDropAgeHours = [self configValueFrom:_config key:@"requestDropAgeHours" ofClass:NSNumber.class];
         if (requestDropAgeHours) {
             config.requestDropAgeHours = [requestDropAgeHours intValue];
         }
 
-        NSNumber *requestTimeoutDuration = _config[@"requestTimeoutDuration"];
+        NSNumber *requestTimeoutDuration = [self configValueFrom:_config key:@"requestTimeoutDuration" ofClass:NSNumber.class];
         if (requestTimeoutDuration) {
             config.requestTimeoutDuration = [requestTimeoutDuration intValue];
         }
 
-        NSNumber *manualSessionEnabled = _config[@"manualSessionEnabled"];
+        NSNumber *manualSessionEnabled = [self configValueFrom:_config key:@"manualSessionEnabled" ofClass:NSNumber.class];
         if (manualSessionEnabled && [manualSessionEnabled boolValue]) {
             config.manualSessionHandling = YES;
         }
-        NSNumber *enableRemoteConfigAutomaticDownload = _config[@"enableRemoteConfigAutomaticDownload"];
-        if (enableRemoteConfigAutomaticDownload) {
-            config.enableRemoteConfig = [enableRemoteConfigAutomaticDownload boolValue];
-            config.remoteConfigCompletionHandler = ^(NSError *error) {
-              NSString *errorStr = nil;
-              if (error) {
-                  errorStr = error.localizedDescription;
-              }
-              [_channel invokeMethod:@"remoteConfigCallback" arguments:errorStr];
-            };
-        }
-
         [config remoteConfigRegisterGlobalCallback:^(CLYRequestResult _Nonnull response, NSError *_Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *, CountlyRCData *> *_Nonnull downloadedValues) {
           [self remoteConfigDownloadCallback:[NSNumber numberWithInt:-2] response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
         }];
 
-        NSNumber *remoteConfigAutomaticTriggers = _config[@"remoteConfigAutomaticTriggers"];
+        NSNumber *remoteConfigAutomaticTriggers = [self configValueFrom:_config key:@"remoteConfigAutomaticTriggers" ofClass:NSNumber.class];
         if (remoteConfigAutomaticTriggers) {
             config.enableRemoteConfigAutomaticTriggers = [remoteConfigAutomaticTriggers boolValue];
         }
 
-        NSNumber *remoteConfigValueCaching = _config[@"remoteConfigValueCaching"];
+        NSNumber *remoteConfigValueCaching = [self configValueFrom:_config key:@"remoteConfigValueCaching" ofClass:NSNumber.class];
         if (remoteConfigValueCaching) {
             config.enableRemoteConfigValueCaching = [remoteConfigValueCaching boolValue];
         }
 
-        NSDictionary *globalViewSegmentation = _config[@"globalViewSegmentation"];
+        NSNumber *autoEnrollABOnDownload = [self configValueFrom:_config key:@"autoEnrollABOnDownload" ofClass:NSNumber.class];
+        if (autoEnrollABOnDownload && [autoEnrollABOnDownload boolValue]) {
+            config.enrollABOnRCDownload = YES;
+        }
+
+        NSDictionary *globalViewSegmentation = [self configValueFrom:_config key:@"globalViewSegmentation" ofClass:NSDictionary.class];
         if (globalViewSegmentation) {
             config.globalViewSegmentation = globalViewSegmentation;
         }
 
-        NSNumber *disableViewRestartForManualRecording = _config[@"disableViewRestartForManualRecording"];
+        NSNumber *disableViewRestartForManualRecording = [self configValueFrom:_config key:@"disableViewRestartForManualRecording" ofClass:NSNumber.class];
         if (disableViewRestartForManualRecording && [disableViewRestartForManualRecording boolValue]) {
             config.disableViewRestartForManualRecording = YES;
         }
 
-        NSString *gpsCoordinate = _config[@"locationGpsCoordinates"];
+        NSString *gpsCoordinate = [self configValueFrom:_config key:@"locationGpsCoordinates" ofClass:NSString.class];
         CLLocationCoordinate2D coordinate = [self getCoordinate:gpsCoordinate];
         if (CLLocationCoordinate2DIsValid(coordinate)) {
             config.location = coordinate;
         }
-        NSString *city = _config[@"locationCity"];
+        NSString *city = [self configValueFrom:_config key:@"locationCity" ofClass:NSString.class];
         if (city) {
             config.city = city;
         }
-        NSString *countryCode = _config[@"locationCountryCode"];
+        NSString *countryCode = [self configValueFrom:_config key:@"locationCountryCode" ofClass:NSString.class];
         if (countryCode) {
             config.ISOCountryCode = countryCode;
         }
 
-        NSString *ipAddress = _config[@"locationIpAddress"];
+        NSString *ipAddress = [self configValueFrom:_config key:@"locationIpAddress" ofClass:NSString.class];
         if (ipAddress) {
             config.IP = ipAddress;
         }
 
-        NSString *campaignType = _config[@"campaignType"];
+        NSString *campaignType = [self configValueFrom:_config key:@"campaignType" ofClass:NSString.class];
         if (campaignType) {
             config.campaignType = campaignType;
-            config.campaignData = _config[@"campaignData"];
+            config.campaignData = [self configValueFrom:_config key:@"campaignData" ofClass:NSString.class];
         }
 
-        NSDictionary *attributionValues = _config[@"attributionValues"];
+        NSDictionary *attributionValues = [self configValueFrom:_config key:@"attributionValues" ofClass:NSDictionary.class];
         if (attributionValues) {
             config.indirectAttribution = attributionValues;
         }
 
-        NSNumber *visibilityTracking = _config[@"visibilityTracking"];
+        NSNumber *visibilityTracking = [self configValueFrom:_config key:@"visibilityTracking" ofClass:NSNumber.class];
         if (visibilityTracking) {
             config.experimental.enableVisibiltyTracking = [visibilityTracking boolValue];
         }
-        NSNumber *previousNameRecording = _config[@"previousNameRecording"];
+        NSNumber *previousNameRecording = [self configValueFrom:_config key:@"previousNameRecording" ofClass:NSNumber.class];
         if (previousNameRecording) {
             config.experimental.enablePreviousNameRecording = [previousNameRecording boolValue];
         }
+
+#ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
+        NSNumber *sendPushTokenAlways = [self configValueFrom:_config key:@"sendPushTokenAlways" ofClass:NSNumber.class];
+        if (sendPushTokenAlways && [sendPushTokenAlways boolValue]) {
+            config.sendPushTokenAlways = YES;
+        }
+#endif
 
         [config.content setGlobalContentCallback:^(ContentStatus contentStatus, NSDictionary *contentData) {
           NSMutableDictionary *contentCallbackData = [NSMutableDictionary dictionary];
@@ -1855,15 +1775,15 @@ FlutterMethodChannel *_channel;
           contentCallbackData[@"contentResult"] = @(contentResult);
           contentCallbackData[@"contentData"] = contentData;
 
-          [_channel invokeMethod:@"contentCallback" arguments:contentCallbackData];
+          [callbackChannel invokeMethod:@"contentCallback" arguments:contentCallbackData];
         }];
 
-        NSNumber *zoneTimerInterval = _config[@"zoneTimerInterval"];
+        NSNumber *zoneTimerInterval = [self configValueFrom:_config key:@"zoneTimerInterval" ofClass:NSNumber.class];
         if (zoneTimerInterval) {
             [config.content setZoneTimerInterval:[zoneTimerInterval unsignedIntValue]];
         }
 
-        NSString *webviewDisplayOption = _config[@"webviewDisplayOption"];
+        NSString *webviewDisplayOption = [self configValueFrom:_config key:@"webviewDisplayOption" ofClass:NSString.class];
         if (webviewDisplayOption) {
             if ([webviewDisplayOption isEqualToString:@"IMMERSIVE"]) {
                 [config.content setWebviewDisplayOption:IMMERSIVE];
@@ -1877,6 +1797,83 @@ FlutterMethodChannel *_channel;
     }
 }
 
+/**
+ * Returns the config value for the key when it has the expected class, which is NSNumber for JSON
+ * booleans and numbers. A value of another type is logged and skipped, so it cannot raise an
+ * exception that would skip the remaining settings.
+ */
+- (id)configValueFrom:(NSDictionary *)config key:(NSString *)key ofClass:(Class)expectedClass {
+    id value = config[key];
+    if (value == nil || [value isKindOfClass:expectedClass]) {
+        return value;
+    }
+    COUNTLY_FLUTTER_LOG(@"[populateConfig], ignoring [%@]: expected %@, got [%@]", key, NSStringFromClass(expectedClass), NSStringFromClass([value class]));
+    return nil;
+}
+
+/**
+ * Translates consent names from Dart to the iOS SDK. iOS has no separate star rating consent:
+ * its star rating dialog follows the feedback consent, so "star-rating" gives or removes "feedback".
+ */
+- (NSArray *)iOSConsentsFrom:(NSArray *)consents {
+    if (![consents containsObject:CountlyStarRatingConsent]) {
+        return consents;
+    }
+    NSMutableArray *translated = [NSMutableArray arrayWithCapacity:consents.count];
+    for (id consent in consents) {
+        id iOSConsent = [CountlyStarRatingConsent isEqual:consent] ? CLYConsentFeedback : consent;
+        if (![translated containsObject:iOSConsent]) {
+            [translated addObject:iOSConsent];
+        }
+    }
+    return translated;
+}
+
+/**
+ * Returns why the iOS SDK would skip a remote config download without calling back, or nil when
+ * it can run.
+ */
+- (NSString *)remoteConfigUnavailableReason {
+    if (!CountlyConsentManager.sharedInstance.consentForRemoteConfig) {
+        return @"Remote config consent is not given";
+    }
+    if (CountlyDeviceInfo.sharedInstance.isDeviceIDTemporary) {
+        return @"Remote config is not available in temporary device ID mode";
+    }
+    return nil;
+}
+
+/**
+ * Answers a remote config download with an error when the iOS SDK would skip it without calling back.
+ *
+ * @return YES when the download was answered here and must not be started
+ */
+- (BOOL)rejectRemoteConfigDownloadIfUnavailable:(NSNumber *)callbackID {
+    NSString *unavailableReason = [self remoteConfigUnavailableReason];
+    if (!unavailableReason) {
+        return NO;
+    }
+    NSError *error = [NSError errorWithDomain:@"CountlyFlutterPlugin" code:0 userInfo:@{NSLocalizedDescriptionKey : unavailableReason}];
+    [self remoteConfigDownloadCallback:callbackID response:CLYResponseError fullValueUpdate:NO error:error downloadedValues:@{}];
+    return YES;
+}
+
+/**
+ * Returns why the iOS SDK would skip a rating widget without calling back, or nil when it can run.
+ */
+- (NSString *)ratingWidgetUnavailableReason {
+    if (!CountlyServerConfig.sharedInstance.networkingEnabled) {
+        return @"SDK networking is disabled by SDK behavior settings";
+    }
+    if (!CountlyConsentManager.sharedInstance.consentForFeedback) {
+        return @"feedback consent is not given";
+    }
+    if (CountlyDeviceInfo.sharedInstance.isDeviceIDTemporary) {
+        return @"feedback is not available in temporary device ID mode";
+    }
+    return nil;
+}
+
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
 + (void)startObservingNotifications {
     [CountlyFLPushNotifications.sharedInstance startObservingNotifications];
@@ -1888,7 +1885,32 @@ FlutterMethodChannel *_channel;
 + (void)onNotificationResponse:(UNNotificationResponse *_Nullable)response {
     [CountlyFLPushNotifications.sharedInstance onNotificationResponse:response];
 }
+#else
+/**
+ * Does nothing: push notifications are not part of the no-push flavour, but the method stays so
+ * an app delegate written for the push flavour keeps working.
+ */
++ (void)startObservingNotifications {
+    COUNTLY_FLUTTER_LOG(@"startObservingNotifications, push notifications are not available in this flavour");
+}
+
+/**
+ * Does nothing: push notifications are not part of the no-push flavour, but the method stays so
+ * an app delegate written for the push flavour keeps working.
+ */
++ (void)onNotification:(NSDictionary *_Nullable)notification {
+    COUNTLY_FLUTTER_LOG(@"onNotification, push notifications are not available in this flavour");
+}
 #endif
+
+/**
+ * Records the actions of push notifications that were tapped before the SDK started.
+ */
+- (void)recordPushAction {
+#ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
+    [CountlyFLPushNotifications.sharedInstance recordPushActions];
+#endif
+}
 
 - (void)addCountlyFeature:(CLYFeature)feature {
     if (countlyFeatures == nil) {

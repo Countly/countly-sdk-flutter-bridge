@@ -71,7 +71,7 @@ void main() {
         var event = eventList[eventIdx];
         expect(event['key'], 'Event With Sum And Segment');
         expect(event['segmentation'].length, MAX_SEGMENTATION_COUNT);
-        // 1) View Start (legacy)
+        // 1) View Start
         var view = eventList[eventIdx + 1];
         expect(view['key'], '[CLY]_view');
         expect(view['segmentation']['segment'], Platform.isIOS ? 'iOS' : 'Android');
@@ -79,7 +79,7 @@ void main() {
         expect(view['segmentation']['name'], 'HomePage');
         expect(view['segmentation']['visit'], Platform.isIOS ? 1 : '1');
         expect(view['segmentation'].length, MAX_SEGMENTATION_COUNT + 4);
-        // 2) View End (legacy)
+        // 2) View End
         view = eventList[eventIdx + 2];
         expect(view['key'], '[CLY]_view');
         expect(view['segmentation']['segment'], Platform.isIOS ? 'iOS' : 'Android');

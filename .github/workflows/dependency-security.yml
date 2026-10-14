@@ -1,0 +1,52 @@
+name: Dependency Security Scan
+
+# Runs on pushes and pull requests so a bad upgrade is caught immediately, and on a schedule
+# because a dependency can become vulnerable without this repository changing at all.
+on:
+  push:
+    branches:
+      - master
+      - staging
+  pull_request:
+  schedule:
+    # Mondays 06:00 UTC
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Both lockfiles are scanned. The plugin's dependencies are what every integrator inherits;
+  # the example's are not shipped, but a vulnerable one there still runs on a maintainer's
+  # machine and in the integration test workflow.
+  #
+  # The lockfiles are not committed, as is usual for a package, so they are resolved here first.
+  # That rules out OSV-Scanner's reusable workflows, which cannot run steps of their own, and the
+  # scanner action is used as a step instead.
+  scan:
+    name: OSV scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve the lockfiles
+        run: flutter pub get
+
+      - name: Scan the resolved dependencies
+        uses: google/osv-scanner-action/osv-scanner-action@v2.6.0
+        with:
+          scan-args: |-
+            --lockfile=./pubspec.lock
+            --lockfile=./example/pubspec.lock

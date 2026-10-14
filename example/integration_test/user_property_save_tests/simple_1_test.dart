@@ -66,8 +66,9 @@ void main() {
     // Some logs for debugging
     printQueues(requestList, eventList);
 
-    expect(requestList.length, 2);
-    expect(eventList.length, 4);
+    // The Android SDK sends the queued events with every user property call.
+    expect(requestList.length, Platform.isAndroid ? 3 : 2);
+    expect(eventList.length, Platform.isAndroid ? 0 : 4);
 
     // Create some events
     await Countly.instance.views.startAutoStoppedView('test', segment);

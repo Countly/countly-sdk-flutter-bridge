@@ -136,13 +136,17 @@ void main(List<String> args) {
 
   run('git', ['fetch', '--all', '--tags'], '$rootDir/$submodulePath');
 
-  final checkoutResult = Process.runSync('git', ['checkout', iosTag], workingDirectory: '$rootDir/$submodulePath');
+  // A released iOS SDK is named by its tag. An unreleased one is named by its branch, checked out at the
+  // fetched remote head so that a stale local branch cannot keep an old commit.
+  final isTag = Process.runSync('git', ['rev-parse', '-q', '--verify', 'refs/tags/$iosTag'], workingDirectory: '$rootDir/$submodulePath').exitCode == 0;
+  final iosRef = isTag ? iosTag : 'origin/$iosTag';
+  final checkoutResult = Process.runSync('git', ['checkout', iosRef], workingDirectory: '$rootDir/$submodulePath');
   if (checkoutResult.exitCode != 0) {
-    stderr.writeln('❌ Tag not found: $iosTag');
+    stderr.writeln('❌ Tag or branch not found: $iosTag');
     stderr.writeln(checkoutResult.stderr);
     exit(1);
   }
-  print('📥 Checked out tag $iosTag');
+  print('📥 Checked out $iosRef');
 
   if (!File(sparseFile).existsSync()) {
     stderr.writeln('❌ Missing sparse-checkout rules at: $sparseFile');

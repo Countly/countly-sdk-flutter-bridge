@@ -1,3 +1,64 @@
+## XX.XX.XX
+* ! Minor breaking change ! Raised the minimum supported iOS version to 15 (previously 10), as the underlying iOS SDK requires it.
+* ! Minor breaking change ! Push notifications passed to "onNotification" now arrive once, as a JSON object, in iOS. Previously each notification arrived twice, first wrapped in a JSON array and then in a format that was not JSON.
+* ! Minor breaking change ! "pushTokenType" no longer makes the SDK send the push token of users who have not allowed notifications in iOS. Use the new "sendPushTokenAlways" config option to keep sending it, for example for silent notifications.
+* ! Minor breaking change ! "askForNotificationPermission" now asks for the notification permission on Android 13 and newer, and the plugin declares the "POST_NOTIFICATIONS" permission.
+* ! Minor breaking change ! "getID" now returns the device ID as it was set, instead of its URL-encoded form, in iOS.
+* ! Minor breaking change ! "setProperty" of "Countly.instance.userProfile" now keeps number and boolean values instead of turning them into text in Android, and sets predefined properties such as "email" instead of custom ones in iOS.
+* ! Minor breaking change ! Events recorded before init are now ignored with an error log, like other calls made before init. Previously they caused an error in Android and were stored without a consent check in iOS.
+* ! Minor breaking change ! Giving or removing the "star-rating" consent now also gives or removes the "feedback" consent in iOS, where the star rating dialog depends on it.
+* ! Minor breaking change ! "setUpdateSessionTimerDelay" now ignores values below 1 second and logs an error.
+* ! Minor breaking change ! The deprecated "storedRequestsLimit" no longer has an effect. It limited the request queue to 1 request in iOS. Use "setMaxRequestQueueSize" instead.
+* ! Minor breaking change ! The "closeButtonText" parameter of "presentFeedbackWidget" no longer has an effect in Android, as the underlying Android SDK no longer supports it.
+* ! Minor breaking change ! Links with the "data:", "zip:" and "intent:" schemes in content, feedback widgets and push notifications are now blocked by default in Android, by the underlying Android SDK.
+
+* Added the "sendPushTokenAlways" config option, which sends the push token even for users who have not allowed notifications, in iOS.
+* Notifications now use the small icon given by the "com.google.firebase.messaging.default_notification_icon" meta-data when the app declares one, in Android.
+* The plugin now compiles against the API level provided by the app's Flutter SDK instead of a fixed one in Android. This fixes the "checkDebugAarMetadata" build failure on newer Flutter versions where another plugin requires a newer API level.
+* Removed the dependency on the discontinued "pedantic" package.
+
+* Mitigated a crash with "Reply already submitted" when push notifications arrived in quick succession in Android. Notifications that arrive while no Activity is attached are now kept and delivered.
+* Mitigated an issue where remote config, content and feedback callbacks stopped reaching the app after another plugin started a background Flutter engine, for example for a Firebase Messaging background handler, in Android.
+* Mitigated an issue where native callbacks went to the most recently started Flutter engine, such as one started for background work, instead of the app's UI in iOS.
+* Mitigated an issue where a failed remote config, variant or experiment download never called its callback in iOS. Downloads without remote config consent or in temporary device ID mode now call it with an error.
+* Mitigated an issue where "presentNPS", "presentSurvey" and "presentRating" never completed in Android.
+* Mitigated an issue where the "onFinished" callback of feedback widgets never reported success. A successful finish now passes an empty string.
+* Mitigated an issue where "presentFeedbackWidget" never completed for widgets shown in full screen in Android. It now completes when the widget closes.
+* Mitigated an issue where "getFeedbackWidgetData" threw a type error instead of returning the error in iOS.
+* Mitigated an issue where rating and feedback calls never completed without feedback consent, in temporary device ID mode or with SDK networking disabled in iOS.
+* Mitigated an issue where "askForStarRating" never completed without the "star-rating" consent in Android.
+* Mitigated an issue where enabling crash reporting replaced the Flutter error handlers set before it, so other crash reporting tools and the console stopped receiving Flutter errors.
+* Mitigated an issue where event sums lost precision, for example 19.99 was recorded as 19.989999771118164.
+* Mitigated an issue where the deprecated map versions of "recordEvent" and "endEvent" sent a sum of 0 for whole-number or text sums and a count of 1 for text counts.
+* Mitigated an issue where a partial location from "setUserLocation" or the deprecated "setLocation" stored the text "null" as the city, country or IP address in Android.
+* Mitigated an issue where the deprecated "setOptionalParametersForInitialization" recorded an undefined location when no coordinates were given in iOS.
+* Mitigated an issue where "picturePath" was ignored and a second "setUserProperties" call replaced the custom properties of the first one in iOS.
+* Mitigated an issue where "disablePushNotifications" had no effect in iOS.
+* Mitigated an issue where the "enrollABOnRCDownload" config option was ignored in iOS.
+* Mitigated an issue where the "disableBackoffMechanism" config option was ignored in Android.
+* Mitigated an issue where automatic session tracking did not work when the SDK was initialized before an Activity was attached, as in add-to-app setups, in Android.
+* Mitigated an issue where a session update interval below 1 second made the SDK queue requests continuously in iOS.
+* Mitigated an issue where a config value of an unexpected type made the SDK skip every config option after it in iOS.
+* Mitigated an issue where SDK logs showed the parameter tampering protection salt and custom request header values.
+
+* Removed the following deprecated functions, as the underlying SDKs no longer provide them:
+  * "recordView", use "startAutoStoppedView" of "Countly.instance.views" instead
+  * "remoteConfigUpdate", "updateRemoteConfigForKeysOnly" and "updateRemoteConfigExceptKeys", use "downloadAllKeys", "downloadSpecificKeys" and "downloadOmittingKeys" of "Countly.instance.remoteConfig" instead
+  * "getRemoteConfigValueForKey", use "getValue" of "Countly.instance.remoteConfig" instead
+  * "remoteConfigClearValues", use "clearAll" of "Countly.instance.remoteConfig" instead
+  * "setRemoteConfigAutomaticDownload" and "setRemoteConfigCallback", use the "enableRemoteConfigAutomaticTriggers" and "remoteConfigRegisterGlobalCallback" config options instead
+  * "enableCrashReporting" and "setCustomCrashSegment", use the "enableCrashReporting" and "setCustomCrashSegment" config options instead
+  * "enableApm", use "apm.enableAppStartTimeTracking" of "CountlyConfig" instead
+  * "askForFeedback", use "presentRatingWidgetWithID" instead
+  * "recordAttributionID", use "recordIndirectAttribution" instead
+* Removed the following deprecated config options from "CountlyConfig":
+  * "setRemoteConfigAutomaticDownload", use "enableRemoteConfigAutomaticTriggers" and "remoteConfigRegisterGlobalCallback" instead
+  * "setRecordAppStartTime", use "apm.enableAppStartTimeTracking" instead
+
+* Underlying Android SDK version is 26.1.6
+* Underlying iOS SDK version is XX.XX.XX
+* Underlying Web SDK version is 26.1.1
+
 ## 26.1.1
 * ! Minor breaking change ! The iOS plugin sources were reorganized to support Swift Package Manager. If you use a Notification Service Extension for rich push notifications, update the reference to "CountlyNotificationService.h" and "CountlyNotificationService.m" in your extension target to the new path "ios/countly_flutter/Sources/countly_flutter/countly-sdk-ios/".
 

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
@@ -40,7 +39,7 @@ void main() {
     expect(requestList.length, 7);
 
     testCommonRequestParams(requestList[0]);
-    expect(requestList[0]['user_details']?[0], '{"custom":{"beforeBeginSession":${Platform.isAndroid ? '"true"' : 'true'}}}');
+    expect(requestList[0]['user_details']?[0], '{"custom":{"beforeBeginSession":true}}');
 
     testCommonRequestParams(requestList[1]); // tests
     checkBeginSession(requestList[1]);
@@ -48,13 +47,13 @@ void main() {
     expect(requestList[2]['events']?[0].contains('[CLY]_orientation'), true);
 
     testCommonRequestParams(requestList[3]);
-    expect(requestList[3]['user_details']?[0], '{"custom":{"beforeUpdateSession":${Platform.isAndroid ? '"true"' : 'true'}}}');
+    expect(requestList[3]['user_details']?[0], '{"custom":{"beforeUpdateSession":true}}');
 
     testCommonRequestParams(requestList[4]);
     expect(requestList[4]['session_duration']?[0], '2');
 
     testCommonRequestParams(requestList[5]);
-    expect(requestList[5]['user_details']?[0], '{"custom":{"beforeEndSession":${Platform.isAndroid ? '"true"' : 'true'}}}');
+    expect(requestList[5]['user_details']?[0], '{"custom":{"beforeEndSession":true}}');
 
     testCommonRequestParams(requestList[6]);
     checkEndSession(requestList[6]);

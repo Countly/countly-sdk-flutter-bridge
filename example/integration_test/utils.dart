@@ -36,6 +36,14 @@ void storeRequest(Map<String, dynamic> request) async {
   });
 }
 
+/// Hands the given notification payloads to the plugin's native notification entry point in one
+/// burst, the way a device receives queued pushes when it comes back online.
+Future<void> deliverTestNotifications(List<Map<String, String>> payloads) async {
+  await _channelTest.invokeMethod('testOnNotification', <String, dynamic>{
+    'data': json.encode([payloads]),
+  });
+}
+
 void addDirectRequest(Map<String, String> request) async {
   await _channelTest.invokeMethod('addDirectRequest', <String, dynamic>{
     'data': json.encode([request]),
@@ -358,7 +366,7 @@ Future<void> createTruncableEvents() async {
 
   // Create a view with segmentation
   Map<String, Object> segments = {'Cats': 12345, 'Moons': 9.9866, 'Moose': 'Deer'};
-  await Countly.recordView('HomePage', segments); // legacy code
+  await Countly.instance.views.startAutoStoppedView('HomePage', segments);
   await Countly.instance.views.startAutoStoppedView('hawk', segments);
 
   // Create custom APM custom trace with segmentation
