@@ -451,6 +451,45 @@ Future<(List<String>, int)> filterCachedTests(List<String> tests, String platfor
   return (filtered, skipped);
 }
 
+/// How long one `flutter test` process may run before the worker kills it: the per-test
+/// [timeout], which `flutter test` applies only once the test body starts, plus ten minutes to
+/// build, install and launch the app. Null when the timeout is `none`.
+Duration? testProcessLimit(String timeout) {
+  if (timeout == 'none') {
+    return null;
+  }
+  final match = RegExp(r'^(\d+)([sm]?)$').firstMatch(timeout.trim());
+  var seconds = 300;
+  if (match != null) {
+    seconds = int.parse(match.group(1)!);
+    if (match.group(2) == 'm') {
+      seconds *= 60;
+    }
+  }
+  return Duration(seconds: seconds + 600);
+}
+
+/// Waits for a `flutter test` process and kills it once it runs past [limit], so an app that
+/// never launches fails one test instead of holding the device for the rest of the run.
+/// Returns null when the process had to be killed.
+Future<int?> waitForTestProcess(Process process, Duration? limit) async {
+  if (limit == null) {
+    return process.exitCode;
+  }
+  try {
+    return await process.exitCode.timeout(limit);
+  } on TimeoutException {
+    process.kill();
+    try {
+      await process.exitCode.timeout(const Duration(seconds: 30));
+    } on TimeoutException {
+      process.kill(ProcessSignal.sigkill);
+      await process.exitCode;
+    }
+    return null;
+  }
+}
+
 // ── Worker ─────────────────────────────────────────────────────────
 
 Future<WorkerResult> runWorker({
@@ -509,20 +548,28 @@ Future<WorkerResult> runWorker({
     final stderrLines = <String>[];
 
     // Capture stdout
-    process.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen((line) {
+    final stdoutSubscription = process.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen((line) {
       stdoutLines.add(line);
       testLogSink.writeln(line);
       logSink.writeln(line);
     });
 
     // Capture stderr
-    process.stderr.transform(utf8.decoder).transform(const LineSplitter()).listen((line) {
+    final stderrSubscription = process.stderr.transform(utf8.decoder).transform(const LineSplitter()).listen((line) {
       stderrLines.add(line);
       testLogSink.writeln(line);
       logSink.writeln(line);
     });
 
-    final exitCode = await process.exitCode;
+    final exitCode = await waitForTestProcess(process, testProcessLimit(config.timeout));
+    if (exitCode == null) {
+      // A killed tool can leave child processes that still hold its output open.
+      await stdoutSubscription.cancel();
+      await stderrSubscription.cancel();
+      final message = '[W$workerId] Killed ($test) after ${testStopwatch.elapsed.inSeconds}s without a result';
+      testLogSink.writeln(message);
+      logSink.writeln(message);
+    }
     await testLogSink.close();
 
     testStopwatch.stop();
