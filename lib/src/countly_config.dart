@@ -268,7 +268,7 @@ class CountlyConfig {
 
   /// Set the address the Countly Web SDK script is loaded from, for apps that host the script
   /// themselves, for example because content blockers block the default CDN address (web only).
-  /// [String url] - full address of countly.min.js
+  /// [String url]: full address of countly.min.js
   CountlyConfig setWebSDKUrl(String url) {
     if (url.isEmpty) {
       Countly.log('setWebSDKUrl, url cannot be empty, ignoring it', logLevel: LogLevel.ERROR);

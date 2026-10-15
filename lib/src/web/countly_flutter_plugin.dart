@@ -471,6 +471,8 @@ class CountlyFlutterPlugin {
     return null;
   }
 
+  /// Sends [userData] as user details: the named properties as they are, every other key as a
+  /// custom property.
   void _reportUserDetails(CountlyWeb countly, Map<String, dynamic> userData) {
     Map<String, dynamic> bundle = {};
     bundle['custom'] = <String, dynamic>{};
@@ -507,6 +509,7 @@ class CountlyFlutterPlugin {
     }
   }
 
+  /// Runs the "userProfile_" call [method] with [data]. The changes are sent on its save call.
   void _userProfileOps(CountlyWeb countly, String method, List<dynamic> data) {
     CountlyWebUserData userData = countly.userData;
     if (method == 'userProfile_setProperties') {
@@ -557,6 +560,7 @@ class CountlyFlutterPlugin {
     }
   }
 
+  /// Runs the deprecated "userData_" call [method] with [data] and sends the change at once.
   void _userDataOps(CountlyWebUserData userData, String method, List<dynamic> data) {
     if (method == 'userData_setProperty') {
       String keyName = data[0] as String;
@@ -1020,6 +1024,8 @@ class CountlyFlutterPlugin {
     return strings;
   }
 
+  /// [rcData], the remote config values the Web SDK keeps, in the form the Dart side reads: each key
+  /// mapped to its value and whether it belongs to the current user.
   Map<String, Map<String, dynamic>> _convertMapToRCData(Object? rcData) {
     Map<String, Map<String, dynamic>> data = {};
     if (rcData is Map) {
@@ -1126,8 +1132,7 @@ class CountlyFlutterPlugin {
     // Content
     configMap['content_zone_timer_interval'] = config['zoneTimerInterval'];
 
-    // Push. Without a VAPID public key the Web SDK cannot subscribe, so an app that does not use web
-    // push gets no service worker scope.
+    // Push options only with a VAPID key, so an app without web push gets no service worker scope.
     if (config['vapidPublicKey'] != null) {
       configMap['push_vapid_public_key'] = config['vapidPublicKey'];
       configMap['push_service_worker_path'] = config['pushServiceWorkerPath'];

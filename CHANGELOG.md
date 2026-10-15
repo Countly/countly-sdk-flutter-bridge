@@ -1,41 +1,27 @@
 ## XX.XX.XX
 * ! Minor breaking change ! Remote config downloads no longer enroll the user into A/B tests unless the "enrollABOnRCDownload" config option is set, in Web.
+* ! Minor breaking change ! Manual sessions changed in Web: "beginSession" always starts a new session, even when the one of an earlier page load could continue, sessions are no longer extended automatically, and "endSession" ends the session on the server.
 
-* Added the "setWebSDKUrl" config option, which loads the Countly Web SDK script from an address you host, for example when content blockers block the default CDN address, in Web.
+* Added the "setWebSDKUrl" config option for loading the Countly Web SDK from an address you host, for example when content blockers block the default CDN, in Web.
 * Added support for WebAssembly builds ("flutter build web --wasm").
 * Added web push notification support, which needs the Countly Web SDK 26.8.0 or newer:
-  * give the SDK the "push" consent and the VAPID public key from your application's settings through "CountlyConfig.push.setVapidPublicKey"
-  * copy "countly_sw.js" into your application's "web" folder, and call "askForNotificationPermission" from a user gesture
-  * "disablePushNotifications" unsubscribes again and is remembered across page loads
-  * "onNotification" reports notifications that are received, clicked or closed
-* Added Web support for the calls the Countly Web SDK can serve:
-  * "updateSession" for manual sessions
-  * "startView", which returns a view ID, "stopViewWithName", "stopViewWithID", "stopAllViews" and global view segmentation. Starting a view ends the previous one, as the Web SDK runs one view at a time
-  * custom traces, network traces, app start time and foreground and background time
-  * "setUserLocation" and "disableLocation", without GPS coordinates
-  * "addCustomNetworkRequestHeaders" and "attemptToSendStoredRequests"
-  * direct attribution, at runtime and through the config
-  * "refreshContentZone" and the content zone timer interval config option
-  * user properties set through the config
-  * "throwNativeException", which reports a fatal test crash
+  * give the "push" consent, set the VAPID public key with "CountlyConfig.push.setVapidPublicKey" and copy "countly_sw.js" into your application's "web" folder
+  * call "askForNotificationPermission" from a user gesture. "disablePushNotifications" unsubscribes, and "onNotification" reports received, clicked and closed notifications
+* Added Web support for:
+  * "updateSession", "startView", stopping views by name, ID or all at once, and global view segmentation. Starting a view ends the previous one
+  * custom and network traces, app start time, and foreground and background time
+  * "setUserLocation" and "disableLocation", without GPS coordinates, and "addCustomNetworkRequestHeaders"
+  * direct attribution, "attemptToSendStoredRequests", "refreshContentZone" and "throwNativeException"
+  * the config options for user properties and the content zone timer interval
 
-* Mitigated an issue where every Countly call waited forever when the Countly Web SDK script could not load, for example because of a content blocker, so an app that awaited init before "runApp" showed a blank page. Init now gives up after 10 seconds with an error message, and later calls do nothing, in Web.
-* Mitigated an issue where a remote config download whose request failed never called its callback in Web. The callback now reports a network issue after 35 seconds.
-* Mitigated an issue where "getAvailableFeedbackWidgets" and "getFeedbackWidgetData" never completed, or threw a type error, when their request failed in Web.
-* Mitigated an issue where "getFeedbackWidgetData" threw a type error instead of returning the widget data in Web.
-* Mitigated an issue where "isInitialized" always returned false, which stopped most later calls, in Web.
-* Mitigated an issue where the "giveAllConsents" config option was ignored in Web.
-* Mitigated an issue where the "disableLocation" and "setSDKBehaviorSettings" config options were ignored in Web. Location is left out of requests when consent is required.
-* Mitigated an issue where the app version was always reported as "0.0" in Web. It is now read from the "version.json" file of the web build.
-* Mitigated an issue where data went to the page's own Countly app when the page had initialized the Countly Web SDK before the plugin, in Web.
-* Mitigated an issue where crash reports carried an extra segment made of the error text and left out the custom crash segment, in Web.
-* Mitigated an issue where setting a custom crash segment turned on automatic crash reporting in Web.
-* Mitigated an issue where "getAllValuesAndEnroll" returned no values and enrolled no keys in Web.
-* Mitigated an issue where event count, sum and duration were sent as text instead of numbers in Web.
-* Mitigated an issue where manual sessions were extended automatically, and "endSession" did not end the session on the server, in Web.
-* Mitigated an issue where changing the device ID without merge counted the time of a manual session twice in Web.
-* Mitigated an issue where "onNotification" called its callback without end in Web.
-* Mitigated an issue where the callbacks of the remote config variant and experiment testing calls were never called in Web. They now report that the call is not available on web.
+* Mitigated issues in Web where:
+  * every call waited forever when the Web SDK script could not load. Init now gives up after 10 seconds with an error
+  * "isInitialized" always returned false, and data went to the page's own Countly app when the page had loaded the Web SDK first
+  * a failed remote config download, the feedback widget calls, the remote config variant and experiment testing calls and "onNotification" never completed, threw a type error or called back without end
+  * the "giveAllConsents", "disableLocation" and "setSDKBehaviorSettings" config options were ignored, and the app version was always "0.0" instead of the one in "version.json"
+  * crash reports left out the custom crash segment, and setting one turned on automatic crash reporting
+  * "getAllValuesAndEnroll" returned no values, and event count, sum and duration were sent as text
+  * changing the device ID without merge counted a manual session twice
 
 * Underlying Web SDK version is 26.1.3
 
