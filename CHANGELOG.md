@@ -1,3 +1,44 @@
+## XX.XX.XX
+* ! Minor breaking change ! Remote config downloads no longer enroll the user into A/B tests unless the "enrollABOnRCDownload" config option is set, in Web.
+
+* Added the "setWebSDKUrl" config option, which loads the Countly Web SDK script from an address you host, for example when content blockers block the default CDN address, in Web.
+* Added support for WebAssembly builds ("flutter build web --wasm").
+* Added web push notification support, which needs the Countly Web SDK 26.8.0 or newer:
+  * give the SDK the "push" consent and the VAPID public key from your application's settings through "CountlyConfig.push.setVapidPublicKey"
+  * copy "countly_sw.js" into your application's "web" folder, and call "askForNotificationPermission" from a user gesture
+  * "disablePushNotifications" unsubscribes again and is remembered across page loads
+  * "onNotification" reports notifications that are received, clicked or closed
+* Added Web support for the calls the Countly Web SDK can serve:
+  * "updateSession" for manual sessions
+  * "startView", which returns a view ID, "stopViewWithName", "stopViewWithID", "stopAllViews" and global view segmentation. Starting a view ends the previous one, as the Web SDK runs one view at a time
+  * custom traces, network traces, app start time and foreground and background time
+  * "setUserLocation" and "disableLocation", without GPS coordinates
+  * "addCustomNetworkRequestHeaders" and "attemptToSendStoredRequests"
+  * direct attribution, at runtime and through the config
+  * "refreshContentZone" and the content zone timer interval config option
+  * user properties set through the config
+  * "throwNativeException", which reports a fatal test crash
+
+* Mitigated an issue where every Countly call waited forever when the Countly Web SDK script could not load, for example because of a content blocker, so an app that awaited init before "runApp" showed a blank page. Init now gives up after 10 seconds with an error message, and later calls do nothing, in Web.
+* Mitigated an issue where a remote config download whose request failed never called its callback in Web. The callback now reports a network issue after 35 seconds.
+* Mitigated an issue where "getAvailableFeedbackWidgets" and "getFeedbackWidgetData" never completed, or threw a type error, when their request failed in Web.
+* Mitigated an issue where "getFeedbackWidgetData" threw a type error instead of returning the widget data in Web.
+* Mitigated an issue where "isInitialized" always returned false, which stopped most later calls, in Web.
+* Mitigated an issue where the "giveAllConsents" config option was ignored in Web.
+* Mitigated an issue where the "disableLocation" and "setSDKBehaviorSettings" config options were ignored in Web. Location is left out of requests when consent is required.
+* Mitigated an issue where the app version was always reported as "0.0" in Web. It is now read from the "version.json" file of the web build.
+* Mitigated an issue where data went to the page's own Countly app when the page had initialized the Countly Web SDK before the plugin, in Web.
+* Mitigated an issue where crash reports carried an extra segment made of the error text and left out the custom crash segment, in Web.
+* Mitigated an issue where setting a custom crash segment turned on automatic crash reporting in Web.
+* Mitigated an issue where "getAllValuesAndEnroll" returned no values and enrolled no keys in Web.
+* Mitigated an issue where event count, sum and duration were sent as text instead of numbers in Web.
+* Mitigated an issue where manual sessions were extended automatically, and "endSession" did not end the session on the server, in Web.
+* Mitigated an issue where changing the device ID without merge counted the time of a manual session twice in Web.
+* Mitigated an issue where "onNotification" called its callback without end in Web.
+* Mitigated an issue where the callbacks of the remote config variant and experiment testing calls were never called in Web. They now report that the call is not available on web.
+
+* Underlying Web SDK version is 26.1.3
+
 ## 26.1.1
 * ! Minor breaking change ! The iOS plugin sources were reorganized to support Swift Package Manager. If you use a Notification Service Extension for rich push notifications, update the reference to "CountlyNotificationService.h" and "CountlyNotificationService.m" in your extension target to the new path "ios/countly_flutter/Sources/countly_flutter/countly-sdk-ios/".
 

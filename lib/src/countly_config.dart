@@ -2,6 +2,7 @@ import 'configuration_interfaces/countly_config_apm.dart';
 import 'configuration_interfaces/countly_config_content.dart';
 import 'configuration_interfaces/countly_config_experimental.dart';
 import 'configuration_interfaces/countly_config_limits.dart';
+import 'configuration_interfaces/countly_config_push.dart';
 import 'countly_flutter.dart';
 import 'remote_config.dart';
 
@@ -17,6 +18,7 @@ class CountlyConfig {
   bool _locationDisabled = false;
   bool _httpPostForced = true;
   Map<String, String>? _customNetworkRequestHeaders;
+  String? _webSDKUrl;
   String? _locationGpsCoordinates;
   String? _daCampaignType;
   String? _daCampaignData;
@@ -56,6 +58,9 @@ class CountlyConfig {
 
   /// instance of CountlyConfigExperimental
   final CountlyConfigExperimental _countlyConfigExperimentalInstance = CountlyConfigExperimental();
+
+  /// instance of CountlyConfigPush
+  final CountlyConfigPush _countlyConfigPushInstance = CountlyConfigPush();
 
   /// instance of CountlyConfigLimits
   final CountlyConfigSDKInternalLimits _countlyConfigSDKInternalLimitsInstance = CountlyConfigSDKInternalLimits();
@@ -116,6 +121,8 @@ class CountlyConfig {
 
   String? get tamperingProtectionSalt => _tamperingProtectionSalt;
 
+  String? get webSDKUrl => _webSDKUrl;
+
   Map<String, String>? get iaAttributionValues => _iaAttributionValues;
 
   Map<String, dynamic>? get customCrashSegment => _customCrashSegment;
@@ -163,6 +170,9 @@ class CountlyConfig {
 
   /// getter for CountlyConfigContent instance that is used to access CountlyConfigContent methods
   CountlyConfigContent get content => _countlyConfigContentInstance;
+
+  /// getter for CountlyConfigPush instance that is used to access CountlyConfigPush methods
+  CountlyConfigPush get push => _countlyConfigPushInstance;
 
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
@@ -253,6 +263,18 @@ class CountlyConfig {
   /// Set if you want custom HTTP headers to be used for all requests
   CountlyConfig setCustomNetworkRequestHeaders(Map<String, String>? customNetworkRequestHeaders) {
     _customNetworkRequestHeaders = customNetworkRequestHeaders;
+    return this;
+  }
+
+  /// Set the address the Countly Web SDK script is loaded from, for apps that host the script
+  /// themselves, for example because content blockers block the default CDN address (web only).
+  /// [String url] - full address of countly.min.js
+  CountlyConfig setWebSDKUrl(String url) {
+    if (url.isEmpty) {
+      Countly.log('setWebSDKUrl, url cannot be empty, ignoring it', logLevel: LogLevel.ERROR);
+      return this;
+    }
+    _webSDKUrl = url;
     return this;
   }
 
