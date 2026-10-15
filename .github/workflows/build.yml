@@ -1,8 +1,6 @@
 name: Build the SDK
 
-# `contents: read` is what lets actions/checkout clone. Declaring any permissions block
-# replaces the default token scopes outright rather than adding to them, so leaving it out
-# drops read access to the repository itself.
+# Declaring permissions replaces the default token scopes, so checkout needs `contents: read`.
 permissions:
   contents: read
 
@@ -11,8 +9,7 @@ on:
     branches:
       - master
       - staging
-  # No branch filter: feature branches are reviewed as pull requests into an integration
-  # branch rather than into master, and those are exactly the runs worth having.
+  # No branch filter: feature work is reviewed in pull requests into integration branches.
   pull_request:
   workflow_dispatch:
 
@@ -21,11 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # The cheapest signal, and the one everything else waits on: a Dart error should not cost
-  # four platform builds. The plugin is analyzed on the oldest Flutter the CI checks as well,
-  # because an API newer than that compiles fine for the developer who added it while
-  # breaking every integrator who has not upgraded. The example requires a newer Dart than
-  # that, so the oldest version analyzes the plugin alone.
+  # Runs first; the oldest Flutter analyzes the plugin alone, as the example needs a newer Dart.
   analyze:
     name: Analyze (Flutter ${{ matrix.flutter.label }})
     runs-on: ubuntu-latest
@@ -54,16 +47,11 @@ jobs:
       - name: Resolve the dependencies
         run: ${{ matrix.flutter.pubGet }}
 
-      # `--no-fatal-infos` because the lint set in analysis_options.yaml reports style
-      # preferences as infos across the example and the integration tests. Errors and
-      # warnings still fail, which is what this gate is for. `--no-pub` keeps analyze from
-      # rerunning `flutter pub get`, which fails on 3.24.
+      # Only errors and warnings fail; `--no-pub` skips the `flutter pub get` that fails on 3.24.
       - name: Analyze
         run: flutter analyze --no-pub --no-fatal-infos ${{ matrix.flutter.targets }}
 
-  # What pub.dev will see. It catches a missing LICENSE, a bad description, an oversized
-  # archive, a missing iOS SDK and a dependency that cannot resolve, none of which any build
-  # step notices.
+  # What pub.dev will see: a missing LICENSE, an oversized archive or a dependency that cannot resolve.
   package:
     name: Package for pub.dev
     runs-on: ubuntu-latest
@@ -78,14 +66,11 @@ jobs:
           channel: stable
           cache: true
 
-      # Checks out the vendored iOS SDK at the pinned tag with the sparse checkout rules, the
-      # same state a release is published from.
+      # The vendored iOS SDK at its pinned version, the state a release is published from.
       - name: Prepare the vendored iOS SDK
         run: dart run scripts/sync_sdk_versions.dart
 
-      # The dry run exits non-zero for any validation warning, including the long standing and
-      # harmless one about checked in files that a `.gitignore` also matches, so its output is
-      # kept and judged rather than its exit code.
+      # The dry run fails even on harmless warnings, so its output is checked instead of its exit code.
       - name: Dry run the publish
         run: flutter pub publish --dry-run 2>&1 | tee pub-dry-run.txt || true
 
@@ -113,8 +98,7 @@ jobs:
       matrix:
         target:
           - { name: "Android", os: "ubuntu-latest" }
-          # Flutter links the plugin through Swift Package Manager by default from 3.44 on, and
-          # through CocoaPods before that or when an app opts out, so both integrations are built.
+          # Flutter uses SwiftPM by default from 3.44 and CocoaPods before or on opt-out, so both are built.
           - { name: "iOS (Swift Package Manager)", os: "macos-15" }
           - { name: "iOS (CocoaPods)", os: "macos-15" }
           - { name: "Web", os: "ubuntu-latest" }
@@ -138,8 +122,7 @@ jobs:
           channel: stable
           cache: true
 
-      # Both iOS integrations compile every source under the plugin's target directory, so the
-      # vendored iOS SDK has to be checked out with the sparse checkout rules first.
+      # Both iOS integrations compile the vendored iOS SDK, so it is checked out first.
       - name: Prepare the vendored iOS SDK
         if: startsWith(matrix.target.name, 'iOS')
         run: dart run scripts/sync_sdk_versions.dart
@@ -165,9 +148,7 @@ jobs:
             Web)     flutter build web ;;
           esac
 
-  # The no-push flavour (`countly_flutter_np`) is released from the staging-np branch, and
-  # scripts/script.py is the generator that is supposed to reproduce it from this tree. This
-  # runs it on a throwaway copy and checks what comes out, so the generator cannot rot again.
+  # Regenerates the no-push flavour, released from staging-np, with scripts/script.py and checks it.
   no-push-flavour:
     name: Generate the no-push flavour
     needs: analyze
@@ -182,9 +163,7 @@ jobs:
           channel: stable
           cache: true
 
-      # Generated in a copy so the checkout the other steps would use is left alone, and so a
-      # half-finished generation cannot be mistaken for the real tree. The script asks for
-      # confirmation before it changes anything.
+      # Generated in a copy so a half-finished run cannot touch the checkout; the script asks to confirm.
       - name: Generate the flavour
         run: |
           set -euo pipefail
@@ -215,9 +194,7 @@ jobs:
           flutter pub get --no-example
           flutter analyze --no-fatal-infos lib
 
-  # Every file that carries a version is generated from scripts/config/sdk_versions.txt by
-  # scripts/sync_sdk_versions.dart. Nothing stops a hand edit to one of them, and the result is
-  # an SDK that reports one version on the wire and another in the changelog.
+  # Versions come from scripts/config/sdk_versions.txt; this catches a hand edit to any file holding one.
   version-consistency:
     name: Versions are consistent
     runs-on: ubuntu-latest

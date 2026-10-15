@@ -1,7 +1,6 @@
 name: Dependency Security Scan
 
-# Runs on pushes and pull requests so a bad upgrade is caught immediately, and on a schedule
-# because a dependency can become vulnerable without this repository changing at all.
+# Also scheduled, as a dependency can turn vulnerable without this repository changing.
 on:
   push:
     branches:
@@ -21,13 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Both lockfiles are scanned. The plugin's dependencies are what every integrator inherits;
-  # the example's are not shipped, but a vulnerable one there still runs on a maintainer's
-  # machine and in the integration test workflow.
-  #
-  # The lockfiles are not committed, as is usual for a package, so they are resolved here first.
-  # That rules out OSV-Scanner's reusable workflows, which cannot run steps of their own, and the
-  # scanner action is used as a step instead.
+  # Lockfiles are not committed, so they are resolved first and the scanner runs as a step.
   scan:
     name: OSV scan
     runs-on: ubuntu-latest

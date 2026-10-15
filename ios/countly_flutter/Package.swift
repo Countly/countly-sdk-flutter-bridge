@@ -6,9 +6,7 @@ import PackageDescription
 let package = Package(
     name: "countly_flutter",
     platforms: [
-        // Matches the vendored Countly iOS SDK (its Package.swift and podspecs all target iOS 15),
-        // and this plugin's own CocoaPods podspec (15.0). A package floor at or below the consumer's
-        // deployment target is required: SwiftPM rejects a package minimum higher than the app target.
+        // The vendored iOS SDK's floor; SwiftPM rejects a package minimum above the app's target.
         .iOS(.v15)
     ],
     products: [

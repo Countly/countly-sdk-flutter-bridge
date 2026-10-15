@@ -99,8 +99,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     }
 
     private void safeInvokeMethod(String method, Object arguments) {
-        // Native SDK callbacks are registered once and outlive the engine that registered them, so
-        // they go to the engine bindCallbackChannel picked rather than to this plugin instance.
+        // Native callbacks outlive the engine that registered them, so they use the bound callback channel.
         MethodChannel mc = sharedChannel;
         if (mc == null) {
             log("safeInvokeMethod: no live channel, dropping '" + method + "'. The Flutter engine is detached.", LogLevel.WARNING);

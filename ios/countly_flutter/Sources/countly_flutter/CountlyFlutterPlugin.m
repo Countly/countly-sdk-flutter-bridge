@@ -57,8 +57,7 @@ NSString *const CountlyStarRatingConsent = @"star-rating";
 CountlyConfig *config = nil;
 Boolean isInitialized = false;
 NSMutableDictionary *networkRequest = nil;
-// Channel of the engine that receives native callbacks: the first engine registered, until an engine
-// with UI initializes the SDK.
+// Channel for native callbacks: the first engine's, until an engine with UI initializes the SDK.
 static FlutterMethodChannel *callbackChannel = nil;
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
     FlutterMethodChannel *channel = [FlutterMethodChannel methodChannelWithName:@"countly_flutter" binaryMessenger:[registrar messenger]];

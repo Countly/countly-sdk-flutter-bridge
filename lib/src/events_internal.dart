@@ -32,8 +32,7 @@ class EventsInternal implements Events {
   Future<void> _internalEventMethodCall(String key, String method, [Map<String, Object>? segmentation, int? count, double? sum, int? duration]) async {
     List<Object?> args = [];
 
-    // The native SDK can be initialized before this isolate knows it: init is still in flight, or
-    // another engine initialized it. The native side decides then.
+    // Another engine or an init still in flight may have initialized the native SDK, so it decides.
     if (!_countlyState.isInitialized && !await Countly.isInitialized()) {
       Countly.log('[EventsInternal] $method, "initWithConfig" must be called before "$method", ignoring the call', logLevel: LogLevel.ERROR);
       return;
