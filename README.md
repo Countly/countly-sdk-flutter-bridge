@@ -245,8 +245,8 @@ Countly.removeAllConsent();
 
 ## Push notifications on the web
 
-The web platform subscribes through the browser's Push API, which needs the Countly Web SDK 26.8.0 or
-newer and two things your Android and iOS targets do not.
+The web platform subscribes through the browser's Push API, which needs two things your Android and
+iOS targets do not. If you load your own Web SDK build with `setWebSDKUrl`, it has to be 26.8.0 or newer.
 
 First, copy `countly_sw.js` into your application's `web` folder. The example application has one you
 can take as is; it imports the worker from the Web SDK release this plugin loads.

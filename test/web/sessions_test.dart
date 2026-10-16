@@ -75,4 +75,38 @@ void main() {
     expect(ends.single['session_duration'], 1);
     expect(requests.where((r) => r['begin_session'] == 1).map((r) => r['device_id']).toList(), ['first_user', 'second_user']);
   });
+
+  test('setID replaces a developer supplied ID like a change without merge, without recounting the manual session', () async {
+    await Countly.initWithConfig(testConfig()
+      ..enableManualSessionHandling()
+      ..setDeviceId('first_user'));
+    await Countly.instance.sessions.beginSession();
+    await Future<void>.delayed(const Duration(seconds: 2));
+    await Countly.instance.sessions.updateSession();
+    await Countly.instance.deviceId.setID('second_user');
+    await waitForHeartbeat();
+
+    final List<Map<String, dynamic>> requests = await requestQueue();
+    expect(requests.where((r) => r.containsKey('old_device_id')), isEmpty);
+    final List<Map<String, dynamic>> ends = requests.where((r) => r['end_session'] == 1).toList();
+    expect(ends, hasLength(1));
+    expect(ends.single['device_id'], 'first_user');
+    expect(ends.single['session_duration'], 1);
+    expect(requests.where((r) => r['begin_session'] == 1).map((r) => r['device_id']).toList(), ['first_user', 'second_user']);
+  });
+
+  test('setID merges a generated ID into the new one and keeps the manual session running', () async {
+    await Countly.initWithConfig(testConfig()..enableManualSessionHandling());
+    final String? generatedId = await Countly.instance.deviceId.getID();
+    await Countly.instance.sessions.beginSession();
+    await Countly.instance.deviceId.setID('merged_user');
+    await waitForHeartbeat();
+
+    final List<Map<String, dynamic>> requests = await requestQueue();
+    final Map<String, dynamic> merge = requests.singleWhere((r) => r.containsKey('old_device_id'));
+    expect(merge['old_device_id'], generatedId);
+    expect(merge['device_id'], 'merged_user');
+    expect(requests.where((r) => r['end_session'] == 1), isEmpty);
+    expect(await Countly.instance.deviceId.getIDType(), DeviceIdType.DEVELOPER_SUPPLIED);
+  });
 }

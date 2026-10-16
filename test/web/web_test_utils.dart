@@ -83,10 +83,26 @@ CountlyConfig testConfig({String appKey = 'web_test_app'}) {
   return config;
 }
 
-/// Every request in the Web SDK's queue, decoded.
-Future<List<Map<String, dynamic>>> requestQueue() async {
-  final List<dynamic> requests = await countlyChannel.invokeMethod('getRequestQueue') as List<dynamic>;
-  return requests.map((dynamic request) => jsonDecode(request as String) as Map<String, dynamic>).toList();
+/// Every request the Web SDK holds for [appKey], decoded, oldest first: its queue, and before it the
+/// requests that Web SDK versions keeping a queue per tab move into localStorage after a failed send.
+Future<List<Map<String, dynamic>>> requestQueue({String appKey = 'web_test_app'}) async {
+  final List<dynamic> queued = await countlyChannel.invokeMethod('getRequestQueue') as List<dynamic>;
+  final List<Map<String, dynamic>> requests = queued.map((dynamic request) => jsonDecode(request as String) as Map<String, dynamic>).toList();
+  final String key = '$appKey/cly_queue';
+  final String? left = _storageItem('localStorage', key);
+  if (_storageItem('sessionStorage', key) != null && left != null) {
+    requests.insertAll(0, (jsonDecode(left) as List<dynamic>).cast<Map<String, dynamic>>());
+  }
+  return requests;
+}
+
+/// The value [key] has in the browser storage [storage], or null when it has none.
+String? _storageItem(String storage, String key) {
+  final JSAny? value = (globalContext[storage] as JSObject).callMethod('getItem'.toJS, key.toJS);
+  if (value == null || !value.typeofEquals('string')) {
+    return null;
+  }
+  return (value as JSString).toDart;
 }
 
 /// Every event still waiting in the Web SDK's event queue.

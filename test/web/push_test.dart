@@ -1,7 +1,6 @@
 @TestOn('browser')
 library push_test;
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
@@ -34,7 +33,8 @@ void main() {
 
   test('onNotification registered before init waits for a notification instead of answering at once', () async {
     final List<String> received = [];
-    unawaited(Countly.onNotification(received.add));
+    // ignore: unawaited_futures
+    Countly.onNotification(received.add);
     await Future<void>.delayed(const Duration(milliseconds: 500));
     expect(received, isEmpty);
   });
@@ -80,7 +80,8 @@ void main() {
     }
 
     final List<Map<String, dynamic>> received = [];
-    unawaited(Countly.onNotification((String notification) => received.add(jsonDecode(notification) as Map<String, dynamic>)));
+    // ignore: unawaited_futures
+    Countly.onNotification((String notification) => received.add(jsonDecode(notification) as Map<String, dynamic>));
     postFromServiceWorker({
       'type': 'countly_push_received',
       'messageId': 'message_1',

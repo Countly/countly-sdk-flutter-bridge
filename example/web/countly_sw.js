@@ -10,4 +10,4 @@
  * change behaviour without a deploy on your side. Keep it on the Web SDK version this plugin
  * release ships with.
  */
-importScripts('https://cdn.jsdelivr.net/npm/countly-sdk-web@26.1.3/lib/countly_sw.js');
+importScripts('https://cdn.jsdelivr.net/npm/countly-sdk-web@26.8.0/lib/countly_sw.js');

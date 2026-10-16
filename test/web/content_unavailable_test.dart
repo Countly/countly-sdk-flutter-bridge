@@ -34,6 +34,24 @@ void main() {
     await Countly.instance.content.exitContentZone();
   }, timeout: const Timeout(Duration(seconds: 30)));
 
+  test('With consent required, the content zone waits for the content consent', () async {
+    final CountlyConfig config = testConfig()..setRequiresConsent(true);
+    config.content.setZoneTimerInterval(15);
+    await Countly.initWithConfig(config);
+
+    await Countly.instance.content.enterContentZone();
+    await Future<void>.delayed(const Duration(milliseconds: 4500));
+    expect(contentRequestCount(), 0);
+
+    await Countly.giveConsent([CountlyConsent.content]);
+    for (int second = 0; second < 20 && contentRequestCount() == 0; second++) {
+      await Future<void>.delayed(const Duration(seconds: 1));
+    }
+    expect(contentRequestCount(), 1);
+
+    await Countly.instance.content.exitContentZone();
+  }, timeout: const Timeout(Duration(seconds: 45)));
+
   test('Calls the Web SDK has no equivalent for answer without failing', () async {
     await Countly.initWithConfig(testConfig());
 

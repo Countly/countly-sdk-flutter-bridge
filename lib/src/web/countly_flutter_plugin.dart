@@ -171,7 +171,7 @@ class CountlyFlutterPlugin {
     else if (call.method == 'getID') {
       return countly.get_device_id();
     } else if (call.method == 'setID') {
-      countly.set_id(data[0] as String);
+      _setDeviceId(countly, data[0] as String);
     } else if (call.method == 'getIDType') {
       return _getDeviceIDType(countly.get_device_id_type());
     } else if (call.method == 'changeWithMerge') {
@@ -698,6 +698,16 @@ class CountlyFlutterPlugin {
       seconds = max(1, ((DateTime.now().millisecondsSinceEpoch - reportedAt) / 1000).round());
     }
     countly.end_session(seconds, true);
+  }
+
+  /// Sets the device ID the way the Web SDK's set_id does: a developer supplied ID is replaced without
+  /// merge, any other ID is merged into the new one.
+  void _setDeviceId(CountlyWeb countly, String deviceId) {
+    if (countly.get_device_id_type() == 0) {
+      _changeDeviceIdWithoutMerge(countly, deviceId);
+    } else {
+      countly.set_id(deviceId);
+    }
   }
 
   /// Changes the device ID without merging. The Web SDK ends the running session itself and counts it

@@ -23,9 +23,9 @@ void main() {
     await waitForHeartbeat();
 
     expect((await queuedEvents()).map((e) => e['key']).toList(), ['with_consent']);
-    // Only the given consent is checked: Web SDK 26.1.3 queues no request when consent is removed.
     final List<Map<String, dynamic>> consents = (await requestsWith('consent')).map((r) => jsonDecode(r['consent'] as String) as Map<String, dynamic>).toList();
     expect(consents.where((c) => c['events'] == true), isNotEmpty);
+    expect(consents.last['events'], isFalse);
   });
 
   test('Device ID changes with and without merge, and temporary ID mode', () async {
