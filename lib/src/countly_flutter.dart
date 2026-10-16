@@ -51,6 +51,7 @@ abstract class CountlyConsent {
   static const String attribution = 'attribution';
   static const String users = 'users';
   static const String push = 'push';
+  /// On iOS, giving or removing this consent also gives or removes "feedback", which the star rating dialog needs.
   static const String starRating = 'star-rating';
   static const String apm = 'apm';
   static const String feedback = 'feedback';
@@ -462,8 +463,9 @@ class Countly {
     return userData;
   }
 
-  /// This method will ask for permission, enables push notification and send push token to countly server.
-  /// Should be call after Countly init
+  /// Asks the user for the notification permission (on iOS, and on Android 13 and newer), enables push
+  /// notifications and sends the push token to the Countly server.
+  /// Should be called after Countly init
   /// returns the error or success message
   static Future<String?> askForNotificationPermission() async {
     if (BUILDING_WITH_PUSH_DISABLED) {
@@ -500,6 +502,8 @@ class Countly {
   }
 
   /// Set messaging mode for push notifications
+  /// On iOS, the push token is sent only for users who allowed notifications, unless the
+  /// "sendPushTokenAlways" config option is set.
   /// Should be call before Countly init
   /// returns the error or success message
   static Future<String?> pushTokenType(String tokenType) async {
@@ -522,6 +526,7 @@ class Countly {
   }
 
   /// Set callback to receive push notifications
+  /// The callback gets each notification once, as a JSON string.
   /// @param { callback listner } callback
   /// returns the error message or an empty string if there is no error
   static Future<String?> onNotification(Function(String) callback) async {
@@ -685,10 +690,8 @@ class Countly {
     return result;
   }
 
-  /// This flag limits the number of requests that can be stored in the request queue when the Countly server is unavailable or unreachable.
-  /// If the number of requests in the queue reaches the limit, the oldest requests in the queue will be dropped.
-  /// Should be called before init.
-  /// returns the error or success message
+  /// Has no effect. Use "setMaxRequestQueueSize" of CountlyConfig to limit the request queue.
+  /// returns the success message
   @Deprecated('This functions is deprecated, please use "setMaxRequestQueueSize" of CountlyConfig instead')
   static Future<String?> storedRequestsLimit() async {
     log('Calling "storedRequestsLimit"');
@@ -1810,11 +1813,11 @@ class Countly {
     }
 
     stack ??= StackTrace.fromString('');
-    try {
-      unawaited(logException('${exception.toString()}\n$stack', true));
-    } catch (e) {
+    // Caught here, as an uncaught failure would come back to this handler and repeat.
+    logException('${exception.toString()}\n$stack', true).catchError((Object e) {
       log('_internalRecordError, Sending crash report to Countly failed: $e');
-    }
+      return null;
+    });
   }
 
   /// Enable campaign attribution reporting to Countly.

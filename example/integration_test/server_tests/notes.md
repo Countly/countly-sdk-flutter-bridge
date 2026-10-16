@@ -14,6 +14,8 @@ All automatic calls are disabled to validate internal request triggering.
     7.   |    | OR : - (202C)
 4. check base server works normally
     8.   |    |    : - (000)
+5. check back off not used when disabled by config, even with all conditions met
+    9. D |    |    : - (203)
  
 condition combinations (response over 10 secs, queue over %50, request age over 24 hours):
 delay = D
@@ -31,3 +33,4 @@ old req = OR
 - **BM_202A_no_backoff_FQ_OR_test.dart**: Checks backoff is skipped when without a delay and FQ and OR.
 - **BM_202B_no_backoff_FQ_test.dart**: Checks backoff is skipped when without a delay and FQ.
 - **BM_202C_no_backoff_OR_test.dart**: Checks backoff is skipped when without a delay and OR.
+- **BM_203_backoff_disabled_test.dart**: Checks backoff is skipped when "disableBackoffMechanism" is set, even with a delay.

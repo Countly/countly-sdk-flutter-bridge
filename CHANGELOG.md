@@ -4,12 +4,13 @@
 * ! Minor breaking change ! "pushTokenType" no longer sends the push token of users who have not allowed notifications in iOS. Use the new "sendPushTokenAlways" config option to keep sending it, for example for silent notifications.
 * ! Minor breaking change ! "askForNotificationPermission" now asks for the notification permission on Android 13 and newer, and the plugin declares the "POST_NOTIFICATIONS" permission.
 * ! Minor breaking change ! "getID" now returns the device ID as it was set, not URL-encoded, in iOS.
-* ! Minor breaking change ! "setProperty" of "Countly.instance.userProfile" now keeps number and boolean values in Android, and sets predefined properties such as "email" instead of custom ones in iOS.
+* ! Minor breaking change ! "setProperty" of "Countly.instance.userProfile" now keeps number and boolean values in Android, and sets predefined properties such as "email" instead of custom ones in iOS. In iOS, "setProperty" and "setUserProperties" now also send the recorded events first, as in Android.
 * ! Minor breaking change ! Events recorded before init are now ignored with an error log, like other calls made before init. They caused an error in Android and skipped the consent check in iOS.
 * ! Minor breaking change ! Giving or removing the "star-rating" consent now also gives or removes the "feedback" consent, which the star rating dialog needs, in iOS.
 * ! Minor breaking change ! "setUpdateSessionTimerDelay" now ignores values below 1 second and logs an error.
 * ! Minor breaking change ! The deprecated "storedRequestsLimit" has no effect anymore (it limited the request queue to 1 request in iOS). Use "setMaxRequestQueueSize" instead.
 * ! Minor breaking change ! The "closeButtonText" parameter of "presentFeedbackWidget" has no effect anymore in Android, as the underlying Android SDK does not support it.
+* ! Minor breaking change ! The "onFinished" callback of "presentNPS", "presentSurvey" and "presentRating" can now also be called with an empty string once the widget is shown, in iOS and for some widgets in Android. Treat only a non-empty string as an error.
 * ! Minor breaking change ! Links with the "data:", "zip:" and "intent:" schemes in content, feedback widgets and push notifications are now blocked by default in Android.
 
 * Added the "sendPushTokenAlways" config option, which sends the push token even for users who have not allowed notifications, in iOS.
@@ -35,9 +36,8 @@
   * a session update interval below 1 second queued requests continuously, and a config value of an unexpected type made the SDK skip every option after it
 
 * Mitigated issues where:
-  * the "onFinished" callback of feedback widgets never reported success. A successful finish now passes an empty string
   * enabling crash reporting replaced the Flutter error handlers set before it, so other crash reporting tools and the console stopped receiving Flutter errors
-  * event sums lost precision (19.99 was recorded as 19.989999771118164), and the deprecated map versions of "recordEvent" and "endEvent" sent wrong sums and counts
+  * event sums lost precision (19.99 was recorded as 19.989999771118164), and the deprecated map versions of "recordEvent" and "endEvent" sent wrong values for whole-number sums and for text counts, sums and durations
   * SDK logs showed the parameter tampering protection salt and custom request header values
 
 * Removed the following deprecated functions, as the underlying SDKs no longer provide them:

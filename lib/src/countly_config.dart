@@ -216,7 +216,7 @@ class CountlyConfig {
   }
 
   /// Sets the interval for the automatic session update calls
-  /// min value 1 (1 second),
+  /// min value 1 (1 second), smaller values are ignored
   /// max value 600 (10 minutes)
   /// [int delay] - delay in seconds
   CountlyConfig setUpdateSessionTimerDelay(int delay) {
