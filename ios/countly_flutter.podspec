@@ -15,7 +15,7 @@ Pod::Spec.new do |s|
   s.resource_bundles = { 'countly_flutter_privacy' => ['countly_flutter/Sources/countly_flutter/countly-sdk-ios/PrivacyInfo.xcprivacy'] }
   s.dependency 'Flutter'
   s.swift_version = '5.0'
-  s.ios.deployment_target = '10.0'
+  s.ios.deployment_target = '15.0'
   s.static_framework = true
 end
 

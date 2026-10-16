@@ -1,0 +1,45 @@
+name: Dependency Security Scan
+
+# Also scheduled, as a dependency can turn vulnerable without this repository changing.
+on:
+  push:
+    branches:
+      - master
+      - staging
+  pull_request:
+  schedule:
+    # Mondays 06:00 UTC
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Lockfiles are not committed, so they are resolved first and the scanner runs as a step.
+  scan:
+    name: OSV scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve the lockfiles
+        run: flutter pub get
+
+      - name: Scan the resolved dependencies
+        uses: google/osv-scanner-action/osv-scanner-action@v2.6.0
+        with:
+          scan-args: |-
+            --lockfile=./pubspec.lock
+            --lockfile=./example/pubspec.lock

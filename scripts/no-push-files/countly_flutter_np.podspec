@@ -15,7 +15,9 @@ Pod::Spec.new do |s|
   s.resource_bundles = { 'countly_flutter_np_privacy' => ['countly_flutter_np/Sources/countly_flutter_np/countly-sdk-ios/PrivacyInfo.xcprivacy'] }
   s.dependency 'Flutter'
   s.swift_version = '5.0'
-  s.ios.deployment_target = '10.0'
+  s.ios.deployment_target = '15.0'
   s.static_framework = true
+  # Leaves the push notification code of the plugin and the bundled iOS SDK out of the build.
+  s.pod_target_xcconfig = { 'GCC_PREPROCESSOR_DEFINITIONS' => '$(inherited) COUNTLY_EXCLUDE_PUSHNOTIFICATIONS=1' }
 end
 

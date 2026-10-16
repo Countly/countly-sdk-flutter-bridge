@@ -1,7 +1,6 @@
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:countly_flutter/experiment_information.dart';
 import 'package:countly_flutter_example/helpers.dart';
-import 'package:countly_flutter_example/page_remote_config_legacy.dart';
 import 'package:flutter/material.dart';
 
 class RemoteConfigPage extends StatefulWidget {
@@ -438,18 +437,6 @@ class _RemoteConfigPageState extends State<RemoteConfigPage> {
             children: [
               MyButton(text: 'Download Experiment Information', type: CountlyButtonType.filled, onPressed: downloadExperimentInfo),
               MyButton(text: 'Get All Experiment Information', type: CountlyButtonType.tonal, onPressed: getExperimentInfo),
-            ],
-          ),
-          const SizedBox(height: 16),
-          CountlySection(
-            title: 'Legacy Remote Config Methods',
-            children: [
-              MyButton(
-                  text: 'Remote Config (Legacy)',
-                  type: CountlyButtonType.text,
-                  onPressed: () {
-                    navigateToPage(context, RemoteConfigPageLegacy());
-                  }),
             ],
           ),
         ],

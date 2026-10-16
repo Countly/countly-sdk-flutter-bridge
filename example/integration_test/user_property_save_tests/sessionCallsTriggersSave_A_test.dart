@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:countly_flutter/countly_flutter.dart';
@@ -47,7 +46,7 @@ void main() {
     }
 
     testCommonRequestParams(requestList[i]);
-    expect(requestList[i]['user_details']?[0], '{"custom":{"beforeUpdateSession":${Platform.isAndroid ? '"true"' : 'true'}}}');
+    expect(requestList[i]['user_details']?[0], '{"custom":{"beforeUpdateSession":true}}');
     i++;
 
     testCommonRequestParams(requestList[i]);
@@ -55,7 +54,7 @@ void main() {
     i++;
 
     testCommonRequestParams(requestList[i]);
-    expect(requestList[i]['user_details']?[0], '{"custom":{"beforeEndSession":${Platform.isAndroid ? '"true"' : 'true'}}}');
+    expect(requestList[i]['user_details']?[0], '{"custom":{"beforeEndSession":true}}');
     i++;
 
     testCommonRequestParams(requestList[i]);

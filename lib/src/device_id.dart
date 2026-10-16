@@ -5,7 +5,7 @@ abstract class DeviceID {
   /// It determines internally whether to change the device ID on the server or not.
   Future<void> setID(String newDeviceID);
 
-  /// Returns the currently used device ID
+  /// Returns the currently used device ID, as it was set
   Future<String?> getID();
 
   /// Returns the currently used device ID's type:
