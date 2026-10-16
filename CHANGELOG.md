@@ -1,3 +1,32 @@
+## XX.XX.XX
+* ! Minor breaking change ! Remote config downloads no longer enroll the user into A/B tests unless the "enrollABOnRCDownload" config option is set, in Web.
+* ! Minor breaking change ! Manual sessions changed in Web: "beginSession" always starts a new session, even when the one of an earlier page load could continue, sessions are no longer extended automatically, and "endSession" ends the session on the server.
+* ! Minor breaking change ! When consent is required, content now also needs the "content" consent, in Web.
+* ! Minor breaking change ! While a page can send, its unsent events and requests are now kept in the tab's sessionStorage instead of localStorage, in Web. Requests that cannot be sent yet, for example while offline, still wait in localStorage.
+
+* Added the "setWebSDKUrl" config option for loading the Countly Web SDK from an address you host, for example when content blockers block the default CDN, in Web.
+* Added support for WebAssembly builds ("flutter build web --wasm").
+* Added web push notification support:
+  * give the "push" consent, set the VAPID public key with "CountlyConfig.push.setVapidPublicKey" and copy "countly_sw.js" into your application's "web" folder
+  * call "askForNotificationPermission" from a user gesture. "disablePushNotifications" unsubscribes, and "onNotification" reports received, clicked and closed notifications
+* Added Web support for:
+  * "updateSession", "startView", stopping views by name, ID or all at once, and global view segmentation. Starting a view ends the previous one
+  * custom and network traces, app start time, and foreground and background time
+  * "setUserLocation" and "disableLocation", without GPS coordinates, and "addCustomNetworkRequestHeaders"
+  * direct attribution, "attemptToSendStoredRequests", "refreshContentZone" and "throwNativeException"
+  * the config options for user properties and the content zone timer interval
+
+* Mitigated issues in Web where:
+  * every call waited forever when the Web SDK script could not load. Init now gives up after 10 seconds with an error
+  * "isInitialized" always returned false, and data went to the page's own Countly app when the page had loaded the Web SDK first
+  * a failed remote config download, the feedback widget calls, the remote config variant and experiment testing calls and "onNotification" never completed, threw a type error or called back without end
+  * the "giveAllConsents", "disableLocation" and "setSDKBehaviorSettings" config options were ignored, and the app version was always "0.0" instead of the one in "version.json"
+  * crash reports left out the custom crash segment, and setting one turned on automatic crash reporting
+  * "getAllValuesAndEnroll" returned no values, and event count, sum and duration were sent as text
+  * changing the device ID without merge counted a manual session twice
+
+* Underlying Web SDK version is 26.8.0
+
 ## 26.1.1
 * ! Minor breaking change ! The iOS plugin sources were reorganized to support Swift Package Manager. If you use a Notification Service Extension for rich push notifications, update the reference to "CountlyNotificationService.h" and "CountlyNotificationService.m" in your extension target to the new path "ios/countly_flutter/Sources/countly_flutter/countly-sdk-ios/".
 
