@@ -2,14 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
-import 'dart:math';
 
 import 'package:countly_flutter/countly_flutter.dart' as cly;
 import 'package:countly_flutter/src/web/countly_sdk_web_interop.dart';
 import 'package:countly_flutter/src/web/json_interop.dart';
 import 'package:countly_flutter/src/web/plugin_config.dart';
 import 'package:countly_flutter/src/web/web_apm.dart';
-import 'package:countly_flutter/src/web/web_views.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
@@ -26,8 +24,8 @@ class CountlyFlutterPlugin {
   /// How long init waits for the app's version.json before it initializes without an app version.
   static const Duration appVersionTimeout = Duration(seconds: 3);
 
-  /// How long a call waits for a Web SDK callback. The Web SDK abandons a request after 30 seconds
-  /// and drops the callback of a failed request, so this waits a little longer than that.
+  /// How long a call waits for a Web SDK callback before it reports that none came, a little longer
+  /// than the 30 seconds after which the Web SDK abandons a request.
   static const Duration callbackTimeout = Duration(seconds: 35);
 
   /// The Web SDK instance init created, or null before init and when the script could not load.
@@ -36,24 +34,8 @@ class CountlyFlutterPlugin {
   /// The script load shared by every init, so the script is added to the page at most once.
   Future<bool>? _scriptLoad;
 
-  /// Segmentation added to every crash report.
-  Map<String, dynamic> _customCrashSegment = {};
-
-  /// Whether the config disabled location, which the Web SDK honours only while location consent is missing.
-  bool _locationDisabled = false;
-
-  /// Whether the config requires consent.
-  bool _consentRequired = false;
-
-  /// When the running manual session was last reported, in milliseconds since the epoch, or null when
-  /// no manual session runs.
-  int? _sessionReportedAt;
-
-  /// The views this plugin started.
-  WebViews _views = WebViews({});
-
   /// The performance traces of this plugin.
-  WebApm _apm = WebApm(trackAppStartTime: false, manualAppLoadedTrigger: false);
+  WebApm _apm = WebApm();
 
   /// How many push notification events are kept while no "onNotification" registration waits.
   static const int maxPendingNotifications = 50;
@@ -67,6 +49,13 @@ class CountlyFlutterPlugin {
 
   /// Calls the Countly Web SDK has no equivalent for.
   static const Set<String> _unavailableOnWeb = {
+    'updateSession',
+    'stopViewWithName',
+    'stopViewWithID',
+    'stopAllViews',
+    'setGlobalViewSegmentation',
+    'updateGlobalViewSegmentation',
+    'appLoadingFinished',
     'pauseViewWithID',
     'resumeViewWithID',
     'addSegmentationToViewWithID',
@@ -160,24 +149,22 @@ class CountlyFlutterPlugin {
 
     // SESSIONS
     else if (call.method == 'beginSession') {
-      _beginSession(countly);
-    } else if (call.method == 'updateSession') {
-      _updateSession(countly);
+      countly.begin_session();
     } else if (call.method == 'endSession') {
-      _endSession(countly);
+      countly.end_session();
     }
 
     // DEVICE ID MANAGEMENT
     else if (call.method == 'getID') {
       return countly.get_device_id();
     } else if (call.method == 'setID') {
-      _setDeviceId(countly, data[0] as String);
+      countly.set_id(data[0] as String);
     } else if (call.method == 'getIDType') {
       return _getDeviceIDType(countly.get_device_id_type());
     } else if (call.method == 'changeWithMerge') {
       countly.change_id(data[0] as String, true);
     } else if (call.method == 'changeWithoutMerge') {
-      _changeDeviceIdWithoutMerge(countly, data[0] as String);
+      countly.change_id(data[0] as String, false);
     } else if (call.method == 'enableTemporaryIDMode') {
       countly.enable_offline_mode();
       // there is also disable offine mode call, but it is not needed for now
@@ -185,28 +172,18 @@ class CountlyFlutterPlugin {
 
     // CONSENT
     else if (call.method == 'giveConsent') {
-      countly.add_consent(_consentsToGive(data));
+      countly.add_consent(data.jsify()!);
     } else if (call.method == 'removeConsent') {
       countly.remove_consent(data.jsify()!);
     } else if (call.method == 'giveAllConsent') {
-      countly.add_consent(_consentsToGive(_allFeatures()));
+      countly.add_consent(countlyGlobal.features);
     } else if (call.method == 'removeAllConsent') {
       countly.remove_consent(countlyGlobal.features);
     }
 
     // VIEWS
     else if (call.method == 'startView' || call.method == 'startAutoStoppedView') {
-      return _views.start(countly, data[0] as String, _mapAt(data, 1));
-    } else if (call.method == 'stopViewWithName') {
-      _views.stopWithName(countly, data[0] as String, _mapAt(data, 1));
-    } else if (call.method == 'stopViewWithID') {
-      _views.stopWithId(countly, data[0] as String, _mapAt(data, 1));
-    } else if (call.method == 'stopAllViews') {
-      _views.stopAll(countly, _mapAt(data, 0));
-    } else if (call.method == 'setGlobalViewSegmentation') {
-      _views.setGlobalSegmentation(_mapAt(data, 0));
-    } else if (call.method == 'updateGlobalViewSegmentation') {
-      _views.updateGlobalSegmentation(_mapAt(data, 0));
+      countly.track_pageview(data[0] as String, null, _mapAt(data, 1).jsify());
     }
 
     // PERFORMANCE MONITORING
@@ -220,8 +197,6 @@ class CountlyFlutterPlugin {
       _apm.clearAllTraces();
     } else if (call.method == 'recordNetworkTrace') {
       _apm.recordNetworkTrace(countly, data[0] as String, _int(data[1]), _int(data[2]), _int(data[3]), _int(data[4]), _int(data[5]));
-    } else if (call.method == 'appLoadingFinished') {
-      _apm.appLoaded(countly);
     }
 
     // LOCATION
@@ -255,8 +230,14 @@ class CountlyFlutterPlugin {
       String exceptionString = data[0] as String;
       bool nonfatal = data[1] == 'true';
 
-      Map<String, dynamic> segments = {..._customCrashSegment, ..._extractMap(data, idxStart: 2)};
+      Map<String, dynamic> segments = _extractMap(data, idxStart: 2);
+      // Without segmentation of its own, the Web SDK uses the one given to track_errors.
       countly.recordError({'stack': exceptionString}.jsify()!, nonfatal, segments.isEmpty ? null : segments.jsify());
+    } else if (call.method == 'setCustomCrashSegment') {
+      Map<String, dynamic> segments = _extractMap(data);
+      if (segments.isNotEmpty) {
+        countly.track_errors(segments.jsify());
+      }
     } else if (call.method == 'addCrashLog') {
       countly.add_log(data[0] as String);
     } else if (call.method == 'throwNativeException') {
@@ -270,14 +251,8 @@ class CountlyFlutterPlugin {
       return _stringifyAll(countly.internals.getEventQueue());
     } else if (call.method == 'halt') {
       countly.halt();
-      _apm.stop();
       _countly = null;
-      _customCrashSegment = {};
-      _locationDisabled = false;
-      _consentRequired = false;
-      _sessionReportedAt = null;
-      _views = WebViews({});
-      _apm = WebApm(trackAppStartTime: false, manualAppLoadedTrigger: false);
+      _apm = WebApm();
       _pendingNotifications.clear();
       retrievedWidgetList.clear();
     }
@@ -339,6 +314,17 @@ class CountlyFlutterPlugin {
     } else if (call.method == 'remoteConfigGetValue') {
       String key = data[0] as String;
       return {'value': _dartify(countly.get_remote_config(key)), 'isCurrentUsersData': true};
+    } else if (call.method == 'getRemoteConfigValueForKey') {
+      return _remoteConfigText(_dartify(countly.get_remote_config(data[0] as String)));
+    }
+
+    // LEGACY REMOTE CONFIG
+    else if (call.method == 'updateRemoteConfigForKeysOnly') {
+      return await _updateRemoteConfig(countly, data.jsify(), null);
+    } else if (call.method == 'updateRemoteConfigExceptKeys') {
+      return await _updateRemoteConfig(countly, null, data.jsify());
+    } else if (call.method == 'remoteConfigUpdate') {
+      return await _updateRemoteConfig(countly, null, null);
     }
 
     // A/B TESTING
@@ -612,7 +598,7 @@ class CountlyFlutterPlugin {
   }
 
   /// Records the event the Dart side sends as key, count, sum, duration and segmentation. The numbers
-  /// arrive as strings and are sent as numbers, as the native SDKs send them.
+  /// arrive as strings and are sent as numbers.
   void _recordEvent(CountlyWeb countly, List<dynamic> event) {
     assert(event.length >= 4);
     countly.add_event({'key': event[0], 'count': _number(event[1]), 'sum': _number(event[2]), 'dur': _number(event[3]), 'segmentation': event.length > 4 ? event[4] : null}.jsify()!);
@@ -668,64 +654,7 @@ class CountlyFlutterPlugin {
     return pairs;
   }
 
-  /// Begins a manual session. Without a heartbeat the Web SDK does not extend the session on its own,
-  /// and forcing it starts a session even while the session cookie of an earlier page load is valid.
-  void _beginSession(CountlyWeb countly) {
-    countly.begin_session(true, true);
-    _sessionReportedAt = DateTime.now().millisecondsSinceEpoch;
-  }
-
-  /// Reports the seconds of the manual session since it began or was last reported.
-  void _updateSession(CountlyWeb countly) {
-    final int? reportedAt = _sessionReportedAt;
-    if (reportedAt == null) {
-      cly.Countly.log('[CountlyFlutterPluginWeb] updateSession, No session was begun', logLevel: cly.LogLevel.WARNING);
-      return;
-    }
-    final int now = DateTime.now().millisecondsSinceEpoch;
-    countly.session_duration(((now - reportedAt) / 1000).round());
-    _sessionReportedAt = now;
-  }
-
-  /// Ends the manual session with the seconds since it was last reported. The session cookie would
-  /// otherwise turn the end into a session update.
-  void _endSession(CountlyWeb countly) {
-    final int? reportedAt = _sessionReportedAt;
-    _sessionReportedAt = null;
-    int seconds = 1;
-    if (reportedAt != null) {
-      // The Web SDK reads 0 as "measure it" and would count the seconds since the session began again.
-      seconds = max(1, ((DateTime.now().millisecondsSinceEpoch - reportedAt) / 1000).round());
-    }
-    countly.end_session(seconds, true);
-  }
-
-  /// Sets the device ID the way the Web SDK's set_id does: a developer supplied ID is replaced without
-  /// merge, any other ID is merged into the new one.
-  void _setDeviceId(CountlyWeb countly, String deviceId) {
-    if (countly.get_device_id_type() == 0) {
-      _changeDeviceIdWithoutMerge(countly, deviceId);
-    } else {
-      countly.set_id(deviceId);
-    }
-  }
-
-  /// Changes the device ID without merging. The Web SDK ends the running session itself and counts it
-  /// from its start, which includes the time manual updates already reported. So a running manual
-  /// session is ended here first, and begun again for the new device ID, as the native SDKs keep it.
-  void _changeDeviceIdWithoutMerge(CountlyWeb countly, String deviceId) {
-    final bool manualSessionRunning = _sessionReportedAt != null;
-    if (manualSessionRunning) {
-      _endSession(countly);
-    }
-    countly.change_id(deviceId, false);
-    if (manualSessionRunning) {
-      _beginSession(countly);
-    }
-  }
-
-  /// Sets the location sent with every request from now on, which also takes back [_disableLocation].
-  /// The Web SDK has no GPS coordinates.
+  /// Sets the location sent with every request from now on. The Web SDK has no GPS coordinates.
   void _setUserLocation(CountlyWeb countly, Map<String, dynamic> location) {
     if (location['gpsCoordinates'] != null) {
       cly.Countly.log('[CountlyFlutterPluginWeb] setUserLocation, GPS coordinates are not sent on web, only the country code, city and IP address', logLevel: cly.LogLevel.WARNING);
@@ -733,21 +662,13 @@ class CountlyFlutterPlugin {
     countly.country_code = (location['countryCode'] as String?)?.toJS;
     countly.city = (location['city'] as String?)?.toJS;
     countly.ip_address = (location['ipAddress'] as String?)?.toJS;
-    _locationDisabled = false;
   }
 
-  /// Stops sending location. The Web SDK leaves location to the server's IP lookup unless its
-  /// "location" consent is missing, so this takes that consent back in consent mode.
+  /// Stops sending the location set with [_setUserLocation] or the config.
   void _disableLocation(CountlyWeb countly) {
     countly.country_code = null;
     countly.city = null;
     countly.ip_address = null;
-    _locationDisabled = true;
-    if (_consentRequired) {
-      countly.remove_consent(['location'].jsify()!);
-    } else {
-      cly.Countly.log('[CountlyFlutterPluginWeb] disableLocation, Location can be disabled on web only when consent is required, so the server still looks it up from the IP address', logLevel: cly.LogLevel.WARNING);
-    }
   }
 
   /// Adds [headers] to the headers sent with every request, replacing values with the same name.
@@ -761,11 +682,12 @@ class CountlyFlutterPlugin {
     countly.headers = merged.jsify();
   }
 
-  /// Records a direct attribution. Like the native SDKs, only the "countly" campaign type is
-  /// supported, with data like {"cid": "campaign ID", "cuid": "campaign user ID"}.
+  /// Records a direct attribution of the "countly" campaign type, whose data looks like
+  /// {"cid": "campaign ID", "cuid": "campaign user ID"}. The Web SDK fills a missing campaign ID
+  /// with the campaign the page was opened from, or else records the user as organic.
   void _recordDirectAttribution(CountlyWeb countly, String campaignType, String campaignData) {
     if (campaignType != 'countly') {
-      cly.Countly.log('[CountlyFlutterPluginWeb] recordDirectAttribution, Only the "countly" campaign type is supported, not [$campaignType]', logLevel: cly.LogLevel.WARNING);
+      cly.Countly.log('[CountlyFlutterPluginWeb] recordDirectAttribution, The Web SDK records only the "countly" campaign type, not [$campaignType]', logLevel: cly.LogLevel.WARNING);
       return;
     }
     Object? data;
@@ -774,17 +696,19 @@ class CountlyFlutterPlugin {
     } on FormatException {
       data = null;
     }
-    if (data is! Map || data['cid'] is! String || (data['cid'] as String).isEmpty) {
-      cly.Countly.log('[CountlyFlutterPluginWeb] recordDirectAttribution, The campaign data must be a JSON object with a non-empty "cid"', logLevel: cly.LogLevel.ERROR);
+    if (data is! Map) {
+      cly.Countly.log('[CountlyFlutterPluginWeb] recordDirectAttribution, The campaign data must be a JSON object', logLevel: cly.LogLevel.ERROR);
       return;
     }
-    final String campaignId = data['cid'] as String;
-    final Object? campaignUserId = data['cuid'];
-    if (campaignUserId is String && campaignUserId.isNotEmpty) {
-      countly.recordDirectAttribution(campaignId, campaignUserId);
-    } else {
-      countly.recordDirectAttribution(campaignId);
+    countly.recordDirectAttribution(_nonEmptyString(data['cid']), _nonEmptyString(data['cuid']));
+  }
+
+  /// [value] when it is a non-empty string, or null.
+  String? _nonEmptyString(Object? value) {
+    if (value is String && value.isNotEmpty) {
+      return value;
     }
+    return null;
   }
 
   /// Runs the Web SDK push call [function] and describes how it ended, as "[key]: success" or
@@ -1005,8 +929,7 @@ class CountlyFlutterPlugin {
   }
 
   /// Downloads remote config values and reports the result to the Dart side once. A download the
-  /// Web SDK does not answer, which it does not do when the request fails, is reported as a
-  /// network issue.
+  /// Web SDK does not answer within [callbackTimeout] is reported as a network issue.
   void _downloadRemoteConfig(CountlyWeb countly, JSAny? keys, JSAny? omitKeys, bool fullValueUpdate, int requestID) {
     _waitForCallback((JSFunction callback) => countly.fetch_remote_config(keys, omitKeys, callback)).then((List<JSAny?>? reply) {
       if (reply == null) {
@@ -1044,6 +967,28 @@ class CountlyFlutterPlugin {
       });
     }
     return data;
+  }
+
+  /// Downloads remote config values for the deprecated update calls, only [keys] or all but
+  /// [omitKeys], and describes the result as "Success: <values>" or "Error: <reason>".
+  Future<String> _updateRemoteConfig(CountlyWeb countly, JSAny? keys, JSAny? omitKeys) async {
+    final List<JSAny?>? reply = await _waitForCallback((JSFunction callback) => countly.fetch_remote_config(keys, omitKeys, callback));
+    if (reply == null) {
+      return 'Error: $_noResponseMessage';
+    }
+    final String? error = _errorMessage(reply[0]);
+    if (error != null) {
+      return 'Error: $error';
+    }
+    return 'Success: ${_dartify(reply[1])}';
+  }
+
+  /// [value], a stored remote config value, as the text the deprecated value call answers with.
+  String? _remoteConfigText(Object? value) {
+    if (value == null || value is String) {
+      return value as String?;
+    }
+    return jsonEncode(value);
   }
 
   /// Reports the arguments of a Web SDK remote config callback to the Dart side.
@@ -1132,7 +1077,7 @@ class CountlyFlutterPlugin {
     }
 
     // Remote Config
-    configMap['rc_automatic_optin_for_ab'] = config['autoEnrollABOnDownload'] ?? false;
+    configMap['rc_automatic_optin_for_ab'] = config['autoEnrollABOnDownload'];
     configMap['use_explicit_rc_api'] = true;
 
     configMap['behavior_settings'] = _behaviorSettings(config['sdkBehaviorSettings']);
@@ -1155,20 +1100,6 @@ class CountlyFlutterPlugin {
 
     configMap.removeWhere((key, value) => value == null);
     return configMap;
-  }
-
-  /// Every feature the Web SDK takes consent for.
-  List<Object?> _allFeatures() {
-    return countlyGlobal.features.dartify() as List<Object?>;
-  }
-
-  /// [consents] in the form the Web SDK takes, without "location" while location is disabled, so that
-  /// giving consent cannot turn location tracking back on.
-  JSAny _consentsToGive(List<Object?> consents) {
-    if (!_locationDisabled) {
-      return consents.jsify()!;
-    }
-    return consents.where((Object? consent) => consent != 'location').toList().jsify()!;
   }
 
   /// [value] converted to Dart, with whole numbers as ints. WebAssembly builds turn every JavaScript
@@ -1232,35 +1163,24 @@ class CountlyFlutterPlugin {
       return message;
     }
     _countly = countly;
-    _locationDisabled = config['locationDisabled'] == true;
-    _consentRequired = config['shouldRequireConsent'] == true;
-    _views = WebViews(_asMap(config['globalViewSegmentation']));
-    _apm = WebApm(
-      trackAppStartTime: config['trackAppStartTime'] == true,
-      manualAppLoadedTrigger: config['enableManualAppLoaded'] == true,
-      appStartOverride: _number(config['startTSOverride'])?.toInt(),
-    );
 
     if (config['manualSessionEnabled'] == null || config['manualSessionEnabled'] == false) {
       countly.track_sessions();
     }
 
     if (config['consents'] != null) {
-      countly.add_consent(_consentsToGive(config['consents'] as List<dynamic>));
+      countly.add_consent((config['consents'] as List<dynamic>).jsify()!);
     }
     if (config['enableAllConsents'] == true) {
-      countly.add_consent(_consentsToGive(_allFeatures()));
-    }
-    if (_locationDisabled && config['shouldRequireConsent'] != true) {
-      cly.Countly.log('[CountlyFlutterPluginWeb] init, "disableLocation" takes effect on web only when consent is required', logLevel: cly.LogLevel.WARNING);
+      countly.add_consent(countlyGlobal.features);
     }
 
+    // One call, as the Web SDK keeps the segmentation of the first track_errors call on a page.
     Object? customCrashSegment = config['customCrashSegment'];
-    if (customCrashSegment is Map<String, dynamic>) {
-      _customCrashSegment = customCrashSegment;
-    }
-    if (config['enableUnhandledCrashReporting'] == true) {
-      countly.track_errors(_customCrashSegment.isEmpty ? null : _customCrashSegment.jsify());
+    if (customCrashSegment != null) {
+      countly.track_errors(customCrashSegment.jsify());
+    } else if (config['enableUnhandledCrashReporting'] == true) {
+      countly.track_errors(null);
     }
 
     final Map<String, dynamic> userProperties = _asMap(config['providedUserProperties']);
@@ -1271,11 +1191,6 @@ class CountlyFlutterPlugin {
     final Object? campaignData = config['campaignData'];
     if (campaignType is String && campaignData is String) {
       _recordDirectAttribution(countly, campaignType, campaignData);
-    }
-
-    _apm.recordAutomaticAppStart(countly);
-    if (config['enableForegroundBackground'] == true) {
-      _apm.startForegroundBackgroundTracking(countly);
     }
     return null;
   }

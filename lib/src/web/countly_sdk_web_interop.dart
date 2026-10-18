@@ -51,9 +51,6 @@ extension CountlyWebMembers on CountlyWeb {
   /// Begins, extends and ends sessions automatically with the page lifecycle.
   external void track_sessions();
 
-  /// Reports [seconds] of the running session.
-  external void session_duration(int seconds);
-
   /// Ends the session with [seconds] since the last report; [force] ignores the session cookie.
   external void end_session([int? seconds, bool? force]);
 
@@ -126,8 +123,10 @@ extension CountlyWebMembers on CountlyWeb {
   external void report_trace(JSAny trace);
 
   // Attribution
-  /// Records the attribution to the campaign [campaignId] and the campaign user [campaignUserId].
-  external void recordDirectAttribution(String campaignId, [String? campaignUserId]);
+  /// Records the attribution to the campaign [campaignId] and the campaign user [campaignUserId]. A
+  /// missing one is taken from the campaign the page was opened from, and without a campaign the
+  /// user is recorded as organic.
+  external void recordDirectAttribution([String? campaignId, String? campaignUserId]);
 
   // Networking
   /// Moves waiting events into the request queue and works through the queue now.
@@ -239,8 +238,7 @@ extension CountlyWebFeedbackMembers on CountlyWebFeedback {
   external void showRating(String? nameTagOrID);
 }
 
-/// The internal members of a Web SDK instance: the queues the tests read, and the view calls the
-/// public API lacks.
+/// The internal members of a Web SDK instance that the tests read.
 @JS()
 @staticInterop
 class CountlyWebInternals {}
@@ -252,10 +250,4 @@ extension CountlyWebInternalsMembers on CountlyWebInternals {
 
   /// The events waiting to be moved into a request.
   external JSArray getEventQueue();
-
-  /// The name of the running view, or null when none runs.
-  external JSAny? getLastView();
-
-  /// Ends the running view and reports its duration.
-  external void reportViewDuration();
 }

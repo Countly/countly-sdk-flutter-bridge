@@ -70,6 +70,11 @@ void clearBrowserStorage() {
   (globalContext['sessionStorage'] as JSObject).callMethod('clear'.toJS);
 }
 
+/// Stores [values] as the remote config values the Web SDK of [appKey] loads at init.
+void storeRemoteConfig(Map<String, Object?> values, {String appKey = 'web_test_app'}) {
+  (globalContext['localStorage'] as JSObject).callMethod('setItem'.toJS, '$appKey/cly_remote_configs'.toJS, jsonEncode(values).toJS);
+}
+
 /// The address of a Web SDK build to test instead of the version the plugin loads, given with
 /// `--dart-define=COUNTLY_WEB_SDK_URL=<address>`, or empty.
 const String webSdkUrlOverride = String.fromEnvironment('COUNTLY_WEB_SDK_URL');
@@ -178,16 +183,4 @@ List<Map<String, String>> recordSentHeaders() {
     prototype['setRequestHeader'] = setRequestHeader;
   });
   return sent;
-}
-
-/// Makes the page report itself as visible or hidden and tells it that this changed.
-void setPageVisibility({required bool visible}) {
-  final JSObject document = globalContext['document'] as JSObject;
-  final JSObject getter = JSObject();
-  final String state = visible ? 'visible' : 'hidden';
-  getter['get'] = (() => state.toJS).toJS;
-  getter['configurable'] = true.toJS;
-  (globalContext['Object'] as JSObject).callMethod('defineProperty'.toJS, document, 'visibilityState'.toJS, getter);
-  final JSObject event = (globalContext['Event'] as JSFunction).callAsConstructor<JSObject>('visibilitychange'.toJS);
-  document.callMethod('dispatchEvent'.toJS, event);
 }

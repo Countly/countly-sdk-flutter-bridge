@@ -55,10 +55,16 @@ void main() {
   test('Calls the Web SDK has no equivalent for answer without failing', () async {
     await Countly.initWithConfig(testConfig());
 
-    final String? viewId = await Countly.instance.views.startView('Paused');
-    await Countly.instance.views.pauseViewWithID(viewId!);
-    await Countly.instance.views.resumeViewWithID(viewId);
+    await Countly.instance.views.startView('Paused');
+    await Countly.instance.views.pauseViewWithID('view_id');
+    await Countly.instance.views.resumeViewWithID('view_id');
     await Countly.instance.views.addSegmentationToViewWithName('Paused', {'a': 1});
+    await Countly.instance.views.stopViewWithName('Paused');
+    await Countly.instance.views.stopViewWithID('view_id');
+    await Countly.instance.views.stopAllViews();
+    await Countly.instance.views.setGlobalViewSegmentation({'a': 1});
+    await Countly.instance.views.updateGlobalViewSegmentation({'b': 2});
+    await Countly.appLoadingFinished();
     await Countly.instance.content.previewContent('content_id');
     await Countly.instance.remoteConfig.clearAll();
     expect(await Countly.instance.remoteConfig.testingGetAllVariants(), isEmpty);

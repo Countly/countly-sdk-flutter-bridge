@@ -9,7 +9,7 @@ import 'web_test_utils.dart';
 void main() {
   setUpWebPlugin();
 
-  test('Direct attribution is recorded from the config and at runtime, and invalid data is dropped', () async {
+  test('Direct attribution is recorded from the config and at runtime, organic without a campaign ID', () async {
     await Countly.initWithConfig(testConfig()..recordDirectAttribution('countly', '{"cid":"init_campaign"}'));
 
     await Countly.recordDirectAttribution('countly', '{"cid":"runtime_campaign","cuid":"user_7"}');
@@ -19,9 +19,10 @@ void main() {
     await waitForHeartbeat();
 
     final List<Map<String, dynamic>> attributions = await requestsWith('campaign_id');
-    expect(attributions.map((r) => r['campaign_id']).toList(), ['init_campaign', 'runtime_campaign']);
+    expect(attributions.map((r) => r['campaign_id']).toList(), ['init_campaign', 'runtime_campaign', 'cly_organic']);
     expect(attributions[0].containsKey('campaign_user'), isFalse);
     expect(attributions[1]['campaign_user'], 'user_7');
+    expect(attributions[2]['campaign_user'], 'no_campaign_id');
   });
 
   test('Direct attribution needs the attribution consent', () async {
