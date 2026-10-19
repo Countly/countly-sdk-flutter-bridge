@@ -23,7 +23,6 @@ class CountlyConfig {
   String? _daCampaignType;
   String? _daCampaignData;
   List<String>? _consents;
-  bool? _recordAppStartTime;
   int? _maxRequestQueueSize;
   bool? _manualSessionEnabled;
   bool? _shouldRequireConsent;
@@ -37,7 +36,6 @@ class CountlyConfig {
   bool? _enableUnhandledCrashReporting;
   Map<String, String>? _iaAttributionValues;
   Map<String, dynamic>? _customCrashSegment;
-  bool? _enableRemoteConfigAutomaticDownload;
   Map<String, dynamic>? _providedUserProperties;
   bool _remoteConfigAutomaticTriggers = false;
   final List<RCDownloadCallback> _remoteConfigGlobalCallbacks = [];
@@ -52,6 +50,7 @@ class CountlyConfig {
   int? _requestTimeoutDuration;
   bool _storingDefaultPushConsentDisabled = false;
   bool _viewRestartForManualRecordingDisabled = false;
+  bool _pushTokenSentAlways = false;
 
   /// instance of CountlyConfigApm
   final CountlyConfigApm _countlyConfigApmInstance = CountlyConfigApm();
@@ -101,7 +100,6 @@ class CountlyConfig {
 
   Map<String, String>? get customNetworkRequestHeaders => _customNetworkRequestHeaders;
 
-  bool? get recordAppStartTime => _recordAppStartTime;
 
   int? get maxRequestQueueSize => _maxRequestQueueSize;
 
@@ -131,7 +129,6 @@ class CountlyConfig {
 
   Map<String, dynamic>? get providedUserProperties => _providedUserProperties;
 
-  bool? get enableRemoteConfigAutomaticDownload => _enableRemoteConfigAutomaticDownload;
 
   bool get remoteConfigAutomaticTriggers => _remoteConfigAutomaticTriggers;
 
@@ -158,6 +155,8 @@ class CountlyConfig {
   bool get storingDefaultPushConsentDisabled => _storingDefaultPushConsentDisabled;
 
   bool get viewRestartForManualRecordingDisabled => _viewRestartForManualRecordingDisabled;
+
+  bool get pushTokenSentAlways => _pushTokenSentAlways;
 
   /// getter for CountlyConfigApm instance that is used to access CountlyConfigApm methods
   CountlyConfigApm get apm => _countlyConfigApmInstance;
@@ -227,10 +226,14 @@ class CountlyConfig {
   }
 
   /// Sets the interval for the automatic session update calls
-  /// min value 1 (1 second),
+  /// min value 1 (1 second), smaller values are ignored
   /// max value 600 (10 minutes)
   /// [int delay] - delay in seconds
   CountlyConfig setUpdateSessionTimerDelay(int delay) {
+    if (delay < 1) {
+      Countly.log('setUpdateSessionTimerDelay, delay must be at least 1 second, ignoring [$delay]', logLevel: LogLevel.ERROR);
+      return this;
+    }
     _sessionUpdateTimerDelay = delay;
     return this;
   }
@@ -298,13 +301,6 @@ class CountlyConfig {
     return this;
   }
 
-  /// Enables the recording of the app start time.
-  /// This is now deprecated, use [CountlyConfig.apm.enableAppStartTimeTracking] instead
-  CountlyConfig setRecordAppStartTime(bool recordAppStartTime) {
-    _recordAppStartTime = recordAppStartTime;
-    return this;
-  }
-
   /// Call to enable uncaught crash reporting
   CountlyConfig enableCrashReporting() {
     _enableUnhandledCrashReporting = true;
@@ -336,17 +332,6 @@ class CountlyConfig {
   /// Enable manual session handling
   CountlyConfig enableManualSessionHandling() {
     _manualSessionEnabled = true;
-    return this;
-  }
-
-  @Deprecated('This function is deprecated, please use remoteConfigRegisterGlobalCallback instead')
-
-  /// If enable, will automatically download newest remote config values.
-  /// enabled set true for enabling it
-  /// callback callback called after the update was done
-  CountlyConfig setRemoteConfigAutomaticDownload(bool enabled, Function(String? error) callback) {
-    _enableRemoteConfigAutomaticDownload = enabled;
-    Countly.setRemoteConfigCallback(callback);
     return this;
   }
 
@@ -449,6 +434,14 @@ class CountlyConfig {
   /// Disable view restart for manual recording
   CountlyConfig disableViewRestartForManualRecording() {
     _viewRestartForManualRecordingDisabled = true;
+    return this;
+  }
+
+  /// Send the push token to the server even when the user has not allowed notifications (iOS only).
+  /// Such a token can receive silent notifications only, and it counts users who cannot see
+  /// notifications as reachable, which skews push interaction stats.
+  CountlyConfig sendPushTokenAlways() {
+    _pushTokenSentAlways = true;
     return this;
   }
 }

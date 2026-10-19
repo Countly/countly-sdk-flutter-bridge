@@ -2,6 +2,8 @@ package ly.count.dart.countly_flutter;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -12,6 +14,30 @@ import ly.count.android.sdk.Countly;
 
 public class CountlyMessagingService extends FirebaseMessagingService {
     private static final String TAG = "CountlyMessagingService";
+    private static final String DEFAULT_NOTIFICATION_ICON_KEY = "com.google.firebase.messaging.default_notification_icon";
+
+    /**
+     * Returns the small icon for notifications: the one the app declares for Firebase Messaging in its
+     * manifest meta-data, or the launcher icon when it declares none.
+     *
+     * @param context the application context
+     * @return the icon resource id
+     */
+    static int notificationSmallIcon(Context context) {
+        int icon = context.getApplicationInfo().icon;
+        try {
+            ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
+            if (appInfo.metaData != null) {
+                int declaredIcon = appInfo.metaData.getInt(DEFAULT_NOTIFICATION_ICON_KEY, 0);
+                if (declaredIcon != 0) {
+                    icon = declaredIcon;
+                }
+            }
+        } catch (PackageManager.NameNotFoundException exception) {
+            Log.w(TAG, "Could not read the notification icon meta-data, using the launcher icon", exception);
+        }
+        return icon;
+    }
 
     @Override
     public void onNewToken(String token) {
@@ -33,12 +59,7 @@ public class CountlyMessagingService extends FirebaseMessagingService {
                 Log.d(Countly.TAG, "[CountlyMessagingService] getApplication() returns null: application must be non-null to init CountlyPush");
             }
             else {
-                int mode = CountlyPush.getLastMessagingMethod(this);
-                if (mode == 0) {
-                    CountlyPush.init(application, Countly.CountlyMessagingMode.TEST);
-                } else if (mode == 1) {
-                    CountlyPush.init(application, Countly.CountlyMessagingMode.PRODUCTION);
-                }
+                CountlyPush.init(CountlyFlutterPlugin.pushConfig(application));
             }
         }
 
@@ -57,7 +78,7 @@ public class CountlyMessagingService extends FirebaseMessagingService {
             Log.d(Countly.TAG, "[CountlyMessagingService] getApplicationContext() returns null: context must be non-null to displayNotification");
             return;
         }
-        Boolean result = CountlyPush.displayNotification(context, message, context.getApplicationInfo().icon, null);
+        Boolean result = CountlyPush.displayNotification(context, message, notificationSmallIcon(context), null);
         if (result == null) {
             Log.i(TAG, "Message wasn't sent from Countly server, so it cannot be handled by Countly SDK");
         } else if (result) {

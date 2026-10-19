@@ -32,14 +32,17 @@ class EventsInternal implements Events {
   Future<void> _internalEventMethodCall(String key, String method, [Map<String, Object>? segmentation, int? count, double? sum, int? duration]) async {
     List<Object?> args = [];
 
-    if (!_countlyState.isInitialized) {
-      Countly.log('[EventsInternal] $method, "initWithConfig" must be called', logLevel: LogLevel.ERROR);
+    // Another engine or an init still in flight may have initialized the native SDK, so it decides.
+    if (!_countlyState.isInitialized && !await Countly.isInitialized()) {
+      Countly.log('[EventsInternal] $method, "initWithConfig" must be called before "$method", ignoring the call', logLevel: LogLevel.ERROR);
+      return;
     }
 
     Countly.log('[EventsInternal] $method, key:[$key] segmentation:[$segmentation] count:[$count] sum:[$sum] duration:[$duration]');
 
     if (key.isEmpty) {
-      Countly.log('[EventsInternal] $method, key name is required');
+      Countly.log('[EventsInternal] $method, key name is required, ignoring the call', logLevel: LogLevel.ERROR);
+      return;
     }
 
     args.add(key);

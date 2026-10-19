@@ -9,7 +9,8 @@
 #import "UserNotifications/UserNotifications.h"
 
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
-NSDictionary *lastStoredNotification = nil;
+NSUInteger const kCountlyFLMaxPendingNotifications = 50;
+NSMutableArray<NSString *> *pendingNotifications = nil;
 FlutterResult notificationListener = nil;
 NSMutableArray *notifications = nil;
 
@@ -27,8 +28,8 @@ CLYUserDefaultKey const CLYPushButtonIndexKey = @"notificationBtnIndexKey";
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
       s_sharedInstance = self.new;
+      s_sharedInstance.enablePushNotifications = true;
     });
-    s_sharedInstance.enablePushNotifications = true;
     return s_sharedInstance;
 }
 
@@ -61,13 +62,19 @@ CLYUserDefaultKey const CLYPushButtonIndexKey = @"notificationBtnIndexKey";
     });
 }
 
+/**
+ * Hands the next push notification to a one-shot listener that answers a single Dart request. A
+ * notification that arrived while no listener was waiting is delivered right away.
+ */
 - (void)registerForNotification:(FlutterResult)result {
     dispatch_async(dispatch_get_main_queue(), ^{
-      notificationListener = result;
-      if (lastStoredNotification != nil) {
-          result([lastStoredNotification description]);
-          lastStoredNotification = nil;
+      if (pendingNotifications.count > 0) {
+          NSString *pendingNotification = pendingNotifications.firstObject;
+          [pendingNotifications removeObjectAtIndex:0];
+          result(pendingNotification);
+          return;
       }
+      notificationListener = result;
     });
 }
 
@@ -153,14 +160,32 @@ CLYUserDefaultKey const CLYPushButtonIndexKey = @"notificationBtnIndexKey";
         completionHandler(UNNotificationPresentationOptionNone);
 }
 
+/**
+ * Delivers a push notification as JSON text to the waiting listener, or queues it until Dart asks
+ * for the next one. The listener is consumed, so a Dart request is never answered twice; the queue
+ * keeps the newest kCountlyFLMaxPendingNotifications notifications.
+ */
 - (void)onNotification:(NSDictionary *)notificationMessage {
-    NSLog(@"The notification %@", [CountlyFLPushNotifications toJSON:notificationMessage]);
-    if (notificationMessage && notificationListener != nil) {
-        lastStoredNotification = notificationMessage;
-        notificationListener(@[ [CountlyFLPushNotifications toJSON:notificationMessage] ]);
-    } else {
-        lastStoredNotification = notificationMessage;
+    if (!notificationMessage) {
+        return;
     }
+    NSString *notificationJSON = [CountlyFLPushNotifications toJSON:notificationMessage];
+    CLY_LOG_D(@"%s, notification received: %@", __FUNCTION__, notificationJSON);
+    dispatch_async(dispatch_get_main_queue(), ^{
+      FlutterResult listener = notificationListener;
+      notificationListener = nil;
+      if (listener != nil) {
+          listener(notificationJSON);
+          return;
+      }
+      if (pendingNotifications == nil) {
+          pendingNotifications = [NSMutableArray array];
+      }
+      if (pendingNotifications.count >= kCountlyFLMaxPendingNotifications) {
+          [pendingNotifications removeObjectAtIndex:0];
+      }
+      [pendingNotifications addObject:notificationJSON];
+    });
 }
 
 - (void)onNotificationResponse:(UNNotificationResponse *)response API_AVAILABLE(ios(10.0)) {

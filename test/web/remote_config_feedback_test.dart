@@ -47,25 +47,6 @@ void main() {
     expect(params.containsKey('omit_keys'), isFalse);
   });
 
-  test('The deprecated remote config calls answer with text', () async {
-    storeRemoteConfig({'color': 'red', 'size': 5, 'flags': {'beta': true}});
-    await Countly.initWithConfig(testConfig()
-      ..setRequiresConsent(true)
-      ..setConsentEnabled(['events']));
-
-    expect(await Countly.getRemoteConfigValueForKey('color', (_) {}), 'red');
-    expect(await Countly.getRemoteConfigValueForKey('size', (_) {}), '5');
-    expect(await Countly.getRemoteConfigValueForKey('flags', (_) {}), '{"beta":true}');
-    expect(await Countly.getRemoteConfigValueForKey('missing', (_) {}), isNull);
-
-    final List<String?> results = [];
-    await Countly.remoteConfigUpdate(results.add);
-    await Countly.updateRemoteConfigForKeysOnly(['color'], results.add);
-    await Countly.updateRemoteConfigExceptKeys(['color'], results.add);
-    expect(results, List<String>.filled(3, 'Error: Remote config requires explicit consent'));
-    expect(remoteConfigRequests(), isEmpty);
-  });
-
   test('Feedback widgets report why they are unavailable instead of waiting', () async {
     await Countly.initWithConfig(testConfig()..enableTemporaryDeviceIDMode());
 

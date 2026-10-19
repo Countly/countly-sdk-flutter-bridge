@@ -60,7 +60,6 @@ class CountlyConfiguration {
         //   ..setUserProperties(userProperties)
         //   ..recordIndirectAttribution(attributionValues)
         //   ..recordDirectAttribution('countly', campaignData)
-        //   ..setRecordAppStartTime(true) // (Deprecated) Enable APM features, use apm interface instead
 
         // APM Configuration (new interface)
         //------------------------------------------------------------

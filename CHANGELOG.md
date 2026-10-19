@@ -1,18 +1,56 @@
 ## XX.XX.XX
-* ! Minor breaking change ! When consent is required, content now also needs the "content" consent, in Web.
-* ! Minor breaking change ! While a page can send, its unsent events and requests are now kept in the tab's sessionStorage instead of localStorage, in Web. Requests that cannot be sent yet, for example while offline, still wait in localStorage.
+* ! Minor breaking change ! Raised the minimum supported iOS version to 15 (previously 10), as the underlying iOS SDK requires it.
+* ! Minor breaking change ! Push notification changes:
+  * "askForNotificationPermission" now also asks for the notification permission on Android 13 and newer, and the plugin declares the "POST_NOTIFICATIONS" permission
+  * "onNotification" now gets each push notification once, as a JSON object, instead of twice in two formats, in iOS
+  * "pushTokenType" no longer sends the push token of users who have not allowed notifications in iOS. Use the new "sendPushTokenAlways" config option to keep sending it, for example for silent notifications
+* ! Minor breaking change ! Changes to "Countly.instance.userProfile":
+  * "setProperty" and "setUserProperties" now send the recorded events before the user properties
+  * "setProperty" now keeps number and boolean values in Android, and sets predefined properties such as "email" instead of custom ones in iOS
+* ! Minor breaking change ! Events recorded before init are now ignored with an error log, like other calls made before init. They caused an error in Android and skipped the consent check in iOS.
+* ! Minor breaking change ! "getID" now returns the device ID as it was set, not URL-encoded, in iOS.
+* ! Minor breaking change ! Giving or removing the "star-rating" consent now also gives or removes the "feedback" consent in iOS, as the star rating dialog needs it.
+* ! Minor breaking change ! The "onFinished" callback of "presentNPS", "presentSurvey" and "presentRating" can now also be called with an empty string once the widget is shown, in iOS and for some widgets in Android. Treat only a non-empty string as an error.
+* ! Minor breaking change ! "setUpdateSessionTimerDelay" now ignores values below 1 second and logs an error. In iOS, such values queued requests continuously.
+* ! Minor breaking change ! The deprecated "storedRequestsLimit" has no effect anymore (it limited the request queue to 1 request in iOS). Use "setMaxRequestQueueSize" instead.
+* ! Minor breaking change ! Links with the "data:", "zip:" and "intent:" schemes in content, feedback widgets and push notifications are now blocked by default in Android.
+* ! Minor breaking change ! Web changes:
+  * when consent is required, content now also needs the "content" consent
+  * while a page can send, its unsent events and requests are now kept in the tab's sessionStorage instead of localStorage. Requests that cannot be sent yet, for example while offline, still wait in localStorage
 
-* Added the "setWebSDKUrl" config option for loading the Countly Web SDK from an address you host, for example when content blockers block the default CDN, in Web.
-* Added support for WebAssembly builds ("flutter build web --wasm").
-* Added web push notification support:
-  * give the "push" consent, set the VAPID public key with "CountlyConfig.push.setVapidPublicKey" and copy "countly_sw.js" into your application's "web" folder
-  * call "askForNotificationPermission" from a user gesture. "disablePushNotifications" unsubscribes, and "onNotification" reports received, clicked and closed notifications
+* Added the "sendPushTokenAlways" config option, which sends the push token even for users who have not allowed notifications, in iOS.
+* Added support for the notification small icon given by the "com.google.firebase.messaging.default_notification_icon" meta-data in Android.
+* Added the "setAllowedIntentSchemes" option to "CountlyConfig.content" and "CountlyConfig.push" for limiting the URI schemes that content, feedback widget and push notification links open, in Android. "data", "zip", "intent", "file", "content", "javascript" and "jar" stay blocked.
 * Added Web support for:
-  * "startView". Starting a view ends the previous one
-  * custom and network traces
-  * "setUserLocation" and "disableLocation", without GPS coordinates, and "addCustomNetworkRequestHeaders"
-  * direct attribution, "attemptToSendStoredRequests", "refreshContentZone" and "throwNativeException"
+  * push notifications: give the "push" consent, set the VAPID public key with "CountlyConfig.push.setVapidPublicKey", copy "countly_sw.js" into your application's "web" folder and call "askForNotificationPermission" from a user gesture
+  * "disablePushNotifications", and "onNotification" for received, clicked and closed notifications
+  * WebAssembly builds ("flutter build web --wasm")
+  * loading the Countly Web SDK from an address you host with the new "setWebSDKUrl" config option, for example when content blockers block the default CDN
+  * "startView" (starting a view ends the previous one), and custom and network traces
+  * "setUserLocation" and "disableLocation" (without GPS coordinates), "addCustomNetworkRequestHeaders", direct attribution, "attemptToSendStoredRequests", "refreshContentZone" and "throwNativeException"
   * the config options for user properties and the content zone timer interval
+
+* Mitigated issues where:
+  * native callbacks, such as those of remote config, content and feedback, went to a background Flutter engine instead of the app's UI, for example after a Firebase Messaging background handler started one
+  * enabling crash reporting replaced the Flutter error handlers set before it, so other crash reporting tools and the console stopped receiving Flutter errors
+  * event sums lost precision (19.99 was recorded as 19.989999771118164), and the deprecated map versions of "recordEvent" and "endEvent" sent wrong values for whole-number sums and for text counts, sums and durations
+  * SDK logs showed the parameter tampering protection salt and custom request header values
+
+* Mitigated issues in Android where:
+  * builds failed in "checkDebugAarMetadata" on newer Flutter versions. The plugin now compiles against the API level of the app's Flutter SDK
+  * push notifications arriving in quick succession crashed with "Reply already submitted". Notifications that arrive while no Activity is attached are now kept and delivered
+  * "presentNPS", "presentSurvey", "presentRating", "presentFeedbackWidget" for full screen widgets, and "askForStarRating" without the "star-rating" consent never completed
+  * a partial location from "setUserLocation" or the deprecated "setLocation" stored the text "null"
+  * the "disableBackoffMechanism" config option was ignored
+  * automatic session tracking did not work when the SDK was initialized before an Activity was attached, as in add-to-app setups
+
+* Mitigated issues in iOS where:
+  * a failed remote config, variant or experiment download never called its callback. Downloads without remote config consent or in temporary device ID mode now call it with an error
+  * rating and feedback calls never completed without feedback consent, in temporary device ID mode or with networking disabled, and "getFeedbackWidgetData" threw a type error
+  * "picturePath" was ignored, and a second "setUserProperties" call replaced the custom properties of the first one
+  * "disablePushNotifications" and the "enrollABOnRCDownload" config option had no effect
+  * the deprecated "setOptionalParametersForInitialization" recorded an undefined location when no coordinates were given
+  * a config value of an unexpected type made the SDK skip every option after it
 
 * Mitigated issues in Web where:
   * every call waited forever when the Web SDK script could not load. Init now gives up after 10 seconds with an error
@@ -22,6 +60,20 @@
   * "logException" sent the exception text as a segmentation key and never fell back to the custom crash segment, which was also lost when unhandled crash reporting was enabled
   * "getAllValuesAndEnroll" returned no values, and event count, sum and duration were sent as text
 
+* Removed the following deprecated functions and config options:
+  * "recordView", use "startAutoStoppedView" of "Countly.instance.views" instead
+  * "remoteConfigUpdate", "updateRemoteConfigForKeysOnly" and "updateRemoteConfigExceptKeys", use "downloadAllKeys", "downloadSpecificKeys" and "downloadOmittingKeys" of "Countly.instance.remoteConfig" instead
+  * "getRemoteConfigValueForKey", use "getValue" of "Countly.instance.remoteConfig" instead
+  * "remoteConfigClearValues", use "clearAll" of "Countly.instance.remoteConfig" instead
+  * "setRemoteConfigAutomaticDownload" (the function and the config option) and "setRemoteConfigCallback", use the "enableRemoteConfigAutomaticTriggers" and "remoteConfigRegisterGlobalCallback" config options instead
+  * "enableCrashReporting" and "setCustomCrashSegment", use the "enableCrashReporting" and "setCustomCrashSegment" config options instead
+  * "enableApm" and the "setRecordAppStartTime" config option, use "apm.enableAppStartTimeTracking" of "CountlyConfig" instead
+  * "askForFeedback", use "presentRatingWidgetWithID" instead
+  * "recordAttributionID", use "recordIndirectAttribution" instead
+* Removed the dependency on the discontinued "pedantic" package.
+
+* Underlying Android SDK version is 26.1.6
+* Underlying iOS SDK version is XX.XX.XX
 * Underlying Web SDK version is 26.8.0
 
 ## 26.1.1

@@ -70,11 +70,6 @@ void clearBrowserStorage() {
   (globalContext['sessionStorage'] as JSObject).callMethod('clear'.toJS);
 }
 
-/// Stores [values] as the remote config values the Web SDK of [appKey] loads at init.
-void storeRemoteConfig(Map<String, Object?> values, {String appKey = 'web_test_app'}) {
-  (globalContext['localStorage'] as JSObject).callMethod('setItem'.toJS, '$appKey/cly_remote_configs'.toJS, jsonEncode(values).toJS);
-}
-
 /// The address of a Web SDK build to test instead of the version the plugin loads, given with
 /// `--dart-define=COUNTLY_WEB_SDK_URL=<address>`, or empty.
 const String webSdkUrlOverride = String.fromEnvironment('COUNTLY_WEB_SDK_URL');

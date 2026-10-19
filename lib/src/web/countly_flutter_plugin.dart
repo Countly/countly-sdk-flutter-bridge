@@ -233,11 +233,6 @@ class CountlyFlutterPlugin {
       Map<String, dynamic> segments = _extractMap(data, idxStart: 2);
       // Without segmentation of its own, the Web SDK uses the one given to track_errors.
       countly.recordError({'stack': exceptionString}.jsify()!, nonfatal, segments.isEmpty ? null : segments.jsify());
-    } else if (call.method == 'setCustomCrashSegment') {
-      Map<String, dynamic> segments = _extractMap(data);
-      if (segments.isNotEmpty) {
-        countly.track_errors(segments.jsify());
-      }
     } else if (call.method == 'addCrashLog') {
       countly.add_log(data[0] as String);
     } else if (call.method == 'throwNativeException') {
@@ -314,17 +309,6 @@ class CountlyFlutterPlugin {
     } else if (call.method == 'remoteConfigGetValue') {
       String key = data[0] as String;
       return {'value': _dartify(countly.get_remote_config(key)), 'isCurrentUsersData': true};
-    } else if (call.method == 'getRemoteConfigValueForKey') {
-      return _remoteConfigText(_dartify(countly.get_remote_config(data[0] as String)));
-    }
-
-    // LEGACY REMOTE CONFIG
-    else if (call.method == 'updateRemoteConfigForKeysOnly') {
-      return await _updateRemoteConfig(countly, data.jsify(), null);
-    } else if (call.method == 'updateRemoteConfigExceptKeys') {
-      return await _updateRemoteConfig(countly, null, data.jsify());
-    } else if (call.method == 'remoteConfigUpdate') {
-      return await _updateRemoteConfig(countly, null, null);
     }
 
     // A/B TESTING
@@ -967,28 +951,6 @@ class CountlyFlutterPlugin {
       });
     }
     return data;
-  }
-
-  /// Downloads remote config values for the deprecated update calls, only [keys] or all but
-  /// [omitKeys], and describes the result as "Success: <values>" or "Error: <reason>".
-  Future<String> _updateRemoteConfig(CountlyWeb countly, JSAny? keys, JSAny? omitKeys) async {
-    final List<JSAny?>? reply = await _waitForCallback((JSFunction callback) => countly.fetch_remote_config(keys, omitKeys, callback));
-    if (reply == null) {
-      return 'Error: $_noResponseMessage';
-    }
-    final String? error = _errorMessage(reply[0]);
-    if (error != null) {
-      return 'Error: $error';
-    }
-    return 'Success: ${_dartify(reply[1])}';
-  }
-
-  /// [value], a stored remote config value, as the text the deprecated value call answers with.
-  String? _remoteConfigText(Object? value) {
-    if (value == null || value is String) {
-      return value as String?;
-    }
-    return jsonEncode(value);
   }
 
   /// Reports the arguments of a Web SDK remote config callback to the Dart side.

@@ -59,14 +59,4 @@ void main() {
 
     expect((await queuedCrashes()).single['_nonfatal'], isFalse);
   });
-
-  test('The deprecated setCustomCrashSegment also turns on unhandled crash reporting', () async {
-    await Countly.initWithConfig(testConfig());
-
-    await Countly.setCustomCrashSegment({'build': 'ci'});
-    await Countly.throwNativeException();
-    await waitForHeartbeat();
-
-    expect((await queuedCrashes()).single['_nonfatal'], isFalse);
-  });
 }

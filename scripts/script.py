@@ -55,6 +55,7 @@ modPathAndroid = '../android/src/main/java/ly/count/dart/countly_flutter/Countly
 modPathIos = '../ios/countly_flutter/Sources/countly_flutter/CountlyFlutterPlugin.m'
 modPathCountly = '../lib/src/countly_flutter.dart'
 modPathExampleYaml = '../example/pubspec.yaml'
+modPathWebConfig = '../lib/src/web/plugin_config.dart'
 # paths to change packages
 packagePathExample = '../example/lib/'
 packagePathExampleIntegrationTest = '../example/integration_test/'
@@ -69,8 +70,7 @@ packagePrefixToChange = 'package:countly_flutter_np/'
 objectOfComModification = {
     modPathAndroid: {
         'modifications': {
-            'import com.google.firebase.iid.FirebaseInstanceId;': 'remove',
-            'import com.google.firebase.iid.InstanceIdResult;': 'remove',
+            'import com.google.firebase.messaging.FirebaseMessaging;': 'remove',
             'import com.google.android.gms.tasks.Task;': 'remove',
             'import com.google.android.gms.tasks.OnCompleteListener;': 'remove',
             'import com.google.firebase.FirebaseApp;': 'remove',
@@ -78,15 +78,15 @@ objectOfComModification = {
         },
         'consecutiveOmits': [
             'FirebaseApp.initializeApp(context);',
-            'FirebaseInstanceId.getInstance().getInstanceId()',
-            '.addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {',
+            'FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {',
             '@Override',
-            'public void onComplete(@NonNull Task<InstanceIdResult> task) {',
+            'public void onComplete(@NonNull Task<String> task) {',
             'if (!task.isSuccessful()) {',
-            'log("getInstanceId failed", task.getException(), LogLevel.WARNING);',
+            'log("[askForNotificationPermission], Fetching FCM registration token failed", task.getException(), LogLevel.WARNING);',
             'return;',
             '}',
-            'String token = task.getResult().getToken();',
+            'String token = task.getResult();',
+            'log("FCM Token: " + token, LogLevel.INFO);',
             'CountlyPush.onTokenRefresh(token);',
             '}',
             '});'
@@ -94,8 +94,7 @@ objectOfComModification = {
     },
     modPathIos: {
         'modifications': {
-            'BOOL BUILDING_WITH_PUSH_DISABLED = false;': 'BOOL BUILDING_WITH_PUSH_DISABLED = true;',
-            '// #define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS': '#define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS'
+            'BOOL BUILDING_WITH_PUSH_DISABLED = false;': 'BOOL BUILDING_WITH_PUSH_DISABLED = true;'
         },
         'consecutiveOmits': []
     },
@@ -107,7 +106,13 @@ objectOfComModification = {
     },
     modPathExampleYaml: {
         'modifications': {
-            '  countly_flutter:': '  countly_flutter_np:',
+            'countly_flutter:': 'countly_flutter_np:',
+        },
+        'consecutiveOmits': []
+    },
+    modPathWebConfig: {
+        'modifications': {
+            "static const String SDK_NAME = 'dart-flutterb-web';": "static const String SDK_NAME = 'dart-flutterbnp-web';"
         },
         'consecutiveOmits': []
     }
@@ -159,14 +164,16 @@ def modifyFile(filePath, modificationInfo, modificationType):
     fileLines = []
     for line in content:
         if modificationType == 'mod':
-            if line.strip('\n') in modificationInfo[filePath]['modifications']:
-                if modificationInfo[filePath]['modifications'][line.strip('\n')] == 'remove':
+            # Lines are matched without their indentation, which the replacement keeps.
+            strippedLine = line.strip()
+            if strippedLine in modificationInfo[filePath]['modifications']:
+                replacement = modificationInfo[filePath]['modifications'][strippedLine]
+                if replacement == 'remove':
                     print('Removing line: ', line)
                 else:
-                    fileLines.append(
-                        modificationInfo[filePath]['modifications'][line.strip('\n')] + '\n')
-                    print('Replacing: ['+line+'] with: ['+modificationInfo[filePath]
-                          ['modifications'][line.strip('\n')]+']')
+                    indentation = line[:len(line) - len(line.lstrip())]
+                    fileLines.append(indentation + replacement + '\n')
+                    print('Replacing: ['+line+'] with: ['+replacement+']')
             else:
                 fileLines.append(line)
         elif modificationType == 'bloc':
@@ -241,6 +248,8 @@ def renameIosForNp(cwd):
         content = content.replace('["countly_flutter"]', '["countly_flutter_np"]')
         content = content.replace('name: "countly-flutter"', 'name: "countly-flutter-np"')
         content = content.replace('include/countly_flutter"', 'include/countly_flutter_np"')
+        # The push code of the bridge and the bundled iOS SDK is compiled out, as the podspec does.
+        content = content.replace('.headerSearchPath(".")', '.headerSearchPath("."),\n                .define("COUNTLY_EXCLUDE_PUSHNOTIFICATIONS")')
         with open(pkgSwift, 'w') as f:
             f.write(content)
         print('Rewrote Package.swift names for countly_flutter_np')
@@ -285,6 +294,7 @@ def main():
     print(modPathIos)
     print(modPathCountly)
     print(modPathExampleYaml)
+    print(modPathWebConfig)
     print('Paths to change packages:')
     print(packagePathExample)
     print(packagePathExampleIntegrationTest)
@@ -306,6 +316,7 @@ def main():
         modifyFile(modPathIos, objectOfComModification, 'mod')
         modifyFile(modPathCountly, objectOfComModification, 'mod')
         modifyFile(modPathExampleYaml, objectOfComModification, 'mod')
+        modifyFile(modPathWebConfig, objectOfComModification, 'mod')
         # np package update
         update_package(packagePathExample, packagePrefix, packagePrefixToChange)
         update_package(packagePathExampleIntegrationTest, packagePrefix, packagePrefixToChange)

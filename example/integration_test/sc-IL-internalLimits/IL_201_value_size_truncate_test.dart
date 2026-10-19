@@ -77,11 +77,11 @@ void main() {
         expect(event['key'], 'Event With Sum And Segment');
         expect(event['segmentation']['Country'], 'Turkey'.substring(0, MAX_VALUE_SIZE));
         expect(event['segmentation']['Age'], '28884'.substring(0, MAX_VALUE_SIZE));
-        // 1) View Start (legacy)
+        // 1) View Start
         var view = eventList[eventIdx + 1];
         expect(view['key'], '[CLY]_view');
-        expect(view['segmentation']['Cats'], '12345'.substring(0, MAX_VALUE_SIZE));
-        expect(view['segmentation']['Moons'], '9.9866'.substring(0, MAX_VALUE_SIZE));
+        expect(view['segmentation']['Cats'], 12345);
+        expect(view['segmentation']['Moons'], 9.9866);
         expect(view['segmentation']['segment'], Platform.isIOS ? 'iOS' : 'Android');
         expect(view['segmentation']['start'], Platform.isIOS ? 1 : '1');
         expect(view['segmentation']['name'], 'HomePage');
@@ -89,7 +89,7 @@ void main() {
         expect(view['segmentation']['visit'], Platform.isIOS ? 1 : '1');
         expect(view['segmentation']['NotCamel'], 'Deerz'.substring(0, MAX_VALUE_SIZE));
         expect(view['segmentation']['Moose'], 'Deer'.substring(0, MAX_VALUE_SIZE));
-        // 2) View End (legacy)
+        // 2) View End
         view = eventList[eventIdx + 2];
         expect(view['key'], '[CLY]_view');
         expect(view['segmentation']['segment'], Platform.isIOS ? 'iOS' : 'Android');
