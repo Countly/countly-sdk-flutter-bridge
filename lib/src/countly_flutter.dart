@@ -111,6 +111,9 @@ class Countly {
   /// its value should be updated from [setLoggingEnabled(bool flag)].
   static bool _isDebug = false;
 
+  /// Whether "disableSDKLoggingInProduction" keeps the logs off, which it does in Android release builds.
+  static bool _productionLoggingDisabled = false;
+
   static const String tag = 'CountlyFlutter';
 
   /// Flag to determine if crash logging functionality should be enabled
@@ -133,7 +136,7 @@ class Countly {
 
   static void log(String? message, {LogLevel logLevel = LogLevel.DEBUG}) {
     String logLevelStr = describeEnum(logLevel);
-    if (_isDebug) {
+    if (_isDebug && !_productionLoggingDisabled) {
       print('[$tag] $logLevelStr: $message');
     }
   }
@@ -275,6 +278,7 @@ class Countly {
     if (config.loggingEnabled != null) {
       _isDebug = config.loggingEnabled!;
     }
+    _productionLoggingDisabled = config.sdkLoggingInProductionDisabled && kReleaseMode && !kIsWeb && Platform.isAndroid;
     log('Calling "initWithConfig"');
     if (_instance._countlyState.isInitialized) {
       String msg = 'initWithConfig, SDK is already initialized';
@@ -2071,6 +2075,43 @@ class Countly {
         countlyConfig['disableViewRestartForManualRecording'] = config.viewRestartForManualRecordingDisabled;
       }
 
+      if (config.manualSessionControlHybridMode) {
+        log('"_configToJson", value provided for manualSessionControlHybridMode is true', logLevel: LogLevel.INFO);
+        countlyConfig['manualSessionControlHybridMode'] = config.manualSessionControlHybridMode;
+      }
+      if (config.metricOverride != null) {
+        log('"_configToJson", value provided for metricOverride: [${config.metricOverride}]', logLevel: LogLevel.INFO);
+        countlyConfig['metricOverride'] = config.metricOverride;
+      }
+      if (config.trackOrientationChanges != null) {
+        log('"_configToJson", value provided for trackOrientationChanges: [${config.trackOrientationChanges}]', logLevel: LogLevel.INFO);
+        countlyConfig['trackOrientationChanges'] = config.trackOrientationChanges;
+      }
+      if (config.clearStoredDeviceId) {
+        log('"_configToJson", value provided for clearStoredDeviceId is true', logLevel: LogLevel.INFO);
+        countlyConfig['clearStoredDeviceId'] = config.clearStoredDeviceId;
+      }
+      if (config.sdkLoggingInProductionDisabled) {
+        log('"_configToJson", value provided for sdkLoggingInProductionDisabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['sdkLoggingInProductionDisabled'] = config.sdkLoggingInProductionDisabled;
+      }
+      if (config.webViewDisabled) {
+        log('"_configToJson", value provided for webViewDisabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['webViewDisabled'] = config.webViewDisabled;
+      }
+      if (config.healthCheckDisabled) {
+        log('"_configToJson", value provided for healthCheckDisabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['healthCheckDisabled'] = config.healthCheckDisabled;
+      }
+      if (config.appCrawlerNames != null) {
+        log('"_configToJson", value provided for appCrawlerNames: [${config.appCrawlerNames}]', logLevel: LogLevel.INFO);
+        countlyConfig['appCrawlerNames'] = config.appCrawlerNames;
+      }
+      if (config.recordAllThreadsWithCrash) {
+        log('"_configToJson", value provided for recordAllThreadsWithCrash is true', logLevel: LogLevel.INFO);
+        countlyConfig['recordAllThreadsWithCrash'] = config.recordAllThreadsWithCrash;
+      }
+
       /// Experimental ---------------------------
       if (config.experimental.visibilityTracking) {
         log('"_configToJson", value provided for visibilityTracking: [${config.experimental.visibilityTracking}]', logLevel: LogLevel.INFO);
@@ -2096,6 +2137,22 @@ class Countly {
       if (config.content.allowedIntentSchemes != null) {
         log('"_configToJson", value provided for contentAllowedIntentSchemes: [${config.content.allowedIntentSchemes}]', logLevel: LogLevel.INFO);
         countlyConfig['contentAllowedIntentSchemes'] = config.content.allowedIntentSchemes;
+      }
+      if (config.content.zoomDisabled) {
+        log('"_configToJson", value provided for contentZoomDisabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['contentZoomDisabled'] = config.content.zoomDisabled;
+      }
+      if (config.content.rotationDisabled) {
+        log('"_configToJson", value provided for contentRotationDisabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['contentRotationDisabled'] = config.content.rotationDisabled;
+      }
+      if (config.content.reloadOnStallEnabled) {
+        log('"_configToJson", value provided for contentReloadOnStallEnabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['contentReloadOnStallEnabled'] = config.content.reloadOnStallEnabled;
+      }
+      if (config.content.reloadOnStallTimeout != null) {
+        log('"_configToJson", value provided for contentReloadOnStallTimeout: [${config.content.reloadOnStallTimeout}]', logLevel: LogLevel.INFO);
+        countlyConfig['contentReloadOnStallTimeout'] = config.content.reloadOnStallTimeout;
       }
 
       /// Content END ---------------------------
@@ -2146,6 +2203,10 @@ class Countly {
         log('"_configToJson", value provided for maxStackTraceLinesPerThread: [${config.sdkInternalLimits.maxStackTraceLinesPerThread}]', logLevel: LogLevel.INFO);
         countlyConfig['maxStackTraceLinesPerThread'] = config.sdkInternalLimits.maxStackTraceLinesPerThread;
       }
+      if (config.sdkInternalLimits.maxValueSizePicture > 0) {
+        log('"_configToJson", value provided for maxValueSizePicture: [${config.sdkInternalLimits.maxValueSizePicture}]', logLevel: LogLevel.INFO);
+        countlyConfig['maxValueSizePicture'] = config.sdkInternalLimits.maxValueSizePicture;
+      }
 
       /// Internal Limits END ---------------------------
       log('"_configToJson", value provided for remoteConfigAutomaticTriggers: [${config.remoteConfigAutomaticTriggers}]', logLevel: LogLevel.INFO);
@@ -2183,6 +2244,10 @@ class Countly {
         if (config.push.allowedIntentSchemes != null) {
           log('"_configToJson", value provided for pushAllowedIntentSchemes: [${config.push.allowedIntentSchemes}]', logLevel: LogLevel.INFO);
           countlyConfig['pushAllowedIntentSchemes'] = config.push.allowedIntentSchemes;
+        }
+        if (config.alertForNotificationsDisabled) {
+          log('"_configToJson", value provided for doNotShowAlertForNotifications is true', logLevel: LogLevel.INFO);
+          countlyConfig['doNotShowAlertForNotifications'] = config.alertForNotificationsDisabled;
         }
       }
 

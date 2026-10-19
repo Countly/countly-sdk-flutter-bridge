@@ -83,6 +83,7 @@ class CountlyConfiguration {
         //   ..sdkInternalLimits.setMaxBreadcrumbCount(100) // Max breadcrumbs before oldest is deleted (default 100)
         //   ..sdkInternalLimits.setMaxStackTraceLinesPerThread(30) // Max stack trace lines per thread (default 30)
         //   ..sdkInternalLimits.setMaxStackTraceLineLength(200) // Max characters per stack trace line (default 200)
+        //   ..sdkInternalLimits.setMaxValueSizePicture(4096) // Max characters of the profile picture URL
         //------------------------------------------------------------
 
         // Content features
@@ -92,11 +93,16 @@ class CountlyConfiguration {
         //   }) // Set a global callback for content actions
         //   ..content.setZoneTimerInterval(30) // Set interval for automatic content zone refresh in seconds
         //   ..content.setWebviewDisplayOption(WebViewDisplayOption.safeArea) // Set webview display mode (immersive or safeArea)
+        //   ..content.disableZoom() // Turn off zooming in content (iOS only)
+        //   ..content.disableRotation() // Keep content in its portrait layout (iOS only)
+        //   ..content.enableContentReloadOnStall() // Reload content that does not appear while loading (iOS only)
+        //   ..content.setContentReloadOnStallTimeout(1000) // Milliseconds before stalled content is reloaded (iOS only)
         //------------------------------------------------------------
 
         // Device ID configuration
         //   ..setDeviceId('CUSTOM_DEVICE_ID') // Set a custom device ID
         //   ..enableTemporaryDeviceIDMode() // Enable temporary device ID mode
+        //   ..enableClearStoredDeviceId() // Clear the stored device ID at every start, for development only
 
         // Queue and timing configuration
         //   ..setEventQueueSizeToSend(10) // Set event queue threshold before sending (default 10)
@@ -110,10 +116,19 @@ class CountlyConfiguration {
         //   ..disableStoringDefaultPushConsent() // Disable storing default push consent
         //   ..disableViewRestartForManualRecording() // Disable view restart for manual recording
         //   ..setSDKBehaviorSettings('{}') // Provide server config if not available at init time
+        //   ..setMetricOverride({'_app_version': '1.2.3'}) // Override the metrics sent when a session begins
+        //   ..setTrackOrientationChanges(false) // Stop recording the device orientation
+        //   ..disableSDKLoggingInProduction() // Keep SDK logs off in release builds (Android only)
+        //   ..disableWebView() // Turn off content, feedback widgets and the rating popup (Android only)
+        //   ..disableHealthCheck() // Stop the health check request (Android only)
+        //   ..setAppCrawlerNames(['Crawler Device']) // Add device names of app crawlers to ignore (Android only)
+        //   ..enableRecordAllThreadsWithCrash() // Add the stack traces of all threads to crashes (Android only)
+        //   ..doNotShowAlertForNotifications() // Do not show Countly push notifications in the foreground (iOS only)
 
         //   ..setStarRatingTextMessage('Message for start rating dialog')
         //   ..setParameterTamperingProtectionSalt('salt') // Set the optional salt to be used for calculating the checksum of requested data which will be sent with each request
         //   ..enableManualSessionHandling() // Enable manual session handling
+        //   ..enableManualSessionControlHybridMode() // With manual session handling, update the running session automatically
         //   ..setHttpPostForced(true) // Set to 'false' if you want HTTP POST not to be used for all requests
         //   ..setRequestTimeoutDuration(15) // Set the request timeout duration to 15 seconds
         //   ..setCustomNetworkRequestHeaders({

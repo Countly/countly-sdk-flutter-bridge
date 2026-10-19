@@ -21,6 +21,11 @@
 * Added the "sendPushTokenAlways" config option, which sends the push token even for users who have not allowed notifications, in iOS.
 * Added support for the notification small icon given by the "com.google.firebase.messaging.default_notification_icon" meta-data in Android.
 * Added the "setAllowedIntentSchemes" option to "CountlyConfig.content" and "CountlyConfig.push" for limiting the URI schemes that content, feedback widget and push notification links open, in Android. "data", "zip", "intent", "file", "content", "javascript" and "jar" stay blocked.
+* Added config options of the underlying Android and iOS SDKs:
+  * "enableManualSessionControlHybridMode", "setMetricOverride", "setTrackOrientationChanges", "enableClearStoredDeviceId" and "sdkInternalLimits.setMaxValueSizePicture"
+  * in Android, "disableSDKLoggingInProduction", "disableWebView", "disableHealthCheck", "setAppCrawlerNames" and "enableRecordAllThreadsWithCrash"
+  * in iOS, "doNotShowAlertForNotifications"
+  * in iOS, the "disableZoom", "disableRotation", "enableContentReloadOnStall" and "setContentReloadOnStallTimeout" options of "CountlyConfig.content" (Experimental!)
 * Added Web support for:
   * push notifications: give the "push" consent, set the VAPID public key with "CountlyConfig.push.setVapidPublicKey", copy "countly_sw.js" into your application's "web" folder and call "askForNotificationPermission" from a user gesture
   * "disablePushNotifications", and "onNotification" for received, clicked and closed notifications
