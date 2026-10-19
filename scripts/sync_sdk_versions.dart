@@ -106,6 +106,13 @@ void main(List<String> args) {
     'Web     → plugin_config.dart',
   );
 
+  replaceInFile(
+    '$rootDir/example/web/countly_sw.js',
+    RegExp(r'countly-sdk-web@[^/]+/lib/countly_sw\.js'),
+    'countly-sdk-web@$webVersion/lib/countly_sw.js',
+    'Web     → example/web/countly_sw.js',
+  );
+
   // ---- Android version ----
   replaceInFile(
     '$rootDir/android/build.gradle',
@@ -177,6 +184,7 @@ void main(List<String> args) {
         'android/src/main/java/ly/count/dart/countly_flutter/CountlyFlutterPlugin.java',
         'ios/countly_flutter/Sources/countly_flutter/CountlyFlutterPlugin.m',
         'lib/src/web/plugin_config.dart',
+        'example/web/countly_sw.js',
         'scripts/no-push-files/pubspec.yaml',
         'scripts/no-push-files/countly_flutter_np.podspec',
         'android/build.gradle',

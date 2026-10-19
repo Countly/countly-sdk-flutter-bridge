@@ -138,6 +138,7 @@ def main():
 
     failures.update(check("Underlying Web SDK", declared["web_sdk_version"], versions(
         ("lib/src/web/plugin_config.dart", r"WEB_SDK_VERSION\s*=\s*'([^']+)'", "native SDK version"),
+        ("example/web/countly_sw.js", r"countly-sdk-web@([^/]+)/lib/countly_sw\.js", "service worker import"),
         ("CHANGELOG.md", changelog_version("Web"), "underlying Web SDK version"),
     )))
 

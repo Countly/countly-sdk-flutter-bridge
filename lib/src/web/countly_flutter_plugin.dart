@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html';
-import 'dart:js' as js;
 import 'dart:js_interop';
-import 'dart:js_util';
+import 'dart:js_interop_unsafe';
 
 import 'package:countly_flutter/countly_flutter.dart' as cly;
 import 'package:countly_flutter/src/web/countly_sdk_web_interop.dart';
 import 'package:countly_flutter/src/web/json_interop.dart';
 import 'package:countly_flutter/src/web/plugin_config.dart';
+import 'package:countly_flutter/src/web/web_apm.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
@@ -19,297 +18,356 @@ class CountlyFlutterPlugin {
   static const int requestIDNoCallback = -1;
   static const int requestIDGlobalCallback = -2;
 
+  /// How long init waits for the Web SDK script before it gives up on it.
+  static const Duration scriptLoadTimeout = Duration(seconds: 10);
+
+  /// How long init waits for the app's version.json before it initializes without an app version.
+  static const Duration appVersionTimeout = Duration(seconds: 3);
+
+  /// How long a call waits for a Web SDK callback before it reports that none came, a little longer
+  /// than the 30 seconds after which the Web SDK abandons a request.
+  static const Duration callbackTimeout = Duration(seconds: 35);
+
+  /// The Web SDK instance init created, or null before init and when the script could not load.
+  CountlyWeb? _countly;
+
+  /// The script load shared by every init, so the script is added to the page at most once.
+  Future<bool>? _scriptLoad;
+
+  /// The performance traces of this plugin.
+  WebApm _apm = WebApm();
+
+  /// How many push notification events are kept while no "onNotification" registration waits.
+  static const int maxPendingNotifications = 50;
+
+  /// Waiting "onNotification" registrations. The Dart side registers again after every event, so an
+  /// event that arrives in between is kept in [_pendingNotifications] for the next registration.
+  final List<Completer<String>> _notificationWaiters = [];
+
+  /// Push notification events no registration waited for yet, oldest first.
+  final List<String> _pendingNotifications = [];
+
+  /// Calls the Countly Web SDK has no equivalent for.
+  static const Set<String> _unavailableOnWeb = {
+    'updateSession',
+    'stopViewWithName',
+    'stopViewWithID',
+    'stopAllViews',
+    'setGlobalViewSegmentation',
+    'updateGlobalViewSegmentation',
+    'appLoadingFinished',
+    'pauseViewWithID',
+    'resumeViewWithID',
+    'addSegmentationToViewWithID',
+    'addSegmentationToViewWithName',
+    'previewContent',
+    'remoteConfigClearAllValues',
+    'remoteConfigExitABTestsForKeys',
+    'remoteConfigTestingDownloadVariantInformation',
+    'remoteConfigTestingEnrollIntoVariant',
+    'remoteConfigTestingGetAllVariants',
+    'remoteConfigTestingGetVariantsForKey',
+    'testingDownloadExperimentInformation',
+    'testingGetAllExperimentInfo',
+    'removeDifferentAppKeysFromQueue',
+    'replaceAllAppKeysInQueueWithCurrentAppKey',
+    'recordIndirectAttribution',
+    'recordMetrics',
+    'pushTokenType',
+    'askForStarRating',
+  };
+
+  /// The calls of [_unavailableOnWeb] whose Dart callback waits for an answer, with its ID first.
+  static const Set<String> _variantCallbackMethods = {
+    'remoteConfigTestingDownloadVariantInformation',
+    'remoteConfigTestingEnrollIntoVariant',
+    'testingDownloadExperimentInformation',
+  };
+
   // Register the plugin with Flutter Web
   static void registerWith(Registrar registrar) {
-    final MethodChannel channel = MethodChannel('countly_flutter', const StandardMethodCodec(), registrar.messenger);
+    final MethodChannel channel = MethodChannel('countly_flutter', const StandardMethodCodec(), registrar);
     final CountlyFlutterPlugin instance = CountlyFlutterPlugin();
     instance.methodChannel = channel;
     channel.setMethodCallHandler(instance.handleMethodCall);
   }
 
-  // insert module as package
+  /// Handles a call from the Dart side. While there is no Web SDK instance, before init or when the
+  /// script could not load, and when the Web SDK fails, calls get the answer of a failed call instead.
   Future<dynamic> handleMethodCall(MethodCall call) async {
-    if (!js.context.hasProperty('Countly')) {
-      await _importLibrary();
+    final List<dynamic> data = _arguments(call.arguments);
+    try {
+      if (call.method == 'init') {
+        return await _initialize(data[0] as Map<String, dynamic>);
+      }
+      // Answered only when a notification arrives, as the Dart side registers again after every answer.
+      if (call.method == 'registerForNotification') {
+        return await _nextNotification();
+      }
+      final CountlyWeb? countly = _countly;
+      if (countly == null) {
+        const String reason = 'Countly is not initialized, or the Countly Web SDK could not be loaded';
+        if (call.method != 'isInitialized') {
+          cly.Countly.log('[CountlyFlutterPluginWeb] ${call.method}, $reason', logLevel: cly.LogLevel.WARNING);
+        }
+        return await _failedAnswer(call.method, data, reason);
+      }
+      return await _callSdk(countly, call, data);
+    } on PlatformException {
+      rethrow;
+    } catch (e) {
+      final String reason = 'The Countly Web SDK failed: $e';
+      cly.Countly.log('[CountlyFlutterPluginWeb] ${call.method}, $reason', logLevel: cly.LogLevel.ERROR);
+      return await _failedAnswer(call.method, data, reason);
     }
-    List<dynamic> data = List.empty();
-    if (call.arguments != null && call.arguments['data'] != null) {
-      data = jsonDecode(call.arguments['data']);
-    }
+  }
 
+  /// The argument list the Dart side sends as JSON under "data", or an empty list.
+  List<dynamic> _arguments(Object? arguments) {
+    if (arguments is Map && arguments['data'] is String) {
+      return jsonDecode(arguments['data'] as String) as List<dynamic>;
+    }
+    return List.empty();
+  }
+
+  /// Runs [call] on the Web SDK instance [countly] and returns what the Dart side expects.
+  Future<dynamic> _callSdk(CountlyWeb countly, MethodCall call, List<dynamic> data) async {
     // INIT RELATED
-    if (call.method == 'init') {
-      _initialize(data[0]);
-    } else if (call.method == 'isInitialized') {
-      return Future(() => 'false');
+    if (call.method == 'isInitialized') {
+      return 'true';
     }
     // EVENTS
     else if (call.method == 'recordEvent') {
-      _recordEvent(data);
+      _recordEvent(countly, data);
     } else if (call.method == 'startEvent') {
-      Countly.start_event(data[0]);
+      countly.start_event(data[0] as String);
     } else if (call.method == 'endEvent') {
-      _endEvent(data);
+      _endEvent(countly, data);
     } else if (call.method == 'cancelEvent') {
-      Countly.cancel_event(data[0]);
+      countly.cancel_event(data[0] as String);
     }
 
     // SESSIONS
     else if (call.method == 'beginSession') {
-      Countly.begin_session();
+      countly.begin_session();
     } else if (call.method == 'endSession') {
-      Countly.end_session();
+      countly.end_session();
     }
 
     // DEVICE ID MANAGEMENT
     else if (call.method == 'getID') {
-      return Future(() => Countly.get_device_id());
+      return countly.get_device_id();
     } else if (call.method == 'setID') {
-      Countly.set_id(data[0]);
+      countly.set_id(data[0] as String);
     } else if (call.method == 'getIDType') {
-      return Future(() => _getDeviceIDType(Countly.get_device_id_type()));
+      return _getDeviceIDType(countly.get_device_id_type());
     } else if (call.method == 'changeWithMerge') {
-      Countly.change_id(data[0], true);
+      countly.change_id(data[0] as String, true);
     } else if (call.method == 'changeWithoutMerge') {
-      Countly.change_id(data[0], false);
+      countly.change_id(data[0] as String, false);
     } else if (call.method == 'enableTemporaryIDMode') {
-      Countly.enable_offline_mode();
+      countly.enable_offline_mode();
       // there is also disable offine mode call, but it is not needed for now
     }
 
     // CONSENT
     else if (call.method == 'giveConsent') {
-      Countly.add_consent(data.jsify()!);
+      countly.add_consent(data.jsify()!);
     } else if (call.method == 'removeConsent') {
-      Countly.remove_consent(data.jsify()!);
+      countly.remove_consent(data.jsify()!);
     } else if (call.method == 'giveAllConsent') {
-      Countly.add_consent(Countly.features.jsify()!);
+      countly.add_consent(countlyGlobal.features);
     } else if (call.method == 'removeAllConsent') {
-      Countly.remove_consent(Countly.features.jsify()!);
+      countly.remove_consent(countlyGlobal.features);
     }
 
     // VIEWS
-    else if (call.method == 'startAutoStoppedView') {
-      _recordView(data);
+    else if (call.method == 'startView' || call.method == 'startAutoStoppedView') {
+      countly.track_pageview(data[0] as String, null, _mapAt(data, 1).jsify());
+    }
+
+    // PERFORMANCE MONITORING
+    else if (call.method == 'startTrace') {
+      _apm.startTrace(data[0] as String);
+    } else if (call.method == 'endTrace') {
+      _apm.endTrace(countly, data[0] as String, _intPairs(data, 1));
+    } else if (call.method == 'cancelTrace') {
+      _apm.cancelTrace(data[0] as String);
+    } else if (call.method == 'clearAllTraces') {
+      _apm.clearAllTraces();
+    } else if (call.method == 'recordNetworkTrace') {
+      _apm.recordNetworkTrace(countly, data[0] as String, _int(data[1]), _int(data[2]), _int(data[3]), _int(data[4]), _int(data[5]));
+    }
+
+    // LOCATION
+    else if (call.method == 'setUserLocation') {
+      _setUserLocation(countly, data[0] as Map<String, dynamic>);
+    } else if (call.method == 'disableLocation') {
+      _disableLocation(countly);
+    }
+
+    // NETWORKING
+    else if (call.method == 'addCustomNetworkRequestHeaders') {
+      _addCustomNetworkRequestHeaders(countly, data[0] as Map<String, dynamic>);
+    } else if (call.method == 'attemptToSendStoredRequests') {
+      countly.attempt_to_send_stored_requests();
+    }
+
+    // ATTRIBUTION
+    else if (call.method == 'recordDirectAttribution') {
+      _recordDirectAttribution(countly, data[0] as String, data[1] as String);
+    }
+
+    // PUSH NOTIFICATIONS
+    else if (call.method == 'askForNotificationPermission') {
+      return await _pushCall(countly, 'enable_push_notifications', 'subscribed');
+    } else if (call.method == 'disablePushNotifications') {
+      return await _pushCall(countly, 'disable_push_notifications', 'unsubscribed');
     }
 
     // CRASHES
-    else if (call.method == 'setCustomCrashSegment') {
-      Map<String, dynamic> segments = _extractMap(data);
-
-      if (segments.isNotEmpty) {
-        Countly.track_errors(segments.jsify()!);
-      }
-    } else if (call.method == 'logException') {
-      String exceptionString = data[0];
+    else if (call.method == 'logException') {
+      String exceptionString = data[0] as String;
       bool nonfatal = data[1] == 'true';
 
       Map<String, dynamic> segments = _extractMap(data, idxStart: 2);
-      Countly.recordError({'stack': exceptionString}.jsify()!, nonfatal, segments.jsify()!);
+      // Without segmentation of its own, the Web SDK uses the one given to track_errors.
+      countly.recordError({'stack': exceptionString}.jsify()!, nonfatal, segments.isEmpty ? null : segments.jsify());
     } else if (call.method == 'addCrashLog') {
-      Countly.add_log(data[0]);
+      countly.add_log(data[0] as String);
+    } else if (call.method == 'throwNativeException') {
+      _reportUncaughtError();
     }
 
     // INTERNALS
     else if (call.method == 'getRequestQueue') {
-      dynamic object = CountlyInternal.getRequestQueue();
-      List<String> requestList = [];
-      for (dynamic item in object) {
-        requestList.add(JSON.stringify(item)); // will get from config
-      }
-      return Future(() => requestList);
+      return _stringifyAll(countly.internals.getRequestQueue());
     } else if (call.method == 'getEventQueue') {
-      dynamic object = CountlyInternal.getEventQueue();
-      List<String> eventList = [];
-      for (dynamic item in object) {
-        eventList.add(JSON.stringify(item));
-      }
-      return Future(() => eventList);
+      return _stringifyAll(countly.internals.getEventQueue());
     } else if (call.method == 'halt') {
-      Countly.halt();
+      countly.halt();
+      _countly = null;
+      _apm = WebApm();
+      _pendingNotifications.clear();
+      retrievedWidgetList.clear();
     }
 
     // USER PROFILES
     else if (call.method == 'setuserdata') {
-      _reportUserDetails(data[0]);
+      _reportUserDetails(countly, data[0] as Map<String, dynamic>);
     } else if (call.method.startsWith('userData_')) {
-      _userDataOps(call.method, data);
+      _userDataOps(countly.userData, call.method, data);
     } else if (call.method.startsWith('userProfile_')) {
-      _userProfileOps(call.method, data);
+      _userProfileOps(countly, call.method, data);
     }
 
     // FEEDBACK
     else if (call.method == 'presentNPS') {
-      CountlyFeedback.showNPS(data[0]);
+      countly.feedback.showNPS(data[0] as String?);
     } else if (call.method == 'presentSurvey') {
-      CountlyFeedback.showSurvey(data[0]);
+      countly.feedback.showSurvey(data[0] as String?);
     } else if (call.method == 'presentRating') {
-      CountlyFeedback.showRating(data[0]);
+      countly.feedback.showRating(data[0] as String?);
     } else if (call.method == 'getAvailableFeedbackWidgets') {
-      retrievedWidgetList.clear(); // clear previous state
-      // Create a Completer to manage the Future
-      final completer = Completer<dynamic>();
-
-      // Wrap the Dart function using allowInterop
-      var callback = allowInterop((JSAny? widgets, String? error) {
-        if (error != null) {
-          // Complete with an error if one is returned
-          cly.Countly.log('[CountlyFlutterPluginWeb] getAvailableFeedbackWidgets $error', logLevel: cly.LogLevel.ERROR);
-          completer.complete(error);
-          return;
-        }
-
-        List<Map<String, String>> dartFeedbackWidgets = [];
-
-        if (widgets != null) {
-          // Convert the JS object to a Dart Map
-          List<dynamic> dartWidgets = widgets.dartify() as List<dynamic>;
-          for (dynamic widget in dartWidgets) {
-            retrievedWidgetList.add(widget);
-            dartFeedbackWidgets.add({
-              'id': widget['_id'].toString(),
-              'type': widget['type'].toString(),
-              'name': widget['name'].toString(),
-            });
-          }
-
-          // Complete the Future with the widgets data
-          completer.complete(dartFeedbackWidgets);
-        }
-      });
-
-      // Call the JS function
-      Countly.get_available_feedback_widgets(callback.jsify());
-
-      // Return the Future from the Completer
-      return completer.future;
+      return _getAvailableFeedbackWidgets(countly);
     } else if (call.method == 'presentFeedbackWidget' || call.method == 'presentRatingWidgetWithID') {
-      String widgetId = data[0];
-      Map<Object?, Object?> widget = retrievedWidgetList.firstWhere((element) => element['_id'] == widgetId, orElse: () => {});
-      if (widget.isEmpty) {
-        String message = "[CountlyFlutterPluginWeb] presentFeedbackWidget, No feedbackWidget is found against widget id: '$widgetId', always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
+      String widgetId = data[0] as String;
+      Map<Object?, Object?>? widget = _retrievedWidget(widgetId);
+      if (widget == null) {
+        String message = '[CountlyFlutterPluginWeb] presentFeedbackWidget, ${_unknownWidgetMessage(widgetId)}';
         cly.Countly.log(message, logLevel: cly.LogLevel.ERROR);
-        return Future.value(message);
+        return message;
       }
-      Countly.present_feedback_widget(widget.jsify(), null, null, null);
+      countly.present_feedback_widget(widget.jsify(), null, null, null);
     } else if (call.method == 'getFeedbackWidgetData') {
-      String widgetId = data[0];
-      Map<Object?, Object?> widget = retrievedWidgetList.firstWhere((element) => element['_id'] == widgetId, orElse: () => {});
-      final completer = Completer<dynamic>();
-
-      if (widget.isEmpty) {
-        String errorInit = "[getFeedbackWidgetData], No feedbackWidget is found against widget id: '$widgetId', always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
-        Map<String, Object?> callbackData = prepareCallbackData(null, errorInit);
-        await methodChannel?.invokeMethod('feedbackWidgetDataCallback', callbackData);
-        completer.complete([callbackData]);
-      }
-
-      // Wrap the Dart function using allowInterop
-      var callback = allowInterop((JSAny? feedbackWidgetData, String? error) {
-        Map<String, Object?> returnedObject = prepareCallbackData(feedbackWidgetData?.dartify(), error);
-
-        methodChannel?.invokeMethod('feedbackWidgetDataCallback', returnedObject);
-        // Complete the Future with the widgets data
-        completer.complete([returnedObject]);
-      });
-
-      Countly.getFeedbackWidgetData(widget.jsify(), callback.jsify());
-      return completer.future;
+      return _getFeedbackWidgetData(countly, data[0] as String);
     } else if (call.method == 'reportFeedbackWidgetManually') {
-      List<dynamic> widgetInfo = data[0];
-      Map<String, dynamic> widgetData = data[1];
-      Map<String, dynamic>? widgetResult = data[2];
-      String widgetId = widgetInfo[0];
+      List<dynamic> widgetInfo = data[0] as List<dynamic>;
+      Map<String, dynamic> widgetData = data[1] as Map<String, dynamic>;
+      Map<String, dynamic>? widgetResult = data[2] as Map<String, dynamic>?;
+      String widgetId = widgetInfo[0] as String;
 
-      Map<Object?, Object?> widget = retrievedWidgetList.firstWhere((element) => element['_id'] == widgetId, orElse: () => {});
-      if (widget.isEmpty) {
-        String message = "[CountlyFlutterPluginWeb] reportFeedbackWidgetManually, No feedbackWidget is found against widget id: '$widgetId', always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
+      Map<Object?, Object?>? widget = _retrievedWidget(widgetId);
+      if (widget == null) {
+        String message = '[CountlyFlutterPluginWeb] reportFeedbackWidgetManually, ${_unknownWidgetMessage(widgetId)}';
         cly.Countly.log(message, logLevel: cly.LogLevel.ERROR);
-        return Future.value(message);
+        return message;
       }
 
-      Countly.reportFeedbackWidgetManually(widget.jsify(), widgetData.jsify(), widgetResult.jsify());
+      countly.reportFeedbackWidgetManually(widget.jsify(), widgetData.jsify(), widgetResult.jsify());
     }
 
     // REMOTE CONFIG
     else if (call.method == 'remoteConfigDownloadValues') {
-      int requestID = data[0];
-      Countly.fetch_remote_config(
-          null,
-          null,
-          allowInterop((JSAny? error, JSAny? remoteConfigs) {
-            if (requestID == requestIDNoCallback) {
-              return;
-            }
-            _notifyRemoteConfigDownloadCallback(error, remoteConfigs, true, requestID);
-          }).jsify());
-    } else if (call.method == 'remoteConfigGetAllValues') {
-      return Future.value(_convertMapToRCData(Countly.get_remote_config()?.dartify()));
-    } else if (call.method == 'getRemoteConfigValueForKey') {
-      String key = data[0];
-      return Future.value(Countly.get_remote_config(key).dartify());
+      _downloadRemoteConfig(countly, null, null, true, data[0] as int);
     } else if (call.method == 'remoteConfigDownloadSpecificValue') {
-      int requestID = data[0];
-      Countly.fetch_remote_config(
-          data[1],
-          null,
-          allowInterop((JSAny? error, JSAny? remoteConfigs) {
-            if (requestID == requestIDNoCallback) {
-              return;
-            }
-            _notifyRemoteConfigDownloadCallback(error, remoteConfigs, false, requestID);
-          }).jsify());
+      _downloadRemoteConfig(countly, (data[1] as List<dynamic>).jsify(), null, false, data[0] as int);
     } else if (call.method == 'remoteConfigDownloadOmittingValues') {
-      int requestID = data[0];
-      Countly.fetch_remote_config(
-          null,
-          data[1],
-          allowInterop((JSAny? error, JSAny? remoteConfigs) {
-            if (requestID == requestIDNoCallback) {
-              return;
-            }
-            _notifyRemoteConfigDownloadCallback(error, remoteConfigs, false, requestID);
-          }).jsify());
+      _downloadRemoteConfig(countly, null, (data[1] as List<dynamic>).jsify(), false, data[0] as int);
+    } else if (call.method == 'remoteConfigGetAllValues') {
+      return _convertMapToRCData(_dartify(countly.get_remote_config()));
     } else if (call.method == 'remoteConfigGetValue') {
-      String key = data[0];
-      return Future.value({'value': Countly.get_remote_config(key)?.dartify(), 'isCurrentUsersData': true});
-    } else if (call.method == 'getRemoteConfigValueForKey') {
-      String key = data[0];
-      return Future.value({'value': Countly.get_remote_config(key)?.dartify()?.toString(), 'isCurrentUsersData': true});
-    }
-
-    // LEGACY REMOTE CONFIG
-    else if (call.method == 'updateRemoteConfigForKeysOnly') {
-      return _updateValuesRC(data.jsify(), null);
-    } else if (call.method == 'updateRemoteConfigExceptKeys') {
-      return _updateValuesRC(null, data.jsify());
-    } else if (call.method == 'remoteConfigUpdate') {
-      return _updateValuesRC(null, null);
+      String key = data[0] as String;
+      return {'value': _dartify(countly.get_remote_config(key)), 'isCurrentUsersData': true};
     }
 
     // A/B TESTING
     else if (call.method == 'remoteConfigGetValueAndEnroll') {
-      String key = data[0];
-      dynamic value = Countly.get_remote_config(key).dartify();
-      Countly.enrollUserToAb([key].jsify());
-      return Future.value({'value': value, 'isCurrentUsersData': true});
+      String key = data[0] as String;
+      Object? value = _dartify(countly.get_remote_config(key));
+      countly.enrollUserToAb([key].jsify());
+      return {'value': value, 'isCurrentUsersData': true};
     } else if (call.method == 'remoteConfigGetAllValuesAndEnroll') {
-      Map<String, Map<String, dynamic>> rcValues = _convertMapToRCData(Countly.get_remote_config(null).dartify());
-      Countly.enrollUserToAb(rcValues.keys.toList().jsify());
-      return Future.value(rcValues);
+      Map<String, Map<String, dynamic>> rcValues = _convertMapToRCData(_dartify(countly.get_remote_config()));
+      if (rcValues.isNotEmpty) {
+        countly.enrollUserToAb(rcValues.keys.toList().jsify());
+      }
+      return rcValues;
     } else if (call.method == 'remoteConfigEnrollIntoABTestsForKeys') {
-      Countly.enrollUserToAb(data[0]);
+      countly.enrollUserToAb((data[0] as List<dynamic>).jsify());
     }
 
     // CONTENT ZONE
     else if (call.method == 'enterContentZone') {
-      CountlyContent.enterContentZone();
+      countly.content.enterContentZone();
+    } else if (call.method == 'refreshContentZone') {
+      countly.content.refreshContentZone();
     } else if (call.method == 'exitContentZone') {
-      CountlyContent.exitContentZone();
+      countly.content.exitContentZone();
+    } else if (_unavailableOnWeb.contains(call.method)) {
+      return await _unavailableAnswer(call.method, data);
     } else {
       cly.Countly.log('[CountlyFlutterPluginWeb] handleMethodCall, The method ${call.method} does not implemented', logLevel: cly.LogLevel.ERROR);
     }
-    return Future.value();
+    return null;
+  }
+
+  /// The answer to [method] when it could not run for [reason]: an empty value of the type the Dart
+  /// side expects, and [reason] as the error for the calls that report one.
+  Future<dynamic> _failedAnswer(String method, List<dynamic> data, String reason) async {
+    if (method == 'isInitialized') {
+      return 'false';
+    }
+    if (method == 'init') {
+      return reason;
+    } else if (method == 'getIDType') {
+      // The Dart side reads an unknown type as SDK generated.
+      return '';
+    } else if (method == 'getRequestQueue' || method == 'getEventQueue') {
+      return <String>[];
+    } else if (method == 'remoteConfigGetAllValues' || method == 'remoteConfigGetAllValuesAndEnroll') {
+      return <String, Map<String, dynamic>>{};
+    } else if (method == 'remoteConfigDownloadValues') {
+      _notifyRemoteConfigDownload(2, reason, null, true, data[0] as int);
+    } else if (method == 'remoteConfigDownloadSpecificValue' || method == 'remoteConfigDownloadOmittingValues') {
+      _notifyRemoteConfigDownload(2, reason, null, false, data[0] as int);
+    } else if (method == 'getAvailableFeedbackWidgets') {
+      throw PlatformException(code: method, message: reason);
+    } else if (method == 'getFeedbackWidgetData') {
+      await methodChannel?.invokeMethod('feedbackWidgetDataCallback', prepareCallbackData(null, reason));
+      throw PlatformException(code: method, message: reason);
+    }
+    return null;
   }
 
   Map<String, Object?> prepareCallbackData(Object? data, String? error) {
@@ -322,30 +380,70 @@ class CountlyFlutterPlugin {
     return returnedObject;
   }
 
-  ScriptElement _createScriptTag(String library) {
-    final ScriptElement script = ScriptElement()
-      ..type = 'application/javascript'
-      ..charset = 'utf-8'
-      ..async = true
-      ..noModule = false
-      ..src = library;
-    return script;
+  /// Whether the page has the Web SDK's global Countly object with its init function.
+  bool _isWebSDKLoaded() {
+    final JSAny? countly = globalContext['Countly'];
+    if (countly == null) {
+      return false;
+    }
+    final JSAny? init = (countly as JSObject)['init'];
+    return init != null && init.typeofEquals('function');
   }
 
-  /// Injects a bunch of libraries in the <head> and returns a
-  /// Future that resolves when all load.
-  Future<void> _importLibrary() async {
-    final head = querySelector('head');
-
-    // try this as module
-    final scriptTag = _createScriptTag(CountlyFlutterPluginConfig.WEB_SDK_URL);
-    head?.children.add(scriptTag);
-    await scriptTag.onLoad.first;
-
-    return Future.value();
+  /// Adds the Web SDK script from [url] to the page and reports whether it loaded within
+  /// [scriptLoadTimeout]. A page that already loaded the Web SDK itself keeps its copy.
+  Future<bool> _loadScript(String url) {
+    if (_isWebSDKLoaded()) {
+      return Future<bool>.value(true);
+    }
+    final Completer<bool> completer = Completer<bool>();
+    final JSObject document = globalContext['document'] as JSObject;
+    final JSObject script = document.callMethod('createElement'.toJS, 'script'.toJS) as JSObject;
+    script['async'] = true.toJS;
+    script['src'] = url.toJS;
+    script['onload'] = ((JSAny? event) {
+      if (!completer.isCompleted) {
+        completer.complete(_isWebSDKLoaded());
+      }
+    }).toJS;
+    script['onerror'] = ((JSAny? event) {
+      if (!completer.isCompleted) {
+        completer.complete(false);
+      }
+    }).toJS;
+    (document['head'] as JSObject).callMethod('appendChild'.toJS, script);
+    return completer.future.timeout(scriptLoadTimeout, onTimeout: () => false);
   }
 
-  void _reportUserDetails(Map<String, dynamic> userData) {
+  /// The app version from the version.json file Flutter writes into a web build, or null when it
+  /// cannot be read within [appVersionTimeout].
+  Future<String?> _appVersion() async {
+    try {
+      return await _readAppVersion().timeout(appVersionTimeout);
+    } catch (e) {
+      cly.Countly.log('[CountlyFlutterPluginWeb] init, Could not read the app version from version.json: $e', logLevel: cly.LogLevel.WARNING);
+      return null;
+    }
+  }
+
+  /// Reads the version field of the version.json file next to the page.
+  Future<String?> _readAppVersion() async {
+    final JSPromise request = globalContext.callMethod('fetch'.toJS, 'version.json'.toJS, {'cache': 'no-cache'}.jsify()) as JSPromise;
+    final JSObject response = await request.toDart as JSObject;
+    if (response['ok']?.dartify() != true) {
+      return null;
+    }
+    final JSAny? text = await (response.callMethod('text'.toJS) as JSPromise).toDart;
+    final Object? versionFile = jsonDecode((text as JSString).toDart);
+    if (versionFile is Map && versionFile['version'] is String && (versionFile['version'] as String).isNotEmpty) {
+      return versionFile['version'] as String;
+    }
+    return null;
+  }
+
+  /// Sends [userData] as user details: the named properties as they are, every other key as a
+  /// custom property.
+  void _reportUserDetails(CountlyWeb countly, Map<String, dynamic> userData) {
     Map<String, dynamic> bundle = {};
     bundle['custom'] = <String, dynamic>{};
 
@@ -377,136 +475,305 @@ class CountlyFlutterPlugin {
     }
 
     if (bundle.isNotEmpty) {
-      Countly.user_details(bundle.jsify()!);
+      countly.user_details(bundle.jsify()!);
     }
   }
 
-  void _userProfileOps(String method, List<dynamic> data) {
+  /// Runs the "userProfile_" call [method] with [data]. The changes are sent on its save call.
+  void _userProfileOps(CountlyWeb countly, String method, List<dynamic> data) {
+    CountlyWebUserData userData = countly.userData;
     if (method == 'userProfile_setProperties') {
-      _reportUserDetails(data[0]);
+      _reportUserDetails(countly, data[0] as Map<String, dynamic>);
     } else if (method == 'userProfile_setProperty') {
-      String keyName = data[0];
-      Object keyValue = data[1];
-      CountlyUserData.set(keyName, keyValue.jsify());
+      String keyName = data[0] as String;
+      Object? keyValue = data[1];
+      userData.set(keyName, keyValue.jsify());
     } else if (method == 'userProfile_increment') {
-      String keyName = data[0];
-      CountlyUserData.increment(keyName);
+      String keyName = data[0] as String;
+      userData.increment(keyName);
     } else if (method == 'userProfile_incrementBy') {
-      String key = data[0];
-      int value = data[1];
-      CountlyUserData.increment_by(key, value);
+      String key = data[0] as String;
+      int value = data[1] as int;
+      userData.increment_by(key, value);
     } else if (method == 'userProfile_multiply') {
-      String key = data[0];
-      int value = data[1];
-      CountlyUserData.multiply(key, value);
+      String key = data[0] as String;
+      int value = data[1] as int;
+      userData.multiply(key, value);
     } else if (method == 'userProfile_saveMax') {
-      String key = data[0];
-      int value = data[1];
-      CountlyUserData.max(key, value);
+      String key = data[0] as String;
+      int value = data[1] as int;
+      userData.max(key, value);
     } else if (method == 'userProfile_saveMin') {
-      String key = data[0];
-      int value = data[1];
-      CountlyUserData.min(key, value);
+      String key = data[0] as String;
+      int value = data[1] as int;
+      userData.min(key, value);
     } else if (method == 'userProfile_setOnce') {
-      String key = data[0];
-      Object value = data[1];
-      CountlyUserData.set_once(key, value.jsify());
+      String key = data[0] as String;
+      Object? value = data[1];
+      userData.set_once(key, value.jsify());
     } else if (method == 'userProfile_pushUnique') {
-      String key = data[0];
-      Object value = data[1];
-      CountlyUserData.push_unique(key, value.jsify());
+      String key = data[0] as String;
+      Object? value = data[1];
+      userData.push_unique(key, value.jsify());
     } else if (method == 'userProfile_push') {
-      String key = data[0];
-      Object value = data[1];
-      CountlyUserData.push(key, value.jsify());
+      String key = data[0] as String;
+      Object? value = data[1];
+      userData.push(key, value.jsify());
     } else if (method == 'userProfile_pull') {
-      String key = data[0];
-      Object value = data[1];
-      CountlyUserData.pull(key, value.jsify());
+      String key = data[0] as String;
+      Object? value = data[1];
+      userData.pull(key, value.jsify());
     } else if (method == 'userProfile_save') {
-      CountlyUserData.save();
+      userData.save();
     } else {
       cly.Countly.log("The countly_flutter plugin for web doesn't implement the method $method", logLevel: cly.LogLevel.ERROR);
     }
   }
 
-  void _userDataOps(String method, List<dynamic> data) {
+  /// Runs the deprecated "userData_" call [method] with [data] and sends the change at once.
+  void _userDataOps(CountlyWebUserData userData, String method, List<dynamic> data) {
     if (method == 'userData_setProperty') {
-      String keyName = data[0];
-      String keyValue = data[1];
-      CountlyUserData.set(keyName, keyValue.jsify());
-      CountlyUserData.save();
+      String keyName = data[0] as String;
+      Object? keyValue = data[1];
+      userData.set(keyName, keyValue.jsify());
+      userData.save();
     } else if (method == 'userData_increment') {
-      String keyName = data[0];
-      CountlyUserData.increment(keyName);
-      CountlyUserData.save();
+      String keyName = data[0] as String;
+      userData.increment(keyName);
+      userData.save();
     } else if (method == 'userData_incrementBy') {
-      String keyName = data[0];
-      int value = data[1];
-      CountlyUserData.increment_by(keyName, value);
-      CountlyUserData.save();
+      String keyName = data[0] as String;
+      int value = data[1] as int;
+      userData.increment_by(keyName, value);
+      userData.save();
     } else if (method == 'userData_saveMax') {
-      String keyName = data[0];
-      int value = data[1];
-      CountlyUserData.max(keyName, value);
-      CountlyUserData.save();
+      String keyName = data[0] as String;
+      int value = data[1] as int;
+      userData.max(keyName, value);
+      userData.save();
     } else if (method == 'userData_saveMin') {
-      String keyName = data[0];
-      int value = data[1];
-      CountlyUserData.min(keyName, value);
-      CountlyUserData.save();
+      String keyName = data[0] as String;
+      int value = data[1] as int;
+      userData.min(keyName, value);
+      userData.save();
     } else if (method == 'userData_setOnce') {
-      String keyName = data[0];
-      String value = data[1];
-      CountlyUserData.set_once(keyName, value.jsify());
-      CountlyUserData.save();
+      String keyName = data[0] as String;
+      Object? value = data[1];
+      userData.set_once(keyName, value.jsify());
+      userData.save();
     } else if (method == 'userData_pushUniqueValue') {
-      String keyName = data[0];
-      String value = data[1];
-      CountlyUserData.push_unique(keyName, value.jsify());
-      CountlyUserData.save();
+      String keyName = data[0] as String;
+      Object? value = data[1];
+      userData.push_unique(keyName, value.jsify());
+      userData.save();
     } else if (method == 'userData_pushValue') {
-      String keyName = data[0];
-      String value = data[1];
-      CountlyUserData.push(keyName, value.jsify());
-      CountlyUserData.save();
+      String keyName = data[0] as String;
+      Object? value = data[1];
+      userData.push(keyName, value.jsify());
+      userData.save();
     } else if (method == 'userData_pullValue') {
-      String keyName = data[0];
-      String value = data[1];
-      CountlyUserData.pull(keyName, value.jsify());
-      CountlyUserData.save();
+      String keyName = data[0] as String;
+      Object? value = data[1];
+      userData.pull(keyName, value.jsify());
+      userData.save();
     } else {
       cly.Countly.log("The countly_flutter plugin for web doesn't implement the method $method", logLevel: cly.LogLevel.ERROR);
     }
   }
 
-  void _recordEvent(List<dynamic> event) {
+  /// Records the event the Dart side sends as key, count, sum, duration and segmentation. The numbers
+  /// arrive as strings and are sent as numbers.
+  void _recordEvent(CountlyWeb countly, List<dynamic> event) {
     assert(event.length >= 4);
-    // first 4 parameters are sent always
-    // ket, count, sum, dur, segmentation might be sent
-    Countly.add_event({'key': event[0], 'count': event[1], 'sum': event[2], 'dur': event[3], 'segmentation': event.length > 4 ? event[4] : null}.jsify()!);
+    countly.add_event({'key': event[0], 'count': _number(event[1]), 'sum': _number(event[2]), 'dur': _number(event[3]), 'segmentation': event.length > 4 ? event[4] : null}.jsify()!);
   }
 
-  void _endEvent(List<dynamic> event) {
+  /// Ends the timed event the Dart side sends as key, count, sum and segmentation.
+  void _endEvent(CountlyWeb countly, List<dynamic> event) {
     assert(event.length >= 3);
-    // first parameter is key
-    Countly.end_event({'key': event[0], 'count': event[1], 'sum': event[2], 'segmentation': event.length > 3 ? event[3] : null}.jsify()!);
+    countly.end_event({'key': event[0], 'count': _number(event[1]), 'sum': _number(event[2]), 'segmentation': event.length > 3 ? event[3] : null}.jsify()!);
   }
 
-  void _recordView(List<dynamic> view) {
-    assert(view.isNotEmpty);
-    // first parameter is view name
-    String viewName = view[0];
-    var segments = {};
-
-    int il = view.length;
-    if (il == 2) {
-      segments = view[1];
-    } else if (il > 2) {
-      segments = _extractMap(view, idxStart: 1);
+  /// [value] as a number, parsing it when the Dart side sent it as a string, or null when it is none.
+  num? _number(Object? value) {
+    if (value is num) {
+      return value;
     }
-    // ignore list and segmentation might be sent
-    Countly.track_pageview(viewName, null, segments.jsify()!);
+    if (value is String) {
+      return num.tryParse(value);
+    }
+    return null;
+  }
+
+  /// [value] as a whole number, or 0 when it is none.
+  int _int(Object? value) {
+    return _number(value)?.toInt() ?? 0;
+  }
+
+  /// [value] as a map, or an empty map when it is none.
+  Map<String, dynamic> _asMap(Object? value) {
+    if (value is Map) {
+      return Map<String, dynamic>.from(value);
+    }
+    return {};
+  }
+
+  /// The map at [index] of [data], or an empty map when there is none.
+  Map<String, dynamic> _mapAt(List<dynamic> data, int index) {
+    if (index < data.length) {
+      return _asMap(data[index]);
+    }
+    return {};
+  }
+
+  /// The name and number pairs that follow [start] in [data], skipping values that are no number.
+  Map<String, int> _intPairs(List<dynamic> data, int start) {
+    final Map<String, int> pairs = {};
+    for (int i = start; i + 1 < data.length; i += 2) {
+      final num? value = _number(data[i + 1]);
+      if (value != null) {
+        pairs['${data[i]}'] = value.toInt();
+      }
+    }
+    return pairs;
+  }
+
+  /// Sets the location sent with every request from now on. The Web SDK has no GPS coordinates.
+  void _setUserLocation(CountlyWeb countly, Map<String, dynamic> location) {
+    if (location['gpsCoordinates'] != null) {
+      cly.Countly.log('[CountlyFlutterPluginWeb] setUserLocation, GPS coordinates are not sent on web, only the country code, city and IP address', logLevel: cly.LogLevel.WARNING);
+    }
+    countly.country_code = (location['countryCode'] as String?)?.toJS;
+    countly.city = (location['city'] as String?)?.toJS;
+    countly.ip_address = (location['ipAddress'] as String?)?.toJS;
+  }
+
+  /// Stops sending the location set with [_setUserLocation] or the config.
+  void _disableLocation(CountlyWeb countly) {
+    countly.country_code = null;
+    countly.city = null;
+    countly.ip_address = null;
+  }
+
+  /// Adds [headers] to the headers sent with every request, replacing values with the same name.
+  void _addCustomNetworkRequestHeaders(CountlyWeb countly, Map<String, dynamic> headers) {
+    final Map<String, dynamic> merged = {};
+    final Object? current = _dartify(countly.headers);
+    if (current is Map) {
+      current.forEach((Object? name, Object? value) => merged['$name'] = value);
+    }
+    merged.addAll(headers);
+    countly.headers = merged.jsify();
+  }
+
+  /// Records a direct attribution of the "countly" campaign type, whose data looks like
+  /// {"cid": "campaign ID", "cuid": "campaign user ID"}. The Web SDK fills a missing campaign ID
+  /// with the campaign the page was opened from, or else records the user as organic.
+  void _recordDirectAttribution(CountlyWeb countly, String campaignType, String campaignData) {
+    if (campaignType != 'countly') {
+      cly.Countly.log('[CountlyFlutterPluginWeb] recordDirectAttribution, The Web SDK records only the "countly" campaign type, not [$campaignType]', logLevel: cly.LogLevel.WARNING);
+      return;
+    }
+    Object? data;
+    try {
+      data = jsonDecode(campaignData);
+    } on FormatException {
+      data = null;
+    }
+    if (data is! Map) {
+      cly.Countly.log('[CountlyFlutterPluginWeb] recordDirectAttribution, The campaign data must be a JSON object', logLevel: cly.LogLevel.ERROR);
+      return;
+    }
+    countly.recordDirectAttribution(_nonEmptyString(data['cid']), _nonEmptyString(data['cuid']));
+  }
+
+  /// [value] when it is a non-empty string, or null.
+  String? _nonEmptyString(Object? value) {
+    if (value is String && value.isNotEmpty) {
+      return value;
+    }
+    return null;
+  }
+
+  /// Runs the Web SDK push call [function] and describes how it ended, as "[key]: success" or
+  /// "[key]: failed, reason: <reason>". A Web SDK without web push answers with "unsupported".
+  Future<String> _pushCall(CountlyWeb countly, String function, String key) async {
+    final JSObject instance = countly as JSObject;
+    final JSAny? callable = instance[function];
+    if (callable == null || !callable.typeofEquals('function')) {
+      cly.Countly.log('[CountlyFlutterPluginWeb] Web push needs Countly Web SDK 26.8.0 or newer', logLevel: cly.LogLevel.WARNING);
+      return '$key: failed, reason: unsupported';
+    }
+    Object? settled;
+    try {
+      final JSPromise promise = instance.callMethod(function.toJS) as JSPromise;
+      settled = _dartify(await promise.toDart);
+    } catch (e) {
+      cly.Countly.log('[CountlyFlutterPluginWeb] $function, $e', logLevel: cly.LogLevel.ERROR);
+      return '$key: failed, reason: error';
+    }
+    if (settled is Map && settled[key] == true) {
+      return '$key: success';
+    }
+    final Object? reason = settled is Map ? settled['reason'] : null;
+    return '$key: failed, reason: ${reason ?? 'unknown'}';
+  }
+
+  /// The next push notification event as a JSON string, for an "onNotification" registration.
+  Future<String> _nextNotification() {
+    if (_pendingNotifications.isNotEmpty) {
+      return Future<String>.value(_pendingNotifications.removeAt(0));
+    }
+    final Completer<String> waiter = Completer<String>();
+    _notificationWaiters.add(waiter);
+    return waiter.future;
+  }
+
+  /// Hands a push notification event of the Web SDK to the waiting "onNotification" registrations,
+  /// or keeps it for the next one, dropping the oldest beyond [maxPendingNotifications].
+  void _onPushNotification(JSAny? event) {
+    final String notification;
+    try {
+      notification = jsonEncode(_dartify(event));
+    } catch (e) {
+      cly.Countly.log('[CountlyFlutterPluginWeb] A push notification event could not be read: $e', logLevel: cly.LogLevel.ERROR);
+      return;
+    }
+    if (_notificationWaiters.isEmpty) {
+      if (_pendingNotifications.length >= maxPendingNotifications) {
+        _pendingNotifications.removeAt(0);
+      }
+      _pendingNotifications.add(notification);
+      return;
+    }
+    final List<Completer<String>> waiters = List<Completer<String>>.of(_notificationWaiters);
+    _notificationWaiters.clear();
+    for (final Completer<String> waiter in waiters) {
+      waiter.complete(notification);
+    }
+  }
+
+  /// Reports an uncaught JavaScript error to the page the way the browser does, so that unhandled
+  /// crash reporting records it as a fatal crash with its message.
+  void _reportUncaughtError() {
+    const String message = 'A test crash requested through Countly.throwNativeException';
+    final JSObject error = (globalContext['Error'] as JSFunction).callAsConstructor<JSObject>(message.toJS);
+    final JSObject details = JSObject();
+    details['error'] = error;
+    details['message'] = message.toJS;
+    final JSObject event = (globalContext['ErrorEvent'] as JSFunction).callAsConstructor<JSObject>('error'.toJS, details);
+    globalContext.callMethod('dispatchEvent'.toJS, event);
+  }
+
+  /// The answer to a call the Web SDK has no equivalent for. A Dart callback waiting for it learns
+  /// that it failed.
+  Future<dynamic> _unavailableAnswer(String method, List<dynamic> data) async {
+    final String reason = '$method is not available on web, the Countly Web SDK has no equivalent';
+    cly.Countly.log('[CountlyFlutterPluginWeb] $reason', logLevel: cly.LogLevel.WARNING);
+    if (_variantCallbackMethods.contains(method) && data.isNotEmpty) {
+      await methodChannel?.invokeMethod('remoteConfigVariantCallback', {'requestResult': 2, 'error': reason, 'id': data[0]});
+    }
+    return null;
   }
 
   String _getDeviceIDType(int type) {
@@ -520,57 +787,220 @@ class CountlyFlutterPlugin {
     }
   }
 
-  Future<dynamic> _updateValuesRC(JSAny? included, JSAny? excluded) {
-    final completer = Completer<dynamic>();
-    Countly.fetch_remote_config(
-        included,
-        excluded,
-        allowInterop((JSAny? error, JSAny? remoteConfigs) {
-          bool isError = error != null && error.dartify() as bool;
-          if (error != null && (isError || error is! bool)) {
-            completer.complete('Error: $error');
-          } else {
-            completer.complete('Success: ${remoteConfigs?.dartify()}');
-          }
-        }).jsify());
-    return completer.future;
+  /// Whether [countly] runs with a temporary device ID, in which the Web SDK skips feedback widget
+  /// requests without calling back.
+  bool _isTemporaryIdMode(CountlyWeb countly) {
+    return countly.get_device_id_type() == 2;
+  }
+
+  /// The error for feedback widget requests in temporary device ID mode.
+  static const String _temporaryIdMessage = 'Feedback widgets are not available in temporary device ID mode';
+
+  /// The error for a widget ID that is not in the last widget list.
+  String _unknownWidgetMessage(String widgetId) {
+    return "No feedbackWidget is found against widget id: '$widgetId', always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
+  }
+
+  /// The message for a call the Web SDK did not answer within [callbackTimeout].
+  String get _noResponseMessage => 'The Countly Web SDK did not respond within ${callbackTimeout.inSeconds} seconds';
+
+  /// Starts a Web SDK call through [start], which passes the given callback on to the Web SDK, and
+  /// returns the first two arguments of that callback, or null when it did not come within
+  /// [callbackTimeout].
+  Future<List<JSAny?>?> _waitForCallback(void Function(JSFunction callback) start) {
+    final Completer<List<JSAny?>?> completer = Completer<List<JSAny?>?>();
+    start(((JSAny? first, JSAny? second) {
+      if (!completer.isCompleted) {
+        completer.complete(<JSAny?>[first, second]);
+      }
+    }).toJS);
+    return completer.future.timeout(callbackTimeout, onTimeout: () => null);
+  }
+
+  /// The message of an error the Web SDK passed to a callback, or null when there was none. The Web
+  /// SDK passes false or nothing on success, true for a failed request, and otherwise an Error
+  /// object or a string.
+  String? _errorMessage(JSAny? error) {
+    if (error == null) {
+      return null;
+    }
+    if (error.typeofEquals('boolean')) {
+      if ((error as JSBoolean).toDart) {
+        return 'The request failed';
+      }
+      return null;
+    }
+    if (error.typeofEquals('string')) {
+      return (error as JSString).toDart;
+    }
+    if (error.typeofEquals('object')) {
+      final JSAny? message = (error as JSObject)['message'];
+      if (message != null && message.typeofEquals('string')) {
+        return (message as JSString).toDart;
+      }
+    }
+    return 'Unknown error';
+  }
+
+  /// The widget with [widgetId] from the last widget list, or null when the list does not have it.
+  Map<Object?, Object?>? _retrievedWidget(String widgetId) {
+    for (final Map<Object?, Object?> widget in retrievedWidgetList) {
+      if (widget['_id'] == widgetId) {
+        return widget;
+      }
+    }
+    return null;
+  }
+
+  /// Fetches the available feedback widgets and keeps them for the calls that take a widget ID.
+  /// Throws a [PlatformException] when the list cannot be fetched.
+  Future<List<Map<String, String>>> _getAvailableFeedbackWidgets(CountlyWeb countly) async {
+    retrievedWidgetList.clear();
+    String? error;
+    List<JSAny?>? reply;
+    if (_isTemporaryIdMode(countly)) {
+      error = _temporaryIdMessage;
+    } else {
+      reply = await _waitForCallback((JSFunction callback) => countly.get_available_feedback_widgets(callback));
+      error = reply == null ? _noResponseMessage : _errorMessage(reply[1]);
+    }
+    if (error != null) {
+      cly.Countly.log('[CountlyFlutterPluginWeb] getAvailableFeedbackWidgets, $error', logLevel: cly.LogLevel.ERROR);
+      throw PlatformException(code: 'getAvailableFeedbackWidgets', message: error);
+    }
+
+    List<Map<String, String>> dartFeedbackWidgets = [];
+    Object? widgets = _dartify(reply?[0]);
+    if (widgets is List) {
+      for (final Object? widget in widgets) {
+        if (widget is Map) {
+          retrievedWidgetList.add(widget);
+          dartFeedbackWidgets.add({
+            'id': '${widget['_id']}',
+            'type': '${widget['type']}',
+            'name': '${widget['name']}',
+          });
+        }
+      }
+    }
+    return dartFeedbackWidgets;
+  }
+
+  /// Fetches the data of a widget from the last widget list, passes it to the Dart callback and
+  /// returns it. Throws a [PlatformException] with the reason when there is no data.
+  Future<Map<dynamic, dynamic>> _getFeedbackWidgetData(CountlyWeb countly, String widgetId) async {
+    Map<Object?, Object?>? widget = _retrievedWidget(widgetId);
+    String? error;
+    Object? widgetData;
+    if (widget == null) {
+      error = _unknownWidgetMessage(widgetId);
+    } else if (_isTemporaryIdMode(countly)) {
+      error = _temporaryIdMessage;
+    } else {
+      List<JSAny?>? reply = await _waitForCallback((JSFunction callback) => countly.getFeedbackWidgetData(widget.jsify(), callback));
+      error = reply == null ? _noResponseMessage : _errorMessage(reply[1]);
+      widgetData = _dartify(reply?[0]);
+    }
+
+    if (error == null && widgetData is Map) {
+      await methodChannel?.invokeMethod('feedbackWidgetDataCallback', prepareCallbackData(widgetData, null));
+      return widgetData;
+    }
+    error ??= 'The server sent no widget data';
+    cly.Countly.log('[CountlyFlutterPluginWeb] getFeedbackWidgetData, $error', logLevel: cly.LogLevel.ERROR);
+    await methodChannel?.invokeMethod('feedbackWidgetDataCallback', prepareCallbackData(null, error));
+    throw PlatformException(code: 'getFeedbackWidgetData', message: error);
+  }
+
+  /// Downloads remote config values and reports the result to the Dart side once. A download the
+  /// Web SDK does not answer within [callbackTimeout] is reported as a network issue.
+  void _downloadRemoteConfig(CountlyWeb countly, JSAny? keys, JSAny? omitKeys, bool fullValueUpdate, int requestID) {
+    _waitForCallback((JSFunction callback) => countly.fetch_remote_config(keys, omitKeys, callback)).then((List<JSAny?>? reply) {
+      if (reply == null) {
+        _notifyRemoteConfigDownload(1, _noResponseMessage, null, fullValueUpdate, requestID);
+      } else {
+        _notifyRemoteConfigResult(reply[0], reply[1], fullValueUpdate, requestID);
+      }
+    });
   }
 
   Map<String, dynamic> _extractMap(List<dynamic> data, {int idxStart = 0}) {
     Map<String, dynamic> map = {};
-    for (int i = 0; i < data.length; i += 2) {
-      map[data[i]] = data[i + 1];
+    for (int i = idxStart; i + 1 < data.length; i += 2) {
+      map[data[i] as String] = data[i + 1];
     }
     return map;
   }
 
-  Map<String, Map<String, dynamic>> _convertMapToRCData(dynamic rcData) {
-    if (rcData == null) {
-      return {};
+  /// Each item of [items] as a JSON string.
+  List<String> _stringifyAll(JSArray items) {
+    List<String> strings = [];
+    for (final JSAny? item in items.toDart) {
+      strings.add(JSON.stringify(item));
     }
+    return strings;
+  }
+
+  /// [rcData], the remote config values the Web SDK keeps, in the form the Dart side reads: each key
+  /// mapped to its value and whether it belongs to the current user.
+  Map<String, Map<String, dynamic>> _convertMapToRCData(Object? rcData) {
     Map<String, Map<String, dynamic>> data = {};
-    rcData.forEach((key, value) {
-      data[key] = {'value': value, 'isCurrentUsersData': true};
-    });
+    if (rcData is Map) {
+      rcData.forEach((key, value) {
+        data['$key'] = {'value': value, 'isCurrentUsersData': true};
+      });
+    }
     return data;
   }
 
-  void _notifyRemoteConfigDownloadCallback(JSAny? error, JSAny? remoteConfigs, bool fullValueUpdate, int id) {
+  /// Reports the arguments of a Web SDK remote config callback to the Dart side.
+  void _notifyRemoteConfigResult(JSAny? error, JSAny? remoteConfigs, bool fullValueUpdate, int id) {
+    String? message = _errorMessage(error);
+    if (message != null) {
+      _notifyRemoteConfigDownload(2, message, null, fullValueUpdate, id);
+      return;
+    }
+    _notifyRemoteConfigDownload(0, null, remoteConfigs, fullValueUpdate, id);
+  }
+
+  /// Reports a remote config download to the Dart side, unless the download has no callback.
+  void _notifyRemoteConfigDownload(int requestResult, String? error, JSAny? remoteConfigs, bool fullValueUpdate, int id) {
+    if (id == requestIDNoCallback) {
+      return;
+    }
     Map<String, dynamic> data = {};
-    dynamic errorDart = error?.dartify();
-    data['error'] = errorDart is bool ? null : errorDart;
-    data['requestResult'] = remoteConfigs != null ? 0 : 2;
-    data['downloadedValues'] = _convertMapToRCData(remoteConfigs?.dartify());
+    data['error'] = error;
+    data['requestResult'] = requestResult;
+    data['downloadedValues'] = _convertMapToRCData(_dartify(remoteConfigs));
     data['fullValueUpdate'] = fullValueUpdate;
     data['id'] = id;
 
     methodChannel?.invokeMethod('remoteConfigDownloadCallback', data);
   }
 
-  void _initialize(Map<String, dynamic> config) {
+  /// The SDK behavior settings JSON from the Dart config as the object the Web SDK takes, or null
+  /// when it is missing or not a JSON object.
+  Map<String, dynamic>? _behaviorSettings(Object? settings) {
+    if (settings is! String) {
+      return null;
+    }
+    try {
+      Object? decoded = jsonDecode(settings);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+    } on FormatException catch (e) {
+      cly.Countly.log('[CountlyFlutterPluginWeb] init, The SDK behavior settings are not valid JSON: $e', logLevel: cly.LogLevel.ERROR);
+    }
+    return null;
+  }
+
+  /// The Web SDK init config for the Dart [config].
+  Map<String, dynamic> _webConfig(Map<String, dynamic> config, String? appVersion) {
     Map<String, dynamic> configMap = {
       'app_key': config['appKey'],
       'url': config['serverURL'],
+      'app_version': appVersion,
       'sdk_name': CountlyFlutterPluginConfig.SDK_NAME,
       'sdk_version': CountlyFlutterPluginConfig.SDK_VERSION_STRING,
       'debug': config['loggingEnabled'],
@@ -602,47 +1032,128 @@ class CountlyFlutterPlugin {
     configMap['max_stack_trace_line_length'] = config['maxStackTraceLineLength'];
 
     // Location
-    configMap['ip_address'] = config['locationIpAddress'];
-    configMap['country_code'] = config['locationCountryCode'];
-    configMap['city'] = config['locationCity'];
-
-    // Remote Config
-    bool? rcEnabled = config['remoteConfigAutomaticTriggers'];
-    configMap['rc_automatic_optin_for_ab'] = config['autoEnrollABOnDownload'];
-    configMap['use_explicit_rc_api'] = true;
-    if (rcEnabled != null && rcEnabled) {
-      // not feedback one, RC download one
-      configMap['remote_config'] = allowInterop((JSAny? error, JSAny? remoteConfigs) => _notifyRemoteConfigDownloadCallback(error, remoteConfigs, true, requestIDGlobalCallback)).jsify();
+    if (config['locationDisabled'] != true) {
+      configMap['ip_address'] = config['locationIpAddress'];
+      configMap['country_code'] = config['locationCountryCode'];
+      configMap['city'] = config['locationCity'];
     }
 
-    configMap['behavior_settings'] = config['sdkBehaviorSettings'];
-    configMap['disable_behavior_settings_updates'] = config['sdkBehaviorSettingsUpdatesDisabled'];
+    // Remote Config
+    configMap['rc_automatic_optin_for_ab'] = config['autoEnrollABOnDownload'];
+    configMap['use_explicit_rc_api'] = true;
+
+    configMap['behavior_settings'] = _behaviorSettings(config['sdkBehaviorSettings']);
 
     configMap['headers'] = config['customNetworkRequestHeaders'];
 
-    configMap.removeWhere((key, value) => value == null);
+    // Content
+    configMap['content_zone_timer_interval'] = config['zoneTimerInterval'];
 
-    if (config['disableLocation'] != null && config['disableLocation'] == true) {
-      configMap['ip_address'] = null;
-      configMap['country_code'] = null;
-      configMap['city'] = null;
+    // Push options only with a VAPID key, so an app without web push gets no service worker scope.
+    if (config['vapidPublicKey'] != null) {
+      configMap['push_vapid_public_key'] = config['vapidPublicKey'];
+      configMap['push_service_worker_path'] = config['pushServiceWorkerPath'];
+      configMap['push_service_worker_scope'] = config['pushServiceWorkerScope'];
+      configMap['push_subscribe_timeout'] = config['pushSubscribeTimeout'];
+      if (config['pushAutomaticRegistrationDisabled'] == true) {
+        configMap['push_auto_register'] = false;
+      }
     }
 
-    Countly.init(configMap.jsify()!);
+    configMap.removeWhere((key, value) => value == null);
+    return configMap;
+  }
+
+  /// [value] converted to Dart, with whole numbers as ints. WebAssembly builds turn every JavaScript
+  /// number into a double, while JavaScript builds and the native platforms keep whole numbers as ints.
+  Object? _dartify(JSAny? value) {
+    return _wholeNumbersAsInts(value?.dartify());
+  }
+
+  /// [value] with every whole double in it, nested ones included, turned into an int.
+  Object? _wholeNumbersAsInts(Object? value) {
+    if (value is double && value.isFinite && value == value.truncateToDouble()) {
+      return value.toInt();
+    }
+    if (value is List) {
+      return value.map(_wholeNumbersAsInts).toList();
+    }
+    if (value is Map) {
+      return value.map((Object? key, Object? item) => MapEntry(key, _wholeNumbersAsInts(item)));
+    }
+    return value;
+  }
+
+  /// Loads the Web SDK, creates this plugin's instance from the Dart [config] and applies the
+  /// settings the Web SDK takes after init. Returns an error message when there is no instance.
+  Future<String?> _initialize(Map<String, dynamic> config) async {
+    if (_countly != null) {
+      return null;
+    }
+    String scriptUrl = config['webSDKUrl'] as String? ?? CountlyFlutterPluginConfig.WEB_SDK_URL;
+    Future<String?> appVersion = _appVersion();
+    Future<bool> scriptLoad = _scriptLoad ??= _loadScript(scriptUrl);
+    if (!await scriptLoad) {
+      // A later init can try again, for example with a self-hosted address.
+      _scriptLoad = null;
+      String message = 'init, The Countly Web SDK could not be loaded from $scriptUrl, so Countly calls do nothing on this page';
+      cly.Countly.log('[CountlyFlutterPluginWeb] $message', logLevel: cly.LogLevel.ERROR);
+      return message;
+    }
+    Map<String, dynamic> configMap = _webConfig(config, await appVersion);
+    if (_countly != null) {
+      // Another init call completed while this one waited for the script.
+      return null;
+    }
+
+    JSObject webConfig = configMap.jsify()! as JSObject;
+    if (config['remoteConfigAutomaticTriggers'] == true) {
+      webConfig['remote_config'] = ((JSAny? error, JSAny? remoteConfigs) {
+        _notifyRemoteConfigResult(error, remoteConfigs, true, requestIDGlobalCallback);
+      }).toJS;
+    }
+    // Given at init, so that a click the service worker replays when the page loads is not missed.
+    if (config['vapidPublicKey'] != null) {
+      webConfig['push_notification_listener'] = ((JSAny? event) {
+        _onPushNotification(event);
+      }).toJS;
+    }
+    CountlyWeb? countly = countlyGlobal.init(webConfig);
+    if (countly == null) {
+      String message = 'init, The Countly Web SDK did not create an instance';
+      cly.Countly.log('[CountlyFlutterPluginWeb] $message', logLevel: cly.LogLevel.ERROR);
+      return message;
+    }
+    _countly = countly;
+
     if (config['manualSessionEnabled'] == null || config['manualSessionEnabled'] == false) {
-      Countly.track_sessions();
+      countly.track_sessions();
     }
 
     if (config['consents'] != null) {
-      Countly.add_consent(config['consents'].jsify()!);
+      countly.add_consent((config['consents'] as List<dynamic>).jsify()!);
+    }
+    if (config['enableAllConsents'] == true) {
+      countly.add_consent(countlyGlobal.features);
     }
 
-    if (config['enableUnhandledCrashReporting'] != null) {
-      Countly.track_errors(null);
+    // One call, as the Web SDK keeps the segmentation of the first track_errors call on a page.
+    Object? customCrashSegment = config['customCrashSegment'];
+    if (customCrashSegment != null) {
+      countly.track_errors(customCrashSegment.jsify());
+    } else if (config['enableUnhandledCrashReporting'] == true) {
+      countly.track_errors(null);
     }
 
-    if (config['customCrashSegment'] != null) {
-      Countly.track_errors(config['customCrashSegment'].jsify());
+    final Map<String, dynamic> userProperties = _asMap(config['providedUserProperties']);
+    if (userProperties.isNotEmpty) {
+      _reportUserDetails(countly, userProperties);
     }
+    final Object? campaignType = config['campaignType'];
+    final Object? campaignData = config['campaignData'];
+    if (campaignType is String && campaignData is String) {
+      _recordDirectAttribution(countly, campaignType, campaignData);
+    }
+    return null;
   }
 }

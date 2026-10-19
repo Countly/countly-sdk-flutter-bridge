@@ -12,11 +12,24 @@
 * ! Minor breaking change ! The "closeButtonText" parameter of "presentFeedbackWidget" has no effect anymore in Android, as the underlying Android SDK does not support it.
 * ! Minor breaking change ! The "onFinished" callback of "presentNPS", "presentSurvey" and "presentRating" can now also be called with an empty string once the widget is shown, in iOS and for some widgets in Android. Treat only a non-empty string as an error.
 * ! Minor breaking change ! Links with the "data:", "zip:" and "intent:" schemes in content, feedback widgets and push notifications are now blocked by default in Android.
+* ! Minor breaking change ! When consent is required, content now also needs the "content" consent, in Web.
+* ! Minor breaking change ! While a page can send, its unsent events and requests are now kept in the tab's sessionStorage instead of localStorage, in Web. Requests that cannot be sent yet, for example while offline, still wait in localStorage.
 
 * Added the "sendPushTokenAlways" config option, which sends the push token even for users who have not allowed notifications, in iOS.
 * Added support for the notification small icon given by the "com.google.firebase.messaging.default_notification_icon" meta-data in Android.
 * The plugin now compiles against the API level of the app's Flutter SDK in Android, which fixes the "checkDebugAarMetadata" build failure on newer Flutter versions.
 * Removed the dependency on the discontinued "pedantic" package.
+* Added the "setWebSDKUrl" config option for loading the Countly Web SDK from an address you host, for example when content blockers block the default CDN, in Web.
+* Added support for WebAssembly builds ("flutter build web --wasm").
+* Added web push notification support:
+  * give the "push" consent, set the VAPID public key with "CountlyConfig.push.setVapidPublicKey" and copy "countly_sw.js" into your application's "web" folder
+  * call "askForNotificationPermission" from a user gesture. "disablePushNotifications" unsubscribes, and "onNotification" reports received, clicked and closed notifications
+* Added Web support for:
+  * "startView". Starting a view ends the previous one
+  * custom and network traces
+  * "setUserLocation" and "disableLocation", without GPS coordinates, and "addCustomNetworkRequestHeaders"
+  * direct attribution, "attemptToSendStoredRequests", "refreshContentZone" and "throwNativeException"
+  * the config options for user properties and the content zone timer interval
 
 * Mitigated issues in Android where:
   * push notifications arriving in quick succession crashed with "Reply already submitted". Notifications that arrive while no Activity is attached are now kept and delivered
@@ -34,6 +47,14 @@
   * "disablePushNotifications" and the "enrollABOnRCDownload" config option had no effect
   * the deprecated "setOptionalParametersForInitialization" recorded an undefined location when no coordinates were given
   * a session update interval below 1 second queued requests continuously, and a config value of an unexpected type made the SDK skip every option after it
+
+* Mitigated issues in Web where:
+  * every call waited forever when the Web SDK script could not load. Init now gives up after 10 seconds with an error
+  * "isInitialized" always returned false, and data went to the page's own Countly app when the page had loaded the Web SDK first
+  * a failed remote config download, the feedback widget calls, the remote config variant and experiment testing calls and "onNotification" never completed, threw a type error or called back without end
+  * the "giveAllConsents", "disableLocation" and "setSDKBehaviorSettings" config options were ignored, and the app version was always "0.0" instead of the one in "version.json"
+  * "logException" sent the exception text as a segmentation key and never fell back to the custom crash segment, which was also lost when unhandled crash reporting was enabled
+  * "getAllValuesAndEnroll" returned no values, and event count, sum and duration were sent as text
 
 * Mitigated issues where:
   * enabling crash reporting replaced the Flutter error handlers set before it, so other crash reporting tools and the console stopped receiving Flutter errors
@@ -56,7 +77,7 @@
 
 * Underlying Android SDK version is 26.1.6
 * Underlying iOS SDK version is XX.XX.XX
-* Underlying Web SDK version is 26.1.1
+* Underlying Web SDK version is 26.8.0
 
 ## 26.1.1
 * ! Minor breaking change ! The iOS plugin sources were reorganized to support Swift Package Manager. If you use a Notification Service Extension for rich push notifications, update the reference to "CountlyNotificationService.h" and "CountlyNotificationService.m" in your extension target to the new path "ios/countly_flutter/Sources/countly_flutter/countly-sdk-ios/".
