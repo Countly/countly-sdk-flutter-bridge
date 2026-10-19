@@ -2071,6 +2071,55 @@ class Countly {
         countlyConfig['disableViewRestartForManualRecording'] = config.viewRestartForManualRecordingDisabled;
       }
 
+      if (config.manualSessionControlHybridMode) {
+        log('"_configToJson", value provided for manualSessionControlHybridMode is true', logLevel: LogLevel.INFO);
+        countlyConfig['manualSessionControlHybridMode'] = config.manualSessionControlHybridMode;
+      }
+      if (config.metricOverride != null) {
+        log('"_configToJson", value provided for metricOverride: [${config.metricOverride}]', logLevel: LogLevel.INFO);
+        countlyConfig['metricOverride'] = config.metricOverride;
+      }
+      if (config.trackOrientationChanges != null) {
+        log('"_configToJson", value provided for trackOrientationChanges: [${config.trackOrientationChanges}]', logLevel: LogLevel.INFO);
+        countlyConfig['trackOrientationChanges'] = config.trackOrientationChanges;
+      }
+      if (config.clearStoredDeviceId) {
+        log('"_configToJson", value provided for clearStoredDeviceId is true', logLevel: LogLevel.INFO);
+        countlyConfig['clearStoredDeviceId'] = config.clearStoredDeviceId;
+      }
+      if (config.sdkLoggingInProductionDisabled) {
+        log('"_configToJson", value provided for sdkLoggingInProductionDisabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['sdkLoggingInProductionDisabled'] = config.sdkLoggingInProductionDisabled;
+      }
+      if (config.webViewDisabled) {
+        log('"_configToJson", value provided for webViewDisabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['webViewDisabled'] = config.webViewDisabled;
+      }
+      if (config.healthCheckDisabled) {
+        log('"_configToJson", value provided for healthCheckDisabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['healthCheckDisabled'] = config.healthCheckDisabled;
+      }
+      if (config.shouldIgnoreAppCrawlers != null) {
+        log('"_configToJson", value provided for shouldIgnoreAppCrawlers: [${config.shouldIgnoreAppCrawlers}]', logLevel: LogLevel.INFO);
+        countlyConfig['shouldIgnoreAppCrawlers'] = config.shouldIgnoreAppCrawlers;
+      }
+      if (config.appCrawlerNames != null) {
+        log('"_configToJson", value provided for appCrawlerNames: [${config.appCrawlerNames}]', logLevel: LogLevel.INFO);
+        countlyConfig['appCrawlerNames'] = config.appCrawlerNames;
+      }
+      if (config.recordAllThreadsWithCrash) {
+        log('"_configToJson", value provided for recordAllThreadsWithCrash is true', logLevel: LogLevel.INFO);
+        countlyConfig['recordAllThreadsWithCrash'] = config.recordAllThreadsWithCrash;
+      }
+      if (config.alertForNotificationsDisabled) {
+        if (BUILDING_WITH_PUSH_DISABLED) {
+          log('doNotShowAlertForNotifications, $_pushDisabledMsg', logLevel: LogLevel.DEBUG);
+        } else {
+          log('"_configToJson", value provided for doNotShowAlertForNotifications is true', logLevel: LogLevel.INFO);
+          countlyConfig['doNotShowAlertForNotifications'] = config.alertForNotificationsDisabled;
+        }
+      }
+
       /// Experimental ---------------------------
       if (config.experimental.visibilityTracking) {
         log('"_configToJson", value provided for visibilityTracking: [${config.experimental.visibilityTracking}]', logLevel: LogLevel.INFO);
@@ -2096,6 +2145,22 @@ class Countly {
       if (config.content.allowedIntentSchemes != null) {
         log('"_configToJson", value provided for contentAllowedIntentSchemes: [${config.content.allowedIntentSchemes}]', logLevel: LogLevel.INFO);
         countlyConfig['contentAllowedIntentSchemes'] = config.content.allowedIntentSchemes;
+      }
+      if (config.content.zoomDisabled) {
+        log('"_configToJson", value provided for contentZoomDisabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['contentZoomDisabled'] = config.content.zoomDisabled;
+      }
+      if (config.content.rotationDisabled) {
+        log('"_configToJson", value provided for contentRotationDisabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['contentRotationDisabled'] = config.content.rotationDisabled;
+      }
+      if (config.content.reloadOnStallEnabled) {
+        log('"_configToJson", value provided for contentReloadOnStallEnabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['contentReloadOnStallEnabled'] = config.content.reloadOnStallEnabled;
+      }
+      if (config.content.reloadOnStallTimeout != null) {
+        log('"_configToJson", value provided for contentReloadOnStallTimeout: [${config.content.reloadOnStallTimeout}]', logLevel: LogLevel.INFO);
+        countlyConfig['contentReloadOnStallTimeout'] = config.content.reloadOnStallTimeout;
       }
 
       /// Content END ---------------------------
@@ -2145,6 +2210,10 @@ class Countly {
       if (config.sdkInternalLimits.maxStackTraceLinesPerThread > 0) {
         log('"_configToJson", value provided for maxStackTraceLinesPerThread: [${config.sdkInternalLimits.maxStackTraceLinesPerThread}]', logLevel: LogLevel.INFO);
         countlyConfig['maxStackTraceLinesPerThread'] = config.sdkInternalLimits.maxStackTraceLinesPerThread;
+      }
+      if (config.sdkInternalLimits.maxValueSizePicture > 0) {
+        log('"_configToJson", value provided for maxValueSizePicture: [${config.sdkInternalLimits.maxValueSizePicture}]', logLevel: LogLevel.INFO);
+        countlyConfig['maxValueSizePicture'] = config.sdkInternalLimits.maxValueSizePicture;
       }
 
       /// Internal Limits END ---------------------------

@@ -1886,10 +1886,17 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if (_config.has("maxStackTraceLinesPerThread")) {
             this.config.sdkInternalLimits.setMaxStackTraceLinesPerThread(_config.getInt("maxStackTraceLinesPerThread"));
         }        
+        if (_config.has("maxValueSizePicture")) {
+            this.config.sdkInternalLimits.setMaxValueSizePicture(_config.getInt("maxValueSizePicture"));
+        }
         // Internal Limits END --------------------------------
 
         if (_config.has("enableUnhandledCrashReporting") && _config.getBoolean("enableUnhandledCrashReporting")) {
             this.config.crashes.enableCrashReporting();
+        }
+
+        if (_config.optBoolean("recordAllThreadsWithCrash", false)) {
+            this.config.crashes.enableRecordAllThreadsWithCrash();
         }
 
         if (_config.has("maxRequestQueueSize")) {
@@ -1906,6 +1913,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
         if (_config.has("manualSessionEnabled") && _config.getBoolean("manualSessionEnabled")) {
             enableManualSessionControl();
+        }
+
+        if (_config.optBoolean("manualSessionControlHybridMode", false)) {
+            this.config.enableManualSessionControlHybridMode();
         }
 
         String countryCode = null;
@@ -1961,6 +1972,31 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
         if (_config.has("disableViewRestartForManualRecording") && _config.getBoolean("disableViewRestartForManualRecording")) {
             this.config.disableViewRestartForManualRecording();
+        }
+
+        if (_config.has("metricOverride")) {
+            this.config.setMetricOverride(toMapString(_config.getJSONObject("metricOverride")));
+        }
+        if (_config.has("trackOrientationChanges")) {
+            this.config.setTrackOrientationChanges(_config.getBoolean("trackOrientationChanges"));
+        }
+        if (_config.optBoolean("clearStoredDeviceId", false)) {
+            this.config.enableClearStoredDeviceId();
+        }
+        if (_config.optBoolean("sdkLoggingInProductionDisabled", false)) {
+            this.config.disableSDKLoggingInProduction();
+        }
+        if (_config.optBoolean("webViewDisabled", false)) {
+            this.config.disableWebView();
+        }
+        if (_config.optBoolean("healthCheckDisabled", false)) {
+            this.config.disableHealthCheck();
+        }
+        if (_config.has("shouldIgnoreAppCrawlers")) {
+            this.config.setShouldIgnoreAppCrawlers(_config.getBoolean("shouldIgnoreAppCrawlers"));
+        }
+        if (_config.has("appCrawlerNames")) {
+            this.config.setAppCrawlerNames(toStringArray(_config.getJSONArray("appCrawlerNames")));
         }
 
         if (_config.has("enableAllConsents") && _config.getBoolean("enableAllConsents")) {

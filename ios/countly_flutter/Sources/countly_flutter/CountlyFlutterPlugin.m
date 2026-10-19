@@ -1662,6 +1662,10 @@ static FlutterMethodChannel *callbackChannel = nil;
         if (maxStackTraceLinesPerThread) {
             [config.sdkInternalLimits setMaxStackTraceLinesPerThread:[maxStackTraceLinesPerThread intValue]];
         }
+        NSNumber *maxValueSizePicture = [self configValueFrom:_config key:@"maxValueSizePicture" ofClass:NSNumber.class];
+        if (maxValueSizePicture) {
+            [config.sdkInternalLimits setMaxValueSizePicture:[maxValueSizePicture intValue]];
+        }
         // Internal Limits End ---------------------
 
         NSNumber *enableUnhandledCrashReporting = [self configValueFrom:_config key:@"enableUnhandledCrashReporting" ofClass:NSNumber.class];
@@ -1687,6 +1691,10 @@ static FlutterMethodChannel *callbackChannel = nil;
         NSNumber *manualSessionEnabled = [self configValueFrom:_config key:@"manualSessionEnabled" ofClass:NSNumber.class];
         if (manualSessionEnabled && [manualSessionEnabled boolValue]) {
             config.manualSessionHandling = YES;
+        }
+        NSNumber *manualSessionControlHybridMode = [self configValueFrom:_config key:@"manualSessionControlHybridMode" ofClass:NSNumber.class];
+        if (manualSessionControlHybridMode && [manualSessionControlHybridMode boolValue]) {
+            config.enableManualSessionControlHybridMode = YES;
         }
         [config remoteConfigRegisterGlobalCallback:^(CLYRequestResult _Nonnull response, NSError *_Nonnull error, BOOL fullValueUpdate, NSDictionary<NSString *, CountlyRCData *> *_Nonnull downloadedValues) {
           [self remoteConfigDownloadCallback:[NSNumber numberWithInt:-2] response:response fullValueUpdate:fullValueUpdate error:error downloadedValues:downloadedValues];
@@ -1715,6 +1723,19 @@ static FlutterMethodChannel *callbackChannel = nil;
         NSNumber *disableViewRestartForManualRecording = [self configValueFrom:_config key:@"disableViewRestartForManualRecording" ofClass:NSNumber.class];
         if (disableViewRestartForManualRecording && [disableViewRestartForManualRecording boolValue]) {
             config.disableViewRestartForManualRecording = YES;
+        }
+
+        NSDictionary *metricOverride = [self configValueFrom:_config key:@"metricOverride" ofClass:NSDictionary.class];
+        if (metricOverride) {
+            config.customMetrics = metricOverride;
+        }
+        NSNumber *trackOrientationChanges = [self configValueFrom:_config key:@"trackOrientationChanges" ofClass:NSNumber.class];
+        if (trackOrientationChanges) {
+            config.enableOrientationTracking = [trackOrientationChanges boolValue];
+        }
+        NSNumber *clearStoredDeviceId = [self configValueFrom:_config key:@"clearStoredDeviceId" ofClass:NSNumber.class];
+        if (clearStoredDeviceId && [clearStoredDeviceId boolValue]) {
+            config.resetStoredDeviceID = YES;
         }
 
         NSString *gpsCoordinate = [self configValueFrom:_config key:@"locationGpsCoordinates" ofClass:NSString.class];
@@ -1761,6 +1782,10 @@ static FlutterMethodChannel *callbackChannel = nil;
         if (sendPushTokenAlways && [sendPushTokenAlways boolValue]) {
             config.sendPushTokenAlways = YES;
         }
+        NSNumber *doNotShowAlertForNotifications = [self configValueFrom:_config key:@"doNotShowAlertForNotifications" ofClass:NSNumber.class];
+        if (doNotShowAlertForNotifications && [doNotShowAlertForNotifications boolValue]) {
+            config.doNotShowAlertForNotifications = YES;
+        }
 #endif
 
         [config.content setGlobalContentCallback:^(ContentStatus contentStatus, NSDictionary *contentData) {
@@ -1789,6 +1814,23 @@ static FlutterMethodChannel *callbackChannel = nil;
             } else if ([webviewDisplayOption isEqualToString:@"SAFE_AREA"]) {
                 [config.content setWebviewDisplayOption:SAFE_AREA];
             }
+        }
+
+        NSNumber *contentZoomDisabled = [self configValueFrom:_config key:@"contentZoomDisabled" ofClass:NSNumber.class];
+        if (contentZoomDisabled && [contentZoomDisabled boolValue]) {
+            [config.content disableZoom];
+        }
+        NSNumber *contentRotationDisabled = [self configValueFrom:_config key:@"contentRotationDisabled" ofClass:NSNumber.class];
+        if (contentRotationDisabled && [contentRotationDisabled boolValue]) {
+            [config.content disableRotation];
+        }
+        NSNumber *contentReloadOnStallEnabled = [self configValueFrom:_config key:@"contentReloadOnStallEnabled" ofClass:NSNumber.class];
+        if (contentReloadOnStallEnabled && [contentReloadOnStallEnabled boolValue]) {
+            [config.content enableContentReloadOnStall];
+        }
+        NSNumber *contentReloadOnStallTimeout = [self configValueFrom:_config key:@"contentReloadOnStallTimeout" ofClass:NSNumber.class];
+        if (contentReloadOnStallTimeout) {
+            [config.content setContentReloadOnStallTimeout:[contentReloadOnStallTimeout unsignedIntegerValue]];
         }
 
     } @catch (NSException *exception) {

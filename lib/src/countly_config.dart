@@ -51,6 +51,17 @@ class CountlyConfig {
   bool _storingDefaultPushConsentDisabled = false;
   bool _viewRestartForManualRecordingDisabled = false;
   bool _pushTokenSentAlways = false;
+  bool _manualSessionControlHybridMode = false;
+  Map<String, String>? _metricOverride;
+  bool? _trackOrientationChanges;
+  bool _clearStoredDeviceId = false;
+  bool _sdkLoggingInProductionDisabled = false;
+  bool _webViewDisabled = false;
+  bool _healthCheckDisabled = false;
+  bool? _shouldIgnoreAppCrawlers;
+  List<String>? _appCrawlerNames;
+  bool _recordAllThreadsWithCrash = false;
+  bool _alertForNotificationsDisabled = false;
 
   /// instance of CountlyConfigApm
   final CountlyConfigApm _countlyConfigApmInstance = CountlyConfigApm();
@@ -157,6 +168,28 @@ class CountlyConfig {
   bool get viewRestartForManualRecordingDisabled => _viewRestartForManualRecordingDisabled;
 
   bool get pushTokenSentAlways => _pushTokenSentAlways;
+
+  bool get manualSessionControlHybridMode => _manualSessionControlHybridMode;
+
+  Map<String, String>? get metricOverride => _metricOverride;
+
+  bool? get trackOrientationChanges => _trackOrientationChanges;
+
+  bool get clearStoredDeviceId => _clearStoredDeviceId;
+
+  bool get sdkLoggingInProductionDisabled => _sdkLoggingInProductionDisabled;
+
+  bool get webViewDisabled => _webViewDisabled;
+
+  bool get healthCheckDisabled => _healthCheckDisabled;
+
+  bool? get shouldIgnoreAppCrawlers => _shouldIgnoreAppCrawlers;
+
+  List<String>? get appCrawlerNames => _appCrawlerNames;
+
+  bool get recordAllThreadsWithCrash => _recordAllThreadsWithCrash;
+
+  bool get alertForNotificationsDisabled => _alertForNotificationsDisabled;
 
   /// getter for CountlyConfigApm instance that is used to access CountlyConfigApm methods
   CountlyConfigApm get apm => _countlyConfigApmInstance;
@@ -442,6 +475,80 @@ class CountlyConfig {
   /// notifications as reachable, which skews push interaction stats.
   CountlyConfig sendPushTokenAlways() {
     _pushTokenSentAlways = true;
+    return this;
+  }
+
+  /// Let the SDK update the running session automatically while manual session handling is enabled,
+  /// so only "beginSession" and "endSession" have to be called. Works together with "enableManualSessionHandling".
+  CountlyConfig enableManualSessionControlHybridMode() {
+    _manualSessionControlHybridMode = true;
+    return this;
+  }
+
+  /// Override the metrics sent when a session begins, or add custom ones, for example {"_app_version": "1.2.3"}.
+  /// [Map<String, String> metrics]: metric names and their values
+  CountlyConfig setMetricOverride(Map<String, String> metrics) {
+    if (metrics.isEmpty) {
+      Countly.log('setMetricOverride, no metrics were provided, ignoring the call', logLevel: LogLevel.WARNING);
+      return this;
+    }
+    _metricOverride = metrics;
+    return this;
+  }
+
+  /// Set if the SDK records the device orientation and its changes. It does by default.
+  CountlyConfig setTrackOrientationChanges(bool shouldTrack) {
+    _trackOrientationChanges = shouldTrack;
+    return this;
+  }
+
+  /// Clear the device ID stored by an earlier run when the SDK starts, so it uses the device ID of this config
+  /// or generates a new one.
+  CountlyConfig enableClearStoredDeviceId() {
+    _clearStoredDeviceId = true;
+    return this;
+  }
+
+  /// Keep the SDK logs off in release builds, even when logging is enabled (Only for Android).
+  CountlyConfig disableSDKLoggingInProduction() {
+    _sdkLoggingInProductionDisabled = true;
+    return this;
+  }
+
+  /// Turn off every feature shown in a web view: content, feedback widgets and the rating popup (Only for Android).
+  CountlyConfig disableWebView() {
+    _webViewDisabled = true;
+    return this;
+  }
+
+  /// Stop the health check request the SDK sends once per initialization (Only for Android).
+  CountlyConfig disableHealthCheck() {
+    _healthCheckDisabled = true;
+    return this;
+  }
+
+  /// Set if the SDK ignores app crawlers, which it recognizes by their device names (Only for Android).
+  CountlyConfig setShouldIgnoreAppCrawlers(bool shouldIgnore) {
+    _shouldIgnoreAppCrawlers = shouldIgnore;
+    return this;
+  }
+
+  /// Set the device names of the app crawlers to ignore (Only for Android).
+  /// [List<String> names]: the device names
+  CountlyConfig setAppCrawlerNames(List<String> names) {
+    _appCrawlerNames = names;
+    return this;
+  }
+
+  /// Add the stack traces of all threads to the recorded crashes (Only for Android).
+  CountlyConfig enableRecordAllThreadsWithCrash() {
+    _recordAllThreadsWithCrash = true;
+    return this;
+  }
+
+  /// Do not show the Countly push notifications that arrive while the app is in the foreground (Only for iOS).
+  CountlyConfig doNotShowAlertForNotifications() {
+    _alertForNotificationsDisabled = true;
     return this;
   }
 }
