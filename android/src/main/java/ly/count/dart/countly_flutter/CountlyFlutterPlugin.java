@@ -25,14 +25,17 @@ import ly.count.android.sdk.WebViewDisplayOption;
 
 import java.util.ArrayDeque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Arrays;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
@@ -84,6 +87,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private static final String POST_NOTIFICATIONS_PERMISSION = "android.permission.POST_NOTIFICATIONS";
     private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 4119;
     private static final ArrayDeque<String> pendingNotifications = new ArrayDeque<>();
+    private static final String PREFERENCES_NAME = "ly.count.dart.countly_flutter";
+    private static final String PUSH_ALLOWED_INTENT_SCHEMES_KEY = "pushAllowedIntentSchemes";
+    /** The URI schemes push notification links may open, from the last init, or null for the SDK default. */
+    private static volatile List<String> pushAllowedIntentSchemes = null;
 
     public void notifyPublicChannelRCDL(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues, Integer requestID) {
         Map<String, Object> data = new HashMap<>();
@@ -357,6 +364,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 }
                 bindCallbackChannel();
                 Countly.sharedInstance().init(this.config);
+                if (pushAllowedIntentSchemes != null && applicationContext instanceof Application) {
+                    // Notifications that arrive before "askForNotificationPermission" is called follow the allowed schemes too.
+                    CountlyPush.init(pushConfig((Application) applicationContext));
+                }
                 result.success("initialized!");
             } else if ("isInitialized".equals(call.method)) {
                 boolean isInitialized = Countly.sharedInstance().isInitialized();
@@ -496,7 +507,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     }
                 }
                 requestNotificationPermission();
-                CountlyPush.init(new CountlyConfigPush(activity.getApplication()));
+                CountlyPush.init(pushConfig(activity.getApplication()));
                 FirebaseApp.initializeApp(context);
                 FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
                     @Override
@@ -1111,6 +1122,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     return;
                 }
                 String widgetId = args.getString(0);
+                String closeBtnText = args.getString(3);
 
                 CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
                 if (feedbackWidget == null) {
@@ -1120,7 +1132,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 } else {
                     // Versioned widgets report only onClosed, so whichever callback comes first answers the call.
                     final AtomicBoolean replied = new AtomicBoolean(false);
-                    Countly.sharedInstance().feedback().presentFeedbackWidget(feedbackWidget, activity, new FeedbackCallback() {
+                    // The deprecated overload is the only one that sets the close button text of widgets without a version.
+                    Countly.sharedInstance().feedback().presentFeedbackWidget(feedbackWidget, activity, closeBtnText, new FeedbackCallback() {
                         @Override
                         public void onFinished(final String error) {
                             if (error == null) {
@@ -1556,6 +1569,71 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     }
 
     /**
+     * Returns a Countly Push configuration with the URI schemes push notification links may open. While
+     * the SDK is not initialized, as when a notification wakes a closed app, they come from storage.
+     *
+     * @param application the application to initialize Countly Push with
+     * @return the push configuration
+     */
+    static CountlyConfigPush pushConfig(Application application) {
+        CountlyConfigPush pushConfig = new CountlyConfigPush(application);
+        List<String> schemes = pushAllowedIntentSchemes;
+        if (!Countly.sharedInstance().isInitialized()) {
+            schemes = storedPushAllowedIntentSchemes(application);
+        }
+        if (schemes != null) {
+            pushConfig.setAllowedIntentSchemes(schemes);
+        }
+        return pushConfig;
+    }
+
+    /**
+     * Stores the URI schemes push notification links may open, for notifications that arrive while
+     * the SDK is not initialized, or removes them when none are set.
+     *
+     * @param context any context of the app
+     * @param schemes the allowed schemes, or null for the SDK default
+     */
+    private static void storePushAllowedIntentSchemes(Context context, List<String> schemes) {
+        SharedPreferences.Editor editor = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE).edit();
+        if (schemes == null) {
+            editor.remove(PUSH_ALLOWED_INTENT_SCHEMES_KEY);
+        } else {
+            editor.putStringSet(PUSH_ALLOWED_INTENT_SCHEMES_KEY, new HashSet<>(schemes));
+        }
+        editor.apply();
+    }
+
+    /**
+     * Returns the URI schemes push notification links may open, as stored at the last init.
+     *
+     * @param context any context of the app
+     * @return the allowed schemes, or null when none were set
+     */
+    private static List<String> storedPushAllowedIntentSchemes(Context context) {
+        Set<String> stored = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE).getStringSet(PUSH_ALLOWED_INTENT_SCHEMES_KEY, null);
+        if (stored == null) {
+            return null;
+        }
+        return new ArrayList<>(stored);
+    }
+
+    /**
+     * Returns the strings of a JSON array.
+     *
+     * @param array the array to read
+     * @return its values as strings
+     * @throws JSONException when a value cannot be read
+     */
+    static List<String> toStringList(JSONArray array) throws JSONException {
+        List<String> strings = new ArrayList<>();
+        for (int i = 0; i < array.length(); i++) {
+            strings.add(array.getString(i));
+        }
+        return strings;
+    }
+
+    /**
      * Returns the method arguments as they may appear in logs. The tamper protection salt and custom
      * header values are masked, and initial user properties are reduced to their keys.
      *
@@ -1913,6 +1991,16 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 this.config.setWebviewDisplayOption(WebViewDisplayOption.SAFE_AREA);
             }
         }
+
+        if (_config.has("contentAllowedIntentSchemes")) {
+            this.config.content.setAllowedIntentSchemes(toStringList(_config.getJSONArray("contentAllowedIntentSchemes")));
+        }
+
+        pushAllowedIntentSchemes = null;
+        if (_config.has("pushAllowedIntentSchemes")) {
+            pushAllowedIntentSchemes = toStringList(_config.getJSONArray("pushAllowedIntentSchemes"));
+        }
+        storePushAllowedIntentSchemes(context, pushAllowedIntentSchemes);
 
         this.config.content.setGlobalContentCallback(new ContentCallback() {
             @Override 

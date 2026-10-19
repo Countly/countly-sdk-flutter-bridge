@@ -1398,7 +1398,7 @@ class Countly {
 
   /// Present a chosen feedback widget
   /// [CountlyPresentableFeedback widgetInfo] - Get available list of feedback widgets by calling 'getAvailableFeedbackWidgets()' and pass the widget object as a parameter.
-  /// [String closeButtonText]: not used, as the underlying SDKs do not customize the close button text.
+  /// [String closeButtonText] - Text for the close button of widgets without a version (Only for Android).
   /// [VoidCallback? widgetShown] Callback to be executed when feedback widget is displayed
   /// [VoidCallback? widgetClosed] Callback to be executed when feedback widget is closed
   /// Note: widgetClosed is only implemented for iOS
@@ -2093,6 +2093,10 @@ class Countly {
         log('"_configToJson", value provided for webviewDisplayOption: [$optionStr]', logLevel: LogLevel.INFO);
         countlyConfig['webviewDisplayOption'] = optionStr;
       }
+      if (config.content.allowedIntentSchemes != null) {
+        log('"_configToJson", value provided for contentAllowedIntentSchemes: [${config.content.allowedIntentSchemes}]', logLevel: LogLevel.INFO);
+        countlyConfig['contentAllowedIntentSchemes'] = config.content.allowedIntentSchemes;
+      }
 
       /// Content END ---------------------------
 
@@ -2175,6 +2179,10 @@ class Countly {
         if (config.push.subscribeTimeout != null) {
           log('"_configToJson", value provided for pushSubscribeTimeout: [${config.push.subscribeTimeout}]', logLevel: LogLevel.INFO);
           countlyConfig['pushSubscribeTimeout'] = config.push.subscribeTimeout;
+        }
+        if (config.push.allowedIntentSchemes != null) {
+          log('"_configToJson", value provided for pushAllowedIntentSchemes: [${config.push.allowedIntentSchemes}]', logLevel: LogLevel.INFO);
+          countlyConfig['pushAllowedIntentSchemes'] = config.push.allowedIntentSchemes;
         }
       }
 

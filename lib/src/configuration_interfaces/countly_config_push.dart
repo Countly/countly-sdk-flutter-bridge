@@ -1,9 +1,12 @@
+import 'intent_schemes.dart';
+
 /// This class holds push notification specific configurations to be used with CountlyConfig class and serves as an interface.
 /// You can chain multiple configurations.
-/// Every option here applies to the web platform only, where a push subscription is created in the browser.
-/// Android and iOS take their push credentials from the platform project and ignore these values.
+/// Every option here except "setAllowedIntentSchemes" applies to the web platform only, where a push subscription is created
+/// in the browser. Android and iOS take their push credentials from the platform project and ignore these values.
 class CountlyConfigPush {
   /// private variables.
+  List<String>? _allowedIntentSchemes;
   String? _vapidPublicKey;
   String? _serviceWorkerPath;
 
@@ -15,6 +18,7 @@ class CountlyConfigPush {
   int? _subscribeTimeout;
 
   /// getters
+  List<String>? get allowedIntentSchemes => _allowedIntentSchemes;
   String? get vapidPublicKey => _vapidPublicKey;
   int? get subscribeTimeout => _subscribeTimeout;
   String? get serviceWorkerPath => _serviceWorkerPath;
@@ -22,6 +26,15 @@ class CountlyConfigPush {
   bool get automaticRegistrationDisabled => _automaticRegistrationDisabled;
 
   /// setters / methods
+
+  /// Limit the URI schemes that push notification links may open (Android only).
+  /// Without it, every scheme may open except "data", "zip", "intent", "file", "content",
+  /// "javascript" and "jar", which stay blocked even when listed.
+  /// [List<String> schemes]: the allowed schemes without "://", for example ["https", "myapp"]
+  CountlyConfigPush setAllowedIntentSchemes(List<String> schemes) {
+    _allowedIntentSchemes = allowedIntentSchemesFrom(schemes, 'push.setAllowedIntentSchemes');
+    return this;
+  }
 
   /// Set the VAPID public key the browser subscribes with. Without it web push stays off.
   /// Generate it in the Countly dashboard under your application's settings.
