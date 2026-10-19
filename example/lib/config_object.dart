@@ -102,8 +102,7 @@ class CountlyConfiguration {
         // Device ID configuration
         //   ..setDeviceId('CUSTOM_DEVICE_ID') // Set a custom device ID
         //   ..enableTemporaryDeviceIDMode() // Enable temporary device ID mode
-        //   ..enableClearStoredDeviceId() // Clear the device ID stored by an earlier run when the SDK starts
-
+        //   ..enableClearStoredDeviceId() // Clear the stored device ID at every start, for development only
 
         // Queue and timing configuration
         //   ..setEventQueueSizeToSend(10) // Set event queue threshold before sending (default 10)
@@ -122,8 +121,7 @@ class CountlyConfiguration {
         //   ..disableSDKLoggingInProduction() // Keep SDK logs off in release builds (Android only)
         //   ..disableWebView() // Turn off content, feedback widgets and the rating popup (Android only)
         //   ..disableHealthCheck() // Stop the health check request (Android only)
-        //   ..setShouldIgnoreAppCrawlers(true) // Ignore app crawlers (Android only)
-        //   ..setAppCrawlerNames(['Calypso AppCrawler']) // Device names of the app crawlers to ignore (Android only)
+        //   ..setAppCrawlerNames(['Crawler Device']) // Add device names of app crawlers to ignore (Android only)
         //   ..enableRecordAllThreadsWithCrash() // Add the stack traces of all threads to crashes (Android only)
         //   ..doNotShowAlertForNotifications() // Do not show Countly push notifications in the foreground (iOS only)
 

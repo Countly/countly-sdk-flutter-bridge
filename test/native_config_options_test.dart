@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'config_test_utils.dart';
 
 /// The values the platforms receive when every native config option below is set.
-const Map<String, Object> expectedOptions = {
+final Map<String, Object> expectedOptions = {
   'manualSessionControlHybridMode': true,
   'metricOverride': {'_app_version': '1.2.3', 'custom_metric': 'value'},
   'trackOrientationChanges': false,
@@ -15,10 +15,9 @@ const Map<String, Object> expectedOptions = {
   'sdkLoggingInProductionDisabled': true,
   'webViewDisabled': true,
   'healthCheckDisabled': true,
-  'shouldIgnoreAppCrawlers': true,
   'appCrawlerNames': ['Crawler One', 'Crawler Two'],
   'recordAllThreadsWithCrash': true,
-  'doNotShowAlertForNotifications': true,
+  if (!Countly.BUILDING_WITH_PUSH_DISABLED) 'doNotShowAlertForNotifications': true,
   'maxValueSizePicture': 2048,
   'contentZoomDisabled': true,
   'contentRotationDisabled': true,
@@ -41,7 +40,6 @@ void main() {
       ..disableSDKLoggingInProduction()
       ..disableWebView()
       ..disableHealthCheck()
-      ..setShouldIgnoreAppCrawlers(true)
       ..setAppCrawlerNames(['Crawler One', 'Crawler Two'])
       ..enableRecordAllThreadsWithCrash()
       ..doNotShowAlertForNotifications();

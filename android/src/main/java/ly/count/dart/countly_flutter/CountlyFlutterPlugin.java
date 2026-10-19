@@ -1992,9 +1992,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if (_config.optBoolean("healthCheckDisabled", false)) {
             this.config.disableHealthCheck();
         }
-        if (_config.has("shouldIgnoreAppCrawlers")) {
-            this.config.setShouldIgnoreAppCrawlers(_config.getBoolean("shouldIgnoreAppCrawlers"));
-        }
         if (_config.has("appCrawlerNames")) {
             this.config.setAppCrawlerNames(toStringArray(_config.getJSONArray("appCrawlerNames")));
         }

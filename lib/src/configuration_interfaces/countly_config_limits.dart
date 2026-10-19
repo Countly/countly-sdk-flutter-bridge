@@ -69,7 +69,7 @@ class CountlyConfigSDKInternalLimits {
     return this;
   }
 
-  /// Limits the length of the profile picture URL
+  /// Limits the length of the profile picture URL (Only for Android and iOS)
   ///
   /// [pictureValueSizeLimit] is the max char size of the "picture" user property
   CountlyConfigSDKInternalLimits setMaxValueSizePicture(int pictureValueSizeLimit) {

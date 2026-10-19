@@ -6,6 +6,7 @@
 
 #import "CountlyFLPushNotifications.h"
 #import "CountlyCommon.h"
+#import "CountlyPushNotifications.h"
 #import "UserNotifications/UserNotifications.h"
 
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
@@ -139,7 +140,7 @@ CLYUserDefaultKey const CLYPushButtonIndexKey = @"notificationBtnIndexKey";
     NSDictionary *countlyPayload = notification.request.content.userInfo[kCountlyPNKeyCountlyPayload];
     NSString *notificationID = countlyPayload[kCountlyPNKeyNotificationID];
 
-    if (notificationID) {
+    if (notificationID && !CountlyPushNotifications.sharedInstance.doNotShowAlertForNotifications) {
         UNNotificationPresentationOptions presentationOption = UNNotificationPresentationOptionNone;
         if (@available(iOS 14.0, tvOS 14.0, macOS 11.0, watchOS 7.0, *)) {
             presentationOption = UNNotificationPresentationOptionList | UNNotificationPresentationOptionBanner;

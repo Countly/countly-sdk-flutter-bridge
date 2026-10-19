@@ -58,7 +58,6 @@ class CountlyConfig {
   bool _sdkLoggingInProductionDisabled = false;
   bool _webViewDisabled = false;
   bool _healthCheckDisabled = false;
-  bool? _shouldIgnoreAppCrawlers;
   List<String>? _appCrawlerNames;
   bool _recordAllThreadsWithCrash = false;
   bool _alertForNotificationsDisabled = false;
@@ -182,8 +181,6 @@ class CountlyConfig {
   bool get webViewDisabled => _webViewDisabled;
 
   bool get healthCheckDisabled => _healthCheckDisabled;
-
-  bool? get shouldIgnoreAppCrawlers => _shouldIgnoreAppCrawlers;
 
   List<String>? get appCrawlerNames => _appCrawlerNames;
 
@@ -479,14 +476,16 @@ class CountlyConfig {
   }
 
   /// Let the SDK update the running session automatically while manual session handling is enabled,
-  /// so only "beginSession" and "endSession" have to be called. Works together with "enableManualSessionHandling".
+  /// so only "beginSession" and "endSession" have to be called. Works together with "enableManualSessionHandling"
+  /// (Only for Android and iOS).
   CountlyConfig enableManualSessionControlHybridMode() {
     _manualSessionControlHybridMode = true;
     return this;
   }
 
-  /// Override the metrics sent when a session begins, or add custom ones, for example {"_app_version": "1.2.3"}.
-  /// [Map<String, String> metrics]: metric names and their values
+  /// Override the metrics sent when a session begins, or add custom ones (Only for Android and iOS).
+  /// An overridden "_app_version" applies to every request in Android, and only to the session metrics in iOS.
+  /// [Map<String, String> metrics]: metric names and their values, for example {"_carrier": "Custom carrier"}
   CountlyConfig setMetricOverride(Map<String, String> metrics) {
     if (metrics.isEmpty) {
       Countly.log('setMetricOverride, no metrics were provided, ignoring the call', logLevel: LogLevel.WARNING);
@@ -496,14 +495,15 @@ class CountlyConfig {
     return this;
   }
 
-  /// Set if the SDK records the device orientation and its changes. It does by default.
+  /// Set if the SDK records the device orientation and its changes. It does by default (Only for Android and iOS).
   CountlyConfig setTrackOrientationChanges(bool shouldTrack) {
     _trackOrientationChanges = shouldTrack;
     return this;
   }
 
-  /// Clear the device ID stored by an earlier run when the SDK starts, so it uses the device ID of this config
-  /// or generates a new one.
+  /// Clear the stored device ID when the SDK starts, so the device ID given with "setDeviceId" is used. Without one,
+  /// Android generates a new ID on every start while iOS keeps its generated ID. Meant for development only
+  /// (Only for Android and iOS).
   CountlyConfig enableClearStoredDeviceId() {
     _clearStoredDeviceId = true;
     return this;
@@ -527,20 +527,16 @@ class CountlyConfig {
     return this;
   }
 
-  /// Set if the SDK ignores app crawlers, which it recognizes by their device names (Only for Android).
-  CountlyConfig setShouldIgnoreAppCrawlers(bool shouldIgnore) {
-    _shouldIgnoreAppCrawlers = shouldIgnore;
-    return this;
-  }
-
-  /// Set the device names of the app crawlers to ignore (Only for Android).
+  /// Add device names to the app crawlers whose data the SDK ignores, next to the built-in "Calypso AppCrawler"
+  /// (Only for Android).
   /// [List<String> names]: the device names
   CountlyConfig setAppCrawlerNames(List<String> names) {
     _appCrawlerNames = names;
     return this;
   }
 
-  /// Add the stack traces of all threads to the recorded crashes (Only for Android).
+  /// Add the stack traces of all Java threads to the crashes recorded in Android, errors reported from Dart included
+  /// (Only for Android).
   CountlyConfig enableRecordAllThreadsWithCrash() {
     _recordAllThreadsWithCrash = true;
     return this;

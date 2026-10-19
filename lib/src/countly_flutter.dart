@@ -111,6 +111,9 @@ class Countly {
   /// its value should be updated from [setLoggingEnabled(bool flag)].
   static bool _isDebug = false;
 
+  /// Whether "disableSDKLoggingInProduction" keeps the logs off, which it does in Android release builds.
+  static bool _productionLoggingDisabled = false;
+
   static const String tag = 'CountlyFlutter';
 
   /// Flag to determine if crash logging functionality should be enabled
@@ -133,7 +136,7 @@ class Countly {
 
   static void log(String? message, {LogLevel logLevel = LogLevel.DEBUG}) {
     String logLevelStr = describeEnum(logLevel);
-    if (_isDebug) {
+    if (_isDebug && !_productionLoggingDisabled) {
       print('[$tag] $logLevelStr: $message');
     }
   }
@@ -275,6 +278,7 @@ class Countly {
     if (config.loggingEnabled != null) {
       _isDebug = config.loggingEnabled!;
     }
+    _productionLoggingDisabled = config.sdkLoggingInProductionDisabled && kReleaseMode && !kIsWeb && Platform.isAndroid;
     log('Calling "initWithConfig"');
     if (_instance._countlyState.isInitialized) {
       String msg = 'initWithConfig, SDK is already initialized';
@@ -2099,10 +2103,6 @@ class Countly {
         log('"_configToJson", value provided for healthCheckDisabled is true', logLevel: LogLevel.INFO);
         countlyConfig['healthCheckDisabled'] = config.healthCheckDisabled;
       }
-      if (config.shouldIgnoreAppCrawlers != null) {
-        log('"_configToJson", value provided for shouldIgnoreAppCrawlers: [${config.shouldIgnoreAppCrawlers}]', logLevel: LogLevel.INFO);
-        countlyConfig['shouldIgnoreAppCrawlers'] = config.shouldIgnoreAppCrawlers;
-      }
       if (config.appCrawlerNames != null) {
         log('"_configToJson", value provided for appCrawlerNames: [${config.appCrawlerNames}]', logLevel: LogLevel.INFO);
         countlyConfig['appCrawlerNames'] = config.appCrawlerNames;
@@ -2110,14 +2110,6 @@ class Countly {
       if (config.recordAllThreadsWithCrash) {
         log('"_configToJson", value provided for recordAllThreadsWithCrash is true', logLevel: LogLevel.INFO);
         countlyConfig['recordAllThreadsWithCrash'] = config.recordAllThreadsWithCrash;
-      }
-      if (config.alertForNotificationsDisabled) {
-        if (BUILDING_WITH_PUSH_DISABLED) {
-          log('doNotShowAlertForNotifications, $_pushDisabledMsg', logLevel: LogLevel.DEBUG);
-        } else {
-          log('"_configToJson", value provided for doNotShowAlertForNotifications is true', logLevel: LogLevel.INFO);
-          countlyConfig['doNotShowAlertForNotifications'] = config.alertForNotificationsDisabled;
-        }
       }
 
       /// Experimental ---------------------------
@@ -2252,6 +2244,10 @@ class Countly {
         if (config.push.allowedIntentSchemes != null) {
           log('"_configToJson", value provided for pushAllowedIntentSchemes: [${config.push.allowedIntentSchemes}]', logLevel: LogLevel.INFO);
           countlyConfig['pushAllowedIntentSchemes'] = config.push.allowedIntentSchemes;
+        }
+        if (config.alertForNotificationsDisabled) {
+          log('"_configToJson", value provided for doNotShowAlertForNotifications is true', logLevel: LogLevel.INFO);
+          countlyConfig['doNotShowAlertForNotifications'] = config.alertForNotificationsDisabled;
         }
       }
 
