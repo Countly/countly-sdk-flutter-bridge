@@ -527,6 +527,8 @@ class Countly {
 
   /// This method will ask for permission, enables push notification and send push token to countly server.
   /// Should be call after Countly init
+  /// On the web platform it also registers the Countly service worker and creates the browser push subscription,
+  /// so it has to be called from a user gesture and "CountlyConfig.push.setVapidPublicKey" has to be set.
   /// returns the error or success message
   static Future<String?> askForNotificationPermission() async {
     if (BUILDING_WITH_PUSH_DISABLED) {
@@ -545,8 +547,11 @@ class Countly {
   }
 
   /// Disable push notifications feature, by default it is enabled.
-  /// Currently implemented for iOS only
-  /// Should be called before Countly init
+  /// Currently implemented for iOS and web only
+  /// On iOS it should be called before Countly init.
+  /// On the web platform it has to be called after init instead, where it drops the browser push
+  /// subscription and is remembered across page loads, so only another "askForNotificationPermission"
+  /// call subscribes again.
   /// returns the error or success message
   static Future<String?> disablePushNotifications() async {
     log('Calling "disablePushNotifications"');
@@ -554,7 +559,7 @@ class Countly {
       log('disablePushNotifications, $_pushDisabledMsg', logLevel: LogLevel.ERROR);
       return _pushDisabledMsg;
     }
-    if (kIsWeb || !Platform.isIOS) {
+    if (!kIsWeb && !Platform.isIOS) {
       return 'disablePushNotifications : To be implemented';
     }
     final String? result = await _channel.invokeMethod('disablePushNotifications');
@@ -2175,6 +2180,10 @@ class Countly {
         log('"_configToJson", value provided for customNetworkRequestHeaders: [${config.customNetworkRequestHeaders}]', logLevel: LogLevel.INFO);
         countlyConfig['customNetworkRequestHeaders'] = config.customNetworkRequestHeaders;
       }
+      if (config.webSDKUrl != null) {
+        log('"_configToJson", value provided for webSDKUrl: [${config.webSDKUrl}]', logLevel: LogLevel.INFO);
+        countlyConfig['webSDKUrl'] = config.webSDKUrl;
+      }
       if (config.shouldRequireConsent != null) {
         log('"_configToJson", value provided for shouldRequireConsent: [${config.shouldRequireConsent}]', logLevel: LogLevel.INFO);
         countlyConfig['shouldRequireConsent'] = config.shouldRequireConsent;
@@ -2366,6 +2375,31 @@ class Countly {
         log('"_configToJson", value provided for requestTimeoutDuration: [${config.requestTimeoutDuration}]', logLevel: LogLevel.INFO);
         countlyConfig['requestTimeoutDuration'] = config.requestTimeoutDuration;
       }
+
+      /// Push ---------------------------
+      /// The no-push flavour has no push feature at all, so none of this is forwarded.
+      if (!BUILDING_WITH_PUSH_DISABLED) {
+        if (config.push.vapidPublicKey != null) {
+          log('"_configToJson", value provided for vapidPublicKey', logLevel: LogLevel.INFO);
+          countlyConfig['vapidPublicKey'] = config.push.vapidPublicKey;
+        }
+        if (config.push.serviceWorkerPath != null) {
+          log('"_configToJson", value provided for pushServiceWorkerPath: [${config.push.serviceWorkerPath}]', logLevel: LogLevel.INFO);
+          countlyConfig['pushServiceWorkerPath'] = config.push.serviceWorkerPath;
+        }
+        log('"_configToJson", value provided for pushServiceWorkerScope: [${config.push.serviceWorkerScope}]', logLevel: LogLevel.INFO);
+        countlyConfig['pushServiceWorkerScope'] = config.push.serviceWorkerScope;
+        if (config.push.automaticRegistrationDisabled) {
+          log('"_configToJson", value provided for pushAutomaticRegistrationDisabled is true', logLevel: LogLevel.INFO);
+          countlyConfig['pushAutomaticRegistrationDisabled'] = config.push.automaticRegistrationDisabled;
+        }
+        if (config.push.subscribeTimeout != null) {
+          log('"_configToJson", value provided for pushSubscribeTimeout: [${config.push.subscribeTimeout}]', logLevel: LogLevel.INFO);
+          countlyConfig['pushSubscribeTimeout'] = config.push.subscribeTimeout;
+        }
+      }
+
+      /// Push END ---------------------------
     } catch (e) {
       log('"_configToJson", Exception occur during converting config to json: $e', logLevel: LogLevel.ERROR);
     }
