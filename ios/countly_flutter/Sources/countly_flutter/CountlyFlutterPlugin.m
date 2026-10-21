@@ -148,11 +148,14 @@ static FlutterMethodChannel *callbackChannel = nil;
         //     [Countly.sharedInstance setNewDeviceID:deviceID onServer:YES];   //replace and merge on server
         // }
     } else if ([@"isInitialized" isEqualToString:call.method]) {
-        if (isInitialized) {
-            result(@"true");
-        } else {
-            result(@"false");
-        }
+        // Answered from the main queue, after the start block that an init handled earlier queued there.
+        dispatch_async(dispatch_get_main_queue(), ^{
+          if (isInitialized) {
+              result(@"true");
+          } else {
+              result(@"false");
+          }
+        });
     } else if ([@"getRequestQueue" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSMutableArray *queuedRequests = [CountlyPersistency.sharedInstance queuedRequests];
@@ -191,6 +194,16 @@ static FlutterMethodChannel *callbackChannel = nil;
           [NSUserDefaults.standardUserDefaults setObject:serverConfig forKey:@"kCountlyServerConfigPersistencyKey"];
           [NSUserDefaults.standardUserDefaults synchronize];
           result(@"setServerConfig: success");
+        });
+    } else if ([@"halt" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          [Countly.sharedInstance halt];
+          // The next init builds its config and features again, as on a fresh start.
+          isInitialized = false;
+          config = nil;
+          countlyFeatures = nil;
+          feedbackWidgetList = nil;
+          result(@"halt: success");
         });
     } else if ([@"testOnNotification" isEqualToString:call.method]) {
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
@@ -264,7 +277,7 @@ static FlutterMethodChannel *callbackChannel = nil;
 
           [self setUserData:userData];
 
-          [Countly.user save];
+          [Countly.sharedInstance.userProfile save];
           result(@"setuserdata!");
         });
 
@@ -562,8 +575,8 @@ static FlutterMethodChannel *callbackChannel = nil;
           NSString *keyName = [command objectAtIndex:0];
           NSString *keyValue = [command objectAtIndex:1];
 
-          [Countly.user set:keyName value:keyValue];
-          [Countly.user save];
+          [Countly.sharedInstance.userProfile setProperty:keyName value:keyValue];
+          [Countly.sharedInstance.userProfile save];
 
           result(@"userData_setProperty!");
         });
@@ -964,6 +977,10 @@ static FlutterMethodChannel *callbackChannel = nil;
     } else if ([@"remoteConfigTestingDownloadVariantInformation" isEqualToString:call.method]) {
         NSNumber *callbackID = [command objectAtIndex:0];
         dispatch_async(dispatch_get_main_queue(), ^{
+          if ([self rejectRemoteConfigVariantIfUnavailable:callbackID]) {
+              result(@"Success!");
+              return;
+          }
           [Countly.sharedInstance.remoteConfig testingDownloadVariantInformation:^(CLYRequestResult _Nonnull response, NSError *_Nonnull error) {
             [self remoteConfigVariantCallback:callbackID response:response error:error];
           }];
@@ -975,6 +992,10 @@ static FlutterMethodChannel *callbackChannel = nil;
         NSString *key = [command objectAtIndex:1];
         NSString *variantName = [command objectAtIndex:2];
         dispatch_async(dispatch_get_main_queue(), ^{
+          if ([self rejectRemoteConfigVariantIfUnavailable:callbackID]) {
+              result(@"Success!");
+              return;
+          }
           [Countly.sharedInstance.remoteConfig testingEnrollIntoVariant:key
                                                             variantName:variantName
                                                       completionHandler:^(CLYRequestResult _Nonnull response, NSError *_Nonnull error) {
@@ -986,6 +1007,10 @@ static FlutterMethodChannel *callbackChannel = nil;
     } else if ([@"testingDownloadExperimentInformation" isEqualToString:call.method]) {
         NSNumber *callbackID = [command objectAtIndex:0];
         dispatch_async(dispatch_get_main_queue(), ^{
+          if ([self rejectRemoteConfigVariantIfUnavailable:callbackID]) {
+              result(@"Success!");
+              return;
+          }
           [Countly.sharedInstance.remoteConfig testingDownloadExperimentInformation:^(CLYRequestResult _Nonnull response, NSError *_Nonnull error) {
             [self remoteConfigVariantCallback:callbackID response:response error:error];
           }];
@@ -1376,43 +1401,21 @@ static FlutterMethodChannel *callbackChannel = nil;
     }
 }
 
+/**
+ * Sets the predefined user properties found in userData, such as the name, email and birth year,
+ * leaving out every other key. They are sent on the next save.
+ */
 - (void)setUserData:(NSDictionary *__nullable)userData {
-    NSString *name = userData[NAME_KEY];
-    NSString *username = userData[USERNAME_KEY];
-    NSString *email = userData[EMAIL_KEY];
-    NSString *organization = userData[ORG_KEY];
-    NSString *phone = userData[PHONE_KEY];
-    NSString *picture = userData[PICTURE_KEY];
-    NSString *picturePath = userData[PICTURE_PATH_KEY];
-    NSString *gender = userData[GENDER_KEY];
-    NSString *byear = userData[BYEAR_KEY];
-
-    if (name) {
-        Countly.user.name = name;
+    NSArray *predefinedKeys = @[ NAME_KEY, USERNAME_KEY, EMAIL_KEY, ORG_KEY, PHONE_KEY, PICTURE_KEY, PICTURE_PATH_KEY, GENDER_KEY, BYEAR_KEY ];
+    NSMutableDictionary *properties = [NSMutableDictionary dictionary];
+    for (NSString *key in predefinedKeys) {
+        id value = userData[key];
+        if (value && value != [NSNull null]) {
+            properties[key] = value;
+        }
     }
-    if (username) {
-        Countly.user.username = username;
-    }
-    if (email) {
-        Countly.user.email = email;
-    }
-    if (organization) {
-        Countly.user.organization = organization;
-    }
-    if (phone) {
-        Countly.user.phone = phone;
-    }
-    if (picture) {
-        Countly.user.pictureURL = picture;
-    }
-    if (picturePath) {
-        Countly.user.pictureLocalPath = picturePath;
-    }
-    if (gender) {
-        Countly.user.gender = gender;
-    }
-    if (byear) {
-        Countly.user.birthYear = @([byear integerValue]);
+    if (properties.count > 0) {
+        [Countly.sharedInstance.userProfile setProperties:properties];
     }
 }
 - (void)feedbackWidgetDataCallback:(NSDictionary *__nullable)widgetData error:(NSString *__nullable)error {
@@ -1871,10 +1874,13 @@ static FlutterMethodChannel *callbackChannel = nil;
 }
 
 /**
- * Returns why the iOS SDK would skip a remote config download without calling back, or nil when
- * it can run.
+ * Returns why the iOS SDK would skip a remote config, variant or experiment request without calling
+ * back, or nil when it can run.
  */
 - (NSString *)remoteConfigUnavailableReason {
+    if (!CountlyServerConfig.sharedInstance.networkingEnabled) {
+        return @"SDK networking is disabled by SDK behavior settings";
+    }
     if (!CountlyConsentManager.sharedInstance.consentForRemoteConfig) {
         return @"Remote config consent is not given";
     }
@@ -1896,6 +1902,21 @@ static FlutterMethodChannel *callbackChannel = nil;
     }
     NSError *error = [NSError errorWithDomain:@"CountlyFlutterPlugin" code:0 userInfo:@{NSLocalizedDescriptionKey : unavailableReason}];
     [self remoteConfigDownloadCallback:callbackID response:CLYResponseError fullValueUpdate:NO error:error downloadedValues:@{}];
+    return YES;
+}
+
+/**
+ * Answers a variant or experiment request with an error when the iOS SDK would skip it without calling back.
+ *
+ * @return YES when the request was answered here and must not be started
+ */
+- (BOOL)rejectRemoteConfigVariantIfUnavailable:(NSNumber *)callbackID {
+    NSString *unavailableReason = [self remoteConfigUnavailableReason];
+    if (!unavailableReason) {
+        return NO;
+    }
+    NSError *error = [NSError errorWithDomain:@"CountlyFlutterPlugin" code:0 userInfo:@{NSLocalizedDescriptionKey : unavailableReason}];
+    [self remoteConfigVariantCallback:callbackID response:CLYResponseError error:error];
     return YES;
 }
 

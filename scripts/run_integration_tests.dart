@@ -681,7 +681,8 @@ Config parseArgs(List<String> args) {
         if (i < args.length) config.restrictDevices = args[i];
       case '--timeout':
         i++;
-        if (i < args.length) config.timeout = args[i];
+        // `flutter test` rejects a timeout without a unit, and the option is documented in seconds.
+        if (i < args.length) config.timeout = RegExp(r'^\d+$').hasMatch(args[i]) ? '${args[i]}s' : args[i];
       case '--filter':
         i++;
         if (i < args.length) config.filter = args[i];

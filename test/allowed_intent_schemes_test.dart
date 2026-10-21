@@ -24,16 +24,18 @@ void main() {
     expect(sent['pushAllowedIntentSchemes'], ['market']);
   });
 
-  test('A list without an allowed scheme keeps the default, and nothing is sent for it', () async {
+  test('A list without an allowed scheme keeps the schemes set before, or the default when none were', () async {
     final CountlyConfig config = CountlyConfig('https://example.com', 'app_key');
     config.content.setAllowedIntentSchemes(['https']);
     config.content.setAllowedIntentSchemes(['intent', 'data', 'zip']);
+    config.content.setAllowedIntentSchemes([]);
+    config.push.setAllowedIntentSchemes(['javascript', 'not a scheme']);
     config.push.setAllowedIntentSchemes([]);
 
-    expect(config.content.allowedIntentSchemes, isNull);
+    expect(config.content.allowedIntentSchemes, ['https']);
     expect(config.push.allowedIntentSchemes, isNull);
     final Map<String, dynamic> sent = await initConfigSentFor(config);
-    expect(sent.containsKey('contentAllowedIntentSchemes'), isFalse);
+    expect(sent['contentAllowedIntentSchemes'], ['https']);
     expect(sent.containsKey('pushAllowedIntentSchemes'), isFalse);
   });
 }

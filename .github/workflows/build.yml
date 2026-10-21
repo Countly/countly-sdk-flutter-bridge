@@ -51,6 +51,30 @@ jobs:
       - name: Analyze
         run: flutter analyze --no-pub --no-fatal-infos ${{ matrix.flutter.targets }}
 
+  # The Dart suites under test/: the VM tests, then the web tests in the runner's Chrome.
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    needs: analyze
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve the dependencies
+        run: flutter pub get
+
+      - name: Run the VM tests
+        run: flutter test --no-pub
+
+      - name: Run the web tests
+        run: flutter test --no-pub --platform chrome
+
   # What pub.dev will see: a missing LICENSE, an oversized archive or a dependency that cannot resolve.
   package:
     name: Package for pub.dev

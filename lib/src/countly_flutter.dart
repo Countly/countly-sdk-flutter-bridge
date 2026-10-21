@@ -134,10 +134,38 @@ class Countly {
   @Deprecated('This variable is deprecated, please use "Countly.instance.deviceId.enableTemporaryDeviceID()" instead')
   static Map<String, String> deviceIDType = {'TemporaryDeviceID': temporaryDeviceID};
 
+  /// How many messages logged before the first "initWithConfig" are kept for it.
+  static const int _maxEarlyLogs = 100;
+
+  /// Messages logged before the first "initWithConfig", such as warnings about config values, which
+  /// init prints when it enables logging. Null once that init has run.
+  static List<String>? _earlyLogs = [];
+
   static void log(String? message, {LogLevel logLevel = LogLevel.DEBUG}) {
-    String logLevelStr = describeEnum(logLevel);
-    if (_isDebug && !_productionLoggingDisabled) {
-      print('[$tag] $logLevelStr: $message');
+    final bool printing = _isDebug && !_productionLoggingDisabled;
+    final List<String>? earlyLogs = _earlyLogs;
+    final bool keeping = earlyLogs != null && earlyLogs.length < _maxEarlyLogs;
+    if (!printing && !keeping) {
+      return;
+    }
+    final String line = '[$tag] ${describeEnum(logLevel)}: $message';
+    if (printing) {
+      print(line);
+    } else {
+      earlyLogs!.add(line);
+    }
+  }
+
+  /// Prints the messages logged before the first "initWithConfig" when it enabled logging, and stops
+  /// keeping them either way.
+  static void _printEarlyLogs() {
+    final List<String>? earlyLogs = _earlyLogs;
+    _earlyLogs = null;
+    if (earlyLogs == null || !_isDebug || _productionLoggingDisabled) {
+      return;
+    }
+    for (final String line in earlyLogs) {
+      print(line);
     }
   }
 
@@ -279,6 +307,7 @@ class Countly {
       _isDebug = config.loggingEnabled!;
     }
     _productionLoggingDisabled = config.sdkLoggingInProductionDisabled && kReleaseMode && !kIsWeb && Platform.isAndroid;
+    _printEarlyLogs();
     log('Calling "initWithConfig"');
     if (_instance._countlyState.isInitialized) {
       String msg = 'initWithConfig, SDK is already initialized';
@@ -310,22 +339,36 @@ class Countly {
     List<dynamic> args = [];
     args.add(_configToJson(config));
 
-    final String? result = await _channel.invokeMethod('init', <String, dynamic>{'data': json.encode(args)});
-    _instance._countlyState.isInitialized = true;
+    final Completer<void> platformInit = Completer<void>();
+    _instance._countlyState.pendingInit = platformInit.future;
+    try {
+      final String? result = await _channel.invokeMethod('init', <String, dynamic>{'data': json.encode(args)});
+      // The web plugin answers with an error message when the Web SDK could not start, so a later call can try again.
+      if (kIsWeb && result != null) {
+        log('initWithConfig, $result', logLevel: LogLevel.ERROR);
+        return result;
+      }
+      _instance._countlyState.isInitialized = true;
 
-    if (config.remoteConfigGlobalCallbacks.isNotEmpty) {
-      log('[initWithConfig] About to register ${config.remoteConfigGlobalCallbacks.length} callbacks', logLevel: LogLevel.VERBOSE);
-    }
-    for (final callback in config.remoteConfigGlobalCallbacks) {
-      Countly.instance._remoteConfigInternal.registerDownloadCallback(callback);
-    }
+      if (config.remoteConfigGlobalCallbacks.isNotEmpty) {
+        log('[initWithConfig] About to register ${config.remoteConfigGlobalCallbacks.length} callbacks', logLevel: LogLevel.VERBOSE);
+      }
+      for (final callback in config.remoteConfigGlobalCallbacks) {
+        Countly.instance._remoteConfigInternal.registerDownloadCallback(callback);
+      }
 
-    if (config.content.contentCallback != null) {
-      log('[initWithConfig] About to register content callback', logLevel: LogLevel.VERBOSE);
-      Countly.instance._contentBuilderInternal.registerContentCallback(config.content.contentCallback!);
-    }
+      if (config.content.contentCallback != null) {
+        log('[initWithConfig] About to register content callback', logLevel: LogLevel.VERBOSE);
+        Countly.instance._contentBuilderInternal.registerContentCallback(config.content.contentCallback!);
+      }
 
-    return result;
+      return result;
+    } finally {
+      if (_instance._countlyState.pendingInit == platformInit.future) {
+        _instance._countlyState.pendingInit = null;
+      }
+      platformInit.complete();
+    }
   }
 
   /// returns if SDK is initialized

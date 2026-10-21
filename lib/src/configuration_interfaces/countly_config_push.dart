@@ -29,10 +29,11 @@ class CountlyConfigPush {
 
   /// Limit the URI schemes that push notification links may open (Android only).
   /// Without it, every scheme may open except "data", "zip", "intent", "file", "content",
-  /// "javascript" and "jar", which stay blocked even when listed.
+  /// "javascript" and "jar", which stay blocked even when listed. A list without a usable scheme
+  /// is ignored, so it never widens the schemes set before.
   /// [List<String> schemes]: the allowed schemes without "://", for example ["https", "myapp"]
   CountlyConfigPush setAllowedIntentSchemes(List<String> schemes) {
-    _allowedIntentSchemes = allowedIntentSchemesFrom(schemes, 'push.setAllowedIntentSchemes');
+    _allowedIntentSchemes = allowedIntentSchemesFrom(schemes, 'push.setAllowedIntentSchemes', _allowedIntentSchemes);
     return this;
   }
 
