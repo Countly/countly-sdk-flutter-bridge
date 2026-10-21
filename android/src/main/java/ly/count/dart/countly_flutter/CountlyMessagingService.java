@@ -4,7 +4,6 @@ import android.app.Application;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -13,7 +12,6 @@ import ly.count.android.sdk.messaging.CountlyPush;
 import ly.count.android.sdk.Countly;
 
 public class CountlyMessagingService extends FirebaseMessagingService {
-    private static final String TAG = "CountlyMessagingService";
     private static final String DEFAULT_NOTIFICATION_ICON_KEY = "com.google.firebase.messaging.default_notification_icon";
 
     /**
@@ -34,7 +32,7 @@ public class CountlyMessagingService extends FirebaseMessagingService {
                 }
             }
         } catch (PackageManager.NameNotFoundException exception) {
-            Log.w(TAG, "Could not read the notification icon meta-data, using the launcher icon", exception);
+            CountlyFlutterPlugin.log("[CountlyMessagingService] Could not read the notification icon meta-data, using the launcher icon", exception, CountlyFlutterPlugin.LogLevel.WARNING);
         }
         return icon;
     }
@@ -42,7 +40,7 @@ public class CountlyMessagingService extends FirebaseMessagingService {
     @Override
     public void onNewToken(String token) {
         super.onNewToken(token);
-        Log.d(TAG, "got new token: " + token);
+        CountlyFlutterPlugin.log("[CountlyMessagingService] got new token: " + token, CountlyFlutterPlugin.LogLevel.DEBUG);
         if (Countly.sharedInstance().isInitialized()) {
             CountlyPush.onTokenRefresh(token);
         }
@@ -51,12 +49,12 @@ public class CountlyMessagingService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
-        Log.d(TAG, "got new message: " + remoteMessage.getData());
+        CountlyFlutterPlugin.log("[CountlyMessagingService] got new message: " + remoteMessage.getData(), CountlyFlutterPlugin.LogLevel.DEBUG);
 
         if (!Countly.sharedInstance().isInitialized()) {
             Application application = getApplication();
             if(application == null){
-                Log.d(Countly.TAG, "[CountlyMessagingService] getApplication() returns null: application must be non-null to init CountlyPush");
+                CountlyFlutterPlugin.log("[CountlyMessagingService] getApplication() returns null: application must be non-null to init CountlyPush", CountlyFlutterPlugin.LogLevel.DEBUG);
             }
             else {
                 CountlyPush.init(CountlyFlutterPlugin.pushConfig(application));
@@ -75,16 +73,16 @@ public class CountlyMessagingService extends FirebaseMessagingService {
 
         Context context = getApplicationContext();
         if(context == null){
-            Log.d(Countly.TAG, "[CountlyMessagingService] getApplicationContext() returns null: context must be non-null to displayNotification");
+            CountlyFlutterPlugin.log("[CountlyMessagingService] getApplicationContext() returns null: context must be non-null to displayNotification", CountlyFlutterPlugin.LogLevel.DEBUG);
             return;
         }
         Boolean result = CountlyPush.displayNotification(context, message, notificationSmallIcon(context), null);
         if (result == null) {
-            Log.i(TAG, "Message wasn't sent from Countly server, so it cannot be handled by Countly SDK");
+            CountlyFlutterPlugin.log("[CountlyMessagingService] Message wasn't sent from Countly server, so it cannot be handled by Countly SDK", CountlyFlutterPlugin.LogLevel.INFO);
         } else if (result) {
-            Log.i(TAG, "Message was handled by Countly SDK");
+            CountlyFlutterPlugin.log("[CountlyMessagingService] Message was handled by Countly SDK", CountlyFlutterPlugin.LogLevel.INFO);
         } else {
-            Log.i(TAG, "Message wasn't handled by Countly SDK because API level is too low for Notification support or because currentActivity is null (not enough lifecycle method calls)");
+            CountlyFlutterPlugin.log("[CountlyMessagingService] Message wasn't handled by Countly SDK because API level is too low for Notification support or because currentActivity is null (not enough lifecycle method calls)", CountlyFlutterPlugin.LogLevel.INFO);
         }
 
         // 'onNotification' should be called at the end of 'onMessageReceived'. This is due to an unknown issue that prevents showing notifications from the "killed" state for some app/hardware configurations

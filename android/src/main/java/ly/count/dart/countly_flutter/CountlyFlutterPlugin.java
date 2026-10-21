@@ -160,7 +160,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private Context context;
     private Activity activity;
     private static Boolean isDebug = false;
-    private final CountlyConfig config = new CountlyConfig();
+    private CountlyConfig config = new CountlyConfig();
     private static Callback notificationListener = null;
     private MethodChannel methodChannel;
     // Channel of the engine that receives native SDK callbacks, chosen by bindCallbackChannel.
@@ -1416,6 +1416,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success("addDirectRequest: success");
             } else if ("halt".equals(call.method)) {
                 Countly.sharedInstance().halt();
+                // Init keeps the request queue of the halted SDK in the config it was given, so the next init needs a new one.
+                this.config = new CountlyConfig();
                 result.success("halt: success");
             } else if ("testOnNotification".equals(call.method)) {
                 JSONArray payloads = args.getJSONArray(0);

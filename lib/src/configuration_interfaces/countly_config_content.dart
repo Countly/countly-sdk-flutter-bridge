@@ -53,10 +53,11 @@ class CountlyConfigContent {
 
   /// Limit the URI schemes that links in content and feedback widgets may open (Android only).
   /// Without it, every scheme may open except "data", "zip", "intent", "file", "content",
-  /// "javascript" and "jar", which stay blocked even when listed.
+  /// "javascript" and "jar", which stay blocked even when listed. A list without a usable scheme
+  /// is ignored, so it never widens the schemes set before.
   /// [List<String> schemes]: the allowed schemes without "://", for example ["https", "myapp"]
   CountlyConfigContent setAllowedIntentSchemes(List<String> schemes) {
-    _allowedIntentSchemes = allowedIntentSchemesFrom(schemes, 'content.setAllowedIntentSchemes');
+    _allowedIntentSchemes = allowedIntentSchemesFrom(schemes, 'content.setAllowedIntentSchemes', _allowedIntentSchemes);
     return this;
   }
 

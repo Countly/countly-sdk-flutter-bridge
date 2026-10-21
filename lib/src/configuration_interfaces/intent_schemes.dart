@@ -8,9 +8,10 @@ const List<String> blockedIntentSchemes = ['data', 'zip', 'intent', 'file', 'con
 final RegExp _uriScheme = RegExp(r'^[a-z][a-z0-9+.-]*$');
 
 /// Returns the allowed URI schemes of [schemes] in lower case, for the config option [caller].
-/// Malformed entries and the [blockedIntentSchemes] are left out with a warning. Returns null, which
-/// keeps the default of every scheme except the blocked ones, when no scheme is left.
-List<String>? allowedIntentSchemesFrom(List<String> schemes, String caller) {
+/// Malformed entries and the [blockedIntentSchemes] are left out with a warning. When no scheme is
+/// left, it returns [current], the schemes set before, so a list can only tighten what is allowed;
+/// null keeps the default of every scheme except the blocked ones.
+List<String>? allowedIntentSchemesFrom(List<String> schemes, String caller, List<String>? current) {
   final List<String> allowed = [];
   for (final String entry in schemes) {
     final String scheme = entry.trim().toLowerCase();
@@ -22,11 +23,13 @@ List<String>? allowedIntentSchemesFrom(List<String> schemes, String caller) {
       allowed.add(scheme);
     }
   }
-  if (allowed.isEmpty) {
-    if (schemes.isNotEmpty) {
-      Countly.log('$caller, no allowed scheme is left, so every scheme except the blocked ones stays allowed', logLevel: LogLevel.ERROR);
-    }
-    return null;
+  if (allowed.isNotEmpty) {
+    return allowed;
   }
-  return allowed;
+  if (current != null) {
+    Countly.log('$caller, no allowed scheme is left, so the schemes set before stay: $current', logLevel: LogLevel.ERROR);
+  } else {
+    Countly.log('$caller, no allowed scheme is left, so every scheme except the blocked ones stays allowed', logLevel: LogLevel.ERROR);
+  }
+  return current;
 }

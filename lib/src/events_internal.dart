@@ -32,8 +32,13 @@ class EventsInternal implements Events {
   Future<void> _internalEventMethodCall(String key, String method, [Map<String, Object>? segmentation, int? count, double? sum, int? duration]) async {
     List<Object?> args = [];
 
-    // Another engine or an init still in flight may have initialized the native SDK, so it decides.
-    if (!_countlyState.isInitialized && !await Countly.isInitialized()) {
+    // An event recorded right after a call to "initWithConfig" that was not awaited waits for that init.
+    final Future<void>? pendingInit = _countlyState.pendingInit;
+    if (!_countlyState.isInitialized && pendingInit != null) {
+      await pendingInit;
+    }
+    // Another engine may have initialized the native SDK, so it decides.
+    if (!_countlyState.isInitialized && !await _countlyState.isNativeInitialized()) {
       Countly.log('[EventsInternal] $method, "initWithConfig" must be called before "$method", ignoring the call', logLevel: LogLevel.ERROR);
       return;
     }
