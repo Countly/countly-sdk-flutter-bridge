@@ -248,6 +248,12 @@ void validateInternalLimitsForEvents(Map<String, dynamic> event, int maxKeyLengt
   }
 }
 
+/// Matches a segmentation that kept [count] of the recorded keys, each with its value truncated to
+/// "value". Which keys the segmentation limit keeps is not defined, so only the count is checked.
+Matcher truncatedSegmentation(int count) {
+  return predicate((Map<String, dynamic> segmentation) => segmentation.length == count && segmentation.values.every((dynamic value) => value == 'value'), 'a segmentation of $count entries, each with the value "value"');
+}
+
 /// Retrieves the request queue from the server.
 /// And parses it into a list of maps with query parameters.
 Future<List<Map<String, List<String>>>> getRequestQueueParsed() async {
