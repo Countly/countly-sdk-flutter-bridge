@@ -3,15 +3,20 @@ import Flutter
 import countly_flutter
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    GeneratedPluginRegistrant.register(with: self)
 	  // For push notification received and action callbacks
 	  CountlyFlutterPlugin.startObservingNotifications();
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  /// Registers the plugins with the Flutter engine of the scene's storyboard, which exists only
+  /// once the scene connects under the UIScene lifecycle.
+  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
   }
      func application(application: UIApplication,  didReceiveRemoteNotification userInfo: [NSObject : AnyObject],  fetchCompletionHandler completionHandler: (UIBackgroundFetchResult) -> Void) {
 
