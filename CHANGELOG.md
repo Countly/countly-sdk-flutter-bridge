@@ -10,6 +10,9 @@
 * ! Minor breaking change ! Events recorded before init are now ignored with an error log, like other calls made before init. They caused an error in Android and skipped the consent check in iOS. Events recorded while an init that was not awaited still runs are kept.
 * ! Minor breaking change ! "getID" now returns the device ID as it was set, not URL-encoded, in iOS.
 * ! Minor breaking change ! Giving or removing the "star-rating" consent now also gives or removes the "feedback" consent in iOS, as the star rating dialog needs it.
+* ! Minor breaking change ! With crash reporting enabled, a SIGPIPE the app neither ignores nor handles itself now ends the app after it is reported in iOS, as it would without the SDK:
+  * previously the SDK reported it, kept the app running and turned automatic crash reporting off
+  * an app that has to survive a broken pipe should ignore or handle SIGPIPE, for example in its AppDelegate, before initializing the SDK
 * ! Minor breaking change ! The "onFinished" callback of "presentNPS", "presentSurvey" and "presentRating" can now also be called with an empty string once the widget is shown, in iOS and for some widgets in Android. Treat only a non-empty string as an error.
 * ! Minor breaking change ! "setUpdateSessionTimerDelay" now ignores values below 1 second and logs an error. In iOS, such values queued requests continuously.
 * ! Minor breaking change ! The deprecated "storedRequestsLimit" has no effect anymore (it limited the request queue to 1 request in iOS). Use "setMaxRequestQueueSize" instead.
@@ -40,9 +43,10 @@
   * the config options for user properties and the content zone timer interval
 * Added support for SDK behavior settings that control automatic session tracking, automatic crash reporting and Journey Trigger Views, in Android and iOS.
 * Added support for reporting the app's light or dark theme when presenting feedback widgets, rating widgets and content, so they match it, in Android, iOS and Web.
-* Added support for server requested SDK log gathering and connection tests in iOS and Web.
+* Added support for server requested SDK log gathering and connection tests in iOS and Web. The iOS privacy manifest now also declares the diagnostic data that log gathering collects.
+* Added "setGlobalContentSegmentation" to "Countly.instance.content" (Experimental!), which sets a segmentation recorded with every content event and with the events of NPS, survey and rating feedback widgets, in iOS and Web. In iOS, "presentRatingWidgetWithID" does not carry it.
 * Changed "exitContentZone" to also close the content on screen in iOS and Web, instead of only stopping content retrieval.
-* Improved crash reporting in iOS. Its handlers now pass crashes on to the crash handlers they replaced, and leave crash tools installed later and signals the app ignores, such as SIGPIPE, alone.
+* Improved crash reporting in iOS. Its handlers now pass crashes on to the crash handlers they replaced, and leave crash tools installed later, signals the app ignores and a SIGPIPE the app handles itself alone.
 * Improved link handling of content and feedback widgets in Android and iOS, so links that carry their own query parameters, such as deep links, are parsed correctly.
 * Improved logging: messages from before init, such as warnings about invalid config values, are now printed once init enables logging.
 
@@ -51,13 +55,13 @@
   * enabling crash reporting replaced the Flutter error handlers set before it, so other crash reporting tools and the console stopped receiving Flutter errors
   * event sums lost precision (19.99 was recorded as 19.989999771118164), and the deprecated map versions of "recordEvent" and "endEvent" sent wrong values for whole-number sums and for text counts, sums and durations
   * SDK logs showed the parameter tampering protection salt and custom request header values
+  * the "disableBackoffMechanism" config option was ignored in Android, and in iOS it took effect only while SDK behavior settings kept changing
 
 * Mitigated issues in Android where:
   * builds failed in "checkDebugAarMetadata" on newer Flutter versions. The plugin now compiles against the API level of the app's Flutter SDK
   * push notifications arriving in quick succession crashed with "Reply already submitted". Notifications that arrive while no Activity is attached are now kept and delivered
   * "presentNPS", "presentSurvey", "presentRating", "presentFeedbackWidget" for full screen widgets, and "askForStarRating" without the "star-rating" consent never completed
   * a partial location from "setUserLocation" or the deprecated "setLocation" stored the text "null"
-  * the "disableBackoffMechanism" config option was ignored
   * automatic session tracking did not work when the SDK was initialized before an Activity was attached, as in add-to-app setups
   * the push notification service logged the push token and the notification data even with logging disabled
   * content could stay hidden on some devices even after it had finished loading
@@ -76,10 +80,18 @@
   * a race condition in the request queue could drop or duplicate requests
   * content and remote config requests could be sent in temporary device ID mode, creating a "CLYTemporaryDeviceID" user
   * SDK behavior settings were ignored when the server sent additional fields, and refreshing them after the app returned from the background reset the configuration given at start
+  * a setting removed from the SDK behavior settings in SDK Manager did not go back to the value given at start, and a setting sent as false or 0, such as "log", did not override it. They still never lift a consent requirement set with "setRequiresConsent"
   * the default SDK behavior settings overrode the SDK limits given in the config
+  * the consent state could be sent twice at init when SDK behavior settings required consent
+  * with location tracking turned off in the SDK behavior settings, a request without the app key was queued at start. The server rejected it, and every request queued after it, the session start included, was held back
+  * a server or proxy answer that was a JSON list instead of an object crashed the app, again on every start, and the remote config variant and experiment calls could crash on an error answer
+  * remote config values downloaded for the previous device ID were stored for the new one when the device ID changed during the download
   * feedback widgets could close automatically after about a minute while the user was still answering them
+  * a feedback widget that failed to load was recorded as closed by the user, which could keep it hidden from that user
+  * view IDs returned by "startView" stopped resolving after the app went to the background and came back, so "stopViewWithID" failed and the view reported a new visit and a duration on every later return
   * an auto stopped view could stop right after the app returned from the background
-  * the app could freeze instead of terminating on a crash after crash reporting was turned off at runtime
+  * with visibility tracking enabled, events recorded while the app was inactive, for example under a system alert or in the app switcher, were reported as not visible
+  * the app could freeze instead of terminating on a crash after crash reporting was turned off at runtime, or on a crash inside the SDK's request handling or while it held an internal lock. The SDK now waits at most 5 seconds for the crash report and sends it on the next start if it did not go out
   * the SDK could crash when SDK behavior settings updated filters or Journey Trigger lists while data was being recorded
 
 * Mitigated issues in Web where:
@@ -107,7 +119,7 @@
 * Removed the dependency on the discontinued "pedantic" package.
 
 * Underlying Android SDK version is 26.1.6
-* Underlying iOS SDK version is XX.XX.XX
+* Underlying iOS SDK version is 26.8.0
 * Underlying Web SDK version is 26.8.0
 
 ## 26.1.1

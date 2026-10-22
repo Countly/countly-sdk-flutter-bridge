@@ -178,6 +178,9 @@ extension CountlyWebContentMembers on CountlyWebContent {
 
   /// Stops fetching content.
   external void exitContentZone();
+
+  /// Keeps [segmentation] for every content and feedback widget event; null or an empty object clears it.
+  external void setGlobalContentSegmentation(JSAny? segmentation);
 }
 
 /// The user profile members of a Web SDK instance.

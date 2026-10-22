@@ -334,6 +334,8 @@ class CountlyFlutterPlugin {
       countly.content.refreshContentZone();
     } else if (call.method == 'exitContentZone') {
       countly.content.exitContentZone();
+    } else if (call.method == 'setGlobalContentSegmentation') {
+      countly.content.setGlobalContentSegmentation(_mapAt(data, 0).jsify());
     } else if (_unavailableOnWeb.contains(call.method)) {
       return await _unavailableAnswer(call.method, data);
     } else {
