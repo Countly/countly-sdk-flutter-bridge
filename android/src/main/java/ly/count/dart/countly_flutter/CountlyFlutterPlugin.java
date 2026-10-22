@@ -1448,6 +1448,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 String contentId = call.argument("contentId");
                 Countly.sharedInstance().contents().previewContent(contentId);
                 result.success(null);
+            } else if ("setGlobalContentSegmentation".equals(call.method)) {
+                log("setGlobalContentSegmentation is not available in Android, the underlying Android SDK has no equivalent", LogLevel.WARNING);
+                result.success(null);
             }
 
             else {

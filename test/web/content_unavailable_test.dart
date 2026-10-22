@@ -2,6 +2,8 @@
 library content_unavailable_test;
 
 import 'dart:async';
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,8 +15,33 @@ int contentRequestCount() {
   return generatedRequests().where((Map<String, dynamic> request) => (request['url'] as String).endsWith('/o/sdk/content')).length;
 }
 
+/// Records a rating widget answer through the Web SDK itself, which adds the global content
+/// segmentation to it.
+void recordRatingWidget(int rating) {
+  webInstance().callMethod('recordRatingWidgetWithID'.toJS, {'widget_id': 'widget_id', 'rating': rating}.jsify());
+}
+
 void main() {
   setUpWebPlugin();
+
+  test('The global content segmentation is recorded with feedback widget events until an empty map clears it', () async {
+    await Countly.initWithConfig(testConfig());
+
+    await Countly.instance.content.setGlobalContentSegmentation({'campaign': 'spring', 'rating': 1});
+    recordRatingWidget(3);
+    await Countly.instance.content.setGlobalContentSegmentation({});
+    recordRatingWidget(4);
+    await waitForHeartbeat();
+
+    final List<Map<String, dynamic>> ratings = (await queuedEvents()).where((Map<String, dynamic> event) => event['key'] == '[CLY]_star_rating').toList();
+    expect(ratings.length, 2);
+    final Map<String, dynamic> first = ratings[0]['segmentation'] as Map<String, dynamic>;
+    final Map<String, dynamic> second = ratings[1]['segmentation'] as Map<String, dynamic>;
+    expect(first['campaign'], 'spring');
+    expect(first['rating'], 3);
+    expect(second.containsKey('campaign'), isFalse);
+    expect(second['rating'], 4);
+  });
 
   test('The content zone fetches content on entry and on refresh, and stops on exit', () async {
     final CountlyConfig config = testConfig();

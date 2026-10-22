@@ -1379,6 +1379,14 @@ static FlutterMethodChannel *callbackChannel = nil;
           [Countly.sharedInstance.content previewContent:contentId];
           result(nil);
         });
+    } else if ([@"setGlobalContentSegmentation" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSDictionary *segmentation = [command objectAtIndex:0];
+          if ([segmentation isKindOfClass:NSDictionary.class]) {
+              [Countly.sharedInstance.content setGlobalContentSegmentation:segmentation];
+          }
+          result(nil);
+        });
     } else if ([@"attemptToSendStoredRequests" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           [Countly.sharedInstance attemptToSendStoredRequests];
