@@ -44,6 +44,15 @@ Future<void> deliverTestNotifications(List<Map<String, String>> payloads) async 
   });
 }
 
+/// Starts the Activity, for the plugin, with the intent Countly Push opens the app with when the
+/// given notification is clicked, twice, the way the Activity can read the same intent again. With
+/// [restored], the Activity comes back from saved state instead of starting fresh. Android only.
+Future<void> deliverTestNotificationClick(Map<String, String> payload, {bool restored = false}) async {
+  await _channelTest.invokeMethod('testOnNotificationClick', <String, dynamic>{
+    'data': json.encode([payload, restored]),
+  });
+}
+
 void addDirectRequest(Map<String, String> request) async {
   await _channelTest.invokeMethod('addDirectRequest', <String, dynamic>{
     'data': json.encode([request]),
