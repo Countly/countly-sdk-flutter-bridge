@@ -44,6 +44,14 @@ Future<void> deliverTestNotifications(List<Map<String, String>> payloads) async 
   });
 }
 
+/// Hands the plugin the intent Countly Push opens the app with when the given notification is
+/// clicked, twice, the way the Activity can see the same intent again. Android only.
+Future<void> deliverTestNotificationClick(Map<String, String> payload) async {
+  await _channelTest.invokeMethod('testOnNotificationClick', <String, dynamic>{
+    'data': json.encode([payload]),
+  });
+}
+
 void addDirectRequest(Map<String, String> request) async {
   await _channelTest.invokeMethod('addDirectRequest', <String, dynamic>{
     'data': json.encode([request]),

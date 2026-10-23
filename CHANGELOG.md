@@ -3,6 +3,7 @@
 * ! Minor breaking change ! Push notification changes:
   * "askForNotificationPermission" now also asks for the notification permission on Android 13 and newer, and the plugin declares the "POST_NOTIFICATIONS" permission
   * "onNotification" now gets each push notification once, as a JSON string, instead of twice in two formats, in iOS
+  * "onNotification" now also gets the push notification a user clicks, with the payload it arrived with, in Android, as it does in iOS
   * "pushTokenType" no longer sends the push token of users who have not allowed notifications in iOS. Use the new "sendPushTokenAlways" config option to keep sending it, for example for silent notifications
 * ! Minor breaking change ! Changes to user properties:
   * "setProperty" and "setUserProperties" of "Countly.instance.userProfile", and the deprecated "setUserData" and "Countly.setProperty", now send the recorded events before the user properties

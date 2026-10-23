@@ -9,6 +9,7 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
+import io.flutter.plugin.common.PluginRegistry;
 // import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 import ly.count.android.sdk.Countly;
@@ -35,10 +36,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -75,7 +80,7 @@ import com.google.firebase.FirebaseApp;
 /**
  * CountlyFlutterPlugin
  */
-public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
+public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver, PluginRegistry.NewIntentListener {
     private static final String TAG = "CountlyFlutterPlugin";
     private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "26.1.1";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
@@ -87,6 +92,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private static final String POST_NOTIFICATIONS_PERMISSION = "android.permission.POST_NOTIFICATIONS";
     private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 4119;
     private static final ArrayDeque<String> pendingNotifications = new ArrayDeque<>();
+    /** Marks an intent whose clicked notification was already handed to Dart. */
+    private static final String NOTIFICATION_CLICK_HANDLED_EXTRA = "ly.count.dart.countly_flutter.notificationClickHandled";
     private static final String PREFERENCES_NAME = "ly.count.dart.countly_flutter";
     private static final String PUSH_ALLOWED_INTENT_SCHEMES_KEY = "pushAllowedIntentSchemes";
     /** The URI schemes push notification links may open, from the last init, or null for the SDK default. */
@@ -159,6 +166,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
     private Context context;
     private Activity activity;
+    private ActivityPluginBinding activityBinding;
     private static Boolean isDebug = false;
     private CountlyConfig config = new CountlyConfig();
     private static Callback notificationListener = null;
@@ -251,13 +259,16 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         this.activity = binding.getActivity();
         lifecycle = FlutterLifecycleAdapter.getActivityLifecycle(binding);
         lifecycle.addObserver(this);
+        attachActivityBinding(binding);
         bindCallbackChannel();
         log("onAttachedToActivity : Activity attached!", LogLevel.INFO);
+        onNotificationClicked(activity.getIntent());
     }
 
     @Override
     public void onDetachedFromActivityForConfigChanges() {
         lifecycle.removeObserver(this);
+        detachActivityBinding();
         this.activity = null;
         log("onDetachedFromActivityForConfigChanges : Activity is no more valid", LogLevel.INFO);
     }
@@ -267,6 +278,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         this.activity = binding.getActivity();
         lifecycle = FlutterLifecycleAdapter.getActivityLifecycle(binding);
         lifecycle.addObserver(this);
+        attachActivityBinding(binding);
         bindCallbackChannel();
         log("onReattachedToActivityForConfigChanges : Activity attached!", LogLevel.INFO);
     }
@@ -274,8 +286,42 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     @Override
     public void onDetachedFromActivity() {
         lifecycle.removeObserver(this);
+        detachActivityBinding();
         this.activity = null;
         log("onDetachedFromActivity : Activity is no more valid", LogLevel.INFO);
+    }
+
+    /**
+     * Listens for the intents the Activity gets while it runs, such as the one Countly Push sends
+     * when a notification of a running app is clicked.
+     *
+     * @param binding the binding of the Activity the plugin is attached to
+     */
+    private void attachActivityBinding(@NonNull ActivityPluginBinding binding) {
+        activityBinding = binding;
+        binding.addOnNewIntentListener(this);
+    }
+
+    /**
+     * Stops listening for the intents of the Activity the plugin is detached from.
+     */
+    private void detachActivityBinding() {
+        if (activityBinding != null) {
+            activityBinding.removeOnNewIntentListener(this);
+            activityBinding = null;
+        }
+    }
+
+    /**
+     * Hands the notification a user clicked while the app ran to "onNotification".
+     *
+     * @param intent the new intent of the Activity
+     * @return false, so other plugins get the intent too
+     */
+    @Override
+    public boolean onNewIntent(@NonNull Intent intent) {
+        onNotificationClicked(intent);
+        return false;
     }
 
     //----------ACTIVITY AWARE STUFF OVER-----------------
@@ -1432,6 +1478,31 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     onNotification(notification);
                 }
                 result.success(null);
+            } else if ("testOnNotificationClick".equals(call.method)) {
+                JSONObject payload = args.getJSONObject(0);
+                Map<String, String> notification = new HashMap<>();
+                Iterator<String> keys = payload.keys();
+                while (keys.hasNext()) {
+                    String key = keys.next();
+                    notification.put(key, payload.optString(key));
+                }
+                Bundle messageBundle = new Bundle();
+                messageBundle.putParcelable(CountlyPush.EXTRA_MESSAGE, (Parcelable) CountlyPush.decodeMessage(notification));
+                Intent clickIntent = new Intent();
+                clickIntent.putExtra(CountlyPush.EXTRA_MESSAGE, messageBundle);
+                clickIntent.putExtra(CountlyPush.EXTRA_ACTION_INDEX, 0);
+                // The Activity gets the intent from another process, so it arrives parcelled.
+                Parcel parcel = Parcel.obtain();
+                try {
+                    clickIntent.writeToParcel(parcel, 0);
+                    parcel.setDataPosition(0);
+                    clickIntent = Intent.CREATOR.createFromParcel(parcel);
+                } finally {
+                    parcel.recycle();
+                }
+                onNotificationClicked(clickIntent);
+                onNotificationClicked(clickIntent);
+                result.success(null);
             }
             //------------------End------------------------------------
 
@@ -1541,6 +1612,43 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
         if (listener != null) {
             listener.callback(notificationString);
+        }
+    }
+
+    /**
+     * Hands the notification a user clicked to "onNotification", as iOS does. Countly Push records the
+     * click and opens the app with the clicked message in the intent, so this only reads it. An intent
+     * reopened from the recent apps, or one already handed over, is skipped, so a click is reported once.
+     *
+     * @param intent the intent that started the Activity or was sent to it
+     */
+    private void onNotificationClicked(Intent intent) {
+        if (BUILDING_WITH_PUSH_DISABLED || intent == null || (intent.getFlags() & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0) {
+            return;
+        }
+        try {
+            intent.setExtrasClassLoader(CountlyPush.class.getClassLoader());
+            if (!intent.hasExtra(CountlyPush.EXTRA_MESSAGE) || intent.getBooleanExtra(NOTIFICATION_CLICK_HANDLED_EXTRA, false)) {
+                return;
+            }
+            Bundle messageBundle = intent.getBundleExtra(CountlyPush.EXTRA_MESSAGE);
+            if (messageBundle == null) {
+                return;
+            }
+            messageBundle.setClassLoader(CountlyPush.class.getClassLoader());
+            Parcelable message = messageBundle.getParcelable(CountlyPush.EXTRA_MESSAGE);
+            if (!(message instanceof CountlyPush.Message)) {
+                return;
+            }
+            intent.putExtra(NOTIFICATION_CLICK_HANDLED_EXTRA, true);
+            Map<String, String> notification = new HashMap<>();
+            for (String key : ((CountlyPush.Message) message).dataKeys()) {
+                notification.put(key, ((CountlyPush.Message) message).data(key));
+            }
+            log("onNotificationClicked, a notification was clicked, button index: " + intent.getIntExtra(CountlyPush.EXTRA_ACTION_INDEX, 0), LogLevel.DEBUG);
+            onNotification(notification);
+        } catch (RuntimeException exception) {
+            log("onNotificationClicked, could not read the clicked notification", exception, LogLevel.WARNING);
         }
     }
 

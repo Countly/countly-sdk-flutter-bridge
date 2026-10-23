@@ -578,7 +578,8 @@ class Countly {
   }
 
   /// Set callback to receive push notifications
-  /// The callback gets each notification once, as a JSON string.
+  /// The callback gets each notification once, as a JSON string, and a notification the user clicks
+  /// once more when the click opens the app.
   /// @param { callback listner } callback
   /// returns the error message or an empty string if there is no error
   static Future<String?> onNotification(Function(String) callback) async {
