@@ -99,7 +99,7 @@ void main() {
     expect(received.first['payload'], {'promo': 'half'});
   });
 
-  test('onNotificationOpened gets the clicks the service worker posts, with the clicked button', () async {
+  test('onNotificationOpened gets each click the service worker posts once, with the clicked button', () async {
     final CountlyConfig config = testConfig()..giveAllConsents();
     config.push.setVapidPublicKey(vapidPublicKey);
     await Countly.initWithConfig(config);
@@ -109,17 +109,31 @@ void main() {
     }
 
     final List<Map<String, dynamic>> received = [];
-    final List<List<Object>> opened = [];
     // ignore: unawaited_futures
     Countly.onNotification((String notification) => received.add(jsonDecode(notification) as Map<String, dynamic>));
+
+    // A click the page still has to record, handed over twice before onNotificationOpened is set, the
+    // way the worker hands over the click that opened the page.
+    final Map<String, Object> click = {'type': 'countly_push_action', 'aid': 'action_1', 'messageId': 'message_2', 'buttonIndex': 1, 'buttonTitle': 'Open'};
+    postFromServiceWorker(click);
+    postFromServiceWorker(click);
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    final List<List<Object>> opened = [];
     expect(await Countly.onNotificationOpened((String notification, int actionIndex) => opened.add([(jsonDecode(notification) as Map<String, dynamic>)['messageId'] as String, actionIndex])), '');
-    postFromServiceWorker({'type': 'countly_push_received', 'messageId': 'message_2', 'title': 'Sale'});
-    postFromServiceWorker({'type': 'countly_push_action', 'aid': 'action_1', 'messageId': 'message_2', 'buttonIndex': 1, 'buttonTitle': 'Open', 'recorded': true});
+    // A click the worker recorded itself, on the notification body.
+    postFromServiceWorker({'type': 'countly_push_received', 'messageId': 'message_3', 'title': 'Sale'});
+    postFromServiceWorker({'type': 'countly_push_action', 'aid': 'action_2', 'messageId': 'message_3', 'buttonIndex': 0, 'recorded': true});
     await Future<void>.delayed(const Duration(milliseconds: 300));
 
     expect(opened, [
       ['message_2', 1],
+      ['message_3', 0],
     ]);
-    expect(received.map((n) => n['type']).toList(), ['received', 'clicked']);
+    expect(received.map((n) => n['type']).toList(), ['clicked', 'received', 'clicked']);
+    final List<Map<String, dynamic>> pushActions = (await queuedEvents()).where((Map<String, dynamic> event) => event['key'] == '[CLY]_push_action').toList();
+    expect(pushActions.map((Map<String, dynamic> event) => event['segmentation']).toList(), [
+      {'i': 'message_2', 'b': 1, 'p': 'w'},
+    ]);
   });
 }
