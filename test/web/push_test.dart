@@ -98,4 +98,28 @@ void main() {
     expect(received.first['message'], 'Half off today');
     expect(received.first['payload'], {'promo': 'half'});
   });
+
+  test('onNotificationOpened gets the clicks the service worker posts, with the clicked button', () async {
+    final CountlyConfig config = testConfig()..giveAllConsents();
+    config.push.setVapidPublicKey(vapidPublicKey);
+    await Countly.initWithConfig(config);
+    if (!webSdkHasPush()) {
+      markTestSkipped('The loaded Web SDK has no web push');
+      return;
+    }
+
+    final List<Map<String, dynamic>> received = [];
+    final List<List<Object>> opened = [];
+    // ignore: unawaited_futures
+    Countly.onNotification((String notification) => received.add(jsonDecode(notification) as Map<String, dynamic>));
+    expect(await Countly.onNotificationOpened((String notification, int actionIndex) => opened.add([(jsonDecode(notification) as Map<String, dynamic>)['messageId'] as String, actionIndex])), '');
+    postFromServiceWorker({'type': 'countly_push_received', 'messageId': 'message_2', 'title': 'Sale'});
+    postFromServiceWorker({'type': 'countly_push_action', 'aid': 'action_1', 'messageId': 'message_2', 'buttonIndex': 1, 'buttonTitle': 'Open', 'recorded': true});
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    expect(opened, [
+      ['message_2', 1],
+    ]);
+    expect(received.map((n) => n['type']).toList(), ['received', 'clicked']);
+  });
 }

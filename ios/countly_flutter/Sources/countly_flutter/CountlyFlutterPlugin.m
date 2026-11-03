@@ -77,6 +77,9 @@ static FlutterMethodChannel *callbackChannel = nil;
     if (callbackChannel == self.channel) {
         callbackChannel = nil;
     }
+#ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
+    [CountlyFLPushNotifications.sharedInstance stopNotificationOpenedRequestOf:self.channel];
+#endif
 }
 
 /**
@@ -211,6 +214,24 @@ static FlutterMethodChannel *callbackChannel = nil;
         for (NSDictionary *payload in payloads) {
             [CountlyFLPushNotifications.sharedInstance onNotification:payload];
         }
+#endif
+        result(nil);
+    } else if ([@"testOnNotificationOpened" isEqualToString:call.method]) {
+#ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
+        NSDictionary *payload = [command objectAtIndex:0];
+        NSInteger actionIndex = [[command objectAtIndex:2] integerValue];
+        NSString *actionIdentifier = UNNotificationDefaultActionIdentifier;
+        if (actionIndex > 0) {
+            actionIdentifier = [NSString stringWithFormat:@"%@%ld", kCountlyActionIdentifier, (long)actionIndex];
+        } else if (actionIndex < 0) {
+            actionIdentifier = UNNotificationDismissActionIdentifier;
+        }
+        CountlyFLPushNotifications *push = CountlyFLPushNotifications.sharedInstance;
+        [push onNotificationResponse:payload actionIdentifier:actionIdentifier];
+        // The app delegate passes the notification on again while the plugin forwards it.
+        [push forwardToAppDelegate:^{
+          [CountlyFlutterPlugin onNotification:payload];
+        }];
 #endif
         result(nil);
     } else if ([@"getServerConfig" isEqualToString:call.method]) {
@@ -569,6 +590,11 @@ static FlutterMethodChannel *callbackChannel = nil;
 #ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
         COUNTLY_FLUTTER_LOG(@"registerForNotification");
         [CountlyFLPushNotifications.sharedInstance registerForNotification:result];
+#endif
+    } else if ([@"registerForNotificationOpened" isEqualToString:call.method]) {
+#ifndef COUNTLY_EXCLUDE_PUSHNOTIFICATIONS
+        COUNTLY_FLUTTER_LOG(@"registerForNotificationOpened");
+        [CountlyFLPushNotifications.sharedInstance registerForNotificationOpened:result owner:self.channel];
 #endif
     } else if ([@"userData_setProperty" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -1970,6 +1996,14 @@ static FlutterMethodChannel *callbackChannel = nil;
  */
 + (void)onNotification:(NSDictionary *_Nullable)notification {
     COUNTLY_FLUTTER_LOG(@"onNotification, push notifications are not available in this flavour");
+}
+
+/**
+ * Does nothing: push notifications are not part of the no-push flavour, but the method stays so
+ * an app delegate written for the push flavour keeps working.
+ */
++ (void)onNotificationResponse:(UNNotificationResponse *_Nullable)response {
+    COUNTLY_FLUTTER_LOG(@"onNotificationResponse, push notifications are not available in this flavour");
 }
 #endif
 

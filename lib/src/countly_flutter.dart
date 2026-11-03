@@ -578,7 +578,8 @@ class Countly {
   }
 
   /// Set callback to receive push notifications
-  /// The callback gets each notification once, as a JSON string, and again when a click on it opens the app.
+  /// The callback gets each notification once, as a JSON string. In iOS it also gets a notification
+  /// the user clicks. To react to clicks the same way on every platform, use "onNotificationOpened".
   /// @param { callback listner } callback
   /// returns the error message or an empty string if there is no error
   static Future<String?> onNotification(Function(String) callback) async {
@@ -594,6 +595,50 @@ class Countly {
       callback(error.toString());
     });
     return '';
+  }
+
+  /// Set a callback that gets the push notification a user clicks, in Android, iOS and web.
+  /// It gets the notification as a JSON string, the same one "onNotification" gets, and the index of
+  /// the clicked action: 0 for the notification itself, 1 and up for its buttons. A click made before
+  /// the callback was set, for example the one that started the app, is delivered once it is set.
+  /// Setting it again replaces the previous callback.
+  /// In Android it gets the clicks that open the app; clicks made while the app runs need a
+  /// "singleTop" launcher Activity, as Flutter creates it. In iOS, pass clicks on with
+  /// "CountlyFlutterPlugin.onNotificationResponse(response)" in your AppDelegate's
+  /// "userNotificationCenter(_:didReceive:withCompletionHandler:)".
+  /// @param { callback listener } callback
+  /// returns the error message or an empty string if there is no error
+  static Future<String?> onNotificationOpened(Function(String notification, int actionIndex) callback) async {
+    if (BUILDING_WITH_PUSH_DISABLED) {
+      log('onNotificationOpened, $_pushDisabledMsg', logLevel: LogLevel.ERROR);
+      return _pushDisabledMsg;
+    }
+    log('Calling "onNotificationOpened"');
+    if (_notificationOpenedCallback == null) {
+      _waitForNotificationOpened();
+    }
+    _notificationOpenedCallback = callback;
+    return '';
+  }
+
+  /// The callback set with "onNotificationOpened", or null while no click is waited for.
+  static Function(String notification, int actionIndex)? _notificationOpenedCallback;
+
+  /// Asks for the next clicked push notification, hands it to the current "onNotificationOpened"
+  /// callback and asks again. A callback that throws is logged and does not stop the next clicks.
+  static void _waitForNotificationOpened() {
+    _channel.invokeMethod('registerForNotificationOpened').then((value) {
+      final Map<dynamic, dynamic> opened = value as Map<dynamic, dynamic>;
+      try {
+        _notificationOpenedCallback?.call(opened['notification'] as String, opened['actionIndex'] as int);
+      } catch (e) {
+        log('onNotificationOpened, the callback failed: $e', logLevel: LogLevel.ERROR);
+      }
+      _waitForNotificationOpened();
+    }).catchError((Object error) {
+      log('onNotificationOpened, $error', logLevel: LogLevel.ERROR);
+      _notificationOpenedCallback = null;
+    });
   }
 
   /// Starts session for manual session handling.

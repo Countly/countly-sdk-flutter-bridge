@@ -44,12 +44,15 @@ Future<void> deliverTestNotifications(List<Map<String, String>> payloads) async 
   });
 }
 
-/// Starts the Activity, for the plugin, with the intent Countly Push opens the app with when the
-/// given notification is clicked, twice, the way the Activity can read the same intent again. With
-/// [restored], the Activity comes back from saved state instead of starting fresh. Android only.
-Future<void> deliverTestNotificationClick(Map<String, String> payload, {bool restored = false}) async {
-  await _channelTest.invokeMethod('testOnNotificationClick', <String, dynamic>{
-    'data': json.encode([payload, restored]),
+/// Hands the plugin a click on the given notification, on [actionIndex]: 0 for the notification, 1 and
+/// up for its buttons, and in iOS -1 for a dismissal. In Android the plugin reads the intent Countly
+/// Push opens the app with twice, the way the Activity can read the same intent again, and [start] is
+/// "fresh", "restored" (from saved state), "newIntent" (sent to the running Activity) or "history"
+/// (reopened from the recent apps). In iOS it is the response the app delegate passes on, after which
+/// the app delegate passes the notification on again while the plugin forwards it.
+Future<void> deliverTestNotificationOpened(Map<String, Object> payload, {String start = 'fresh', int actionIndex = 0}) async {
+  await _channelTest.invokeMethod('testOnNotificationOpened', <String, dynamic>{
+    'data': json.encode([payload, start, actionIndex]),
   });
 }
 

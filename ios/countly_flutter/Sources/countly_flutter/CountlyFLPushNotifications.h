@@ -20,6 +20,10 @@
 - (void)askForNotificationPermission;
 - (void)onNotification:(NSDictionary *_Nullable)notification;
 - (void)registerForNotification:(FlutterResult _Nonnull)result;
+- (void)registerForNotificationOpened:(FlutterResult _Nonnull)result owner:(id _Nonnull)owner;
+- (void)stopNotificationOpenedRequestOf:(id _Nonnull)owner;
 - (void)onNotificationResponse:(UNNotificationResponse *_Nullable)response;
+- (void)onNotificationResponse:(NSDictionary *_Nullable)notification actionIdentifier:(NSString *_Nullable)actionIdentifier;
+- (void)forwardToAppDelegate:(void (^_Nonnull)(void))forward;
 #endif
 @end
