@@ -22,6 +22,10 @@
   * "changeWithoutMerge", and "setID" when it does not merge, now start a session for the new device ID only with automatic session tracking. With manual sessions, call "beginSession" for the new user yourself
   * while a page can send, its unsent events and requests are now kept in the tab's sessionStorage instead of localStorage. Requests that cannot be sent yet, for example while offline, still wait in localStorage
 
+* Added "Countly.onNotificationOpened", whose callback gets each clicked push notification, as "onNotification" gets it, and the index of the clicked action (0 for the notification, 1 and up for its buttons), in Android, iOS and Web:
+  * a click made before the callback is set, for example the one that started the app, is delivered once it is set
+  * in Android it gets the clicks that open the app; clicks made while the app runs need a "singleTop" launcher Activity, as Flutter creates it
+  * in iOS, call the now public "CountlyFlutterPlugin.onNotificationResponse(response)" in the AppDelegate's "userNotificationCenter(_:didReceive:withCompletionHandler:)" so that clicks made while the SDK runs reach it
 * Added the "sendPushTokenAlways" config option, which sends the push token even for users who have not allowed notifications, in iOS.
 * Added support for the notification small icon given by the "com.google.firebase.messaging.default_notification_icon" meta-data in Android.
 * Added the "setAllowedIntentSchemes" option to "CountlyConfig.content" and "CountlyConfig.push" for limiting the URI schemes that content, feedback widget and push notification links open, in Android:
@@ -70,6 +74,7 @@
   * the SDK caused StrictMode violations
 
 * Mitigated issues in iOS where:
+  * "onNotification" got a push notification twice before init when the AppDelegate also passed it on to the plugin
   * a failed remote config, variant or experiment download never called its callback. Downloads without remote config consent, in temporary device ID mode or while SDK behavior settings disable networking now call it with an error
   * rating and feedback calls never completed without feedback consent, in temporary device ID mode or with networking disabled, and "getFeedbackWidgetData" threw a type error
   * "getAvailableFeedbackWidgets" returned an empty list without an error when the widget list could not be fetched

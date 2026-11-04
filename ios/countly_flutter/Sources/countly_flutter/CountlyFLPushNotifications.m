@@ -14,6 +14,13 @@ NSUInteger const kCountlyFLMaxPendingNotifications = 50;
 NSMutableArray<NSString *> *pendingNotifications = nil;
 FlutterResult notificationListener = nil;
 NSMutableArray *notifications = nil;
+// Clicked notifications no "onNotificationOpened" request waited for yet, oldest first.
+static NSMutableArray<NSDictionary *> *pendingOpenedNotifications = nil;
+static FlutterResult notificationOpenedListener = nil;
+// The channel of the engine whose Dart made the waiting "onNotificationOpened" request.
+static id notificationOpenedListenerOwner = nil;
+// Set while a notification is passed on to the app delegate, whose calls back into this class are then skipped.
+static BOOL isForwardingToAppDelegate = NO;
 
 typedef NSString *CLYUserDefaultKey NS_EXTENSIBLE_STRING_ENUM;
 CLYUserDefaultKey const CLYPushNotificationsKey = @"notificationsKey";
@@ -79,6 +86,37 @@ CLYUserDefaultKey const CLYPushButtonIndexKey = @"notificationBtnIndexKey";
     });
 }
 
+/**
+ * Hands the next clicked push notification to a one-shot listener that answers a single Dart
+ * request. A click made while no listener was waiting is delivered right away; a newer request
+ * replaces the waiting one.
+ */
+- (void)registerForNotificationOpened:(FlutterResult)result owner:(id)owner {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      if (pendingOpenedNotifications.count > 0) {
+          NSDictionary *pendingOpened = pendingOpenedNotifications.firstObject;
+          [pendingOpenedNotifications removeObjectAtIndex:0];
+          result(pendingOpened);
+          return;
+      }
+      notificationOpenedListener = result;
+      notificationOpenedListenerOwner = owner;
+    });
+}
+
+/**
+ * Drops the waiting "onNotificationOpened" request of an engine that goes away, so that the next
+ * click waits for the next engine's request instead of being answered to a dead one.
+ */
+- (void)stopNotificationOpenedRequestOf:(id)owner {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      if (notificationOpenedListenerOwner == owner) {
+          notificationOpenedListener = nil;
+          notificationOpenedListenerOwner = nil;
+      }
+    });
+}
+
 - (void)recordPushActions {
     NSMutableArray *_notifications = [[NSUserDefaults standardUserDefaults] mutableArrayValueForKey:CLYPushNotificationsKey];
     if (_notifications != nil) {
@@ -128,10 +166,13 @@ CLYUserDefaultKey const CLYPushButtonIndexKey = @"notificationBtnIndexKey";
     [self onNotificationResponse:response];
 
     id<UNUserNotificationCenterDelegate> appDelegate = (id<UNUserNotificationCenterDelegate>)UIApplication.sharedApplication.delegate;
-    if ([appDelegate respondsToSelector:@selector(userNotificationCenter:didReceiveNotificationResponse:withCompletionHandler:)])
-        [appDelegate userNotificationCenter:center didReceiveNotificationResponse:response withCompletionHandler:completionHandler];
-    else
+    if ([appDelegate respondsToSelector:@selector(userNotificationCenter:didReceiveNotificationResponse:withCompletionHandler:)]) {
+        [self forwardToAppDelegate:^{
+          [appDelegate userNotificationCenter:center didReceiveNotificationResponse:response withCompletionHandler:completionHandler];
+        }];
+    } else {
         completionHandler();
+    }
 }
 
 // When app is running and notification received
@@ -155,10 +196,33 @@ CLYUserDefaultKey const CLYPushButtonIndexKey = @"notificationBtnIndexKey";
 
     id<UNUserNotificationCenterDelegate> appDelegate = (id<UNUserNotificationCenterDelegate>)UIApplication.sharedApplication.delegate;
 
-    if ([appDelegate respondsToSelector:@selector(userNotificationCenter:willPresentNotification:withCompletionHandler:)])
-        [appDelegate userNotificationCenter:center willPresentNotification:notification withCompletionHandler:completionHandler];
-    else
+    if ([appDelegate respondsToSelector:@selector(userNotificationCenter:willPresentNotification:withCompletionHandler:)]) {
+        [self forwardToAppDelegate:^{
+          [appDelegate userNotificationCenter:center willPresentNotification:notification withCompletionHandler:completionHandler];
+        }];
+    } else {
         completionHandler(UNNotificationPresentationOptionNone);
+    }
+}
+
+/**
+ * Runs the block that passes a notification on to the app delegate. Calls the app delegate makes back
+ * into this class from inside it are skipped, because the notification was handled already.
+ */
+- (void)forwardToAppDelegate:(void (^)(void))forward {
+    isForwardingToAppDelegate = YES;
+    forward();
+    isForwardingToAppDelegate = NO;
+}
+
+/**
+ * Hands a push notification to "onNotification" as JSON text.
+ */
+- (void)onNotification:(NSDictionary *)notificationMessage {
+    if (!notificationMessage || isForwardingToAppDelegate) {
+        return;
+    }
+    [self deliverNotification:[CountlyFLPushNotifications toJSON:notificationMessage]];
 }
 
 /**
@@ -166,11 +230,7 @@ CLYUserDefaultKey const CLYPushButtonIndexKey = @"notificationBtnIndexKey";
  * for the next one. The listener is consumed, so a Dart request is never answered twice; the queue
  * keeps the newest kCountlyFLMaxPendingNotifications notifications.
  */
-- (void)onNotification:(NSDictionary *)notificationMessage {
-    if (!notificationMessage) {
-        return;
-    }
-    NSString *notificationJSON = [CountlyFLPushNotifications toJSON:notificationMessage];
+- (void)deliverNotification:(NSString *)notificationJSON {
     CLY_LOG_D(@"%s, notification received: %@", __FUNCTION__, notificationJSON);
     dispatch_async(dispatch_get_main_queue(), ^{
       FlutterResult listener = notificationListener;
@@ -189,11 +249,29 @@ CLYUserDefaultKey const CLYPushButtonIndexKey = @"notificationBtnIndexKey";
     });
 }
 
+/**
+ * Hands a response to a notification to "onNotification", and a click to "onNotificationOpened".
+ */
 - (void)onNotificationResponse:(UNNotificationResponse *)response API_AVAILABLE(ios(10.0)) {
-    NSDictionary *notificationDictionary = response.notification.request.content.userInfo;
+    if (isForwardingToAppDelegate) {
+        return;
+    }
+    [self onNotificationResponse:response.notification.request.content.userInfo actionIdentifier:response.actionIdentifier];
+}
+
+/**
+ * Keeps the response to a notification for "recordPushActions" when the SDK has not started yet and
+ * hands the notification to "onNotification". A click on a Countly notification or on one of its
+ * buttons also goes to "onNotificationOpened" with the index of the clicked action; a dismissal or
+ * another app's action does not.
+ */
+- (void)onNotificationResponse:(NSDictionary *)notificationDictionary actionIdentifier:(NSString *)actionIdentifier {
+    if (!notificationDictionary) {
+        return;
+    }
     NSInteger buttonIndex = 0;
-    if ([response.actionIdentifier hasPrefix:kCountlyActionIdentifier]) {
-        buttonIndex = [[response.actionIdentifier stringByReplacingOccurrencesOfString:kCountlyActionIdentifier withString:@""] integerValue];
+    if ([actionIdentifier hasPrefix:kCountlyActionIdentifier]) {
+        buttonIndex = [[actionIdentifier stringByReplacingOccurrencesOfString:kCountlyActionIdentifier withString:@""] integerValue];
     }
     if (!CountlyCommon.sharedInstance.hasStarted) {
         if (notifications == nil) {
@@ -205,7 +283,37 @@ CLYUserDefaultKey const CLYPushButtonIndexKey = @"notificationBtnIndexKey";
         [[NSUserDefaults standardUserDefaults] setObject:notifications forKey:CLYPushNotificationsKey];
         [[NSUserDefaults standardUserDefaults] synchronize];
     }
-    [self onNotification:notificationDictionary];
+    NSString *notificationJSON = [CountlyFLPushNotifications toJSON:notificationDictionary];
+    [self deliverNotification:notificationJSON];
+    BOOL clicked = buttonIndex > 0 || [actionIdentifier isEqualToString:UNNotificationDefaultActionIdentifier];
+    if (clicked && notificationDictionary[kCountlyPNKeyCountlyPayload][kCountlyPNKeyNotificationID]) {
+        [self deliverNotificationOpened:notificationJSON actionIndex:buttonIndex];
+    }
+}
+
+/**
+ * Delivers a clicked push notification, as the JSON text "onNotification" got, and the index of the
+ * clicked action to the waiting listener, or queues it until Dart asks. The listener is consumed, so a
+ * Dart request is never answered twice; the queue keeps the newest kCountlyFLMaxPendingNotifications.
+ */
+- (void)deliverNotificationOpened:(NSString *)notificationJSON actionIndex:(NSInteger)actionIndex {
+    NSDictionary *opened = @{@"notification" : notificationJSON, @"actionIndex" : @(actionIndex)};
+    dispatch_async(dispatch_get_main_queue(), ^{
+      FlutterResult listener = notificationOpenedListener;
+      notificationOpenedListener = nil;
+      notificationOpenedListenerOwner = nil;
+      if (listener != nil) {
+          listener(opened);
+          return;
+      }
+      if (pendingOpenedNotifications == nil) {
+          pendingOpenedNotifications = [NSMutableArray array];
+      }
+      if (pendingOpenedNotifications.count >= kCountlyFLMaxPendingNotifications) {
+          [pendingOpenedNotifications removeObjectAtIndex:0];
+      }
+      [pendingOpenedNotifications addObject:opened];
+    });
 }
 
 + (NSString *)toJSON:(NSDictionary *)json {

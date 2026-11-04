@@ -9,6 +9,7 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
+import io.flutter.plugin.common.PluginRegistry;
 // import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 import ly.count.android.sdk.Countly;
@@ -34,11 +35,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.app.Activity;
 import android.app.Application;
+import android.app.Instrumentation;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Parcel;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -55,6 +60,7 @@ import android.app.NotificationManager;
 import android.app.NotificationChannel;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
@@ -75,7 +81,7 @@ import com.google.firebase.FirebaseApp;
 /**
  * CountlyFlutterPlugin
  */
-public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
+public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver, PluginRegistry.NewIntentListener, ActivityPluginBinding.OnSaveInstanceStateListener {
     private static final String TAG = "CountlyFlutterPlugin";
     private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "26.1.1";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
@@ -87,6 +93,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private static final String POST_NOTIFICATIONS_PERMISSION = "android.permission.POST_NOTIFICATIONS";
     private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 4119;
     private static final ArrayDeque<String> pendingNotifications = new ArrayDeque<>();
+    /** Marks an intent whose clicked notification was already handed to Dart. */
+    private static final String NOTIFICATION_CLICK_HANDLED_EXTRA = "ly.count.dart.countly_flutter.notificationClickHandled";
     private static final String PREFERENCES_NAME = "ly.count.dart.countly_flutter";
     private static final String PUSH_ALLOWED_INTENT_SCHEMES_KEY = "pushAllowedIntentSchemes";
     /** The URI schemes push notification links may open, from the last init, or null for the SDK default. */
@@ -159,6 +167,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
     private Context context;
     private Activity activity;
+    private ActivityPluginBinding activityBinding;
+    // Clicks are read from the Activity of this engine and handed to its Dart, all on the main thread.
+    /** Clicked notifications this engine's Dart did not ask for yet, oldest first. */
+    private final ArrayDeque<Map<String, Object>> pendingOpenedNotifications = new ArrayDeque<>();
+    /** The waiting "onNotificationOpened" request of this engine's Dart, answered at most once. */
+    private Result notificationOpenedListener;
     private static Boolean isDebug = false;
     private CountlyConfig config = new CountlyConfig();
     private static Callback notificationListener = null;
@@ -251,6 +265,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         this.activity = binding.getActivity();
         lifecycle = FlutterLifecycleAdapter.getActivityLifecycle(binding);
         lifecycle.addObserver(this);
+        attachActivityBinding(binding);
         bindCallbackChannel();
         log("onAttachedToActivity : Activity attached!", LogLevel.INFO);
     }
@@ -258,6 +273,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     @Override
     public void onDetachedFromActivityForConfigChanges() {
         lifecycle.removeObserver(this);
+        detachActivityBinding();
         this.activity = null;
         log("onDetachedFromActivityForConfigChanges : Activity is no more valid", LogLevel.INFO);
     }
@@ -267,6 +283,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         this.activity = binding.getActivity();
         lifecycle = FlutterLifecycleAdapter.getActivityLifecycle(binding);
         lifecycle.addObserver(this);
+        attachActivityBinding(binding);
         bindCallbackChannel();
         log("onReattachedToActivityForConfigChanges : Activity attached!", LogLevel.INFO);
     }
@@ -274,8 +291,68 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     @Override
     public void onDetachedFromActivity() {
         lifecycle.removeObserver(this);
+        detachActivityBinding();
         this.activity = null;
         log("onDetachedFromActivity : Activity is no more valid", LogLevel.INFO);
+    }
+
+    /**
+     * Listens for the intents the Activity gets while it runs, such as the one Countly Push sends
+     * when a notification of a running app is clicked, and for the Activity's saved state, which
+     * tells a fresh Activity from a restored one.
+     *
+     * @param binding the binding of the Activity the plugin is attached to
+     */
+    private void attachActivityBinding(@NonNull ActivityPluginBinding binding) {
+        activityBinding = binding;
+        binding.addOnNewIntentListener(this);
+        binding.addOnSaveStateListener(this);
+    }
+
+    /**
+     * Stops listening for the intents and the saved state of the Activity the plugin is detached from.
+     */
+    private void detachActivityBinding() {
+        if (activityBinding != null) {
+            activityBinding.removeOnNewIntentListener(this);
+            activityBinding.removeOnSaveStateListener(this);
+            activityBinding = null;
+        }
+    }
+
+    /**
+     * Hands the notification a user clicked while the app ran to "onNotificationOpened".
+     *
+     * @param intent the new intent of the Activity
+     * @return false, so other plugins get the intent too
+     */
+    @Override
+    public boolean onNewIntent(@NonNull Intent intent) {
+        onNotificationClicked(intent);
+        return false;
+    }
+
+    /**
+     * Saves nothing: having saved state at all is what marks an Activity as restored.
+     *
+     * @param bundle the state the Activity saves
+     */
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle bundle) {
+    }
+
+    /**
+     * Hands the notification a user clicked to start the Activity to "onNotificationOpened". Only a fresh
+     * Activity is read: one restored after a configuration change, or after the system ended the app
+     * in the background, still carries the intent of a click that was already handed over.
+     *
+     * @param bundle the state the Activity saved, or null when it starts fresh
+     */
+    @Override
+    public void onRestoreInstanceState(@Nullable Bundle bundle) {
+        if (bundle == null && activity != null) {
+            onNotificationClicked(activity.getIntent());
+        }
     }
 
     //----------ACTIVITY AWARE STUFF OVER-----------------
@@ -538,6 +615,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         });
                     }
                 });
+            } else if ("registerForNotificationOpened".equals(call.method)) {
+                registerForNotificationOpened(result);
             } else if ("beginSession".equals(call.method)) {
                 Countly.sharedInstance().sessions().beginSession();
                 result.success("beginSession!");
@@ -1432,6 +1511,36 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     onNotification(notification);
                 }
                 result.success(null);
+            } else if ("testOnNotificationOpened".equals(call.method)) {
+                Map<String, String> notification = toMapString(args.getJSONObject(0));
+                String start = args.optString(1, "fresh");
+                Bundle messageBundle = new Bundle();
+                messageBundle.putParcelable(CountlyPush.EXTRA_MESSAGE, CountlyPush.decodeMessage(notification));
+                Intent clickIntent = new Intent();
+                clickIntent.putExtra(CountlyPush.EXTRA_MESSAGE, messageBundle);
+                clickIntent.putExtra(CountlyPush.EXTRA_ACTION_INDEX, args.optInt(2));
+                // The Activity gets the intent from another process, so it arrives parcelled.
+                Parcel parcel = Parcel.obtain();
+                try {
+                    clickIntent.writeToParcel(parcel, 0);
+                    parcel.setDataPosition(0);
+                    clickIntent = Intent.CREATOR.createFromParcel(parcel);
+                } finally {
+                    parcel.recycle();
+                }
+                if ("history".equals(start)) {
+                    clickIntent.addFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY);
+                }
+                if ("newIntent".equals(start)) {
+                    new Instrumentation().callActivityOnNewIntent(activity, clickIntent);
+                    new Instrumentation().callActivityOnNewIntent(activity, clickIntent);
+                } else {
+                    Bundle savedState = "restored".equals(start) ? new Bundle() : null;
+                    activity.setIntent(clickIntent);
+                    onRestoreInstanceState(savedState);
+                    onRestoreInstanceState(savedState);
+                }
+                result.success(null);
             }
             //------------------End------------------------------------
 
@@ -1541,6 +1650,82 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
         if (listener != null) {
             listener.callback(notificationString);
+        }
+    }
+
+    /**
+     * Answers a single Dart "onNotificationOpened" request with the next clicked push notification.
+     * A notification clicked while no request was waiting is delivered right away; otherwise the
+     * request waits for the next click. A newer request replaces the waiting one.
+     *
+     * @param result the Dart request, answered at most once
+     */
+    private void registerForNotificationOpened(Result result) {
+        Map<String, Object> opened = pendingOpenedNotifications.poll();
+        if (opened != null) {
+            result.success(opened);
+            return;
+        }
+        notificationOpenedListener = result;
+    }
+
+    /**
+     * Delivers a clicked push notification to the waiting "onNotificationOpened" request, or keeps it
+     * until Dart asks. The request is consumed, so it is never answered twice; the queue keeps the
+     * newest {@value #MAX_PENDING_NOTIFICATIONS} clicks.
+     *
+     * @param notification the notification payload, the same that "onNotification" got
+     * @param actionIndex 0 for the notification itself, 1 and up for its buttons
+     */
+    private void onNotificationOpened(Map<String, String> notification, int actionIndex) {
+        Map<String, Object> opened = new HashMap<>();
+        opened.put("notification", new JSONObject(notification).toString());
+        opened.put("actionIndex", actionIndex);
+        Result listener = notificationOpenedListener;
+        notificationOpenedListener = null;
+        if (listener != null) {
+            listener.success(opened);
+            return;
+        }
+        if (pendingOpenedNotifications.size() >= MAX_PENDING_NOTIFICATIONS) {
+            pendingOpenedNotifications.poll();
+        }
+        pendingOpenedNotifications.add(opened);
+    }
+
+    /**
+     * Hands the notification a user clicked to "onNotificationOpened". Countly Push records the click
+     * and, when the click opens the app, puts the clicked message in the intent, so this only reads it.
+     * An intent reopened from the recent apps, or one already handed over, is skipped, so a click is
+     * reported once.
+     *
+     * @param intent the intent that started the Activity or was sent to it
+     */
+    private void onNotificationClicked(Intent intent) {
+        if (BUILDING_WITH_PUSH_DISABLED || intent == null || (intent.getFlags() & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0) {
+            return;
+        }
+        try {
+            intent.setExtrasClassLoader(CountlyPush.class.getClassLoader());
+            Bundle messageBundle = intent.getBundleExtra(CountlyPush.EXTRA_MESSAGE);
+            if (messageBundle == null || intent.getBooleanExtra(NOTIFICATION_CLICK_HANDLED_EXTRA, false)) {
+                return;
+            }
+            messageBundle.setClassLoader(CountlyPush.class.getClassLoader());
+            CountlyPush.Message message = messageBundle.getParcelable(CountlyPush.EXTRA_MESSAGE);
+            if (message == null) {
+                return;
+            }
+            intent.putExtra(NOTIFICATION_CLICK_HANDLED_EXTRA, true);
+            Map<String, String> notification = new HashMap<>();
+            for (String key : message.dataKeys()) {
+                notification.put(key, message.data(key));
+            }
+            int actionIndex = intent.getIntExtra(CountlyPush.EXTRA_ACTION_INDEX, 0);
+            log("onNotificationClicked, a notification was clicked, action index: " + actionIndex, LogLevel.DEBUG);
+            onNotificationOpened(notification, actionIndex);
+        } catch (RuntimeException exception) {
+            log("onNotificationClicked, could not read the clicked notification", exception, LogLevel.WARNING);
         }
     }
 

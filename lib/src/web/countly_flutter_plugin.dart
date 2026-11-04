@@ -47,6 +47,12 @@ class CountlyFlutterPlugin {
   /// Push notification events no registration waited for yet, oldest first.
   final List<String> _pendingNotifications = [];
 
+  /// The waiting "onNotificationOpened" registration.
+  Completer<Map<String, Object>>? _notificationOpenedWaiter;
+
+  /// Clicked push notifications no "onNotificationOpened" registration waited for yet, oldest first.
+  final List<Map<String, Object>> _pendingOpenedNotifications = [];
+
   /// Calls the Countly Web SDK has no equivalent for.
   static const Set<String> _unavailableOnWeb = {
     'updateSession',
@@ -103,6 +109,9 @@ class CountlyFlutterPlugin {
       // Answered only when a notification arrives, as the Dart side registers again after every answer.
       if (call.method == 'registerForNotification') {
         return await _nextNotification();
+      }
+      if (call.method == 'registerForNotificationOpened') {
+        return await _nextNotificationOpened();
       }
       final CountlyWeb? countly = _countly;
       if (countly == null) {
@@ -249,6 +258,7 @@ class CountlyFlutterPlugin {
       _countly = null;
       _apm = WebApm();
       _pendingNotifications.clear();
+      _pendingOpenedNotifications.clear();
       retrievedWidgetList.clear();
     }
 
@@ -731,15 +741,49 @@ class CountlyFlutterPlugin {
     return waiter.future;
   }
 
+  /// The next clicked push notification, for an "onNotificationOpened" registration.
+  Future<Map<String, Object>> _nextNotificationOpened() {
+    if (_pendingOpenedNotifications.isNotEmpty) {
+      return Future<Map<String, Object>>.value(_pendingOpenedNotifications.removeAt(0));
+    }
+    final Completer<Map<String, Object>> waiter = Completer<Map<String, Object>>();
+    _notificationOpenedWaiter = waiter;
+    return waiter.future;
+  }
+
+  /// Hands a clicked push notification, as the JSON string "onNotification" gets, and the index of
+  /// the clicked button to the waiting "onNotificationOpened" registration, or keeps it for the next
+  /// one, dropping the oldest beyond [maxPendingNotifications].
+  void _onNotificationOpened(String notification, int actionIndex) {
+    final Map<String, Object> opened = {'notification': notification, 'actionIndex': actionIndex};
+    final Completer<Map<String, Object>>? waiter = _notificationOpenedWaiter;
+    _notificationOpenedWaiter = null;
+    if (waiter != null) {
+      waiter.complete(opened);
+      return;
+    }
+    if (_pendingOpenedNotifications.length >= maxPendingNotifications) {
+      _pendingOpenedNotifications.removeAt(0);
+    }
+    _pendingOpenedNotifications.add(opened);
+  }
+
   /// Hands a push notification event of the Web SDK to the waiting "onNotification" registrations,
-  /// or keeps it for the next one, dropping the oldest beyond [maxPendingNotifications].
+  /// or keeps it for the next one, dropping the oldest beyond [maxPendingNotifications]. A "clicked"
+  /// event also goes to "onNotificationOpened", with its button index.
   void _onPushNotification(JSAny? event) {
+    final Object? details;
     final String notification;
     try {
-      notification = jsonEncode(_dartify(event));
+      details = _dartify(event);
+      notification = jsonEncode(details);
     } catch (e) {
       cly.Countly.log('[CountlyFlutterPluginWeb] A push notification event could not be read: $e', logLevel: cly.LogLevel.ERROR);
       return;
+    }
+    if (details is Map && details['type'] == 'clicked') {
+      final Object? buttonIndex = details['buttonIndex'];
+      _onNotificationOpened(notification, buttonIndex is num ? buttonIndex.toInt() : 0);
     }
     if (_notificationWaiters.isEmpty) {
       if (_pendingNotifications.length >= maxPendingNotifications) {
