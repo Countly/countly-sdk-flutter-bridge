@@ -18,7 +18,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  countly_sdk_dart_core: 26.1.0
+  countly_sdk_dart_core:
+    git:
+      url: https://github.com/Countly/countly-sdk-dart.git
+      ref: change-app-key-server-url
   shared_preferences: ^2.3.2
 
 dev_dependencies:
