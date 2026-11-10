@@ -21,7 +21,7 @@ dependencies:
   countly_sdk_dart_core:
     git:
       url: https://github.com/Countly/countly-sdk-dart.git
-      ref: change-app-key-server-url
+      ref: staging
   shared_preferences: ^2.3.2
 
 dev_dependencies:
