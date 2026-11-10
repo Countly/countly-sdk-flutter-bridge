@@ -15,6 +15,7 @@ class CountlyConfig {
   String? _locationIpAddress;
   String? _locationCountryCode;
   bool? _loggingEnabled;
+  LogListener? _logListener;
   bool _locationDisabled = false;
   bool _httpPostForced = true;
   Map<String, String>? _customNetworkRequestHeaders;
@@ -101,6 +102,8 @@ class CountlyConfig {
   String? get daCampaignData => _daCampaignData;
 
   bool? get loggingEnabled => _loggingEnabled;
+
+  LogListener? get logListener => _logListener;
 
   bool get locationDisabled => _locationDisabled;
 
@@ -233,6 +236,14 @@ class CountlyConfig {
   /// those logs will be printed to the console
   CountlyConfig setLoggingEnabled(bool enabled) {
     _loggingEnabled = enabled;
+    return this;
+  }
+
+  /// Sets a listener that receives every log message of the SDK and its level, also when logging is disabled.
+  /// It receives the messages of the native SDK and of the Flutter layer, on web only those of the Flutter layer.
+  /// The listener is called inside the SDK's own calls, so it should return quickly and must not call the SDK.
+  CountlyConfig setLogListener(LogListener logListener) {
+    _logListener = logListener;
     return this;
   }
 

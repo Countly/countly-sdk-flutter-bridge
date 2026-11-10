@@ -48,6 +48,9 @@
 * Added support for SDK behavior settings that control automatic session tracking, automatic crash reporting and Journey Trigger Views, in Android and iOS.
 * Added support for reporting the app's light or dark theme when presenting feedback widgets, rating widgets and content, so they match it, in Android, iOS and Web.
 * Added support for server requested SDK log gathering and connection tests in iOS and Web. The iOS privacy manifest now also declares the diagnostic data that log gathering collects.
+* Added "setLogListener" to "CountlyConfig" for receiving every log message of the SDK and its "LogLevel", also while logging is disabled:
+  * it gets the messages of the Flutter layer and of the native SDK, in Web only those of the Flutter layer
+  * it is called inside the SDK's own calls, so it should return quickly and must not call the SDK
 * Added "setGlobalContentSegmentation" to "Countly.instance.content" (Experimental!), which sets a segmentation recorded with every content event and with the events of NPS, survey and rating feedback widgets, in iOS and Web. In iOS, "presentRatingWidgetWithID" does not carry it.
 * Changed "exitContentZone" to also close the content on screen in iOS and Web, instead of only stopping content retrieval.
 * Improved crash reporting in iOS. Its handlers now pass crashes on to the crash handlers they replaced, and leave crash tools installed later, signals the app ignores and a SIGPIPE the app handles itself alone.

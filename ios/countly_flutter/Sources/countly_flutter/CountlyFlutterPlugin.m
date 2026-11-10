@@ -29,6 +29,16 @@
 @property(nonatomic, weak) NSObject<FlutterPluginRegistrar> *registrar;
 @end
 
+/**
+ * Passes the native SDK's log lines to the Dart layer through the channel that gets the native callbacks. The SDK
+ * keeps its log delegate weakly and from its first start only, so this is one object for the life of the process,
+ * not a plugin instance, which goes away with its engine.
+ */
+@interface CountlyFlutterLogForwarder : NSObject <CountlyLoggerDelegate>
+@end
+
+static CountlyFlutterLogForwarder *logForwarder = nil;
+
 BOOL BUILDING_WITH_PUSH_DISABLED = false;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
@@ -1586,6 +1596,13 @@ static FlutterMethodChannel *callbackChannel = nil;
         if (loggingEnabled) {
             config.enableDebug = [loggingEnabled boolValue];
         }
+        NSNumber *logListener = [self configValueFrom:_config key:@"logListener" ofClass:NSNumber.class];
+        if ([logListener boolValue]) {
+            if (logForwarder == nil) {
+                logForwarder = CountlyFlutterLogForwarder.new;
+            }
+            config.loggerDelegate = logForwarder;
+        }
         NSNumber *locationDisabled = [self configValueFrom:_config key:@"locationDisabled" ofClass:NSNumber.class];
         if (locationDisabled) {
             config.disableLocation = [locationDisabled boolValue];
@@ -2060,4 +2077,36 @@ void CountlyFlutterInternalLog(NSString *format, ...) {
         return jsonString;
     }
 }
+@end
+
+/**
+ * The name of a native SDK log level, as the Dart layer's "LogLevel" names it.
+ */
+static NSString *CountlyFlutterLogLevelName(CLYInternalLogLevel level) {
+    switch (level) {
+        case CLYInternalLogLevelError:
+            return @"ERROR";
+        case CLYInternalLogLevelWarning:
+            return @"WARNING";
+        case CLYInternalLogLevelInfo:
+            return @"INFO";
+        case CLYInternalLogLevelVerbose:
+            return @"VERBOSE";
+        default:
+            return @"DEBUG";
+    }
+}
+
+@implementation CountlyFlutterLogForwarder
+
+/**
+ * Passes a log line of the native SDK to the log listener of the Dart layer.
+ */
+- (void)internalLog:(NSString *)log withLevel:(CLYInternalLogLevel)level {
+    NSDictionary *data = @{@"message" : log ?: @"", @"level" : CountlyFlutterLogLevelName(level)};
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [callbackChannel invokeMethod:@"logListener" arguments:data];
+    });
+}
+
 @end
