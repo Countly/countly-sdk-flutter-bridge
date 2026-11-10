@@ -39,6 +39,9 @@ abstract class AttributionKey {
 // ignore: constant_identifier_names
 enum LogLevel { INFO, DEBUG, VERBOSE, WARNING, ERROR }
 
+/// Called with every log message of the SDK and its level, see [CountlyConfig.setLogListener].
+typedef LogListener = void Function(String message, LogLevel level);
+
 // ignore: constant_identifier_names
 enum DeviceIdType { DEVELOPER_SUPPLIED, SDK_GENERATED, TEMPORARY_ID }
 
@@ -114,6 +117,9 @@ class Countly {
   /// Whether "disableSDKLoggingInProduction" keeps the logs off, which it does in Android release builds.
   static bool _productionLoggingDisabled = false;
 
+  /// Receives every log message of the SDK and its level, set from [CountlyConfig.setLogListener] by "initWithConfig".
+  static LogListener? _logListener;
+
   static const String tag = 'CountlyFlutter';
 
   /// Flag to determine if crash logging functionality should be enabled
@@ -142,6 +148,10 @@ class Countly {
   static List<String>? _earlyLogs = [];
 
   static void log(String? message, {LogLevel logLevel = LogLevel.DEBUG}) {
+    final LogListener? listener = _logListener;
+    if (listener != null) {
+      _notifyLogListener(listener, '[$tag] $message', logLevel);
+    }
     final bool printing = _isDebug && !_productionLoggingDisabled;
     final List<String>? earlyLogs = _earlyLogs;
     final bool keeping = earlyLogs != null && earlyLogs.length < _maxEarlyLogs;
@@ -169,6 +179,34 @@ class Countly {
     }
   }
 
+  /// Passes a log message to the log listener. A listener that throws does not break the SDK, and its error
+  /// is printed only while logging is enabled.
+  static void _notifyLogListener(LogListener listener, String message, LogLevel level) {
+    try {
+      listener(message, level);
+    } catch (e) {
+      if (_isDebug && !_productionLoggingDisabled) {
+        print('[$tag] ERROR: [log] the log listener threw an error: $e');
+      }
+    }
+  }
+
+  /// The log level of the given name, as the native SDKs send it, or DEBUG for a name that is not a level.
+  static LogLevel _logLevelFromName(String name) {
+    switch (name) {
+      case 'ERROR':
+        return LogLevel.ERROR;
+      case 'WARNING':
+        return LogLevel.WARNING;
+      case 'INFO':
+        return LogLevel.INFO;
+      case 'VERBOSE':
+        return LogLevel.VERBOSE;
+      default:
+        return LogLevel.DEBUG;
+    }
+  }
+
   /// [VoidCallback? _widgetShown] Callback to be executed when feedback widget is displayed
   /// [VoidCallback? _widgetClosed] Callback to be executed when feedback widget is closed
   static VoidCallback? _widgetShown;
@@ -179,6 +217,15 @@ class Countly {
 
   /// Callback handler to handle function calls from native iOS/Android to Dart.
   static Future<void> _methodCallHandler(MethodCall call) async {
+    // native log lines come before the log line below, which would add one more line for each of them
+    if (call.method == 'logListener') {
+      final LogListener? listener = _logListener;
+      final dynamic arguments = call.arguments;
+      if (listener != null && arguments is Map) {
+        _notifyLogListener(listener, '${arguments['message']}', _logLevelFromName('${arguments['level']}'));
+      }
+      return;
+    }
     log('[FMethodCallH] ${call.method}', logLevel: LogLevel.VERBOSE);
     switch (call.method) {
       case 'widgetShown':
@@ -314,6 +361,7 @@ class Countly {
       log(msg, logLevel: LogLevel.ERROR);
       return msg;
     }
+    _logListener = config.logListener;
     if (config.serverURL.isEmpty) {
       String msg = 'initWithConfig, serverURL cannot be empty';
       log(msg, logLevel: LogLevel.ERROR);
@@ -2030,6 +2078,10 @@ class Countly {
       if (config.loggingEnabled != null) {
         log('"_configToJson", value provided for loggingEnabled: [${config.loggingEnabled}]', logLevel: LogLevel.INFO);
         countlyConfig['loggingEnabled'] = config.loggingEnabled;
+      }
+      if (config.logListener != null) {
+        log('"_configToJson", a log listener is provided', logLevel: LogLevel.INFO);
+        countlyConfig['logListener'] = true;
       }
       if (config.locationDisabled) {
         log('"_configToJson", value provided for locationDisabled: [${config.locationDisabled}]', logLevel: LogLevel.INFO);

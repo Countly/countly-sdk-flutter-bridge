@@ -28,6 +28,7 @@ import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Arrays;
 import java.util.Set;
@@ -1979,6 +1980,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
         if (_config.has("loggingEnabled")) {
             this.config.setLoggingEnabled(_config.getBoolean("loggingEnabled"));
+        }
+        if (_config.has("logListener")) {
+            this.config.setLogListener((logMessage, logLevel) -> {
+                Map<String, Object> data = new HashMap<>();
+                data.put("message", logMessage);
+                data.put("level", logLevel.name().toUpperCase(Locale.ROOT));
+                // always posted, so lines logged on different threads reach Dart in the order they were logged
+                new Handler(Looper.getMainLooper()).post(() -> safeInvokeMethod("logListener", data));
+            });
         }
         if (_config.has("locationDisabled") && _config.getBoolean("locationDisabled")) {
             this.config.setDisableLocation();
