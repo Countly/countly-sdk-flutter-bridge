@@ -1,0 +1,65 @@
+name: Public API
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: Breaking changes
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+
+      - name: Install dart_apitool
+        run: flutter pub global activate dart_apitool 0.23.2
+
+      # The first parent of the pull request's merge commit is the base branch it merges into.
+      # The semver check is off because the version is bumped when releasing, not in each pull request.
+      - name: Compare the public API with the base branch
+        run: |
+          git worktree add "$RUNNER_TEMP/base" HEAD^1
+          if ! flutter pub global run dart_apitool:main diff --old "$RUNNER_TEMP/base" --new . \
+              --version-check-mode none --force-use-flutter \
+              --report-format json --report-file-path "$RUNNER_TEMP/report.json"; then
+            echo "::error::Could not compare the public API with the base branch."
+            exit 1
+          fi
+          jq -r 'def leaves($prefix): (.children // [])[]
+                   | if has("changeDescription") then $prefix + .changeDescription
+                     else leaves($prefix + .label + ": ") end;
+                 .report.breakingChanges // empty | leaves("")' \
+            "$RUNNER_TEMP/report.json" > "$RUNNER_TEMP/breaking.txt"
+
+      - name: Require a CHANGELOG entry for breaking changes
+        run: |
+          if [ ! -s "$RUNNER_TEMP/breaking.txt" ]; then
+            echo "No breaking change to the public API." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          {
+            echo "### Breaking changes to the public API"
+            echo '```'
+            cat "$RUNNER_TEMP/breaking.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if git diff --quiet HEAD^1 HEAD -- CHANGELOG.md; then
+            echo "::error title=Breaking API change::This pull request breaks the public API without a CHANGELOG.md entry. The job summary lists each break."
+            exit 1
+          fi
+          echo "::warning title=Breaking API change::This pull request breaks the public API. Check that CHANGELOG.md marks it as a breaking change."
