@@ -40,7 +40,8 @@ jobs:
             echo "::error::Could not compare the public API with the base branch."
             exit 1
           fi
-          jq -r 'def leaves($prefix): (.children // [])[]
+          jq -r '# Prints each change under a report node as "<label>: <label>: <change>".
+                 def leaves($prefix): (.children // [])[]
                    | if has("changeDescription") then $prefix + .changeDescription
                      else leaves($prefix + .label + ": ") end;
                  .report.breakingChanges // empty | leaves("")' \
