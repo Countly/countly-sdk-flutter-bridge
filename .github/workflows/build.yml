@@ -70,7 +70,13 @@ jobs:
         run: flutter pub get
 
       - name: Run the VM tests
-        run: flutter test --no-pub
+        run: flutter test --no-pub --coverage
+
+      - name: Write the coverage summary
+        run: |
+          awk -F: '/^LF:/ { found += $2 } /^LH:/ { hit += $2 }
+            END { printf "### Unit test coverage\n\n| Metric | Covered | Count |\n|---|---|---|\n| lines | %.2f%% | %d/%d |\n", (found ? 100 * hit / found : 0), hit, found }' \
+            coverage/lcov.info >> "$GITHUB_STEP_SUMMARY"
 
       - name: Run the web tests
         run: flutter test --no-pub --platform chrome
