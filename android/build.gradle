@@ -34,7 +34,7 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
-    lintOptions {
+    lint {
         disable 'InvalidPackage'
     }
 }
