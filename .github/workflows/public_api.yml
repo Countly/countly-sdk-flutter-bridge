@@ -58,7 +58,12 @@ jobs:
           flutter pub global run dart_apitool:main extract --input . --force-use-flutter \
             --output "$RUNNER_TEMP/extract.json"
           # The package path is a temporary folder and the version changes with every release.
-          jq -S 'del(.packageApi.packagePath, .packageApi.packageVersion)' "$RUNNER_TEMP/extract.json" > "$RUNNER_TEMP/head-api.json"
+          jq -S 'del(.packageApi.packagePath, .packageApi.packageVersion)' "$RUNNER_TEMP/extract.json" > "$RUNNER_TEMP/api.json"
+          # dart_apitool's list order changes with the toolchain, so every list except the ordered parameter lists is sorted.
+          jq -S 'walk(if type == "object" then with_entries(
+              if (.value | type) == "array" and (.key | IN("parameters", "typeParameterNames") | not)
+              then .value |= sort_by(.name? // "", tojson) else . end)
+            else . end)' "$RUNNER_TEMP/api.json" > "$RUNNER_TEMP/head-api.json"
 
       - name: Report the public API changes
         id: report
