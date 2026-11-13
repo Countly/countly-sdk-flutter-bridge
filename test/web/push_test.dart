@@ -19,6 +19,13 @@ bool webSdkHasPush() {
   return function != null && function.typeofEquals('function');
 }
 
+/// Whether this browser lets a page subscribe to web push, which the Web SDK checks before anything else: a service
+/// worker container, PushManager and Notification. Headless test browsers lack them.
+bool browserCanSubscribeToPush() {
+  final JSObject navigator = globalContext['navigator'] as JSObject;
+  return navigator['serviceWorker'] != null && globalContext.has('PushManager') && globalContext.has('Notification');
+}
+
 /// Posts [data] to the page the way the Countly service worker does.
 void postFromServiceWorker(Map<String, Object?> data) {
   final JSObject serviceWorker = (globalContext['navigator'] as JSObject)['serviceWorker'] as JSObject;
@@ -51,6 +58,10 @@ void main() {
       expect(await Countly.disablePushNotifications(), 'unsubscribed: failed, reason: unsupported');
       return;
     }
+    if (!browserCanSubscribeToPush()) {
+      expect(await Countly.askForNotificationPermission(), 'subscribed: failed, reason: unsupported');
+      return;
+    }
     expect(await Countly.askForNotificationPermission(), 'subscribed: failed, reason: no_consent');
     expect(await Countly.disablePushNotifications(), 'unsubscribed: success');
   });
@@ -59,6 +70,10 @@ void main() {
     await Countly.initWithConfig(testConfig()..giveAllConsents());
     if (!webSdkHasPush()) {
       markTestSkipped('The loaded Web SDK has no web push');
+      return;
+    }
+    if (!browserCanSubscribeToPush()) {
+      markTestSkipped('This browser cannot subscribe to web push');
       return;
     }
     expect(await Countly.askForNotificationPermission(), 'subscribed: failed, reason: missing_vapid_key');
