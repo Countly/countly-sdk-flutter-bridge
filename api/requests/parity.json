@@ -1,0 +1,111 @@
+[
+  {
+    "method": "init",
+    "args": [
+      {
+        "appKey": "parity-app-key",
+        "deviceID": "parity-device-001",
+        "httpPostForced": true,
+        "manualSessionEnabled": true,
+        "pushServiceWorkerScope": "/countly-push/",
+        "remoteConfigAutomaticTriggers": false,
+        "remoteConfigValueCaching": false,
+        "serverURL": "https://parity.example"
+      }
+    ]
+  },
+  {
+    "method": "beginSession",
+    "args": null
+  },
+  {
+    "method": "recordEvent",
+    "args": [
+      "purchase",
+      "2",
+      "9.99",
+      "5",
+      {
+        "boolList": [
+          true,
+          false,
+          true
+        ],
+        "doubleList": [
+          1.1,
+          2.2,
+          3.3
+        ],
+        "hashirama": -2147483647,
+        "intList": [
+          1,
+          2,
+          3
+        ],
+        "itachi": 1.7976931348623157e+308,
+        "kakaski": 5e-324,
+        "mapList": [
+          {
+            "key1": "value1",
+            "key2": 2
+          },
+          {
+            "key1": "value2",
+            "key2": 3
+          },
+          {
+            "key1": "value3",
+            "key2": 4
+          }
+        ],
+        "mixedList": [
+          "value1",
+          2,
+          3.3,
+          true
+        ],
+        "nar": "uto",
+        "sakura": false,
+        "sasuke": 2147483647,
+        "stringList": [
+          "value1",
+          "value2",
+          "value3"
+        ],
+        "tobi": {
+          "obito": "uchiha",
+          "zetsu": "white"
+        }
+      }
+    ]
+  },
+  {
+    "method": "userProfile_setProperties",
+    "args": [
+      {
+        "age": 30,
+        "byear": 1980,
+        "email": "john@example.com",
+        "gender": "M",
+        "name": "John Doe",
+        "organization": "Countly",
+        "phone": "1234567890",
+        "picture": "https://example.com/picture.jpg",
+        "tier": "gold",
+        "username": "john_d"
+      }
+    ]
+  },
+  {
+    "method": "userProfile_save",
+    "args": null
+  },
+  {
+    "method": "updateSession",
+    "args": null
+  },
+  {
+    "method": "endSession",
+    "args": null
+  }
+]

@@ -1,0 +1,118 @@
+name: Public API changes
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: Breaking changes
+    outputs:
+      report: ${{ steps.report.outputs.report }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          # Pinned: the record holds the API as this Flutter version reads it.
+          flutter-version: 3.50.0
+          channel: stable
+
+      - name: Install dart_apitool
+        run: flutter pub global activate dart_apitool 0.23.2
+
+      # The first parent of the pull request's merge commit is the base branch it merges into.
+      # The semver check is off because the version is bumped when releasing, not in each pull request.
+      - name: Compare the public API with the base branch
+        id: compare
+        run: |
+          git worktree add "$RUNNER_TEMP/base" HEAD^1
+          if ! flutter pub global run dart_apitool:main diff --old "$RUNNER_TEMP/base" --new . \
+              --version-check-mode none --force-use-flutter \
+              --report-format json --report-file-path "$RUNNER_TEMP/report.json"; then
+            echo "::error::Could not compare the public API with the base branch."
+            exit 1
+          fi
+          # Prints each change in report section $1 as "<label>: <label>: <change>".
+          changes() {
+            jq -r --arg section "$1" '
+              def leaves($prefix): (.children // [])[]
+                | if has("changeDescription") then $prefix + .changeDescription
+                  else leaves($prefix + .label + ": ") end;
+              .report[$section] // empty | leaves("")' "$RUNNER_TEMP/report.json"
+          }
+          changes breakingChanges > "$RUNNER_TEMP/breaking.txt"
+          changes nonBreakingChanges | { grep ' added$' || true; } > "$RUNNER_TEMP/added.txt"
+          flutter pub global run dart_apitool:main extract --input . --force-use-flutter \
+            --output "$RUNNER_TEMP/extract.json"
+          # The package path is a temporary folder and the version changes with every release.
+          jq -S 'del(.packageApi.packagePath, .packageApi.packageVersion)' "$RUNNER_TEMP/extract.json" > "$RUNNER_TEMP/head-api.json"
+
+      - name: Report the public API changes
+        id: report
+        run: bash .github/scripts/public_api_report.sh "$RUNNER_TEMP/breaking.txt" "$RUNNER_TEMP/added.txt"
+
+      - name: Require a CHANGELOG entry for breaking changes
+        run: |
+          if [ ! -s "$RUNNER_TEMP/breaking.txt" ]; then
+            exit 0
+          fi
+          if git diff --quiet HEAD^1 HEAD -- CHANGELOG.md; then
+            echo "::error title=Breaking API change::This pull request breaks the public API without a CHANGELOG.md entry. The job summary lists each break."
+            exit 1
+          fi
+          echo "::warning title=Breaking API change::This pull request breaks the public API. Check that CHANGELOG.md marks it as a breaking change."
+
+      # The committed record keeps every change to the public API visible in the pull request's diff.
+      - name: Compare the public API with its record
+        id: record
+        if: ${{ !cancelled() && steps.compare.outcome == 'success' }}
+        run: >
+          bash .github/scripts/public_api_record.sh
+          "$RUNNER_TEMP/head-api.json=api/countly_flutter.json"
+
+      - name: Upload the new record
+        if: ${{ !cancelled() && steps.record.outcome == 'failure' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: public-api-record
+          path: ${{ runner.temp }}/public-api-record
+
+  comment:
+    name: Comment the public API changes
+    needs: api
+    # A fork's or Dependabot's pull request only gets a read-only token, so its report stays in the job summary.
+    if: >-
+      always() && needs.api.outputs.report != '' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Post or update the comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          REPORT: ${{ needs.api.outputs.report }}
+        run: |
+          id=$(gh api --paginate "repos/$REPO/issues/$PR/comments" --jq \
+            '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- countly-public-api -->"))) | .id' | tail -n 1)
+          if [ -n "$id" ]; then
+            gh api --method PATCH "repos/$REPO/issues/comments/$id" -f "body=$REPORT" > /dev/null
+          elif ! grep -qx 'No public API change.' <<< "$REPORT"; then
+            gh api --method POST "repos/$REPO/issues/$PR/comments" -f "body=$REPORT" > /dev/null
+          fi
