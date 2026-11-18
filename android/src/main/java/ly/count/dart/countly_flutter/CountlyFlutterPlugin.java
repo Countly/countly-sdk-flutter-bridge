@@ -2049,6 +2049,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.disableBackoffMechanism();
         }
 
+        if (_config.optBoolean("requestCompressionEnabled", false)) {
+            this.config.enableRequestCompression();
+        }
+
         if (_config.has("disableStoringDefaultPushConsent")) {
             this.config.disableStoringDefaultPushConsent();
         }

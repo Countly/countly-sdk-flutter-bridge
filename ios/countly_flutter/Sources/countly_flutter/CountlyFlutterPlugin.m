@@ -1691,6 +1691,11 @@ static FlutterMethodChannel *callbackChannel = nil;
             config.disableSDKBehaviorSettingsUpdates = YES;
         }
 
+        NSNumber *requestCompressionEnabled = [self configValueFrom:_config key:@"requestCompressionEnabled" ofClass:NSNumber.class];
+        if (requestCompressionEnabled && [requestCompressionEnabled boolValue]) {
+            config.enableRequestCompression = YES;
+        }
+
         // Internal Limits ---------------------
         NSNumber *maxKeyLength = [self configValueFrom:_config key:@"maxKeyLength" ofClass:NSNumber.class];
         if (maxKeyLength) {
