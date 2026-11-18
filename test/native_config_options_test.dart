@@ -15,6 +15,7 @@ final Map<String, Object> expectedOptions = {
   'sdkLoggingInProductionDisabled': true,
   'webViewDisabled': true,
   'healthCheckDisabled': true,
+  'requestCompressionEnabled': true,
   'appCrawlerNames': ['Crawler One', 'Crawler Two'],
   'recordAllThreadsWithCrash': true,
   if (!Countly.BUILDING_WITH_PUSH_DISABLED) 'doNotShowAlertForNotifications': true,
@@ -40,6 +41,7 @@ void main() {
       ..disableSDKLoggingInProduction()
       ..disableWebView()
       ..disableHealthCheck()
+      ..enableRequestCompression()
       ..setAppCrawlerNames(['Crawler One', 'Crawler Two'])
       ..enableRecordAllThreadsWithCrash()
       ..doNotShowAlertForNotifications();

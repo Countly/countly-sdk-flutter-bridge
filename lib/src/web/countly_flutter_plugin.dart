@@ -1058,6 +1058,7 @@ class CountlyFlutterPlugin {
       'salt': config['tamperingProtectionSalt'],
       'disable_sdk_behavior_settings_updates': config['sdkBehaviorSettingsUpdatesDisabled'] ?? false,
       'disable_backoff_mechanism': config['backoffMechanismDisabled'] ?? false,
+      'enable_request_compression': config['requestCompressionEnabled'] ?? false,
     };
 
     var deviceID = config['deviceID'];

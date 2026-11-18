@@ -2189,6 +2189,11 @@ class Countly {
         countlyConfig['sdkBehaviorSettingsUpdatesDisabled'] = config.sdkBehaviorSettingsUpdatesDisabled;
       }
 
+      if (config.requestCompressionEnabled) {
+        log('"_configToJson", value provided for requestCompressionEnabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['requestCompressionEnabled'] = true;
+      }
+
       if (config.storingDefaultPushConsentDisabled) {
         if (BUILDING_WITH_PUSH_DISABLED) {
           log('disableStoringDefaultPushConsent, $_pushDisabledMsg', logLevel: LogLevel.DEBUG);

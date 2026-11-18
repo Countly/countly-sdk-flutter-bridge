@@ -2737,6 +2737,18 @@
             "isDeprecated": false,
             "isExperimental": false,
             "isStatic": false,
+            "name": "enableRequestCompression",
+            "parameters": [],
+            "relativePath": "lib/src/countly_config.dart",
+            "returnTypeName": "CountlyConfig",
+            "type": "method",
+            "typeParameterNames": []
+          },
+          {
+            "entryPoints": [],
+            "isDeprecated": false,
+            "isExperimental": false,
+            "isStatic": false,
             "name": "enableTemporaryDeviceIDMode",
             "parameters": [],
             "relativePath": "lib/src/countly_config.dart",
@@ -3957,6 +3969,17 @@
             "isStatic": false,
             "isWriteable": false,
             "name": "remoteConfigValueCaching",
+            "relativePath": "lib/src/countly_config.dart",
+            "typeName": "bool"
+          },
+          {
+            "entryPoints": [],
+            "isDeprecated": false,
+            "isExperimental": false,
+            "isReadable": true,
+            "isStatic": false,
+            "isWriteable": false,
+            "name": "requestCompressionEnabled",
             "relativePath": "lib/src/countly_config.dart",
             "typeName": "bool"
           },

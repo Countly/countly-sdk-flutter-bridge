@@ -48,6 +48,7 @@ class CountlyConfig {
   String? _sdkBehaviorSettings;
   bool _backoffMechanismDisabled = false;
   bool _sdkBehaviorSettingsUpdatesDisabled = false;
+  bool _requestCompressionEnabled = false;
   int? _requestTimeoutDuration;
   bool _storingDefaultPushConsentDisabled = false;
   bool _viewRestartForManualRecordingDisabled = false;
@@ -162,6 +163,8 @@ class CountlyConfig {
   bool get backoffMechanismDisabled => _backoffMechanismDisabled;
 
   bool get sdkBehaviorSettingsUpdatesDisabled => _sdkBehaviorSettingsUpdatesDisabled;
+
+  bool get requestCompressionEnabled => _requestCompressionEnabled;
 
   int? get requestTimeoutDuration => _requestTimeoutDuration;
 
@@ -456,6 +459,14 @@ class CountlyConfig {
   /// Disable the server config updates to the server
   CountlyConfig disableSDKBehaviorSettingsUpdates() {
     _sdkBehaviorSettingsUpdatesDisabled = true;
+    return this;
+  }
+
+  /// Send request bodies between 1 KB and 1 MB gzip-compressed, once the server's SDK behavior settings answer
+  /// says it reads them. It needs the SDK behavior settings updates, which [disableSDKBehaviorSettingsUpdates] turns
+  /// off. On web, browsers without CompressionStream keep sending plain bodies.
+  CountlyConfig enableRequestCompression() {
+    _requestCompressionEnabled = true;
     return this;
   }
 
