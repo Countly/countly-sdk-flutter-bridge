@@ -126,7 +126,7 @@
   * "recordAttributionID", use "recordIndirectAttribution" instead
 * Removed the dependency on the discontinued "pedantic" package.
 
-* Underlying Android SDK version is 26.1.6
+* Underlying Android SDK version is 26.8.0
 * Underlying iOS SDK version is 26.8.0
 * Underlying Web SDK version is 26.8.0
 
