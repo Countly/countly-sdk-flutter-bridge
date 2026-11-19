@@ -8,8 +8,7 @@ import 'package:integration_test/integration_test.dart';
 import '../utils.dart';
 
 /// The global content segmentation is recorded with the events of a feedback widget reported
-/// manually, the widget's own answers keep their values, and an empty map clears it. The Android
-/// SDK has no global content segmentation, so there the events carry only the widget's answers.
+/// manually, the widget's own answers keep their values, and an empty map clears it.
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('Global content segmentation is recorded with feedback widget events', (WidgetTester tester) async {
@@ -54,7 +53,7 @@ void main() {
     expect(npsEvents.length, 2);
     expect(npsEvents[0]['segmentation']['rating'], 3);
     expect(npsEvents[0]['segmentation']['comment'], 'ok');
-    expect(npsEvents[0]['segmentation']['campaign'], Platform.isIOS ? 'spring' : isNull);
+    expect(npsEvents[0]['segmentation']['campaign'], 'spring');
     expect(npsEvents[1]['segmentation']['rating'], 4);
     expect(npsEvents[1]['segmentation'].containsKey('campaign'), isFalse);
   });
