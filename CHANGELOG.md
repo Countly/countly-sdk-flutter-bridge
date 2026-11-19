@@ -75,6 +75,9 @@
   * it gets the messages of the Flutter layer and of the native SDK, in Web only those of the Flutter layer
   * it is called inside the SDK's own calls, so it should return quickly and must not call the SDK
 * Added "setGlobalContentSegmentation" to "Countly.instance.content" (Experimental!), which sets a segmentation recorded with every content event and with the events of NPS, survey and rating feedback widgets, in Android, iOS and Web. In iOS, "presentRatingWidgetWithID" does not carry it.
+* Added "changeServerUrl" to "Countly.instance" for changing the server URL after init, in Android and iOS.
+* Added "changeAppKey" to "Countly.instance" for changing the app key after init, in Android and iOS.
+* Added "flushQueues" to "Countly.instance" for discarding the stored requests and events, in Android and iOS.
 * Changed "exitContentZone" to also close the content on screen in iOS and Web, instead of only stopping content retrieval.
 * Improved crash reporting in iOS. Its handlers now pass crashes on to the crash handlers they replaced, and leave crash tools installed later, signals the app ignores and a SIGPIPE the app handles itself alone.
 * Improved link handling of content and feedback widgets in Android and iOS, so links that carry their own query parameters, such as deep links, are parsed correctly.

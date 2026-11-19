@@ -613,6 +613,28 @@
           },
           {
             "entryPoints": [],
+            "isDeprecated": false,
+            "isExperimental": false,
+            "isStatic": false,
+            "name": "changeAppKey",
+            "parameters": [
+              {
+                "isDeprecated": false,
+                "isExperimental": false,
+                "isNamed": false,
+                "isRequired": true,
+                "name": "appKey",
+                "relativePath": "lib/src/countly_flutter.dart",
+                "typeName": "String"
+              }
+            ],
+            "relativePath": "lib/src/countly_flutter.dart",
+            "returnTypeName": "Future<void>",
+            "type": "method",
+            "typeParameterNames": []
+          },
+          {
+            "entryPoints": [],
             "isDeprecated": true,
             "isExperimental": false,
             "isStatic": true,
@@ -639,6 +661,28 @@
             ],
             "relativePath": "lib/src/countly_flutter.dart",
             "returnTypeName": "Future<String?>",
+            "type": "method",
+            "typeParameterNames": []
+          },
+          {
+            "entryPoints": [],
+            "isDeprecated": false,
+            "isExperimental": false,
+            "isStatic": false,
+            "name": "changeServerUrl",
+            "parameters": [
+              {
+                "isDeprecated": false,
+                "isExperimental": false,
+                "isNamed": false,
+                "isRequired": true,
+                "name": "serverUrl",
+                "relativePath": "lib/src/countly_flutter.dart",
+                "typeName": "String"
+              }
+            ],
+            "relativePath": "lib/src/countly_flutter.dart",
+            "returnTypeName": "Future<void>",
             "type": "method",
             "typeParameterNames": []
           },
@@ -796,6 +840,18 @@
             ],
             "relativePath": "lib/src/countly_flutter.dart",
             "returnTypeName": "Future<String?>",
+            "type": "method",
+            "typeParameterNames": []
+          },
+          {
+            "entryPoints": [],
+            "isDeprecated": false,
+            "isExperimental": false,
+            "isStatic": false,
+            "name": "flushQueues",
+            "parameters": [],
+            "relativePath": "lib/src/countly_flutter.dart",
+            "returnTypeName": "Future<void>",
             "type": "method",
             "typeParameterNames": []
           },

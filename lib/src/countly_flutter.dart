@@ -1654,6 +1654,55 @@ class Countly {
     await _channel.invokeMethod('attemptToSendStoredRequests');
   }
 
+  /// Sends the requests to another server from now on, for example when the app moves to another
+  /// server. The requests already in the queue go to the new server too, and the app key stays.
+  /// The URL is kept in memory only: the next init uses the one in the config.
+  /// An empty URL is ignored, and in Android also one that is not an absolute http or https URL
+  /// (Only for Android and iOS).
+  /// [String serverUrl] - the new server URL, for example "https://your.server.ly"
+  Future<void> changeServerUrl(String serverUrl) async {
+    if (!_instance._countlyState.isInitialized) {
+      log('changeServerUrl, "initWithConfig" must be called before "changeServerUrl"', logLevel: LogLevel.ERROR);
+      return;
+    }
+    log('Calling "changeServerUrl" with serverUrl: [$serverUrl]');
+    List<Object> args = [];
+    args.add(serverUrl);
+    await _channel.invokeMethod('changeServerUrl', <String, dynamic>{'data': json.encode(args)});
+  }
+
+  /// Reports to another app from now on, for example when a white label app learns at login which
+  /// customer it belongs to. The recorded events are queued with the old app key first, and the
+  /// running session ends for the old app and begins again for the new one (in iOS, only with
+  /// automatic session tracking). Requests already in the queue keep the app key they were
+  /// created with: "replaceAllAppKeysInQueueWithCurrentAppKey" moves them to the new app and
+  /// "removeDifferentAppKeysFromQueue" drops them.
+  /// The key is kept in memory only: the next init uses the one in the config.
+  /// An empty key is ignored, and in Android also "YOUR_APP_KEY" and the current key
+  /// (Only for Android and iOS).
+  /// [String appKey] - the app key of the new app
+  Future<void> changeAppKey(String appKey) async {
+    if (!_instance._countlyState.isInitialized) {
+      log('changeAppKey, "initWithConfig" must be called before "changeAppKey"', logLevel: LogLevel.ERROR);
+      return;
+    }
+    log('Calling "changeAppKey" with appKey: [$appKey]');
+    List<Object> args = [];
+    args.add(appKey);
+    await _channel.invokeMethod('changeAppKey', <String, dynamic>{'data': json.encode(args)});
+  }
+
+  /// Deletes the stored requests and the recorded events that are not in a request yet, without
+  /// sending them. Started timed events are kept (Only for Android and iOS).
+  Future<void> flushQueues() async {
+    if (!_instance._countlyState.isInitialized) {
+      log('flushQueues, "initWithConfig" must be called before "flushQueues"', logLevel: LogLevel.ERROR);
+      return;
+    }
+    log('Calling "flushQueues"');
+    await _channel.invokeMethod('flushQueues');
+  }
+
   /// Add custom headers to all network requests made by the SDK.
   Future<void> addCustomNetworkRequestHeaders(Map<String, String> customHeaderValues) async {
     if (!_instance._countlyState.isInitialized) {
