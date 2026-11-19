@@ -1428,6 +1428,23 @@ static FlutterMethodChannel *callbackChannel = nil;
           [Countly.sharedInstance attemptToSendStoredRequests];
         });
         result(@"attemptToSendStoredRequests: success");
+    } else if ([@"changeServerUrl" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSString *serverUrl = [command objectAtIndex:0];
+          [Countly.sharedInstance setNewHost:serverUrl];
+          result(nil);
+        });
+    } else if ([@"changeAppKey" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSString *appKey = [command objectAtIndex:0];
+          [Countly.sharedInstance setNewAppKey:appKey];
+          result(nil);
+        });
+    } else if ([@"flushQueues" isEqualToString:call.method]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          [Countly.sharedInstance flushQueues];
+          result(nil);
+        });
     } else if ([@"addCustomNetworkRequestHeaders" isEqualToString:call.method]) {
         dispatch_async(dispatch_get_main_queue(), ^{
           NSDictionary *customHeaderValues = [command objectAtIndex:0];
