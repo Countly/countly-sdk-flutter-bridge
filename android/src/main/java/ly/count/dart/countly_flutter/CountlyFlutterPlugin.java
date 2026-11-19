@@ -1202,7 +1202,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     return;
                 }
                 String widgetId = args.getString(0);
-                String closeBtnText = args.getString(3);
 
                 CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
                 if (feedbackWidget == null) {
@@ -1212,8 +1211,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 } else {
                     // Versioned widgets report only onClosed, so whichever callback comes first answers the call.
                     final AtomicBoolean replied = new AtomicBoolean(false);
-                    // The deprecated overload is the only one that sets the close button text of widgets without a version.
-                    Countly.sharedInstance().feedback().presentFeedbackWidget(feedbackWidget, activity, closeBtnText, new FeedbackCallback() {
+                    Countly.sharedInstance().feedback().presentFeedbackWidget(feedbackWidget, activity, new FeedbackCallback() {
                         @Override
                         public void onFinished(final String error) {
                             if (error == null) {
@@ -1559,7 +1557,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 Countly.sharedInstance().contents().previewContent(contentId);
                 result.success(null);
             } else if ("setGlobalContentSegmentation".equals(call.method)) {
-                log("setGlobalContentSegmentation is not available in Android, the underlying Android SDK has no equivalent", LogLevel.WARNING);
+                Countly.sharedInstance().contents().setGlobalContentSegmentation(toMap(args.getJSONObject(0)));
                 result.success(null);
             }
 

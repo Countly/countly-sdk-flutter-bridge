@@ -17,6 +17,28 @@
 * ! Minor breaking change ! "setUpdateSessionTimerDelay" now ignores values below 1 second and logs an error. In iOS, such values queued requests continuously.
 * ! Minor breaking change ! The deprecated "storedRequestsLimit" has no effect anymore (it limited the request queue to 1 request in iOS). Use "setMaxRequestQueueSize" instead.
 * ! Minor breaking change ! Links with the "data:", "zip:" and "intent:" schemes in content, feedback widgets and push notifications are now blocked by default in Android.
+* ! Minor breaking change ! The underlying Android SDK is now published at "https://maven.countly.com". The plugin adds this repository to the app's projects, so only an app that declares its repositories in "settings.gradle" has to add it there, next to "google()" and "mavenCentral()":
+
+  ```groovy
+  maven {
+    url = 'https://maven.countly.com'
+    content { includeGroupByRegex 'ly\\.count\\..*' }
+  }
+  ```
+
+  or, in "settings.gradle.kts":
+
+  ```kotlin
+  maven {
+    url = uri("https://maven.countly.com")
+    content { includeGroupByRegex("ly\\.count\\..*") }
+  }
+  ```
+
+* ! Minor breaking change ! The underlying Android SDK no longer depends on "androidx.multidex:multidex". An app that uses it has to declare it itself.
+* ! Minor breaking change ! In Android, the parameter tampering salt is now taken at init, so the deprecated "enableParameterTamperingProtection" no longer applies when called after init. Use "setParameterTamperingProtectionSalt" of "CountlyConfig".
+* ! Minor breaking change ! "halt" now also erases the generated device ID in Android, so the next init starts as a new user.
+* ! Minor breaking change ! "presentFeedbackWidget" no longer uses "closeButtonText" in Android, as every feedback widget shows its own close button.
 * ! Minor breaking change ! Web changes:
   * when consent is required, content now also needs the "content" consent
   * "changeWithoutMerge", and "setID" when it does not merge, now start a session for the new device ID only with automatic session tracking. With manual sessions, call "beginSession" for the new user yourself
@@ -46,12 +68,13 @@
   * "setUserLocation" and "disableLocation" (without GPS coordinates), "addCustomNetworkRequestHeaders", direct attribution, "attemptToSendStoredRequests", "refreshContentZone" and "throwNativeException"
   * the config options for user properties and the content zone timer interval
 * Added support for SDK behavior settings that control automatic session tracking, automatic crash reporting and Journey Trigger Views, in Android and iOS.
+* Added support for push notification large icons and collapse keys in Android.
 * Added support for reporting the app's light or dark theme when presenting feedback widgets, rating widgets and content, so they match it, in Android, iOS and Web.
-* Added support for server requested SDK log gathering and connection tests in iOS and Web. The iOS privacy manifest now also declares the diagnostic data that log gathering collects.
+* Added support for server requested SDK log gathering and connection tests in Android, iOS and Web. The iOS privacy manifest now also declares the diagnostic data that log gathering collects.
 * Added "setLogListener" to "CountlyConfig" for receiving every log message of the SDK and its "LogLevel", also while logging is disabled:
   * it gets the messages of the Flutter layer and of the native SDK, in Web only those of the Flutter layer
   * it is called inside the SDK's own calls, so it should return quickly and must not call the SDK
-* Added "setGlobalContentSegmentation" to "Countly.instance.content" (Experimental!), which sets a segmentation recorded with every content event and with the events of NPS, survey and rating feedback widgets, in iOS and Web. In iOS, "presentRatingWidgetWithID" does not carry it.
+* Added "setGlobalContentSegmentation" to "Countly.instance.content" (Experimental!), which sets a segmentation recorded with every content event and with the events of NPS, survey and rating feedback widgets, in Android, iOS and Web. In iOS, "presentRatingWidgetWithID" does not carry it.
 * Changed "exitContentZone" to also close the content on screen in iOS and Web, instead of only stopping content retrieval.
 * Improved crash reporting in iOS. Its handlers now pass crashes on to the crash handlers they replaced, and leave crash tools installed later, signals the app ignores and a SIGPIPE the app handles itself alone.
 * Improved link handling of content and feedback widgets in Android and iOS, so links that carry their own query parameters, such as deep links, are parsed correctly.
@@ -75,6 +98,15 @@
   * content overlays and feedback widgets blocked keyboard input on the app's Activity and were kept in memory after they closed
   * the rating popup request could be sent in temporary device ID mode, creating a "CLYTemporaryDeviceID" user, and the content zone did not resume after temporary device ID mode ended
   * the SDK caused StrictMode violations
+  * SDK behavior settings were ignored when the server reply carried unknown fields, as every server from 26.01.8 on does, and an app in the foreground refreshed them only every 4,000 hours instead of every 4 hours
+  * a setting removed from the SDK behavior settings in SDK Manager did not go back to the value given at start, and old requests kept being dropped from a full request queue after the settings turned the request age limit off
+  * view IDs returned by "startView" stopped resolving after the app went to the background and came back, and an auto stopped view could stop being tracked then
+  * the app was treated as being in the background after moving from one Activity to another, so crash reports and, with visibility tracking, events were marked as in the background
+  * the app could crash when a content or feedback widget was closed from a background thread, for example by "changeWithoutMerge" or by removing consent
+  * push notifications could show late or not at all while their images loaded, and tapping an action button left the notification visible, so a second tap recorded the action again
+  * the push token was not sent again when the push consent was given again, nor for the new user after "changeWithoutMerge"
+  * durations of sessions, views, timed events and traces changed when the device clock was adjusted, and an event recorded with a negative duration kept it
+  * health check counts could be lost or reported wrong, and its metrics were sent without the metrics consent
 
 * Mitigated issues in iOS where:
   * "onNotification" got a push notification twice before init when the AppDelegate also passed it on to the plugin
@@ -126,7 +158,7 @@
   * "recordAttributionID", use "recordIndirectAttribution" instead
 * Removed the dependency on the discontinued "pedantic" package.
 
-* Underlying Android SDK version is 26.1.6
+* Underlying Android SDK version is 26.8.0
 * Underlying iOS SDK version is 26.8.0
 * Underlying Web SDK version is 26.8.0
 
