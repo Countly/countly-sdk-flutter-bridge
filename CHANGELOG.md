@@ -17,7 +17,9 @@
 * ! Minor breaking change ! "setUpdateSessionTimerDelay" now ignores values below 1 second and logs an error. In iOS, such values queued requests continuously.
 * ! Minor breaking change ! The deprecated "storedRequestsLimit" has no effect anymore (it limited the request queue to 1 request in iOS). Use "setMaxRequestQueueSize" instead.
 * ! Minor breaking change ! Links with the "data:", "zip:" and "intent:" schemes in content, feedback widgets and push notifications are now blocked by default in Android.
-* ! Minor breaking change ! The underlying Android SDK is now published at "https://maven.countly.com". The plugin adds this repository to the app's projects, so only an app that declares its repositories in "settings.gradle" has to add it there, next to "google()" and "mavenCentral()":
+* ! Minor breaking change ! The underlying Android SDK is now published at "https://maven.countly.com". The plugin adds this repository to the app's projects. These apps have to add it to their repositories themselves, next to "google()" and "mavenCentral()":
+  * an app that declares its repositories in "settings.gradle"
+  * a native app that uses a Flutter module as AAR files ("flutter build aar")
 
   ```groovy
   maven {
@@ -38,7 +40,7 @@
 * ! Minor breaking change ! The underlying Android SDK no longer depends on "androidx.multidex:multidex". An app that uses it has to declare it itself.
 * ! Minor breaking change ! In Android, the parameter tampering salt is now taken at init, so the deprecated "enableParameterTamperingProtection" no longer applies when called after init. Use "setParameterTamperingProtectionSalt" of "CountlyConfig".
 * ! Minor breaking change ! "halt" now also erases the generated device ID in Android, so the next init starts as a new user.
-* ! Minor breaking change ! "presentFeedbackWidget" no longer uses "closeButtonText" in Android, as every feedback widget shows its own close button.
+* ! Minor breaking change ! "presentFeedbackWidget" no longer uses "closeButtonText" in Android. Feedback widgets without a widget version, such as those created on older servers, now show a close button with the fixed text "Close".
 * ! Minor breaking change ! Web changes:
   * when consent is required, content now also needs the "content" consent
   * "changeWithoutMerge", and "setID" when it does not merge, now start a session for the new device ID only with automatic session tracking. With manual sessions, call "beginSession" for the new user yourself
@@ -68,7 +70,7 @@
   * "setUserLocation" and "disableLocation" (without GPS coordinates), "addCustomNetworkRequestHeaders", direct attribution, "attemptToSendStoredRequests", "refreshContentZone" and "throwNativeException"
   * the config options for user properties and the content zone timer interval
 * Added support for SDK behavior settings that control automatic session tracking, automatic crash reporting and Journey Trigger Views, in Android and iOS.
-* Added support for push notification large icons and collapse keys in Android.
+* Added support for push notification large icons and collapse keys in Android. A large icon given only by resource name needs a "tools:keep" entry, as Flutter release builds remove unused resources.
 * Added support for reporting the app's light or dark theme when presenting feedback widgets, rating widgets and content, so they match it, in Android, iOS and Web.
 * Added support for server requested SDK log gathering and connection tests in Android, iOS and Web. The iOS privacy manifest now also declares the diagnostic data that log gathering collects.
 * Added "setLogListener" to "CountlyConfig" for receiving every log message of the SDK and its "LogLevel", also while logging is disabled:

@@ -1538,7 +1538,7 @@ class Countly {
 
   /// Present a chosen feedback widget
   /// [CountlyPresentableFeedback widgetInfo] - Get available list of feedback widgets by calling 'getAvailableFeedbackWidgets()' and pass the widget object as a parameter.
-  /// [String closeButtonText] - Not used, the widgets show their own close button.
+  /// [String closeButtonText] - Not used. In Android, widgets without a widget version show a close button with the text "Close".
   /// [VoidCallback? widgetShown] Callback to be executed when feedback widget is displayed
   /// [VoidCallback? widgetClosed] Callback to be executed when feedback widget is closed
   /// Note: widgetClosed is only implemented for iOS
