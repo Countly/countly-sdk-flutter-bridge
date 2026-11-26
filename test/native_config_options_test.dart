@@ -15,6 +15,7 @@ final Map<String, Object> expectedOptions = {
   'sdkLoggingInProductionDisabled': true,
   'webViewDisabled': true,
   'healthCheckDisabled': true,
+  'requestCompressionEnabled': true,
   'appCrawlerNames': ['Crawler One', 'Crawler Two'],
   'recordAllThreadsWithCrash': true,
   if (!Countly.BUILDING_WITH_PUSH_DISABLED) 'doNotShowAlertForNotifications': true,
@@ -23,6 +24,7 @@ final Map<String, Object> expectedOptions = {
   'contentRotationDisabled': true,
   'contentReloadOnStallEnabled': true,
   'contentReloadOnStallTimeout': 2500,
+  'autoContentTriggersDisabled': true,
 };
 
 void main() {
@@ -40,6 +42,7 @@ void main() {
       ..disableSDKLoggingInProduction()
       ..disableWebView()
       ..disableHealthCheck()
+      ..enableRequestCompression()
       ..setAppCrawlerNames(['Crawler One', 'Crawler Two'])
       ..enableRecordAllThreadsWithCrash()
       ..doNotShowAlertForNotifications();
@@ -48,7 +51,8 @@ void main() {
       ..disableZoom()
       ..disableRotation()
       ..enableContentReloadOnStall()
-      ..setContentReloadOnStallTimeout(2500);
+      ..setContentReloadOnStallTimeout(2500)
+      ..disableAutoContentTriggers();
 
     final Map<String, dynamic> sent = await initConfigSentFor(config);
     expectedOptions.forEach((String key, Object value) {

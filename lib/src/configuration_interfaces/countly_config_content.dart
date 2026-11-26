@@ -14,6 +14,7 @@ class CountlyConfigContent {
   bool _rotationDisabled = false;
   bool _reloadOnStallEnabled = false;
   int? _reloadOnStallTimeout;
+  bool _autoContentTriggersDisabled = false;
 
   /// getters
   ContentCallback? get contentCallback => _contentCallback;
@@ -24,6 +25,7 @@ class CountlyConfigContent {
   bool get rotationDisabled => _rotationDisabled;
   bool get reloadOnStallEnabled => _reloadOnStallEnabled;
   int? get reloadOnStallTimeout => _reloadOnStallTimeout;
+  bool get autoContentTriggersDisabled => _autoContentTriggersDisabled;
 
   /// setters / methods
 
@@ -91,6 +93,14 @@ class CountlyConfigContent {
       return this;
     }
     _reloadOnStallTimeout = milliseconds;
+    return this;
+  }
+
+  /// Stop requesting content right after an event, view, session, user property, handled exception or consent change
+  /// that starts a journey or campaign with content (Only for Android and iOS).
+  /// Content then arrives with the next content zone update.
+  CountlyConfigContent disableAutoContentTriggers() {
+    _autoContentTriggersDisabled = true;
     return this;
   }
 }

@@ -97,6 +97,7 @@ class CountlyConfiguration {
         //   ..content.disableRotation() // Keep content in its portrait layout (iOS only)
         //   ..content.enableContentReloadOnStall() // Reload content that does not appear while loading (iOS only)
         //   ..content.setContentReloadOnStallTimeout(1000) // Milliseconds before stalled content is reloaded (iOS only)
+        //   ..content.disableAutoContentTriggers() // Stop requesting content right after its journey or campaign trigger (Android and iOS)
         //------------------------------------------------------------
 
         // Device ID configuration
@@ -113,6 +114,7 @@ class CountlyConfiguration {
         // SDK behavior configuration
         //   ..disableBackoffMechanism() // Disable the backoff mechanism for request retries
         //   ..disableSDKBehaviorSettingsUpdates() // Disable server config updates
+        //   ..enableRequestCompression() // Send requests gzip-compressed to servers that support it (Android and iOS)
         //   ..disableStoringDefaultPushConsent() // Disable storing default push consent
         //   ..disableViewRestartForManualRecording() // Disable view restart for manual recording
         //   ..setSDKBehaviorSettings('{}') // Provide server config if not available at init time
@@ -120,7 +122,7 @@ class CountlyConfiguration {
         //   ..setTrackOrientationChanges(false) // Stop recording the device orientation
         //   ..disableSDKLoggingInProduction() // Keep SDK logs off in release builds (Android only)
         //   ..disableWebView() // Turn off content, feedback widgets and the rating popup (Android only)
-        //   ..disableHealthCheck() // Stop the health check request (Android only)
+        //   ..disableHealthCheck() // Stop the health check request (Android and iOS)
         //   ..setAppCrawlerNames(['Crawler Device']) // Add device names of app crawlers to ignore (Android only)
         //   ..enableRecordAllThreadsWithCrash() // Add the stack traces of all threads to crashes (Android only)
         //   ..doNotShowAlertForNotifications() // Do not show Countly push notifications in the foreground (iOS only)

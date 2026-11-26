@@ -43,7 +43,7 @@ BOOL BUILDING_WITH_PUSH_DISABLED = false;
 
 CLYPushTestMode const CLYPushTestModeProduction = @"CLYPushTestModeProduction";
 
-NSString *const kCountlyFlutterSDKVersion = @"26.1.1";
+NSString *const kCountlyFlutterSDKVersion = @"26.8.1";
 NSString *const kCountlyFlutterSDKName = @"dart-flutterb-ios";
 NSString *const kCountlyFlutterSDKNameNoPush = @"dart-flutterbnp-ios";
 
@@ -1708,6 +1708,11 @@ static FlutterMethodChannel *callbackChannel = nil;
             config.disableSDKBehaviorSettingsUpdates = YES;
         }
 
+        NSNumber *requestCompressionEnabled = [self configValueFrom:_config key:@"requestCompressionEnabled" ofClass:NSNumber.class];
+        if (requestCompressionEnabled && [requestCompressionEnabled boolValue]) {
+            config.enableRequestCompression = YES;
+        }
+
         // Internal Limits ---------------------
         NSNumber *maxKeyLength = [self configValueFrom:_config key:@"maxKeyLength" ofClass:NSNumber.class];
         if (maxKeyLength) {
@@ -1859,6 +1864,11 @@ static FlutterMethodChannel *callbackChannel = nil;
         }
 #endif
 
+        NSNumber *healthCheckDisabled = [self configValueFrom:_config key:@"healthCheckDisabled" ofClass:NSNumber.class];
+        if (healthCheckDisabled && [healthCheckDisabled boolValue]) {
+            config.disableHealthCheck = YES;
+        }
+
         [config.content setGlobalContentCallback:^(ContentStatus contentStatus, NSDictionary *contentData) {
           NSMutableDictionary *contentCallbackData = [NSMutableDictionary dictionary];
           int contentResult = 0; // COMPLETED = 0, CLOSED = 1
@@ -1902,6 +1912,10 @@ static FlutterMethodChannel *callbackChannel = nil;
         NSNumber *contentReloadOnStallTimeout = [self configValueFrom:_config key:@"contentReloadOnStallTimeout" ofClass:NSNumber.class];
         if (contentReloadOnStallTimeout) {
             [config.content setContentReloadOnStallTimeout:[contentReloadOnStallTimeout unsignedIntegerValue]];
+        }
+        NSNumber *autoContentTriggersDisabled = [self configValueFrom:_config key:@"autoContentTriggersDisabled" ofClass:NSNumber.class];
+        if (autoContentTriggersDisabled && [autoContentTriggersDisabled boolValue]) {
+            [config.content disableAutoContentTriggers];
         }
 
     } @catch (NSException *exception) {

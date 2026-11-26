@@ -2238,6 +2238,11 @@ class Countly {
         countlyConfig['sdkBehaviorSettingsUpdatesDisabled'] = config.sdkBehaviorSettingsUpdatesDisabled;
       }
 
+      if (config.requestCompressionEnabled) {
+        log('"_configToJson", value provided for requestCompressionEnabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['requestCompressionEnabled'] = true;
+      }
+
       if (config.storingDefaultPushConsentDisabled) {
         if (BUILDING_WITH_PUSH_DISABLED) {
           log('disableStoringDefaultPushConsent, $_pushDisabledMsg', logLevel: LogLevel.DEBUG);
@@ -2342,6 +2347,10 @@ class Countly {
       if (config.content.reloadOnStallTimeout != null) {
         log('"_configToJson", value provided for contentReloadOnStallTimeout: [${config.content.reloadOnStallTimeout}]', logLevel: LogLevel.INFO);
         countlyConfig['contentReloadOnStallTimeout'] = config.content.reloadOnStallTimeout;
+      }
+      if (config.content.autoContentTriggersDisabled) {
+        log('"_configToJson", value provided for autoContentTriggersDisabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['autoContentTriggersDisabled'] = true;
       }
 
       /// Content END ---------------------------
