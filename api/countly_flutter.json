@@ -22,6 +22,7 @@
       "name": "CountlyConfigContent",
       "type": "interface",
       "usages": [
+        "configuration_interfaces/countly_config_content.dart::CountlyConfigContent::disableAutoContentTriggers",
         "configuration_interfaces/countly_config_content.dart::CountlyConfigContent::disableRotation",
         "configuration_interfaces/countly_config_content.dart::CountlyConfigContent::disableZoom",
         "configuration_interfaces/countly_config_content.dart::CountlyConfigContent::enableContentReloadOnStall",
