@@ -1,3 +1,13 @@
+## XX.XX.XX
+
+* Added `changeServerUrl(serverUrl)` to the SDK instance to change the server URL after init
+* Added `changeAppKey(appKey)` to the SDK instance to change the app key after init
+* Added `flushQueues()` to the SDK instance to clear the event and request queues
+* Added `replaceAllAppKeysInQueueWithCurrentAppKey()` to the SDK instance to set the current app key on all queued requests
+* Added `removeDifferentAppKeysFromQueue()` to the SDK instance to remove queued requests of other app keys
+
+* Underlying Dart SDK version is XX.XX.XX
+
 ## 26.1.0
 
 * Initial SDK release with the following functionalities:
