@@ -15,6 +15,6 @@ Init time SBS
 |            | ●            |            | ●       | Provided SBS     | 201E |
 |            | ●            | ●          | ●       | Stored SBS       | 201D |
 |            |              | ●          | ●       | Stored SBS       | 201D |
-|            |              |            | ●       | SDK Defaults     | --- |
+|            |              |            | ●       | SDK Defaults     | ---  |
 |            |              | ●          |         | Stored SBS       | 201B |
-|            |              |            |         | SDK Defaults     | 000 |
+|            |              |            |         | SDK Defaults     | 000  |

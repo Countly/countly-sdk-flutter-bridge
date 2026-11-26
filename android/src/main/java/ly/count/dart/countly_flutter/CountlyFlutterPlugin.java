@@ -98,6 +98,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private static final String NOTIFICATION_CLICK_HANDLED_EXTRA = "ly.count.dart.countly_flutter.notificationClickHandled";
     private static final String PREFERENCES_NAME = "ly.count.dart.countly_flutter";
     private static final String PUSH_ALLOWED_INTENT_SCHEMES_KEY = "pushAllowedIntentSchemes";
+    /** The user detail keys "setuserdata" reads, as text, when Dart sends them. */
+    private static final String[] USER_DETAIL_KEYS = { "name", "username", "email", "organization", "phone", "picture", "picturePath", "gender", "byear" };
     /** The URI schemes push notification links may open, from the last init, or null for the SDK default. */
     private static volatile List<String> pushAllowedIntentSchemes = null;
 
@@ -790,32 +792,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             JSONObject userData = args.getJSONObject(0);
             Map<String, Object> bundle = new HashMap<>();
 
-            if (userData.has("name")) {
-                bundle.put("name", userData.getString("name"));
-            }
-            if (userData.has("username")) {
-                bundle.put("username", userData.getString("username"));
-            }
-            if (userData.has("email")) {
-                bundle.put("email", userData.getString("email"));
-            }
-            if (userData.has("organization")) {
-                bundle.put("organization", userData.getString("organization"));
-            }
-            if (userData.has("phone")) {
-                bundle.put("phone", userData.getString("phone"));
-            }
-            if (userData.has("picture")) {
-                bundle.put("picture", userData.getString("picture"));
-            }
-            if (userData.has("picturePath")) {
-                bundle.put("picturePath", userData.getString("picturePath"));
-            }
-            if (userData.has("gender")) {
-                bundle.put("gender", userData.getString("gender"));
-            }
-            if (userData.has("byear")) {
-                bundle.put("byear", userData.getString("byear"));
+            for (String key : USER_DETAIL_KEYS) {
+                if (userData.has(key)) {
+                    bundle.put(key, userData.getString(key));
+                }
             }
 
             Countly.sharedInstance().userProfile().setProperties(bundle);
