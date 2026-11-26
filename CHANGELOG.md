@@ -1,4 +1,4 @@
-## XX.XX.XX
+## 26.8.1
 * ! Minor breaking change ! Raised the minimum supported iOS version to 15 (previously 10), as the underlying iOS SDK requires it.
 * ! Minor breaking change ! Push notification changes:
   * "askForNotificationPermission" now also asks for the notification permission on Android 13 and newer, and the plugin declares the "POST_NOTIFICATIONS" permission
@@ -56,8 +56,8 @@
   * "data", "zip", "intent", "file", "content", "javascript" and "jar" stay blocked
   * a list without a usable scheme is ignored, so it never widens the schemes set before
 * Added config options of the underlying Android and iOS SDKs:
-  * "enableManualSessionControlHybridMode", "setMetricOverride", "setTrackOrientationChanges", "enableClearStoredDeviceId" and "sdkInternalLimits.setMaxValueSizePicture"
-  * in Android, "disableSDKLoggingInProduction", "disableWebView", "disableHealthCheck", "setAppCrawlerNames" and "enableRecordAllThreadsWithCrash"
+  * "enableManualSessionControlHybridMode", "setMetricOverride", "setTrackOrientationChanges", "enableClearStoredDeviceId", "disableHealthCheck" and "sdkInternalLimits.setMaxValueSizePicture"
+  * in Android, "disableSDKLoggingInProduction", "disableWebView", "setAppCrawlerNames" and "enableRecordAllThreadsWithCrash"
   * in iOS, "doNotShowAlertForNotifications"
   * in iOS, the "disableZoom", "disableRotation", "enableContentReloadOnStall" and "setContentReloadOnStallTimeout" options of "CountlyConfig.content" (Experimental!)
 * Added Web support for:
@@ -80,8 +80,11 @@
 * Added "changeServerUrl" to "Countly.instance" for changing the server URL after init, in Android and iOS.
 * Added "changeAppKey" to "Countly.instance" for changing the app key after init, in Android and iOS.
 * Added "flushQueues" to "Countly.instance" for discarding the stored requests and events, in Android and iOS.
+* Added content triggers in Android and iOS. While the content zone is entered, an event, view, session, user property, recorded exception or consent change that starts a journey or campaign with content now requests that content immediately. Turn them off with "disableAutoContentTriggers" of "CountlyConfig.content".
+* Added "enableRequestCompression" to "CountlyConfig" for sending requests gzip-compressed to servers that support it, in Android and iOS.
 * Changed "exitContentZone" to also close the content on screen in iOS and Web, instead of only stopping content retrieval.
 * Improved crash reporting in iOS. Its handlers now pass crashes on to the crash handlers they replaced, and leave crash tools installed later, signals the app ignores and a SIGPIPE the app handles itself alone.
+* Improved journey triggers set in SDK behavior settings, in Android and iOS. Their events and views now request content immediately, the same way as content triggers.
 * Improved link handling of content and feedback widgets in Android and iOS, so links that carry their own query parameters, such as deep links, are parsed correctly.
 * Improved logging: messages from before init, such as warnings about invalid config values, are now printed once init enables logging.
 
@@ -91,6 +94,9 @@
   * event sums lost precision (19.99 was recorded as 19.989999771118164), and the deprecated map versions of "recordEvent" and "endEvent" sent wrong values for whole-number sums and for text counts, sums and durations
   * SDK logs showed the parameter tampering protection salt and custom request header values
   * the "disableBackoffMechanism" config option was ignored in Android, and in iOS it took effect only while SDK behavior settings kept changing
+  * the "enter content zone" SDK behavior setting could exit a content zone the app entered. The setting now applies only when the SDK starts
+  * durations of sessions, views, timed events and traces changed when the device clock was adjusted, and an event recorded with a negative duration kept it
+  * the health check sent metrics without the metrics consent
 
 * Mitigated issues in Android where:
   * builds failed in "checkDebugAarMetadata" on newer Flutter versions. The plugin now compiles against the API level of the app's Flutter SDK
@@ -110,8 +116,8 @@
   * the app could crash when a content or feedback widget was closed from a background thread, for example by "changeWithoutMerge" or by removing consent
   * push notifications could show late or not at all while their images loaded, and tapping an action button left the notification visible, so a second tap recorded the action again
   * the push token was not sent again when the push consent was given again, nor for the new user after "changeWithoutMerge"
-  * durations of sessions, views, timed events and traces changed when the device clock was adjusted, and an event recorded with a negative duration kept it
-  * health check counts could be lost or reported wrong, and its metrics were sent without the metrics consent
+  * health check counts could be lost or reported wrong
+  * content and feedback widgets could keep their previous size after a rotation, leaving part of them off screen
 
 * Mitigated issues in iOS where:
   * "onNotification" got a push notification twice before init when the AppDelegate also passed it on to the plugin
@@ -138,6 +144,8 @@
   * with visibility tracking enabled, events recorded while the app was inactive, for example under a system alert or in the app switcher, were reported as not visible
   * the app could freeze instead of terminating on a crash after crash reporting was turned off at runtime, or on a crash inside the SDK's request handling or while it held an internal lock. The SDK now waits at most 5 seconds for the crash report and sends it on the next start if it did not go out
   * the SDK could crash when SDK behavior settings updated filters or Journey Trigger lists while data was being recorded
+  * journey trigger events and views with keys longer than the key length limit never matched
+  * the orientation was not recorded at start, and not at all on iOS 27 in apps that use the UIScene lifecycle
 
 * Mitigated issues in Web where:
   * every call waited forever when the Web SDK script could not load. Init now gives up after 10 seconds with an error, and a later "initWithConfig" call can try again
@@ -163,8 +171,8 @@
   * "recordAttributionID", use "recordIndirectAttribution" instead
 * Removed the dependency on the discontinued "pedantic" package.
 
-* Underlying Android SDK version is 26.8.0
-* Underlying iOS SDK version is 26.8.0
+* Underlying Android SDK version is 26.8.1
+* Underlying iOS SDK version is 26.8.1
 * Underlying Web SDK version is 26.8.0
 
 ## 26.1.1

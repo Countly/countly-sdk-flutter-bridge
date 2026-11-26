@@ -2793,6 +2793,18 @@
             "isDeprecated": false,
             "isExperimental": false,
             "isStatic": false,
+            "name": "enableRequestCompression",
+            "parameters": [],
+            "relativePath": "lib/src/countly_config.dart",
+            "returnTypeName": "CountlyConfig",
+            "type": "method",
+            "typeParameterNames": []
+          },
+          {
+            "entryPoints": [],
+            "isDeprecated": false,
+            "isExperimental": false,
+            "isStatic": false,
             "name": "enableTemporaryDeviceIDMode",
             "parameters": [],
             "relativePath": "lib/src/countly_config.dart",
@@ -4023,6 +4035,17 @@
             "isReadable": true,
             "isStatic": false,
             "isWriteable": false,
+            "name": "requestCompressionEnabled",
+            "relativePath": "lib/src/countly_config.dart",
+            "typeName": "bool"
+          },
+          {
+            "entryPoints": [],
+            "isDeprecated": false,
+            "isExperimental": false,
+            "isReadable": true,
+            "isStatic": false,
+            "isWriteable": false,
             "name": "requestDropAgeHours",
             "relativePath": "lib/src/countly_config.dart",
             "typeName": "int?"
@@ -4365,6 +4388,18 @@
             "isDeprecated": false,
             "isExperimental": false,
             "isStatic": false,
+            "name": "disableAutoContentTriggers",
+            "parameters": [],
+            "relativePath": "lib/src/configuration_interfaces/countly_config_content.dart",
+            "returnTypeName": "CountlyConfigContent",
+            "type": "method",
+            "typeParameterNames": []
+          },
+          {
+            "entryPoints": [],
+            "isDeprecated": false,
+            "isExperimental": false,
+            "isStatic": false,
             "name": "disableRotation",
             "parameters": [],
             "relativePath": "lib/src/configuration_interfaces/countly_config_content.dart",
@@ -4530,6 +4565,17 @@
             "name": "allowedIntentSchemes",
             "relativePath": "lib/src/configuration_interfaces/countly_config_content.dart",
             "typeName": "List<String>?"
+          },
+          {
+            "entryPoints": [],
+            "isDeprecated": false,
+            "isExperimental": false,
+            "isReadable": true,
+            "isStatic": false,
+            "isWriteable": false,
+            "name": "autoContentTriggersDisabled",
+            "relativePath": "lib/src/configuration_interfaces/countly_config_content.dart",
+            "typeName": "bool"
           },
           {
             "entryPoints": [],

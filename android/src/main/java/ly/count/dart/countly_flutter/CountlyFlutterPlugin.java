@@ -84,7 +84,7 @@ import com.google.firebase.FirebaseApp;
  */
 public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver, PluginRegistry.NewIntentListener, ActivityPluginBinding.OnSaveInstanceStateListener {
     private static final String TAG = "CountlyFlutterPlugin";
-    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "26.1.1";
+    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "26.8.1";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterbnp-android";
 
@@ -2056,6 +2056,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.disableBackoffMechanism();
         }
 
+        if (_config.optBoolean("requestCompressionEnabled", false)) {
+            this.config.enableRequestCompression();
+        }
+
         if (_config.has("disableStoringDefaultPushConsent")) {
             this.config.disableStoringDefaultPushConsent();
         }
@@ -2234,6 +2238,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
         if (_config.has("contentAllowedIntentSchemes")) {
             this.config.content.setAllowedIntentSchemes(toStringList(_config.getJSONArray("contentAllowedIntentSchemes")));
+        }
+
+        if (_config.optBoolean("autoContentTriggersDisabled", false)) {
+            this.config.content.disableAutoContentTriggers();
         }
 
         pushAllowedIntentSchemes = null;
