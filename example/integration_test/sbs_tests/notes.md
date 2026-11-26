@@ -121,6 +121,7 @@ tests are:
 
 202X tests value validation where:
 Provide SBS from server:
+
 ```json
 {
       'v': 1,
@@ -131,6 +132,7 @@ Provide SBS from server:
 
 - A
 Store SBS:
+
 ```json
 {
       'v': 1,

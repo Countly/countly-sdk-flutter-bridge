@@ -80,7 +80,6 @@ NC='\033[0m'
 
 # Persistent paths
 RESULTS_BASE="$PROJECT_ROOT/test_results"
-CACHE_FILE="$RESULTS_BASE/.cache"
 LOG_DIR=""
 
 # Temp directory for internal bookkeeping (cleaned up on exit)
@@ -269,7 +268,7 @@ _cache_file_for_platform() {
 _compute_test_hash() {
   local test_path="$1"
   local test_file="$TEST_DIR/$test_path"
-  local files_to_hash="$test_file"
+  local files_to_hash=("$test_file")
 
   # Find local imports (non-package imports) and resolve them relative to the test file
   local test_dir
@@ -279,16 +278,16 @@ _compute_test_hash() {
     rel_import=$(echo "$import_line" | grep -oE "'[^']+'" | tr -d "'")
     if [[ -n "$rel_import" ]]; then
       local resolved="$test_dir/$rel_import"
-      [[ -f "$resolved" ]] && files_to_hash="$files_to_hash $resolved"
+      [[ -f "$resolved" ]] && files_to_hash+=("$resolved")
     fi
   done < <(grep "^import " "$test_file" 2>/dev/null | grep -v "package:")
 
   # Also include the SDK pubspec (version changes should invalidate cache)
   local sdk_pubspec="$PROJECT_ROOT/pubspec.yaml"
-  [[ -f "$sdk_pubspec" ]] && files_to_hash="$files_to_hash $sdk_pubspec"
+  [[ -f "$sdk_pubspec" ]] && files_to_hash+=("$sdk_pubspec")
 
   # Hash all files together
-  cat $files_to_hash 2>/dev/null | shasum -a 256 | awk '{print $1}'
+  cat "${files_to_hash[@]}" 2>/dev/null | shasum -a 256 | awk '{print $1}'
 }
 
 cache_is_passed() {
