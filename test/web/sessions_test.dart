@@ -16,7 +16,7 @@ void main() {
     final List<Map<String, dynamic>> begins = await requestsWith('begin_session');
     expect(begins, hasLength(1));
     expect(begins.single['app_key'], 'web_test_app');
-    expect(begins.single['sdk_name'], 'dart-flutterb-web');
+    expect(begins.single['sdk_name'], Countly.BUILDING_WITH_PUSH_DISABLED ? 'dart-flutterbnp-web' : 'dart-flutterb-web');
     expect(begins.single['sdk_version'], isNotEmpty);
     expect(begins.single['metrics'], contains('_ua'));
   });
