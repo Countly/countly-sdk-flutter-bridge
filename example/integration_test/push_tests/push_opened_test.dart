@@ -92,5 +92,5 @@ void main() {
     await Future<void>.delayed(const Duration(seconds: 2));
     expect(replaced, [1]);
     expect(opened.length, openedBefore);
-  });
+  }, skip: Countly.BUILDING_WITH_PUSH_DISABLED); // the no-push flavour has no push notifications
 }
