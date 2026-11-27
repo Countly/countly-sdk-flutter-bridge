@@ -50,6 +50,21 @@ jobs:
           java-version: "17"
           distribution: temurin
 
+      # The iOS build compiles the vendored iOS SDK, so it is checked out first. The sync script ends with
+      # `flutter pub get`, which also resolves the example and so needs the latest Flutter; the app is then
+      # built with the Flutter version of the matrix, set up after it.
+      - name: Set up the latest Flutter for the vendored iOS SDK
+        if: matrix.target.name == 'iOS'
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          cache: true
+
+      - name: Prepare the vendored iOS SDK
+        if: matrix.target.name == 'iOS'
+        working-directory: sdk
+        run: dart scripts/sync_sdk_versions.dart
+
       - name: Set up Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
@@ -61,12 +76,6 @@ jobs:
         run: |
           flutter --version
           if command -v xcodebuild >/dev/null; then xcodebuild -version; fi
-
-      # The iOS build compiles the vendored iOS SDK, so it is checked out first.
-      - name: Prepare the vendored iOS SDK
-        if: matrix.target.name == 'iOS'
-        working-directory: sdk
-        run: dart scripts/sync_sdk_versions.dart
 
       # A local plugin is found under its package name, which is countly_flutter_np in the no-push flavour.
       - name: Copy the SDK under its package name
