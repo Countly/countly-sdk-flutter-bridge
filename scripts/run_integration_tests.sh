@@ -30,8 +30,10 @@
 #   -d, --device ID     Restrict to specific device(s), comma-separated
 #   --timeout SECS      Per-test timeout in seconds (default: 300)
 #   --kill-after SECS   Stop a test, its build and its device processes after SECS seconds (default: off)
-#   --retry-infra N     Run a test up to N more times when its app did not start or --kill-after stopped it,
-#                       after a restart of its iOS simulator (default: 0)
+#   --connect-timeout SECS  Stop a test whose app does not connect to the test runner within SECS seconds after
+#                       its build, and report it with live progress lines (default: off)
+#   --retry-infra N     Run a test up to N more times when its app did not start or connect, or --kill-after
+#                       stopped it, after a restart of its iOS simulator (default: 0)
 #
 # Filtering:
 #   --filter PATTERN    Only run tests whose path matches PATTERN (regex)
@@ -75,6 +77,7 @@ TEST_FILTER=""
 SHARD=""
 KILL_AFTER=0
 RETRY_INFRA=0
+CONNECT_TIMEOUT=0
 
 # Colors (bold)
 RED='\033[1;31m'
@@ -429,6 +432,9 @@ run_worker() {
       infra_reason=""
       if [[ $status -eq 124 ]]; then
         infra_reason="stopped after ${KILL_AFTER}s"
+      elif grep -q "the app did not connect within" "$test_log" 2>/dev/null; then
+        infra_reason="the app did not connect"
+        status=1
       elif [[ $status -ne 0 ]] && grep -q "Unable to start the app" "$test_log" 2>/dev/null; then
         infra_reason="the app did not start"
       fi
@@ -559,10 +565,42 @@ restart_simulator_for_retry() {
   return 0
 }
 
+# Stops the test process $1 when its app has not connected $3 seconds after the build line appeared in the test log $2.
+# The expanded reporter prints a progress line, such as "00:05 +0: <test name>", only once the app has connected; its
+# "loading" lines come before the build. The stop is noted in the test log.
+watch_connection() {
+  local pid="$1" test_log="$2" timeout="$3" built_at=0
+  while kill -0 "$pid" 2>/dev/null; do
+    sleep 5
+    if [[ $built_at -eq 0 ]] && grep -q -E "Xcode build done|Built build/app/outputs" "$test_log" 2>/dev/null; then
+      built_at=$SECONDS
+    fi
+    if [[ $built_at -gt 0 ]]; then
+      if grep -E "^[0-9]{2}:[0-9]{2} \+[0-9]+" "$test_log" 2>/dev/null | grep -v -q ": loading "; then
+        return 0
+      fi
+      if (( SECONDS - built_at >= timeout )); then
+        echo "Stopped: the app did not connect within ${timeout}s after its build (--connect-timeout)." >> "$test_log"
+        kill_tree "$pid"
+        return 0
+      fi
+    fi
+  done
+}
+
 # Runs one integration test file on one device, writing its output to the test log and the worker log.
+# With --connect-timeout, the expanded reporter prints the progress lines the connection watcher needs.
 run_flutter_test() {
   local test_path="$1" device_id="$2" port="$3" test_log="$4" log_file="$5"
-  (cd "$EXAMPLE_DIR" && flutter test "$test_path" -d "$device_id" --timeout "$TIMEOUT" --dart-define=TEST_SERVER_PORT=$port 2>&1 | tee "$test_log" >> "$log_file")
+  local reporter=()
+  [[ $CONNECT_TIMEOUT -gt 0 ]] && reporter=(-r expanded)
+  : > "$test_log"
+  (cd "$EXAMPLE_DIR" && flutter test "$test_path" -d "$device_id" --timeout "$TIMEOUT" "--dart-define=TEST_SERVER_PORT=$port" "${reporter[@]+"${reporter[@]}"}" 2>&1 | tee "$test_log" >> "$log_file") 2>/dev/null &
+  local pid=$!
+  if [[ $CONNECT_TIMEOUT -gt 0 ]]; then
+    watch_connection "$pid" "$test_log" "$CONNECT_TIMEOUT" &
+  fi
+  wait "$pid" 2>/dev/null
 }
 
 # ── Parse Arguments ──────────────────────────────────────────────────
@@ -588,8 +626,9 @@ while [[ $# -gt 0 ]]; do
     --shard)        SHARD="$2"; shift 2 ;;
     --kill-after)   KILL_AFTER="$2"; shift 2 ;;
     --retry-infra)  RETRY_INFRA="$2"; shift 2 ;;
+    --connect-timeout) CONNECT_TIMEOUT="$2"; shift 2 ;;
     -h|--help)
-      head -52 "$0" | tail -n +2 | sed 's/^# \?//'
+      head -54 "$0" | tail -n +2 | sed 's/^# \?//'
       exit 0 ;;
     *)
       echo "Unknown option: $1 (use --help)"; exit 1 ;;
@@ -604,6 +643,9 @@ if ! [[ "$KILL_AFTER" =~ ^[0-9]+$ ]]; then
 fi
 if ! [[ "$RETRY_INFRA" =~ ^[0-9]+$ ]]; then
   echo "--retry-infra needs a whole number (got: $RETRY_INFRA)"; exit 1
+fi
+if ! [[ "$CONNECT_TIMEOUT" =~ ^[0-9]+$ ]]; then
+  echo "--connect-timeout needs a whole number of seconds (got: $CONNECT_TIMEOUT)"; exit 1
 fi
 if [[ -n "$SHARD" ]] && ! [[ "$SHARD" =~ ^[1-9][0-9]*/[1-9][0-9]*$ && ${SHARD%/*} -le ${SHARD#*/} ]]; then
   echo "--shard needs I/N with 1 <= I <= N, for example 2/4 (got: $SHARD)"; exit 1
