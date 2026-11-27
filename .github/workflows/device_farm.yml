@@ -48,12 +48,33 @@ jobs:
           dart run scripts/sync_sdk_versions.dart
           flutter precache --ios
 
+      - name: Build the tests for a device
+        run: |
+          set -eu
+          farm="$RUNNER_TEMP/farm"
+          plugin="sdk-src/ios/countly_flutter/Sources/countly_flutter"
+          mkdir -p "$farm/src" "$farm/Frameworks"
+          cp sdk-src/.github/farm/ios/project.yml "$farm/"
+          cp sdk-src/.github/farm/ios/*.m "$plugin"/*.h "$plugin"/*.m "$plugin"/include/countly_flutter/*.h "$farm/src/"
+          cp "$plugin"/countly-sdk-ios/*.h "$plugin"/countly-sdk-ios/*.m "$farm/src/"
+          engine="$(find "$FLUTTER_ROOT/bin/cache/artifacts/engine/ios" -path '*Flutter.xcframework/ios-arm64*/Flutter.framework' -maxdepth 4 | head -1)"
+          cp -R "$engine" "$farm/Frameworks/"
+          brew install xcodegen
+          (cd "$farm" && xcodegen generate)
+          xcodebuild build-for-testing \
+            -project "$farm/CountlyFlutterFarm.xcodeproj" -scheme CountlyTests \
+            -destination 'generic/platform=iOS' -derivedDataPath "$RUNNER_TEMP/dd"
+
       - name: Import the signing certificate
         env:
           APPLE_CERT_P12: ${{ secrets.APPLE_CERT_P12 }}
           APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
         run: |
           set -eu
+          if [ -z "$APPLE_CERT_P12" ] || [ -z "$APPLE_CERT_PASSWORD" ]; then
+            echo "::error::The secrets APPLE_CERT_P12 and APPLE_CERT_PASSWORD are not set in this repository."
+            exit 1
+          fi
           keychain="$RUNNER_TEMP/farm.keychain-db"
           password="$(openssl rand -base64 16)"
           security create-keychain -p "$password" "$keychain"
@@ -72,26 +93,13 @@ jobs:
           APPLE_PROFILE: ${{ secrets.APPLE_PROFILE }}
         run: |
           set -eu
+          if [ -z "$APPLE_PROFILE" ]; then
+            echo "::error::The secret APPLE_PROFILE is not set in this repository."
+            exit 1
+          fi
           dir="$HOME/Library/MobileDevice/Provisioning Profiles"
           mkdir -p "$dir"
           echo "$APPLE_PROFILE" | base64 -d > "$dir/farm.mobileprovision"
-
-      - name: Build the tests for a device
-        run: |
-          set -eu
-          farm="$RUNNER_TEMP/farm"
-          plugin="sdk-src/ios/countly_flutter/Sources/countly_flutter"
-          mkdir -p "$farm/src" "$farm/Frameworks"
-          cp sdk-src/.github/farm/ios/project.yml "$farm/"
-          cp sdk-src/.github/farm/ios/*.m "$plugin"/*.h "$plugin"/*.m "$plugin"/include/countly_flutter/*.h "$farm/src/"
-          cp "$plugin"/countly-sdk-ios/*.h "$plugin"/countly-sdk-ios/*.m "$farm/src/"
-          engine="$(find "$FLUTTER_ROOT/bin/cache/artifacts/engine/ios" -path '*Flutter.xcframework/ios-arm64*/Flutter.framework' -maxdepth 4 | head -1)"
-          cp -R "$engine" "$farm/Frameworks/"
-          brew install xcodegen
-          (cd "$farm" && xcodegen generate)
-          xcodebuild build-for-testing \
-            -project "$farm/CountlyFlutterFarm.xcodeproj" -scheme CountlyTests \
-            -destination 'generic/platform=iOS' -derivedDataPath "$RUNNER_TEMP/dd"
 
       - name: Package the signed runner
         run: |
