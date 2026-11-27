@@ -1,0 +1,29 @@
+# XcodeGen spec for the device farm test bundle. The workflow copies the plugin's Objective-C sources,
+# the vendored iOS SDK sources and the test into src/, and Flutter.framework into Frameworks/.
+# The bundle ID matches the runner the farm's provisioning profile signs: com.countly.CountlyTests.xctrunner.
+name: CountlyFlutterFarm
+options:
+  deploymentTarget:
+    iOS: "16.1"
+targets:
+  CountlyTests:
+    type: bundle.unit-test
+    platform: iOS
+    scheme:
+      testTargets:
+        - CountlyTests
+    sources:
+      - path: src
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.countly.CountlyTests
+        PRODUCT_NAME: CountlyTests
+        GENERATE_INFOPLIST_FILE: YES
+        CLANG_ENABLE_OBJC_ARC: YES
+        CLANG_ENABLE_MODULES: YES
+        FRAMEWORK_SEARCH_PATHS: $(inherited) $(PROJECT_DIR)/Frameworks
+        HEADER_SEARCH_PATHS: $(inherited) $(PROJECT_DIR)/src
+        OTHER_LDFLAGS: $(inherited) -framework Flutter
+        LD_RUNPATH_SEARCH_PATHS: $(inherited) @loader_path/Frameworks
+        CODE_SIGNING_ALLOWED: NO
+        GCC_WARN_INHIBIT_ALL_WARNINGS: YES
