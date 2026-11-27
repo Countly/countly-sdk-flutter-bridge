@@ -32,6 +32,7 @@
 #
 # Filtering:
 #   --filter PATTERN    Only run tests whose path matches PATTERN (regex)
+#   --shard I/N         Run only shard I of N (1-based): every Nth automatic test, for parallel CI jobs
 #
 # Output:
 #   Logs saved to test_results/<timestamp>/ in the project root:
@@ -68,6 +69,7 @@ FRESH=false
 CLEAR_CACHE=false
 RESTRICT_DEVICES=""
 TEST_FILTER=""
+SHARD=""
 
 # Colors (bold)
 RED='\033[1;31m'
@@ -486,8 +488,9 @@ while [[ $# -gt 0 ]]; do
     -d|--device)    RESTRICT_DEVICES="$2"; shift 2 ;;
     --timeout)      TIMEOUT="$2"; shift 2 ;;
     --filter)       TEST_FILTER="$2"; shift 2 ;;
+    --shard)        SHARD="$2"; shift 2 ;;
     -h|--help)
-      head -48 "$0" | tail -n +2 | sed 's/^# \?//'
+      head -49 "$0" | tail -n +2 | sed 's/^# \?//'
       exit 0 ;;
     *)
       echo "Unknown option: $1 (use --help)"; exit 1 ;;
@@ -496,6 +499,9 @@ done
 
 if ! $HAS_CATEGORY; then
   RUN_AUTO=true
+fi
+if [[ -n "$SHARD" ]] && ! [[ "$SHARD" =~ ^[1-9][0-9]*/[1-9][0-9]*$ && ${SHARD%/*} -le ${SHARD#*/} ]]; then
+  echo "--shard needs I/N with 1 <= I <= N, for example 2/4 (got: $SHARD)"; exit 1
 fi
 if $RUN_AUTO; then
   RUN_SERVER=true; RUN_RC=true; RUN_LIGHT=true
@@ -652,6 +658,18 @@ for category in light server rc; do
     while IFS= read -r t; do [[ -n "$t" ]] && ALL_AUTO_TESTS+=("$t"); done < "$WORK_DIR/tests_${category}.txt"
   fi
 done
+
+# A shard keeps every Nth test, so parallel jobs get similar mixes of light and server tests.
+if [[ -n "$SHARD" ]]; then
+  local shard_index=${SHARD%/*} shard_count=${SHARD#*/} shard_tests=() i
+  for i in "${!ALL_AUTO_TESTS[@]}"; do
+    if (( i % shard_count == shard_index - 1 )); then
+      shard_tests+=("${ALL_AUTO_TESTS[$i]}")
+    fi
+  done
+  ALL_AUTO_TESTS=("${shard_tests[@]+"${shard_tests[@]}"}")
+  echo -e "  ${DIM}Shard $SHARD: ${#ALL_AUTO_TESTS[@]} automatic test(s)${NC}"
+fi
 
 local ALL_MANUAL_TESTS=()
 if $RUN_MANUAL; then
