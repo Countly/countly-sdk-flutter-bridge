@@ -1,4 +1,14 @@
 ## 26.8.0-np
+* !! Major breaking change !! Removed the following functions and config options, deprecated since 24.4.0 or earlier. Apps that still call them do not compile until they use the replacements:
+  * "recordView", use "startAutoStoppedView" of "Countly.instance.views" instead
+  * "remoteConfigUpdate", "updateRemoteConfigForKeysOnly" and "updateRemoteConfigExceptKeys", use "downloadAllKeys", "downloadSpecificKeys" and "downloadOmittingKeys" of "Countly.instance.remoteConfig" instead
+  * "getRemoteConfigValueForKey", use "getValue" of "Countly.instance.remoteConfig" instead
+  * "remoteConfigClearValues", use "clearAll" of "Countly.instance.remoteConfig" instead
+  * "setRemoteConfigAutomaticDownload" (the function and the config option) and "setRemoteConfigCallback", use the "enableRemoteConfigAutomaticTriggers" and "remoteConfigRegisterGlobalCallback" config options instead
+  * "enableCrashReporting" and "setCustomCrashSegment", use the "enableCrashReporting" and "setCustomCrashSegment" config options instead
+  * "enableApm" and the "setRecordAppStartTime" config option, use "apm.enableAppStartTimeTracking" of "CountlyConfig" instead
+  * "askForFeedback", use "presentRatingWidgetWithID" instead
+  * "recordAttributionID", use "recordIndirectAttribution" instead
 * ! Minor breaking change ! Raised the minimum supported iOS version to 15 (previously 10), as the underlying iOS SDK requires it.
 * ! Minor breaking change ! Changes to user properties:
   * "setProperty" and "setUserProperties" of "Countly.instance.userProfile", and the deprecated "setUserData" and "Countly.setProperty", now send the recorded events before the user properties
@@ -139,16 +149,6 @@
   * with several tabs of the app open, events and other requests could be sent more than once or lost
   * "changeWithoutMerge" kept the content zone entered and the previous user's content on screen. Call "enterContentZone" again to show content to the new user
 
-* Removed the following deprecated functions and config options:
-  * "recordView", use "startAutoStoppedView" of "Countly.instance.views" instead
-  * "remoteConfigUpdate", "updateRemoteConfigForKeysOnly" and "updateRemoteConfigExceptKeys", use "downloadAllKeys", "downloadSpecificKeys" and "downloadOmittingKeys" of "Countly.instance.remoteConfig" instead
-  * "getRemoteConfigValueForKey", use "getValue" of "Countly.instance.remoteConfig" instead
-  * "remoteConfigClearValues", use "clearAll" of "Countly.instance.remoteConfig" instead
-  * "setRemoteConfigAutomaticDownload" (the function and the config option) and "setRemoteConfigCallback", use the "enableRemoteConfigAutomaticTriggers" and "remoteConfigRegisterGlobalCallback" config options instead
-  * "enableCrashReporting" and "setCustomCrashSegment", use the "enableCrashReporting" and "setCustomCrashSegment" config options instead
-  * "enableApm" and the "setRecordAppStartTime" config option, use "apm.enableAppStartTimeTracking" of "CountlyConfig" instead
-  * "askForFeedback", use "presentRatingWidgetWithID" instead
-  * "recordAttributionID", use "recordIndirectAttribution" instead
 * Removed the dependency on the discontinued "pedantic" package.
 
 * Underlying Android SDK version is 26.8.1
