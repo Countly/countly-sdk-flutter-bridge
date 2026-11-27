@@ -57,7 +57,8 @@ jobs:
           cp sdk-src/.github/farm/ios/project.yml "$farm/"
           cp sdk-src/.github/farm/ios/*.m "$plugin"/*.h "$plugin"/*.m "$plugin"/include/countly_flutter/*.h "$farm/src/"
           cp "$plugin"/countly-sdk-ios/*.h "$plugin"/countly-sdk-ios/*.m "$farm/src/"
-          engine="$(find "$FLUTTER_ROOT/bin/cache/artifacts/engine/ios" -path '*Flutter.xcframework/ios-arm64*/Flutter.framework' -maxdepth 4 | head -1)"
+          engine="$FLUTTER_ROOT/bin/cache/artifacts/engine/ios/Flutter.xcframework/ios-arm64/Flutter.framework"
+          test -d "$engine"
           cp -R "$engine" "$farm/Frameworks/"
           brew install xcodegen
           (cd "$farm" && xcodegen generate)
@@ -117,6 +118,7 @@ jobs:
           if-no-files-found: error
 
       - name: Join the device farm queue
+        id: join
         run: node sdk-src/.github/farm/client.mjs oidc countly-sdk-ios
 
       - name: Run the tests on the iPhone
@@ -134,6 +136,7 @@ jobs:
         if: always()
         run: node sdk-src/.github/farm/client.mjs summary "$RUNNER_TEMP/results" >> "$GITHUB_STEP_SUMMARY"
 
+      # Only after the job joined the queue; earlier it holds no phone and no farm token.
       - name: Give the phone back
-        if: always()
+        if: always() && steps.join.outcome != 'skipped'
         run: node sdk-src/.github/farm/client.mjs release "${{ job.status }}"
