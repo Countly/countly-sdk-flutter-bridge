@@ -38,6 +38,15 @@ void postFromServiceWorker(Map<String, Object?> data) {
 void main() {
   setUpWebPlugin();
 
+  if (Countly.BUILDING_WITH_PUSH_DISABLED) {
+    test('Push calls report that the no-push flavour has no push notifications', () async {
+      await Countly.initWithConfig(testConfig());
+      expect(await Countly.askForNotificationPermission(), contains('Push notification is disabled'));
+      expect(await Countly.disablePushNotifications(), contains('Push notification is disabled'));
+    });
+    return;
+  }
+
   test('onNotification registered before init waits for a notification instead of answering at once', () async {
     final List<String> received = [];
     // ignore: unawaited_futures
