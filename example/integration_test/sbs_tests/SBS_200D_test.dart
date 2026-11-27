@@ -42,7 +42,7 @@ void main() {
       'apm': 2,
       'user_details': 1,
     }, requestArray);
-    validateInternalEventCounts({'nps': 1}, requestArray);
+    validateInternalEventCounts({'nps': 1, if (Platform.isIOS) 'orientation': 1}, requestArray); // iOS: the orientation from the SDK start
     validateImmediateCounts({'hc': 1, 'sc': 1, 'feedback': 1, 'queue': 2, 'ab': 1, 'ab_opt_out': 1, 'rc': 1}, requestArray);
 
     recordReservedEvent('[CLY]_orientation', {'mode': 'portrait'});
