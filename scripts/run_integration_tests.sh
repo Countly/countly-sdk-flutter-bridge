@@ -30,7 +30,8 @@
 #   -d, --device ID     Restrict to specific device(s), comma-separated
 #   --timeout SECS      Per-test timeout in seconds (default: 300)
 #   --kill-after SECS   Stop a test, its build and its device processes after SECS seconds (default: off)
-#   --retry-stopped N   Run a test that --kill-after stopped up to N more times (default: 0)
+#   --retry-infra N     Run a test up to N more times when its app did not start or --kill-after stopped it,
+#                       after a restart of its iOS simulator (default: 0)
 #
 # Filtering:
 #   --filter PATTERN    Only run tests whose path matches PATTERN (regex)
@@ -73,7 +74,7 @@ RESTRICT_DEVICES=""
 TEST_FILTER=""
 SHARD=""
 KILL_AFTER=0
-RETRY_STOPPED=0
+RETRY_INFRA=0
 
 # Colors (bold)
 RED='\033[1;31m'
@@ -420,14 +421,21 @@ run_worker() {
     echo "[W$worker_id] ▶ $test" >> "$log_file"
 
     local port=$((8080 + worker_id))
-    # A test that --kill-after stopped did not end, usually as the app never connected; it runs again.
-    local status attempt=0
+    # A test whose app did not start, or that --kill-after stopped as its app never connected, runs again.
+    local status attempt=0 infra_reason
     while :; do
       run_with_limit "$KILL_AFTER" run_flutter_test "$test_path" "$device_id" "$port" "$test_log" "$log_file"
       status=$?
-      if [[ $status -eq 124 && $attempt -lt $RETRY_STOPPED ]]; then
+      infra_reason=""
+      if [[ $status -eq 124 ]]; then
+        infra_reason="stopped after ${KILL_AFTER}s"
+      elif [[ $status -ne 0 ]] && grep -q "Unable to start the app" "$test_log" 2>/dev/null; then
+        infra_reason="the app did not start"
+      fi
+      if [[ -n "$infra_reason" && $attempt -lt $RETRY_INFRA ]]; then
         attempt=$((attempt + 1))
-        echo "[W$worker_id] ↻ RETRY $attempt ($test): stopped after ${KILL_AFTER}s" >> "$log_file"
+        echo "[W$worker_id] ↻ RETRY $attempt ($test): $infra_reason" >> "$log_file"
+        restart_simulator_for_retry "$platform" "$device_id"
         continue
       fi
       break
@@ -522,6 +530,16 @@ run_with_limit() {
   return $status
 }
 
+# Restarts an iOS simulator before a retry, as a stuck simulator also stops the next launch. Other devices stay as they are.
+restart_simulator_for_retry() {
+  local platform="$1" device_id="$2"
+  [[ "$platform" == "ios" ]] || return 0
+  xcrun simctl shutdown "$device_id" >/dev/null 2>&1
+  xcrun simctl boot "$device_id" >/dev/null 2>&1
+  xcrun simctl bootstatus "$device_id" -b >/dev/null 2>&1
+  return 0
+}
+
 # Runs one integration test file on one device, writing its output to the test log and the worker log.
 run_flutter_test() {
   local test_path="$1" device_id="$2" port="$3" test_log="$4" log_file="$5"
@@ -550,9 +568,9 @@ while [[ $# -gt 0 ]]; do
     --filter)       TEST_FILTER="$2"; shift 2 ;;
     --shard)        SHARD="$2"; shift 2 ;;
     --kill-after)   KILL_AFTER="$2"; shift 2 ;;
-    --retry-stopped) RETRY_STOPPED="$2"; shift 2 ;;
+    --retry-infra)  RETRY_INFRA="$2"; shift 2 ;;
     -h|--help)
-      head -51 "$0" | tail -n +2 | sed 's/^# \?//'
+      head -52 "$0" | tail -n +2 | sed 's/^# \?//'
       exit 0 ;;
     *)
       echo "Unknown option: $1 (use --help)"; exit 1 ;;
@@ -565,8 +583,8 @@ fi
 if ! [[ "$KILL_AFTER" =~ ^[0-9]+$ ]]; then
   echo "--kill-after needs a whole number of seconds (got: $KILL_AFTER)"; exit 1
 fi
-if ! [[ "$RETRY_STOPPED" =~ ^[0-9]+$ ]]; then
-  echo "--retry-stopped needs a whole number (got: $RETRY_STOPPED)"; exit 1
+if ! [[ "$RETRY_INFRA" =~ ^[0-9]+$ ]]; then
+  echo "--retry-infra needs a whole number (got: $RETRY_INFRA)"; exit 1
 fi
 if [[ -n "$SHARD" ]] && ! [[ "$SHARD" =~ ^[1-9][0-9]*/[1-9][0-9]*$ && ${SHARD%/*} -le ${SHARD#*/} ]]; then
   echo "--shard needs I/N with 1 <= I <= N, for example 2/4 (got: $SHARD)"; exit 1
