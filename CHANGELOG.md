@@ -1,4 +1,4 @@
-## 26.8.1
+## 26.8.0
 * ! Minor breaking change ! Raised the minimum supported iOS version to 15 (previously 10), as the underlying iOS SDK requires it.
 * ! Minor breaking change ! Push notification changes:
   * "askForNotificationPermission" now also asks for the notification permission on Android 13 and newer, and the plugin declares the "POST_NOTIFICATIONS" permission
