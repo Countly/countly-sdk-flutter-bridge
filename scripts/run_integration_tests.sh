@@ -29,6 +29,7 @@
 # Devices:
 #   -d, --device ID     Restrict to specific device(s), comma-separated
 #   --timeout SECS      Per-test timeout in seconds (default: 300)
+#   --kill-after SECS   Stop a test, its build and its device processes after SECS seconds (default: off)
 #
 # Filtering:
 #   --filter PATTERN    Only run tests whose path matches PATTERN (regex)
@@ -70,6 +71,7 @@ CLEAR_CACHE=false
 RESTRICT_DEVICES=""
 TEST_FILTER=""
 SHARD=""
+KILL_AFTER=0
 
 # Colors (bold)
 RED='\033[1;31m'
@@ -416,13 +418,16 @@ run_worker() {
     echo "[W$worker_id] ▶ $test" >> "$log_file"
 
     local port=$((8080 + worker_id))
-    if (cd "$EXAMPLE_DIR" && flutter test "$test_path" -d "$device_id" --timeout "$TIMEOUT" --dart-define=TEST_SERVER_PORT=$port 2>&1 | tee "$test_log" >> "$log_file"); then
+    if run_with_limit "$KILL_AFTER" run_flutter_test "$test_path" "$device_id" "$port" "$test_log" "$log_file"; then
       local elapsed=$(( SECONDS - test_start ))
       echo "[W$worker_id] ✓ PASSED ($test) ${elapsed}s" >> "$log_file"
       cache_mark_passed "$test" "$platform"
       ((passed++))
     else
       local elapsed=$(( SECONDS - test_start ))
+      if [[ $KILL_AFTER -gt 0 && $elapsed -ge $KILL_AFTER ]]; then
+        echo "Stopped after ${KILL_AFTER}s (--kill-after)." >> "$test_log"
+      fi
       echo "[W$worker_id] ✗ FAILED ($test) ${elapsed}s" >> "$log_file"
       cache_mark_failed "$test" "$platform"
       ((failed++))
@@ -468,6 +473,45 @@ show_live_progress() {
   done
 }
 
+# Ends a process and every process it started, children first.
+kill_tree() {
+  local child
+  for child in $(pgrep -P "$1" 2>/dev/null); do
+    kill_tree "$child"
+  done
+  kill -TERM "$1" 2>/dev/null
+}
+
+# Runs a command and stops it with all its child processes after $1 seconds; 0 means no limit.
+# Returns the command's exit status, or 124 when the limit stopped it.
+run_with_limit() {
+  local limit="$1"
+  shift
+  if [[ "$limit" -le 0 ]]; then
+    "$@"
+    return $?
+  fi
+  local start=$SECONDS
+  "$@" &
+  local pid=$!
+  ( sleep "$limit"; kill_tree "$pid" ) 2>/dev/null &
+  local watcher=$!
+  wait "$pid"
+  local status=$?
+  kill_tree "$watcher"
+  wait "$watcher" 2>/dev/null
+  if (( SECONDS - start >= limit )); then
+    return 124
+  fi
+  return $status
+}
+
+# Runs one integration test file on one device, writing its output to the test log and the worker log.
+run_flutter_test() {
+  local test_path="$1" device_id="$2" port="$3" test_log="$4" log_file="$5"
+  (cd "$EXAMPLE_DIR" && flutter test "$test_path" -d "$device_id" --timeout "$TIMEOUT" --dart-define=TEST_SERVER_PORT=$port 2>&1 | tee "$test_log" >> "$log_file")
+}
+
 # ── Parse Arguments ──────────────────────────────────────────────────
 
 HAS_CATEGORY=false
@@ -489,8 +533,9 @@ while [[ $# -gt 0 ]]; do
     --timeout)      TIMEOUT="$2"; shift 2 ;;
     --filter)       TEST_FILTER="$2"; shift 2 ;;
     --shard)        SHARD="$2"; shift 2 ;;
+    --kill-after)   KILL_AFTER="$2"; shift 2 ;;
     -h|--help)
-      head -49 "$0" | tail -n +2 | sed 's/^# \?//'
+      head -50 "$0" | tail -n +2 | sed 's/^# \?//'
       exit 0 ;;
     *)
       echo "Unknown option: $1 (use --help)"; exit 1 ;;
@@ -499,6 +544,9 @@ done
 
 if ! $HAS_CATEGORY; then
   RUN_AUTO=true
+fi
+if ! [[ "$KILL_AFTER" =~ ^[0-9]+$ ]]; then
+  echo "--kill-after needs a whole number of seconds (got: $KILL_AFTER)"; exit 1
 fi
 if [[ -n "$SHARD" ]] && ! [[ "$SHARD" =~ ^[1-9][0-9]*/[1-9][0-9]*$ && ${SHARD%/*} -le ${SHARD#*/} ]]; then
   echo "--shard needs I/N with 1 <= I <= N, for example 2/4 (got: $SHARD)"; exit 1

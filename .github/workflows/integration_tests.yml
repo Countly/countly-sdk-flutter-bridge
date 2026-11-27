@@ -20,7 +20,7 @@ concurrency:
 # example app once per test file. Only the automatic categories run here: the light tests, and the server
 # tests, which start their own server inside the app. The remote config tests need a real Countly server and
 # the manual tests move the app to the background, so they stay local. Each platform's tests are split into
-# shards that run in parallel.
+# shards that run in parallel, and a test that does not end within 10 minutes, build included, is stopped.
 jobs:
   android:
     name: Integration tests (Android, ${{ matrix.shard }}/4)
@@ -66,10 +66,20 @@ jobs:
           arch: x86_64
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: bash scripts/run_integration_tests.sh --light --server --fresh --shard ${{ matrix.shard }}/4
+          script: bash scripts/run_integration_tests.sh --light --server --fresh --kill-after 600 --shard ${{ matrix.shard }}/4
+
+      # Flutter ends a passing test's output with "All tests passed!"; any other log is a failed or stopped test.
+      - name: Show the logs of the failed tests
+        if: failure()
+        run: |
+          for log in $(grep -L "All tests passed!" test_results/*/tests/*.log 2>/dev/null); do
+            echo "::group::$log"
+            tail -n 120 "$log"
+            echo "::endgroup::"
+          done
 
       - name: Upload the test logs
-        if: ${{ !cancelled() }}
+        if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: integration-test-logs-android-${{ matrix.shard }}
@@ -79,7 +89,7 @@ jobs:
   ios:
     name: Integration tests (iOS, ${{ matrix.shard }}/4)
     runs-on: macos-15
-    timeout-minutes: 75
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -102,28 +112,42 @@ jobs:
         working-directory: example
         run: flutter pub get
 
-      # The newest iPhone of the newest installed iOS runtime.
+      # The newest iPhone of the newest iOS runtime that the active Xcode's simulator SDK supports: the image
+      # also has newer runtimes, for its newer Xcode versions.
       - name: Boot an iOS simulator
         run: |
           set -euo pipefail
+          sdk="$(xcrun --sdk iphonesimulator --show-sdk-version)"
+          echo "Active Xcode: $(xcodebuild -version | head -1), simulator SDK $sdk"
           udid="$(xcrun simctl list devices available -j | python3 -c '
           import json, re, sys
+          sdk = [int(n) for n in sys.argv[1].split(".")]
           devices = json.load(sys.stdin)["devices"]
           def version(runtime):
               return [int(n) for n in re.findall(r"\d+", runtime.split("iOS-")[-1])]
-          runtimes = sorted((r for r in devices if ".iOS-" in r and devices[r]), key=version)
-          phones = [d for d in devices[runtimes[-1]] if d["name"].startswith("iPhone")]
+          runtimes = sorted((r for r in devices if ".iOS-" in r and devices[r] and version(r) <= sdk), key=version)
+          phones = [d for d in devices[runtimes[-1]] if re.match(r"iPhone \d", d["name"])]
           print(phones[-1]["udid"])
-          ')"
+          ' "$sdk")"
           xcrun simctl boot "$udid"
           xcrun simctl bootstatus "$udid" -b
           xcrun simctl list devices booted
 
       - name: Run the tests on the iOS simulator
-        run: bash scripts/run_integration_tests.sh --light --server --fresh --shard ${{ matrix.shard }}/4
+        run: bash scripts/run_integration_tests.sh --light --server --fresh --kill-after 600 --shard ${{ matrix.shard }}/4
+
+      # Flutter ends a passing test's output with "All tests passed!"; any other log is a failed or stopped test.
+      - name: Show the logs of the failed tests
+        if: failure()
+        run: |
+          for log in $(grep -L "All tests passed!" test_results/*/tests/*.log 2>/dev/null); do
+            echo "::group::$log"
+            tail -n 120 "$log"
+            echo "::endgroup::"
+          done
 
       - name: Upload the test logs
-        if: ${{ !cancelled() }}
+        if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: integration-test-logs-ios-${{ matrix.shard }}
