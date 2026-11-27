@@ -13,7 +13,7 @@ void main() {
     createServerWithConfig(requestArray, {
       'v': 1,
       't': 1750748806695,
-      'c': {'tracking': false, 'scui': 1},
+      'c': {'tracking': false, 'scui': 1}
     });
 
     // Initialize the SDK
@@ -40,7 +40,7 @@ void main() {
     expect(await getServerConfig(), {
       'v': 1,
       't': 1750748806695,
-      'c': {'tracking': false, 'scui': 1},
+      'c': {'tracking': false, 'scui': 1}
     });
 
     await Future.delayed(const Duration(seconds: 60));

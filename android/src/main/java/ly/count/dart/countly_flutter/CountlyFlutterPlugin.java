@@ -9,6 +9,7 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
+import io.flutter.plugin.common.PluginRegistry;
 // import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 import ly.count.android.sdk.Countly;
@@ -23,13 +24,27 @@ import ly.count.android.sdk.ContentCallback;
 import ly.count.android.sdk.ContentStatus;
 import ly.count.android.sdk.WebViewDisplayOption;
 
+import java.util.ArrayDeque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Arrays;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.app.Activity;
+import android.app.Application;
+import android.app.Instrumentation;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Parcel;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -46,6 +61,7 @@ import android.app.NotificationManager;
 import android.app.NotificationChannel;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
@@ -53,23 +69,34 @@ import androidx.lifecycle.LifecycleOwner;
 import ly.count.android.sdk.RCData;
 import ly.count.android.sdk.RCDownloadCallback;
 import ly.count.android.sdk.RCVariantCallback;
-import ly.count.android.sdk.RemoteConfigCallback;
 import ly.count.android.sdk.RequestResult;
 import ly.count.android.sdk.StarRatingCallback;
+import ly.count.android.sdk.messaging.CountlyConfigPush;
 import ly.count.android.sdk.messaging.CountlyPush;
+
 
 /**
  * CountlyFlutterPlugin
  */
-public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver {
+public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware, DefaultLifecycleObserver, PluginRegistry.NewIntentListener, ActivityPluginBinding.OnSaveInstanceStateListener {
     private static final String TAG = "CountlyFlutterPlugin";
-    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "26.1.1";
+    private final String COUNTLY_FLUTTER_SDK_VERSION_STRING = "26.8.0";
     private final String COUNTLY_FLUTTER_SDK_NAME = "dart-flutterb-android";
     private final String COUNTLY_FLUTTER_SDK_NAME_NO_PUSH = "dart-flutterbnp-android";
 
     private final boolean BUILDING_WITH_PUSH_DISABLED = true;
     private static final int DATA_SCHEMA_VERSIONS = 4;
-    
+    private static final int MAX_PENDING_NOTIFICATIONS = 50;
+    private static final String POST_NOTIFICATIONS_PERMISSION = "android.permission.POST_NOTIFICATIONS";
+    private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 4119;
+    private static final ArrayDeque<String> pendingNotifications = new ArrayDeque<>();
+    /** Marks an intent whose clicked notification was already handed to Dart. */
+    private static final String NOTIFICATION_CLICK_HANDLED_EXTRA = "ly.count.dart.countly_flutter.notificationClickHandled";
+    private static final String PREFERENCES_NAME = "ly.count.dart.countly_flutter";
+    private static final String PUSH_ALLOWED_INTENT_SCHEMES_KEY = "pushAllowedIntentSchemes";
+    /** The URI schemes push notification links may open, from the last init, or null for the SDK default. */
+    private static volatile List<String> pushAllowedIntentSchemes = null;
+
     public void notifyPublicChannelRCDL(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues, Integer requestID) {
         Map<String, Object> data = new HashMap<>();
         data.put("error", error);
@@ -84,12 +111,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     }
 
     private void safeInvokeMethod(String method, Object arguments) {
-        // Native SDK callbacks (RC, content, feedback, ...) are registered once at init and close
-        // over the plugin instance that performed it. When the Flutter engine is recreated
-        // (hot restart, activity.recreate(), multi-engine setups), a fresh plugin instance attaches
-        // with a fresh MethodChannel, but the native SDK still fires the old callback. Routing
-        // through the static reference lets those old callbacks reach the currently-live channel
-        // instead of silently dropping.
+        // Native callbacks outlive the engine that registered them, so they use the bound callback channel.
         MethodChannel mc = sharedChannel;
         if (mc == null) {
             log("safeInvokeMethod: no live channel, dropping '" + method + "'. The Flutter engine is detached.", LogLevel.WARNING);
@@ -140,16 +162,19 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         return response;
     }
 
-    private Countly.CountlyMessagingMode pushTokenType = Countly.CountlyMessagingMode.PRODUCTION;
     private Context context;
     private Activity activity;
+    private ActivityPluginBinding activityBinding;
+    // Clicks are read from the Activity of this engine and handed to its Dart, all on the main thread.
+    /** Clicked notifications this engine's Dart did not ask for yet, oldest first. */
+    private final ArrayDeque<Map<String, Object>> pendingOpenedNotifications = new ArrayDeque<>();
+    /** The waiting "onNotificationOpened" request of this engine's Dart, answered at most once. */
+    private Result notificationOpenedListener;
     private static Boolean isDebug = false;
-    private final CountlyConfig config = new CountlyConfig();
+    private CountlyConfig config = new CountlyConfig();
     private static Callback notificationListener = null;
-    private static String lastStoredNotification = null;
     private MethodChannel methodChannel;
-    // Latest live channel, used by safeInvokeMethod so that callbacks registered against an
-    // older plugin instance still reach the currently-attached Flutter engine.
+    // Channel of the engine that receives native SDK callbacks, chosen by bindCallbackChannel.
     private static volatile MethodChannel sharedChannel;
     private Lifecycle lifecycle;
     static final int requestIDNoCallback = -1;
@@ -199,10 +224,34 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         this.context = context;
         methodChannel = new MethodChannel(messenger, "countly_flutter");
         methodChannel.setMethodCallHandler(this);
-        synchronized (CountlyFlutterPlugin.class) {
-            sharedChannel = methodChannel;
-        }
+        bindCallbackChannel();
         log("onAttachedToEngineInternal", LogLevel.INFO);
+    }
+
+    /**
+     * Makes this engine's channel the target of native SDK callbacks. An engine attached to an Activity
+     * always takes it; an engine without one, such as a background isolate, takes it only when no
+     * engine holds it, so a background engine cannot pull callbacks away from the UI. Runs on engine
+     * attach, Activity attach and init, so an engine that replaced a torn down one gets the callbacks
+     * even when it skips init because the SDK is already initialized.
+     */
+    private void bindCallbackChannel() {
+        synchronized (CountlyFlutterPlugin.class) {
+            if (methodChannel != null && (sharedChannel == null || activity != null)) {
+                sharedChannel = methodChannel;
+            }
+        }
+    }
+
+    /**
+     * Runs the given task on the main thread, the only thread Flutter accepts method call replies on.
+     */
+    private static void runOnMainThread(Runnable task) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            task.run();
+        } else {
+            new Handler(Looper.getMainLooper()).post(task);
+        }
     }
 
     //----------PLUGIN REGISTRATION OVER-------------
@@ -213,12 +262,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         this.activity = binding.getActivity();
         lifecycle = FlutterLifecycleAdapter.getActivityLifecycle(binding);
         lifecycle.addObserver(this);
+        attachActivityBinding(binding);
+        bindCallbackChannel();
         log("onAttachedToActivity : Activity attached!", LogLevel.INFO);
     }
 
     @Override
     public void onDetachedFromActivityForConfigChanges() {
         lifecycle.removeObserver(this);
+        detachActivityBinding();
         this.activity = null;
         log("onDetachedFromActivityForConfigChanges : Activity is no more valid", LogLevel.INFO);
     }
@@ -228,14 +280,76 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         this.activity = binding.getActivity();
         lifecycle = FlutterLifecycleAdapter.getActivityLifecycle(binding);
         lifecycle.addObserver(this);
+        attachActivityBinding(binding);
+        bindCallbackChannel();
         log("onReattachedToActivityForConfigChanges : Activity attached!", LogLevel.INFO);
     }
 
     @Override
     public void onDetachedFromActivity() {
         lifecycle.removeObserver(this);
+        detachActivityBinding();
         this.activity = null;
         log("onDetachedFromActivity : Activity is no more valid", LogLevel.INFO);
+    }
+
+    /**
+     * Listens for the intents the Activity gets while it runs, such as the one Countly Push sends
+     * when a notification of a running app is clicked, and for the Activity's saved state, which
+     * tells a fresh Activity from a restored one.
+     *
+     * @param binding the binding of the Activity the plugin is attached to
+     */
+    private void attachActivityBinding(@NonNull ActivityPluginBinding binding) {
+        activityBinding = binding;
+        binding.addOnNewIntentListener(this);
+        binding.addOnSaveStateListener(this);
+    }
+
+    /**
+     * Stops listening for the intents and the saved state of the Activity the plugin is detached from.
+     */
+    private void detachActivityBinding() {
+        if (activityBinding != null) {
+            activityBinding.removeOnNewIntentListener(this);
+            activityBinding.removeOnSaveStateListener(this);
+            activityBinding = null;
+        }
+    }
+
+    /**
+     * Hands the notification a user clicked while the app ran to "onNotificationOpened".
+     *
+     * @param intent the new intent of the Activity
+     * @return false, so other plugins get the intent too
+     */
+    @Override
+    public boolean onNewIntent(@NonNull Intent intent) {
+        onNotificationClicked(intent);
+        return false;
+    }
+
+    /**
+     * Saves nothing: having saved state at all is what marks an Activity as restored.
+     *
+     * @param bundle the state the Activity saves
+     */
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle bundle) {
+    }
+
+    /**
+     * Hands the notification a user clicked to start the Activity to "onNotificationOpened". Only a fresh
+     * Activity is read: one restored after a configuration change, or after the system ended the app
+     * in the background, still carries the intent of a click that was already handed over.
+     *
+     * @param bundle the state the Activity saved, or null when it starts fresh
+     */
+    @Override
+    public void onRestoreInstanceState(@Nullable Bundle bundle) {
+        if (bundle == null && activity != null) {
+            onNotificationClicked(activity.getIntent());
+        }
     }
 
     //----------ACTIVITY AWARE STUFF OVER-----------------
@@ -291,7 +405,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             Countly.sharedInstance();
             args = new JSONArray(argsString);
             log("Method name: " + call.method, LogLevel.INFO);
-            log("Method arguments: " + argsString, LogLevel.INFO);
+            log("Method arguments: " + argumentsForLog(call.method, argsString), LogLevel.INFO);
 
             if ("init".equals(call.method)) {
                 if (context == null) {
@@ -313,12 +427,21 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     }
                 });
 
-                if (activity == null) {
-                    log("Activity is 'null' during init, cannot set Application", LogLevel.WARNING);
+                Context applicationContext = context.getApplicationContext();
+                if (applicationContext instanceof Application) {
+                    this.config.setApplication((Application) applicationContext);
                 } else {
-                    this.config.setApplication(activity.getApplication());
+                    log("init, the application context is not an Application, automatic session tracking will not work", LogLevel.WARNING);
                 }
+                if (activity != null) {
+                    this.config.setInitialActivity(activity);
+                }
+                bindCallbackChannel();
                 Countly.sharedInstance().init(this.config);
+                if (pushAllowedIntentSchemes != null && applicationContext instanceof Application) {
+                    // Notifications that arrive before "askForNotificationPermission" is called follow the allowed schemes too.
+                    CountlyPush.init(pushConfig((Application) applicationContext));
+                }
                 result.success("initialized!");
             } else if ("isInitialized".equals(call.method)) {
                 boolean isInitialized = Countly.sharedInstance().isInitialized();
@@ -369,6 +492,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             else if ("attemptToSendStoredRequests".equals(call.method)) {
                 Countly.sharedInstance().requestQueue().attemptToSendStoredRequests();
                 result.success("attemptToSendStoredRequests success!");
+            } else if ("changeServerUrl".equals(call.method)) {
+                Countly.sharedInstance().requestQueue().changeServerUrl(args.getString(0));
+                result.success(null);
+            } else if ("changeAppKey".equals(call.method)) {
+                Countly.sharedInstance().requestQueue().changeAppKey(args.getString(0));
+                result.success(null);
+            } else if ("flushQueues".equals(call.method)) {
+                Countly.sharedInstance().requestQueue().flushQueues();
+                result.success(null);
             } else if ("addCustomNetworkRequestHeaders".equals(call.method)) {
                 Map<String, String> customHeaderValues = toMapString(args.getJSONObject(0));
                 Countly.sharedInstance().requestQueue().addCustomNetworkRequestHeaders(customHeaderValues);
@@ -403,32 +535,16 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success("setLocation success!");
             } else if ("setUserLocation".equals(call.method)) {
                 JSONObject location = args.getJSONObject(0);
-                String countryCode = null;
-                String city = null;
-                String gpsCoordinates = null;
-                String ipAddress = null;
-
-                if (location.has("countryCode")) {
-                    countryCode = location.getString("countryCode");
-                }
-                if (location.has("city")) {
-                    city = location.getString("city");
-                }
-                if (location.has("gpsCoordinates")) {
-                    gpsCoordinates = location.getString("gpsCoordinates");
-                }
-                if (location.has("ipAddress")) {
-                    ipAddress = location.getString("ipAddress");
-                }
+                String countryCode = optNullableString(location, "countryCode");
+                String city = optNullableString(location, "city");
+                String gpsCoordinates = optNullableString(location, "gpsCoordinates");
+                String ipAddress = optNullableString(location, "ipAddress");
 
                 Countly.sharedInstance().location().setLocation(countryCode, city, gpsCoordinates, ipAddress);
                 result.success("setUserLocation success!");
             } else if ("disableLocation".equals(call.method)) {
                 Countly.sharedInstance().location().disableLocation();
                 result.success("disableLocation success!");
-            } else if ("enableCrashReporting".equals(call.method)) {
-                this.config.enableCrashReporting();
-                result.success("enableCrashReporting success!");
             } else if ("addCrashLog".equals(call.method)) {
                 String record = args.getString(0);
                 Countly.sharedInstance().crashes().addCrashBreadcrumb(record);
@@ -448,14 +564,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 }
 
                 result.success("logException success!");
-            } else if ("setCustomCrashSegment".equals(call.method)) {
-                Map<String, Object> segments = new HashMap<>();
-                for (int i = 0, il = args.length(); i < il; i += 2) {
-                    segments.put(args.getString(i), args.getString(i + 1));
-                }
-                this.config.setCustomCrashSegment(segments);
-
-                result.success("setCustomCrashSegment success!");
             } else if ("sendPushToken".equals(call.method)) {
                 String token = args.getString(0);
                 CountlyPush.onTokenRefresh(token);
@@ -481,30 +589,27 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                         notificationManager.createNotificationChannel(channel);
                     }
                 }
-                CountlyPush.init(activity.getApplication(), pushTokenType);
-                result.success(" askForNotificationPermission!");
+                requestNotificationPermission();
+                CountlyPush.init(pushConfig(activity.getApplication()));
+
+                result.success("askForNotificationPermission!");
             } else if ("pushTokenType".equals(call.method)) {
-                String tokenType = args.getString(0);
-                if ("2".equals(tokenType)) {
-                    pushTokenType = Countly.CountlyMessagingMode.TEST;
-                } else {
-                    pushTokenType = Countly.CountlyMessagingMode.PRODUCTION;
-                }
+                log("pushTokenType has no effect on Android, where the messaging mode is no longer used", LogLevel.DEBUG);
                 result.success("pushTokenType!");
             } else if ("registerForNotification".equals(call.method)) {
                 registerForNotification(args, new Callback() {
                     @Override
                     public void callback(final String resultString) {
-                        if (activity != null) {
-                            activity.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    result.success(resultString);
-                                }
-                            });
-                        }
+                        runOnMainThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                result.success(resultString);
+                            }
+                        });
                     }
                 });
+            } else if ("registerForNotificationOpened".equals(call.method)) {
+                registerForNotificationOpened(result);
             } else if ("beginSession".equals(call.method)) {
                 Countly.sharedInstance().sessions().beginSession();
                 result.success("beginSession!");
@@ -534,8 +639,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success("eventSendThreshold!");
 
             } else if ("storedRequestsLimit".equals(call.method)) {
-                int queueSize = Integer.parseInt(args.getString(0));
-                result.success("storedRequestsLimit!");
+                log("storedRequestsLimit is deprecated and has no effect, use 'setMaxRequestQueueSize' of CountlyConfig instead", LogLevel.WARNING);
+                result.success("storedRequestsLimit: deprecated, no effect");
 
             } else if ("startEvent".equals(call.method)) {
                 String startEvent = args.getString(0);
@@ -548,7 +653,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("endEvent".equals(call.method)) {
                 String key = args.getString(0);
                 int count = Integer.parseInt(args.getString(1));
-                float sum = Float.parseFloat(args.getString(2));
+                double sum = Double.parseDouble(args.getString(2));
                 Map<String, Object> segmentation;
                 if (args.length() > 3) {
                     segmentation = toMap(args.getJSONObject(3));
@@ -562,7 +667,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("recordEvent".equals(call.method)) {
                 String key = args.getString(0);
                 int count = Integer.parseInt(args.getString(1));
-                float sum = Float.parseFloat(args.getString(2));
+                double sum = Double.parseDouble(args.getString(2));
                 int duration = Integer.parseInt(args.getString(3));
                 Map<String, Object> segmentation;
                 if (args.length() > 4) {
@@ -682,7 +787,10 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success(null);
             } else if ("userProfile_setProperty".equals(call.method)) {
                 String key = args.getString(0);
-                String value = args.getString(1);
+                Object value = args.get(1);
+                if (!(value instanceof String || value instanceof Number || value instanceof Boolean)) {
+                    value = String.valueOf(value);
+                }
                 Countly.sharedInstance().userProfile().setProperty(key, value);
                 result.success(null);
             } else if ("userProfile_increment".equals(call.method)) {
@@ -778,21 +886,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 segm.put("rating", "" + rating);
                 Countly.sharedInstance().events().recordEvent("[CLY]_star_rating", segm, 1);
                 result.success("sendRating: " + ratingString);
-            } else if ("recordView".equals(call.method)) {
-                String viewName = args.getString(0);
-                Map<String, Object> segments = new HashMap<>();
-                int il = args.length();
-                if (il > 2) {
-                    for (int i = 1; i < il; i += 2) {
-                        try {
-                            segments.put(args.getString(i), args.getString(i + 1));
-                        } catch (Exception exception) {
-                            log("recordView, could not parse segments, skipping it. ", exception, LogLevel.ERROR);
-                        }
-                    }
-                }
-                Countly.sharedInstance().views().recordView(viewName, segments);
-                result.success("View name sent: " + viewName);
             } else if ("setOptionalParametersForInitialization".equals(call.method)) {
                 String city = args.getString(0);
                 String country = args.getString(1);
@@ -800,7 +893,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 String longitude = args.getString(3);
                 String ipAddress = args.getString(4);
                 String latlng = null;
-                if (city.length() == 0) {
+                if (city.length() == 0 || city.equals("null")) {
                     city = null;
                 }
                 if (country.equals("null")) {
@@ -815,71 +908,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 Countly.sharedInstance().location().setLocation(country, city, latlng, ipAddress);
 
                 result.success("setOptionalParametersForInitialization sent.");
-            } else if ("setRemoteConfigAutomaticDownload".equals(call.method)) {
-                this.config.setRemoteConfigAutomaticDownload(true, new RemoteConfigCallback() {
-                    @Override
-                    public void callback(String error) {
-                        if (error == null) {
-                            result.success("Success");
-                        } else {
-                            result.success("Error: " + error);
-                        }
-                    }
-                });
-
-            } else if ("remoteConfigUpdate".equals(call.method)) {
-                Countly.sharedInstance().remoteConfig().update(new RemoteConfigCallback() {
-                    @Override
-                    public void callback(String error) {
-                        if (error == null) {
-                            result.success("Success");
-                        } else {
-                            result.success("Error: " + error);
-                        }
-                    }
-                });
-            } else if ("updateRemoteConfigForKeysOnly".equals(call.method)) {
-                String[] keysOnly = new String[args.length()];
-                for (int i = 0, il = args.length(); i < il; i++) {
-                    keysOnly[i] = args.getString(i);
-                }
-
-                Countly.sharedInstance().remoteConfig().updateForKeysOnly(keysOnly, new RemoteConfigCallback() {
-                    @Override
-                    public void callback(String error) {
-                        if (error == null) {
-                            result.success("Success");
-                        } else {
-                            result.success("Error: " + error);
-                        }
-                    }
-                });
-            } else if ("updateRemoteConfigExceptKeys".equals(call.method)) {
-                String[] exceptKeys = new String[args.length()];
-                for (int i = 0, il = args.length(); i < il; i++) {
-                    exceptKeys[i] = args.getString(i);
-                }
-
-                Countly.sharedInstance().remoteConfig().updateExceptKeys(exceptKeys, new RemoteConfigCallback() {
-                    @Override
-                    public void callback(String error) {
-                        if (error == null) {
-                            result.success("Success");
-                        } else {
-                            result.success("Error: " + error);
-                        }
-                    }
-                });
-            } else if ("remoteConfigClearValues".equals(call.method)) {
-                Countly.sharedInstance().remoteConfig().clearStoredValues();
-                result.success("remoteConfigClearValues: success");
-            } else if ("getRemoteConfigValueForKey".equals(call.method)) {
-                String key = args.getString(0);
-                String remoteConfigValueForKey = "No value Found against Key :" + key;
-                Object getRemoteConfigValueForKeyResult = Countly.sharedInstance().remoteConfig().getValueForKey(key);
-                if (getRemoteConfigValueForKeyResult != null)
-                    remoteConfigValueForKey = getRemoteConfigValueForKeyResult.toString();
-                result.success(remoteConfigValueForKey);
             } else if ("remoteConfigDownloadValues".equals(call.method)) {
                 int requestID = args.getInt(0);
                 Countly.sharedInstance().remoteConfig().downloadAllKeys(new RCDownloadCallback() {
@@ -1122,6 +1150,12 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     result.error("askForStarRating Failed", "Activity is null", null);
                     return;
                 }
+                // The SDK skips the dialog without calling back when the consent is missing.
+                if (!Countly.sharedInstance().consent().getConsent(Countly.CountlyFeatureNames.starRating)) {
+                    log("askForStarRating failed : star-rating consent is not given", LogLevel.WARNING);
+                    result.success("askForStarRating failed: star-rating consent is not given");
+                    return;
+                }
                 Countly.sharedInstance().ratings().showStarRating(activity, new StarRatingCallback() {
                     @Override
                     public void onRate(int rating) {
@@ -1160,7 +1194,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     return;
                 }
                 String widgetId = args.getString(0);
-                String closeBtnText = args.getString(3);
 
                 CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
                 if (feedbackWidget == null) {
@@ -1168,32 +1201,53 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     log(errorMessage, LogLevel.WARNING);
                     result.error("presentFeedbackWidget", errorMessage, null);
                 } else {
-                    Countly.sharedInstance().feedback().presentFeedbackWidget(feedbackWidget, activity, closeBtnText, new FeedbackCallback() {
+                    // Versioned widgets report only onClosed, so whichever callback comes first answers the call.
+                    final AtomicBoolean replied = new AtomicBoolean(false);
+                    Countly.sharedInstance().feedback().presentFeedbackWidget(feedbackWidget, activity, new FeedbackCallback() {
                         @Override
-                        public void onFinished(String error) {
-                            if (error != null) {
-                                result.error("presentFeedbackWidget", error, null);
-                            } else {
+                        public void onFinished(final String error) {
+                            if (error == null) {
                                 safeInvokeMethod("widgetShown", null);
-                                result.success("presentFeedbackWidget success");
                             }
+                            if (!replied.compareAndSet(false, true)) {
+                                return;
+                            }
+                            runOnMainThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (error != null) {
+                                        result.error("presentFeedbackWidget", error, null);
+                                    } else {
+                                        result.success("presentFeedbackWidget success");
+                                    }
+                                }
+                            });
                         }
 
                         @Override
                         public void onClosed() {
                             safeInvokeMethod("widgetClosed", null);
+                            if (!replied.compareAndSet(false, true)) {
+                                return;
+                            }
+                            runOnMainThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    result.success("presentFeedbackWidget closed");
+                                }
+                            });
                         }
                     });
                 }
-            } else if("presentNPS".equals(call.method)){
+            } else if ("presentNPS".equals(call.method) || "presentSurvey".equals(call.method) || "presentRating".equals(call.method)) {
                 if (activity == null) {
-                    log("presentNPS failed : Activity is null", LogLevel.ERROR);
+                    log(call.method + " failed : Activity is null", LogLevel.ERROR);
                     safeInvokeMethod("feedbackCallback_onFinished", "Activity is null");
+                    result.success(null);
                     return;
                 }
                 String nameIDorTag = args.optString(0, "");
-
-                Countly.sharedInstance().feedback().presentNPS(activity, nameIDorTag, new FeedbackCallback() {
+                FeedbackCallback feedbackCallback = new FeedbackCallback() {
                     @Override
                     public void onFinished(String error) {
                         safeInvokeMethod("feedbackCallback_onFinished", error);
@@ -1203,45 +1257,16 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     public void onClosed() {
                         safeInvokeMethod("feedbackCallback_onClosed", null);
                     }
-                });
-            } else if("presentSurvey".equals(call.method)){
-                if (activity == null) {
-                    log("presentSurvey failed : Activity is null", LogLevel.ERROR);
-                    safeInvokeMethod("feedbackCallback_onFinished", "Activity is null");
-                    return;
+                };
+
+                if ("presentNPS".equals(call.method)) {
+                    Countly.sharedInstance().feedback().presentNPS(activity, nameIDorTag, feedbackCallback);
+                } else if ("presentSurvey".equals(call.method)) {
+                    Countly.sharedInstance().feedback().presentSurvey(activity, nameIDorTag, feedbackCallback);
+                } else {
+                    Countly.sharedInstance().feedback().presentRating(activity, nameIDorTag, feedbackCallback);
                 }
-                String nameIDorTag = args.optString(0, "");
-
-                Countly.sharedInstance().feedback().presentSurvey(activity, nameIDorTag, new FeedbackCallback() {
-                    @Override
-                    public void onFinished(String error) {
-                        safeInvokeMethod("feedbackCallback_onFinished", error);
-                    }
-
-                    @Override
-                    public void onClosed() {
-                        safeInvokeMethod("feedbackCallback_onClosed", null);
-                    }
-                });
-            } else if("presentRating".equals(call.method)){
-                if (activity == null) {
-                    log("presentRating failed : Activity is null", LogLevel.ERROR);
-                    safeInvokeMethod("feedbackCallback_onFinished", "Activity is null");
-                    return;
-                }
-                String nameIDorTag = args.optString(0, "");
-
-                Countly.sharedInstance().feedback().presentRating(activity, nameIDorTag, new FeedbackCallback() {
-                    @Override
-                    public void onFinished(String error) {
-                        safeInvokeMethod("feedbackCallback_onFinished", error);
-                    }
-
-                    @Override
-                    public void onClosed() {
-                        safeInvokeMethod("feedbackCallback_onClosed", null);
-                    }
-                });
+                result.success(null);
             }
             else if ("getFeedbackWidgetData".equals(call.method)) {
                 String widgetId = args.getString(0);
@@ -1334,9 +1359,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                     log("Exception occurred at recordNetworkTrace method: ", exception, LogLevel.ERROR);
                 }
                 result.success("recordNetworkTrace: success");
-            } else if ("enableApm".equals(call.method)) {
-                this.config.setRecordAppStartTime(true);
-                result.success("enableApm: success");
             } else if ("throwNativeException".equals(call.method)) {
                 triggerOverflow();
             } else if ("recordIndirectAttribution".equals(call.method)) {
@@ -1464,7 +1486,52 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 result.success("addDirectRequest: success");
             } else if ("halt".equals(call.method)) {
                 Countly.sharedInstance().halt();
+                // Init keeps the request queue of the halted SDK in the config it was given, so the next init needs a new one.
+                this.config = new CountlyConfig();
                 result.success("halt: success");
+            } else if ("testOnNotification".equals(call.method)) {
+                JSONArray payloads = args.getJSONArray(0);
+                for (int i = 0; i < payloads.length(); i++) {
+                    JSONObject payload = payloads.getJSONObject(i);
+                    Map<String, String> notification = new HashMap<>();
+                    Iterator<String> keys = payload.keys();
+                    while (keys.hasNext()) {
+                        String key = keys.next();
+                        notification.put(key, payload.optString(key));
+                    }
+                    onNotification(notification);
+                }
+                result.success(null);
+            } else if ("testOnNotificationOpened".equals(call.method)) {
+                Map<String, String> notification = toMapString(args.getJSONObject(0));
+                String start = args.optString(1, "fresh");
+                Bundle messageBundle = new Bundle();
+                messageBundle.putParcelable(CountlyPush.EXTRA_MESSAGE, CountlyPush.decodeMessage(notification));
+                Intent clickIntent = new Intent();
+                clickIntent.putExtra(CountlyPush.EXTRA_MESSAGE, messageBundle);
+                clickIntent.putExtra(CountlyPush.EXTRA_ACTION_INDEX, args.optInt(2));
+                // The Activity gets the intent from another process, so it arrives parcelled.
+                Parcel parcel = Parcel.obtain();
+                try {
+                    clickIntent.writeToParcel(parcel, 0);
+                    parcel.setDataPosition(0);
+                    clickIntent = Intent.CREATOR.createFromParcel(parcel);
+                } finally {
+                    parcel.recycle();
+                }
+                if ("history".equals(start)) {
+                    clickIntent.addFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY);
+                }
+                if ("newIntent".equals(start)) {
+                    new Instrumentation().callActivityOnNewIntent(activity, clickIntent);
+                    new Instrumentation().callActivityOnNewIntent(activity, clickIntent);
+                } else {
+                    Bundle savedState = "restored".equals(start) ? new Bundle() : null;
+                    activity.setIntent(clickIntent);
+                    onRestoreInstanceState(savedState);
+                    onRestoreInstanceState(savedState);
+                }
+                result.success(null);
             }
             //------------------End------------------------------------
 
@@ -1480,6 +1547,9 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             } else if ("previewContent".equals(call.method)) {
                 String contentId = call.argument("contentId");
                 Countly.sharedInstance().contents().previewContent(contentId);
+                result.success(null);
+            } else if ("setGlobalContentSegmentation".equals(call.method)) {
+                Countly.sharedInstance().contents().setGlobalContentSegmentation(toMap(args.getJSONObject(0)));
                 result.success(null);
             }
 
@@ -1523,26 +1593,267 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         safeInvokeMethod("feedbackWidgetDataCallback", feedbackWidgetData);
     }
 
+    /**
+     * Hands the next push notification to a one-shot listener that answers a single Dart request.
+     * A notification that arrived while no listener was waiting is delivered right away; otherwise
+     * the listener waits for the next one.
+     *
+     * @param args unused
+     * @param theCallback the listener, called at most once
+     * @return a status message
+     */
     public String registerForNotification(JSONArray args, final Callback theCallback) {
-        notificationListener = theCallback;
-        if (Countly.sharedInstance().isLoggingEnabled()) {
-            log("registerForNotification theCallback", LogLevel.INFO);
+        log("registerForNotification theCallback", LogLevel.INFO);
+        String pendingNotification;
+        synchronized (pendingNotifications) {
+            pendingNotification = pendingNotifications.poll();
+            if (pendingNotification == null) {
+                notificationListener = theCallback;
+            }
         }
-        if (lastStoredNotification != null) {
-            theCallback.callback(lastStoredNotification);
-            lastStoredNotification = null;
+        if (pendingNotification != null) {
+            theCallback.callback(pendingNotification);
         }
         return "pushTokenType: success";
     }
 
+    /**
+     * Delivers a received push notification to the waiting listener, or queues it until Dart asks
+     * for the next one. The listener is consumed, so a Dart request is never answered twice; the
+     * queue keeps the newest {@value #MAX_PENDING_NOTIFICATIONS} notifications.
+     *
+     * @param notification the notification payload
+     */
     public static void onNotification(Map<String, String> notification) {
         JSONObject json = new JSONObject(notification);
         String notificationString = json.toString();
         log(notificationString, LogLevel.INFO);
-        if (notificationListener != null) {
-            notificationListener.callback(notificationString);
+        Callback listener;
+        synchronized (pendingNotifications) {
+            listener = notificationListener;
+            notificationListener = null;
+            if (listener == null) {
+                if (pendingNotifications.size() >= MAX_PENDING_NOTIFICATIONS) {
+                    pendingNotifications.poll();
+                }
+                pendingNotifications.add(notificationString);
+            }
+        }
+        if (listener != null) {
+            listener.callback(notificationString);
+        }
+    }
+
+    /**
+     * Answers a single Dart "onNotificationOpened" request with the next clicked push notification.
+     * A notification clicked while no request was waiting is delivered right away; otherwise the
+     * request waits for the next click. A newer request replaces the waiting one.
+     *
+     * @param result the Dart request, answered at most once
+     */
+    private void registerForNotificationOpened(Result result) {
+        Map<String, Object> opened = pendingOpenedNotifications.poll();
+        if (opened != null) {
+            result.success(opened);
+            return;
+        }
+        notificationOpenedListener = result;
+    }
+
+    /**
+     * Delivers a clicked push notification to the waiting "onNotificationOpened" request, or keeps it
+     * until Dart asks. The request is consumed, so it is never answered twice; the queue keeps the
+     * newest {@value #MAX_PENDING_NOTIFICATIONS} clicks.
+     *
+     * @param notification the notification payload, the same that "onNotification" got
+     * @param actionIndex 0 for the notification itself, 1 and up for its buttons
+     */
+    private void onNotificationOpened(Map<String, String> notification, int actionIndex) {
+        Map<String, Object> opened = new HashMap<>();
+        opened.put("notification", new JSONObject(notification).toString());
+        opened.put("actionIndex", actionIndex);
+        Result listener = notificationOpenedListener;
+        notificationOpenedListener = null;
+        if (listener != null) {
+            listener.success(opened);
+            return;
+        }
+        if (pendingOpenedNotifications.size() >= MAX_PENDING_NOTIFICATIONS) {
+            pendingOpenedNotifications.poll();
+        }
+        pendingOpenedNotifications.add(opened);
+    }
+
+    /**
+     * Hands the notification a user clicked to "onNotificationOpened". Countly Push records the click
+     * and, when the click opens the app, puts the clicked message in the intent, so this only reads it.
+     * An intent reopened from the recent apps, or one already handed over, is skipped, so a click is
+     * reported once.
+     *
+     * @param intent the intent that started the Activity or was sent to it
+     */
+    private void onNotificationClicked(Intent intent) {
+        if (BUILDING_WITH_PUSH_DISABLED || intent == null || (intent.getFlags() & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0) {
+            return;
+        }
+        try {
+            intent.setExtrasClassLoader(CountlyPush.class.getClassLoader());
+            Bundle messageBundle = intent.getBundleExtra(CountlyPush.EXTRA_MESSAGE);
+            if (messageBundle == null || intent.getBooleanExtra(NOTIFICATION_CLICK_HANDLED_EXTRA, false)) {
+                return;
+            }
+            messageBundle.setClassLoader(CountlyPush.class.getClassLoader());
+            CountlyPush.Message message = messageBundle.getParcelable(CountlyPush.EXTRA_MESSAGE);
+            if (message == null) {
+                return;
+            }
+            intent.putExtra(NOTIFICATION_CLICK_HANDLED_EXTRA, true);
+            Map<String, String> notification = new HashMap<>();
+            for (String key : message.dataKeys()) {
+                notification.put(key, message.data(key));
+            }
+            int actionIndex = intent.getIntExtra(CountlyPush.EXTRA_ACTION_INDEX, 0);
+            log("onNotificationClicked, a notification was clicked, action index: " + actionIndex, LogLevel.DEBUG);
+            onNotificationOpened(notification, actionIndex);
+        } catch (RuntimeException exception) {
+            log("onNotificationClicked, could not read the clicked notification", exception, LogLevel.WARNING);
+        }
+    }
+
+    /**
+     * Asks for the runtime notification permission that Android 13 (API level 33) and newer
+     * require before notifications can be shown. Does nothing when it is already granted.
+     */
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT < 33 || activity == null) {
+            return;
+        }
+        if (activity.checkSelfPermission(POST_NOTIFICATIONS_PERMISSION) == PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        log("requestNotificationPermission, asking for the notification permission", LogLevel.INFO);
+        activity.requestPermissions(new String[] { POST_NOTIFICATIONS_PERMISSION }, NOTIFICATION_PERMISSION_REQUEST_CODE);
+    }
+
+    /**
+     * Reads a string value, treating a missing key and a JSON null alike as null.
+     *
+     * @param object the object to read from
+     * @param key the key to read
+     * @return the value, or null
+     */
+    static String optNullableString(JSONObject object, String key) {
+        if (object.isNull(key)) {
+            return null;
+        }
+        return object.optString(key, null);
+    }
+
+    /**
+     * Returns a Countly Push configuration with the URI schemes push notification links may open. While
+     * the SDK is not initialized, as when a notification wakes a closed app, they come from storage.
+     *
+     * @param application the application to initialize Countly Push with
+     * @return the push configuration
+     */
+    static CountlyConfigPush pushConfig(Application application) {
+        CountlyConfigPush pushConfig = new CountlyConfigPush(application);
+        List<String> schemes = pushAllowedIntentSchemes;
+        if (!Countly.sharedInstance().isInitialized()) {
+            schemes = storedPushAllowedIntentSchemes(application);
+        }
+        if (schemes != null) {
+            pushConfig.setAllowedIntentSchemes(schemes);
+        }
+        return pushConfig;
+    }
+
+    /**
+     * Stores the URI schemes push notification links may open, for notifications that arrive while
+     * the SDK is not initialized, or removes them when none are set.
+     *
+     * @param context any context of the app
+     * @param schemes the allowed schemes, or null for the SDK default
+     */
+    private static void storePushAllowedIntentSchemes(Context context, List<String> schemes) {
+        SharedPreferences.Editor editor = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE).edit();
+        if (schemes == null) {
+            editor.remove(PUSH_ALLOWED_INTENT_SCHEMES_KEY);
         } else {
-            lastStoredNotification = notificationString;
+            editor.putStringSet(PUSH_ALLOWED_INTENT_SCHEMES_KEY, new HashSet<>(schemes));
+        }
+        editor.apply();
+    }
+
+    /**
+     * Returns the URI schemes push notification links may open, as stored at the last init.
+     *
+     * @param context any context of the app
+     * @return the allowed schemes, or null when none were set
+     */
+    private static List<String> storedPushAllowedIntentSchemes(Context context) {
+        Set<String> stored = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE).getStringSet(PUSH_ALLOWED_INTENT_SCHEMES_KEY, null);
+        if (stored == null) {
+            return null;
+        }
+        return new ArrayList<>(stored);
+    }
+
+    /**
+     * Returns the strings of a JSON array.
+     *
+     * @param array the array to read
+     * @return its values as strings
+     * @throws JSONException when a value cannot be read
+     */
+    static List<String> toStringList(JSONArray array) throws JSONException {
+        List<String> strings = new ArrayList<>();
+        for (int i = 0; i < array.length(); i++) {
+            strings.add(array.getString(i));
+        }
+        return strings;
+    }
+
+    /**
+     * Returns the method arguments as they may appear in logs. The tamper protection salt and custom
+     * header values are masked, and initial user properties are reduced to their keys.
+     *
+     * @param method the method name
+     * @param argsString the JSON encoded arguments
+     * @return the arguments, safe to log
+     */
+    static String argumentsForLog(String method, String argsString) {
+        if ("enableParameterTamperingProtection".equals(method) || "addCustomNetworkRequestHeaders".equals(method)) {
+            return "[masked]";
+        }
+        if (!"init".equals(method)) {
+            return argsString;
+        }
+        try {
+            JSONArray array = new JSONArray(argsString);
+            JSONObject initConfig = array.optJSONObject(0);
+            if (initConfig == null) {
+                return argsString;
+            }
+            if (initConfig.has("tamperingProtectionSalt")) {
+                initConfig.put("tamperingProtectionSalt", "[masked]");
+            }
+            JSONObject headers = initConfig.optJSONObject("customNetworkRequestHeaders");
+            if (headers != null) {
+                JSONObject maskedHeaders = new JSONObject();
+                Iterator<String> headerKeys = headers.keys();
+                while (headerKeys.hasNext()) {
+                    maskedHeaders.put(headerKeys.next(), "[masked]");
+                }
+                initConfig.put("customNetworkRequestHeaders", maskedHeaders);
+            }
+            JSONObject userProperties = initConfig.optJSONObject("providedUserProperties");
+            if (userProperties != null) {
+                initConfig.put("providedUserProperties", userProperties.names());
+            }
+            return array.toString();
+        } catch (JSONException exception) {
+            return "[unreadable]";
         }
     }
 
@@ -1660,6 +1971,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if (_config.has("loggingEnabled")) {
             this.config.setLoggingEnabled(_config.getBoolean("loggingEnabled"));
         }
+        if (_config.has("logListener")) {
+            this.config.setLogListener((logMessage, logLevel) -> {
+                Map<String, Object> data = new HashMap<>();
+                data.put("message", logMessage);
+                data.put("level", logLevel.name().toUpperCase(Locale.ROOT));
+                // always posted, so lines logged on different threads reach Dart in the order they were logged
+                new Handler(Looper.getMainLooper()).post(() -> safeInvokeMethod("logListener", data));
+            });
+        }
         if (_config.has("locationDisabled") && _config.getBoolean("locationDisabled")) {
             this.config.setDisableLocation();
         }
@@ -1686,7 +2006,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
 
         if (_config.has("customCrashSegment")) {
             Map<String, Object> customCrashSegment = toMap(_config.getJSONObject("customCrashSegment"));
-            this.config.setCustomCrashSegment(customCrashSegment);
+            this.config.crashes.setCustomCrashSegmentation(customCrashSegment);
         }
         if (_config.has("providedUserProperties")) {
             Map<String, Object> providedUserProperties = toMap(_config.getJSONObject("providedUserProperties"));
@@ -1715,6 +2035,14 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.disableSDKBehaviorSettingsUpdates();
         }
 
+        if (_config.optBoolean("backoffMechanismDisabled", false)) {
+            this.config.disableBackoffMechanism();
+        }
+
+        if (_config.optBoolean("requestCompressionEnabled", false)) {
+            this.config.enableRequestCompression();
+        }
+
         if (_config.has("disableStoringDefaultPushConsent")) {
             this.config.disableStoringDefaultPushConsent();
         }
@@ -1731,10 +2059,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
         if (_config.has("startTSOverride")) {
             this.config.apm.setAppStartTimestampOverride(_config.getLong("startTSOverride"));
-        }
-        // legacy
-        if (_config.has("recordAppStartTime")) {
-            this.config.setRecordAppStartTime(_config.getBoolean("recordAppStartTime"));
         }
         // APM END --------------------------------------------
         // Internal Limits ------------------------------------
@@ -1756,10 +2080,17 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if (_config.has("maxStackTraceLinesPerThread")) {
             this.config.sdkInternalLimits.setMaxStackTraceLinesPerThread(_config.getInt("maxStackTraceLinesPerThread"));
         }        
+        if (_config.has("maxValueSizePicture")) {
+            this.config.sdkInternalLimits.setMaxValueSizePicture(_config.getInt("maxValueSizePicture"));
+        }
         // Internal Limits END --------------------------------
 
         if (_config.has("enableUnhandledCrashReporting") && _config.getBoolean("enableUnhandledCrashReporting")) {
-            this.config.enableCrashReporting();
+            this.config.crashes.enableCrashReporting();
+        }
+
+        if (_config.optBoolean("recordAllThreadsWithCrash", false)) {
+            this.config.crashes.enableRecordAllThreadsWithCrash();
         }
 
         if (_config.has("maxRequestQueueSize")) {
@@ -1778,14 +2109,8 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             enableManualSessionControl();
         }
 
-        if (_config.has("enableRemoteConfigAutomaticDownload")) {
-            boolean enableRemoteConfigAutomaticDownload = _config.getBoolean("enableRemoteConfigAutomaticDownload");
-            this.config.setRemoteConfigAutomaticDownload(enableRemoteConfigAutomaticDownload, new RemoteConfigCallback() {
-                @Override
-                public void callback(String error) {
-                    safeInvokeMethod("remoteConfigCallback", error);
-                }
-            });
+        if (_config.optBoolean("manualSessionControlHybridMode", false)) {
+            this.config.enableManualSessionControlHybridMode();
         }
 
         String countryCode = null;
@@ -1843,6 +2168,28 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.disableViewRestartForManualRecording();
         }
 
+        if (_config.has("metricOverride")) {
+            this.config.setMetricOverride(toMapString(_config.getJSONObject("metricOverride")));
+        }
+        if (_config.has("trackOrientationChanges")) {
+            this.config.setTrackOrientationChanges(_config.getBoolean("trackOrientationChanges"));
+        }
+        if (_config.optBoolean("clearStoredDeviceId", false)) {
+            this.config.enableClearStoredDeviceId();
+        }
+        if (_config.optBoolean("sdkLoggingInProductionDisabled", false)) {
+            this.config.disableSDKLoggingInProduction();
+        }
+        if (_config.optBoolean("webViewDisabled", false)) {
+            this.config.disableWebView();
+        }
+        if (_config.optBoolean("healthCheckDisabled", false)) {
+            this.config.disableHealthCheck();
+        }
+        if (_config.has("appCrawlerNames")) {
+            this.config.setAppCrawlerNames(toStringArray(_config.getJSONArray("appCrawlerNames")));
+        }
+
         if (_config.has("enableAllConsents") && _config.getBoolean("enableAllConsents")) {
              this.config.giveAllConsents();
         }
@@ -1871,6 +2218,20 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 this.config.setWebviewDisplayOption(WebViewDisplayOption.SAFE_AREA);
             }
         }
+
+        if (_config.has("contentAllowedIntentSchemes")) {
+            this.config.content.setAllowedIntentSchemes(toStringList(_config.getJSONArray("contentAllowedIntentSchemes")));
+        }
+
+        if (_config.optBoolean("autoContentTriggersDisabled", false)) {
+            this.config.content.disableAutoContentTriggers();
+        }
+
+        pushAllowedIntentSchemes = null;
+        if (_config.has("pushAllowedIntentSchemes")) {
+            pushAllowedIntentSchemes = toStringList(_config.getJSONArray("pushAllowedIntentSchemes"));
+        }
+        storePushAllowedIntentSchemes(context, pushAllowedIntentSchemes);
 
         this.config.content.setGlobalContentCallback(new ContentCallback() {
             @Override 

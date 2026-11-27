@@ -1,0 +1,154 @@
+@TestOn('browser')
+library push_test;
+
+import 'dart:convert';
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
+
+import 'package:countly_flutter_np/countly_flutter.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'web_test_utils.dart';
+
+/// A well-formed VAPID public key: a base64-url encoded uncompressed P-256 point.
+const String vapidPublicKey = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U';
+
+/// Whether the Web SDK that was loaded has web push, which arrived in 26.8.0.
+bool webSdkHasPush() {
+  final JSAny? function = webInstance()['enable_push_notifications'];
+  return function != null && function.typeofEquals('function');
+}
+
+/// Whether this browser lets a page subscribe to web push, which the Web SDK checks before anything else: a service
+/// worker container, PushManager and Notification. Headless test browsers lack them.
+bool browserCanSubscribeToPush() {
+  final JSObject navigator = globalContext['navigator'] as JSObject;
+  return navigator['serviceWorker'] != null && globalContext.has('PushManager') && globalContext.has('Notification');
+}
+
+/// Posts [data] to the page the way the Countly service worker does.
+void postFromServiceWorker(Map<String, Object?> data) {
+  final JSObject serviceWorker = (globalContext['navigator'] as JSObject)['serviceWorker'] as JSObject;
+  final JSObject details = JSObject();
+  details['data'] = data.jsify();
+  final JSObject event = (globalContext['MessageEvent'] as JSFunction).callAsConstructor<JSObject>('message'.toJS, details);
+  serviceWorker.callMethod('dispatchEvent'.toJS, event);
+}
+
+void main() {
+  setUpWebPlugin();
+
+  test('onNotification registered before init waits for a notification instead of answering at once', () async {
+    final List<String> received = [];
+    // ignore: unawaited_futures
+    Countly.onNotification(received.add);
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    expect(received, isEmpty);
+  });
+
+  test('Push calls report why they cannot subscribe', () async {
+    final CountlyConfig config = testConfig()
+      ..setRequiresConsent(true)
+      ..setConsentEnabled(['events']);
+    config.push.setVapidPublicKey(vapidPublicKey);
+    await Countly.initWithConfig(config);
+
+    if (!webSdkHasPush()) {
+      expect(await Countly.askForNotificationPermission(), 'subscribed: failed, reason: unsupported');
+      expect(await Countly.disablePushNotifications(), 'unsubscribed: failed, reason: unsupported');
+      return;
+    }
+    if (!browserCanSubscribeToPush()) {
+      expect(await Countly.askForNotificationPermission(), 'subscribed: failed, reason: unsupported');
+      return;
+    }
+    expect(await Countly.askForNotificationPermission(), 'subscribed: failed, reason: no_consent');
+    expect(await Countly.disablePushNotifications(), 'unsubscribed: success');
+  });
+
+  test('Push needs a VAPID public key, and a well-formed one', () async {
+    await Countly.initWithConfig(testConfig()..giveAllConsents());
+    if (!webSdkHasPush()) {
+      markTestSkipped('The loaded Web SDK has no web push');
+      return;
+    }
+    if (!browserCanSubscribeToPush()) {
+      markTestSkipped('This browser cannot subscribe to web push');
+      return;
+    }
+    expect(await Countly.askForNotificationPermission(), 'subscribed: failed, reason: missing_vapid_key');
+    await Countly.instance.halt();
+
+    final CountlyConfig config = testConfig()..giveAllConsents();
+    config.push.setVapidPublicKey('not-a-vapid-key');
+    await Countly.initWithConfig(config);
+    expect(await Countly.askForNotificationPermission(), 'subscribed: failed, reason: invalid_vapid_key');
+  });
+
+  test('onNotification reports the events the service worker posts, in order', () async {
+    final CountlyConfig config = testConfig()..giveAllConsents();
+    config.push.setVapidPublicKey(vapidPublicKey);
+    await Countly.initWithConfig(config);
+    if (!webSdkHasPush()) {
+      markTestSkipped('The loaded Web SDK has no web push');
+      return;
+    }
+
+    final List<Map<String, dynamic>> received = [];
+    // ignore: unawaited_futures
+    Countly.onNotification((String notification) => received.add(jsonDecode(notification) as Map<String, dynamic>));
+    postFromServiceWorker({
+      'type': 'countly_push_received',
+      'messageId': 'message_1',
+      'title': 'Sale',
+      'message': 'Half off today',
+      'payload': {'promo': 'half'},
+    });
+    postFromServiceWorker({'type': 'countly_push_closed', 'messageId': 'message_1'});
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    expect(received.map((n) => n['type']).toList(), ['received', 'closed']);
+    expect(received.first['messageId'], 'message_1');
+    expect(received.first['title'], 'Sale');
+    expect(received.first['message'], 'Half off today');
+    expect(received.first['payload'], {'promo': 'half'});
+  });
+
+  test('onNotificationOpened gets each click the service worker posts once, with the clicked button', () async {
+    final CountlyConfig config = testConfig()..giveAllConsents();
+    config.push.setVapidPublicKey(vapidPublicKey);
+    await Countly.initWithConfig(config);
+    if (!webSdkHasPush()) {
+      markTestSkipped('The loaded Web SDK has no web push');
+      return;
+    }
+
+    final List<Map<String, dynamic>> received = [];
+    // ignore: unawaited_futures
+    Countly.onNotification((String notification) => received.add(jsonDecode(notification) as Map<String, dynamic>));
+
+    // A click the page still has to record, handed over twice before onNotificationOpened is set, the
+    // way the worker hands over the click that opened the page.
+    final Map<String, Object> click = {'type': 'countly_push_action', 'aid': 'action_1', 'messageId': 'message_2', 'buttonIndex': 1, 'buttonTitle': 'Open'};
+    postFromServiceWorker(click);
+    postFromServiceWorker(click);
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    final List<List<Object>> opened = [];
+    expect(await Countly.onNotificationOpened((String notification, int actionIndex) => opened.add([(jsonDecode(notification) as Map<String, dynamic>)['messageId'] as String, actionIndex])), '');
+    // A click the worker recorded itself, on the notification body.
+    postFromServiceWorker({'type': 'countly_push_received', 'messageId': 'message_3', 'title': 'Sale'});
+    postFromServiceWorker({'type': 'countly_push_action', 'aid': 'action_2', 'messageId': 'message_3', 'buttonIndex': 0, 'recorded': true});
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    expect(opened, [
+      ['message_2', 1],
+      ['message_3', 0],
+    ]);
+    expect(received.map((n) => n['type']).toList(), ['clicked', 'received', 'clicked']);
+    final List<Map<String, dynamic>> pushActions = (await queuedEvents()).where((Map<String, dynamic> event) => event['key'] == '[CLY]_push_action').toList();
+    expect(pushActions.map((Map<String, dynamic> event) => event['segmentation']).toList(), [
+      {'i': 'message_2', 'b': 1, 'p': 'w'},
+    ]);
+  });
+}

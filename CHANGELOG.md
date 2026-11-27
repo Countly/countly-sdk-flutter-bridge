@@ -1,3 +1,160 @@
+## 26.8.0-np
+* ! Minor breaking change ! Raised the minimum supported iOS version to 15 (previously 10), as the underlying iOS SDK requires it.
+* ! Minor breaking change ! Changes to user properties:
+  * "setProperty" and "setUserProperties" of "Countly.instance.userProfile", and the deprecated "setUserData" and "Countly.setProperty", now send the recorded events before the user properties
+  * "setProperty" now keeps number and boolean values in Android. In iOS, it and the deprecated "Countly.setProperty" now set predefined properties such as "email" instead of custom ones
+* ! Minor breaking change ! Events recorded before init are now ignored with an error log, like other calls made before init. They caused an error in Android and skipped the consent check in iOS. Events recorded while an init that was not awaited still runs are kept.
+* ! Minor breaking change ! "getID" now returns the device ID as it was set, not URL-encoded, in iOS.
+* ! Minor breaking change ! Giving or removing the "star-rating" consent now also gives or removes the "feedback" consent in iOS, as the star rating dialog needs it.
+* ! Minor breaking change ! With crash reporting enabled, a SIGPIPE the app neither ignores nor handles itself now ends the app after it is reported in iOS, as it would without the SDK:
+  * previously the SDK reported it, kept the app running and turned automatic crash reporting off
+  * an app that has to survive a broken pipe should ignore or handle SIGPIPE, for example in its AppDelegate, before initializing the SDK
+* ! Minor breaking change ! The "onFinished" callback of "presentNPS", "presentSurvey" and "presentRating" can now also be called with an empty string once the widget is shown, in iOS and for some widgets in Android. Treat only a non-empty string as an error.
+* ! Minor breaking change ! "setUpdateSessionTimerDelay" now ignores values below 1 second and logs an error. In iOS, such values queued requests continuously.
+* ! Minor breaking change ! The deprecated "storedRequestsLimit" has no effect anymore (it limited the request queue to 1 request in iOS). Use "setMaxRequestQueueSize" instead.
+* ! Minor breaking change ! Links with the "data:", "zip:" and "intent:" schemes in content and feedback widgets are now blocked by default in Android.
+* ! Minor breaking change ! The underlying Android SDK is now published at "https://maven.countly.com". The plugin adds this repository to the app's projects. These apps have to add it to their repositories themselves, next to "google()" and "mavenCentral()":
+  * an app that declares its repositories in "settings.gradle"
+  * a native app that uses a Flutter module as AAR files ("flutter build aar")
+
+  ```groovy
+  maven {
+    url = 'https://maven.countly.com'
+    content { includeGroupByRegex 'ly\\.count\\..*' }
+  }
+  ```
+
+  or, in "settings.gradle.kts":
+
+  ```kotlin
+  maven {
+    url = uri("https://maven.countly.com")
+    content { includeGroupByRegex("ly\\.count\\..*") }
+  }
+  ```
+
+* ! Minor breaking change ! The underlying Android SDK no longer depends on "androidx.multidex:multidex". An app that uses it has to declare it itself.
+* ! Minor breaking change ! In Android, the parameter tampering salt is now taken at init, so the deprecated "enableParameterTamperingProtection" no longer applies when called after init. Use "setParameterTamperingProtectionSalt" of "CountlyConfig".
+* ! Minor breaking change ! "halt" now also erases the generated device ID in Android, so the next init starts as a new user.
+* ! Minor breaking change ! "presentFeedbackWidget" no longer uses "closeButtonText" in Android. Feedback widgets without a widget version, such as those created on older servers, now show a close button with the fixed text "Close".
+* ! Minor breaking change ! Web changes:
+  * when consent is required, content now also needs the "content" consent
+  * "changeWithoutMerge", and "setID" when it does not merge, now start a session for the new device ID only with automatic session tracking. With manual sessions, call "beginSession" for the new user yourself
+  * while a page can send, its unsent events and requests are now kept in the tab's sessionStorage instead of localStorage. Requests that cannot be sent yet, for example while offline, still wait in localStorage
+
+* Added the "setAllowedIntentSchemes" option to "CountlyConfig.content" for limiting the URI schemes that content and feedback widget links open, in Android:
+  * "data", "zip", "intent", "file", "content", "javascript" and "jar" stay blocked
+  * a list without a usable scheme is ignored, so it never widens the schemes set before
+* Added config options of the underlying Android and iOS SDKs:
+  * "enableManualSessionControlHybridMode", "setMetricOverride", "setTrackOrientationChanges", "enableClearStoredDeviceId", "disableHealthCheck" and "sdkInternalLimits.setMaxValueSizePicture"
+  * in Android, "disableSDKLoggingInProduction", "disableWebView", "setAppCrawlerNames" and "enableRecordAllThreadsWithCrash"
+  * in iOS, the "disableZoom", "disableRotation", "enableContentReloadOnStall" and "setContentReloadOnStallTimeout" options of "CountlyConfig.content" (Experimental!)
+* Added Web support for:
+  * WebAssembly builds ("flutter build web --wasm")
+  * loading the Countly Web SDK from an address you host with the new "setWebSDKUrl" config option, for example when content blockers block the default CDN
+  * "startView" (starting a view ends the previous one), and custom and network traces
+  * "setUserLocation" and "disableLocation" (without GPS coordinates), "addCustomNetworkRequestHeaders", direct attribution, "attemptToSendStoredRequests", "refreshContentZone" and "throwNativeException"
+  * the config options for user properties and the content zone timer interval
+* Added support for SDK behavior settings that control automatic session tracking, automatic crash reporting and Journey Trigger Views, in Android and iOS.
+* Added support for reporting the app's light or dark theme when presenting feedback widgets, rating widgets and content, so they match it, in Android, iOS and Web.
+* Added support for server requested SDK log gathering and connection tests in Android, iOS and Web. The iOS privacy manifest now also declares the diagnostic data that log gathering collects.
+* Added "setLogListener" to "CountlyConfig" for receiving every log message of the SDK and its "LogLevel", also while logging is disabled:
+  * it gets the messages of the Flutter layer and of the native SDK, in Web only those of the Flutter layer
+  * it is called inside the SDK's own calls, so it should return quickly and must not call the SDK
+* Added "setGlobalContentSegmentation" to "Countly.instance.content" (Experimental!), which sets a segmentation recorded with every content event and with the events of NPS, survey and rating feedback widgets, in Android, iOS and Web. In iOS, "presentRatingWidgetWithID" does not carry it.
+* Added "changeServerUrl" to "Countly.instance" for changing the server URL after init, in Android and iOS.
+* Added "changeAppKey" to "Countly.instance" for changing the app key after init, in Android and iOS.
+* Added "flushQueues" to "Countly.instance" for discarding the stored requests and events, in Android and iOS.
+* Added content triggers in Android and iOS. While the content zone is entered, an event, view, session, user property, recorded exception or consent change that starts a journey or campaign with content now requests that content immediately. Turn them off with "disableAutoContentTriggers" of "CountlyConfig.content".
+* Added "enableRequestCompression" to "CountlyConfig" for sending requests gzip-compressed to servers that support it, in Android and iOS.
+* Changed "exitContentZone" to also close the content on screen in iOS and Web, instead of only stopping content retrieval.
+* Improved crash reporting in iOS. Its handlers now pass crashes on to the crash handlers they replaced, and leave crash tools installed later, signals the app ignores and a SIGPIPE the app handles itself alone.
+* Improved journey triggers set in SDK behavior settings, in Android and iOS. Their events and views now request content immediately, the same way as content triggers.
+* Improved link handling of content and feedback widgets in Android and iOS, so links that carry their own query parameters, such as deep links, are parsed correctly.
+* Improved logging: messages from before init, such as warnings about invalid config values, are now printed once init enables logging.
+
+* Mitigated issues where:
+  * native callbacks, such as those of remote config, content and feedback, went to a background Flutter engine instead of the app's UI, for example after a Firebase Messaging background handler started one
+  * enabling crash reporting replaced the Flutter error handlers set before it, so other crash reporting tools and the console stopped receiving Flutter errors
+  * event sums lost precision (19.99 was recorded as 19.989999771118164), and the deprecated map versions of "recordEvent" and "endEvent" sent wrong values for whole-number sums and for text counts, sums and durations
+  * SDK logs showed the parameter tampering protection salt and custom request header values
+  * the "disableBackoffMechanism" config option was ignored in Android, and in iOS it took effect only while SDK behavior settings kept changing
+  * the "enter content zone" SDK behavior setting could exit a content zone the app entered. The setting now applies only when the SDK starts
+  * durations of sessions, views, timed events and traces changed when the device clock was adjusted, and an event recorded with a negative duration kept it
+  * the health check sent metrics without the metrics consent
+
+* Mitigated issues in Android where:
+  * builds failed in "checkDebugAarMetadata" on newer Flutter versions. The plugin now compiles against the API level of the app's Flutter SDK
+  * "presentNPS", "presentSurvey", "presentRating", "presentFeedbackWidget" for full screen widgets, and "askForStarRating" without the "star-rating" consent never completed
+  * a partial location from "setUserLocation" or the deprecated "setLocation" stored the text "null"
+  * automatic session tracking did not work when the SDK was initialized before an Activity was attached, as in add-to-app setups
+  * content could stay hidden on some devices even after it had finished loading
+  * content overlays and feedback widgets blocked keyboard input on the app's Activity and were kept in memory after they closed
+  * the rating popup request could be sent in temporary device ID mode, creating a "CLYTemporaryDeviceID" user, and the content zone did not resume after temporary device ID mode ended
+  * the SDK caused StrictMode violations
+  * SDK behavior settings were ignored when the server reply carried unknown fields, as every server from 26.01.8 on does, and an app in the foreground refreshed them only every 4,000 hours instead of every 4 hours
+  * a setting removed from the SDK behavior settings in SDK Manager did not go back to the value given at start, and old requests kept being dropped from a full request queue after the settings turned the request age limit off
+  * view IDs returned by "startView" stopped resolving after the app went to the background and came back, and an auto stopped view could stop being tracked then
+  * the app was treated as being in the background after moving from one Activity to another, so crash reports and, with visibility tracking, events were marked as in the background
+  * the app could crash when a content or feedback widget was closed from a background thread, for example by "changeWithoutMerge" or by removing consent
+  * health check counts could be lost or reported wrong
+  * content and feedback widgets could keep their previous size after a rotation, leaving part of them off screen
+
+* Mitigated issues in iOS where:
+  * a failed remote config, variant or experiment download never called its callback. Downloads without remote config consent, in temporary device ID mode or while SDK behavior settings disable networking now call it with an error
+  * rating and feedback calls never completed without feedback consent, in temporary device ID mode or with networking disabled, and "getFeedbackWidgetData" threw a type error
+  * "getAvailableFeedbackWidgets" returned an empty list without an error when the widget list could not be fetched
+  * "picturePath" was ignored, and a second "setUserProperties" call replaced the custom properties of the first one
+  * the "enrollABOnRCDownload" config option had no effect
+  * the deprecated "setOptionalParametersForInitialization" recorded an undefined location when no coordinates were given
+  * a config value of an unexpected type made the SDK skip every option after it
+  * a race condition in the request queue could drop or duplicate requests
+  * content and remote config requests could be sent in temporary device ID mode, creating a "CLYTemporaryDeviceID" user
+  * SDK behavior settings were ignored when the server sent additional fields, and refreshing them after the app returned from the background reset the configuration given at start
+  * a setting removed from the SDK behavior settings in SDK Manager did not go back to the value given at start, and a setting sent as false or 0, such as "log", did not override it. They still never lift a consent requirement set with "setRequiresConsent"
+  * the default SDK behavior settings overrode the SDK limits given in the config
+  * the consent state could be sent twice at init when SDK behavior settings required consent
+  * with location tracking turned off in the SDK behavior settings, a request without the app key was queued at start. The server rejected it, and every request queued after it, the session start included, was held back
+  * a server or proxy answer that was a JSON list instead of an object crashed the app, again on every start, and the remote config variant and experiment calls could crash on an error answer
+  * remote config values downloaded for the previous device ID were stored for the new one when the device ID changed during the download
+  * feedback widgets could close automatically after about a minute while the user was still answering them
+  * a feedback widget that failed to load was recorded as closed by the user, which could keep it hidden from that user
+  * view IDs returned by "startView" stopped resolving after the app went to the background and came back, so "stopViewWithID" failed and the view reported a new visit and a duration on every later return
+  * an auto stopped view could stop right after the app returned from the background
+  * with visibility tracking enabled, events recorded while the app was inactive, for example under a system alert or in the app switcher, were reported as not visible
+  * the app could freeze instead of terminating on a crash after crash reporting was turned off at runtime, or on a crash inside the SDK's request handling or while it held an internal lock. The SDK now waits at most 5 seconds for the crash report and sends it on the next start if it did not go out
+  * the SDK could crash when SDK behavior settings updated filters or Journey Trigger lists while data was being recorded
+  * journey trigger events and views with keys longer than the key length limit never matched
+  * the orientation was not recorded at start, and not at all on iOS 27 in apps that use the UIScene lifecycle
+
+* Mitigated issues in Web where:
+  * every call waited forever when the Web SDK script could not load. Init now gives up after 10 seconds with an error, and a later "initWithConfig" call can try again
+  * "isInitialized" always returned false, and data went to the page's own Countly app when the page had loaded the Web SDK first
+  * a failed remote config download, the feedback widget calls and the remote config variant and experiment testing calls never completed, threw a type error or called back without end
+  * the "giveAllConsents", "disableLocation" and "setSDKBehaviorSettings" config options were ignored, and the app version was always "0.0" instead of the one in "version.json"
+  * "logException" sent the exception text as a segmentation key and never fell back to the custom crash segment, which was also lost when unhandled crash reporting was enabled
+  * "getAllValuesAndEnroll" returned no values, and event count, sum and duration were sent as text
+  * content could open links that run code on the page, such as "javascript:" links, and a page opened from content could redirect the app's tab
+  * after a device ID change with merge, requests such as remote config, feedback widget and content ones could reach the server under the new device ID before the merge request
+  * with several tabs of the app open, events and other requests could be sent more than once or lost
+  * "changeWithoutMerge" kept the content zone entered and the previous user's content on screen. Call "enterContentZone" again to show content to the new user
+
+* Removed the following deprecated functions and config options:
+  * "recordView", use "startAutoStoppedView" of "Countly.instance.views" instead
+  * "remoteConfigUpdate", "updateRemoteConfigForKeysOnly" and "updateRemoteConfigExceptKeys", use "downloadAllKeys", "downloadSpecificKeys" and "downloadOmittingKeys" of "Countly.instance.remoteConfig" instead
+  * "getRemoteConfigValueForKey", use "getValue" of "Countly.instance.remoteConfig" instead
+  * "remoteConfigClearValues", use "clearAll" of "Countly.instance.remoteConfig" instead
+  * "setRemoteConfigAutomaticDownload" (the function and the config option) and "setRemoteConfigCallback", use the "enableRemoteConfigAutomaticTriggers" and "remoteConfigRegisterGlobalCallback" config options instead
+  * "enableCrashReporting" and "setCustomCrashSegment", use the "enableCrashReporting" and "setCustomCrashSegment" config options instead
+  * "enableApm" and the "setRecordAppStartTime" config option, use "apm.enableAppStartTimeTracking" of "CountlyConfig" instead
+  * "askForFeedback", use "presentRatingWidgetWithID" instead
+  * "recordAttributionID", use "recordIndirectAttribution" instead
+* Removed the dependency on the discontinued "pedantic" package.
+
+* Underlying Android SDK version is 26.8.1
+* Underlying iOS SDK version is 26.8.1
+* Underlying Web SDK version is 26.8.0
+
 ## 26.1.1-np
 * Added Swift Package Manager (SwiftPM) support for iOS. CocoaPods integration is still supported.
 

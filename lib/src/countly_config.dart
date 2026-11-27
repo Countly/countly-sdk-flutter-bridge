@@ -2,6 +2,7 @@ import 'configuration_interfaces/countly_config_apm.dart';
 import 'configuration_interfaces/countly_config_content.dart';
 import 'configuration_interfaces/countly_config_experimental.dart';
 import 'configuration_interfaces/countly_config_limits.dart';
+import 'configuration_interfaces/countly_config_push.dart';
 import 'countly_flutter.dart';
 import 'remote_config.dart';
 
@@ -14,14 +15,15 @@ class CountlyConfig {
   String? _locationIpAddress;
   String? _locationCountryCode;
   bool? _loggingEnabled;
+  LogListener? _logListener;
   bool _locationDisabled = false;
   bool _httpPostForced = true;
   Map<String, String>? _customNetworkRequestHeaders;
+  String? _webSDKUrl;
   String? _locationGpsCoordinates;
   String? _daCampaignType;
   String? _daCampaignData;
   List<String>? _consents;
-  bool? _recordAppStartTime;
   int? _maxRequestQueueSize;
   bool? _manualSessionEnabled;
   bool? _shouldRequireConsent;
@@ -35,7 +37,6 @@ class CountlyConfig {
   bool? _enableUnhandledCrashReporting;
   Map<String, String>? _iaAttributionValues;
   Map<String, dynamic>? _customCrashSegment;
-  bool? _enableRemoteConfigAutomaticDownload;
   Map<String, dynamic>? _providedUserProperties;
   bool _remoteConfigAutomaticTriggers = false;
   final List<RCDownloadCallback> _remoteConfigGlobalCallbacks = [];
@@ -47,15 +48,30 @@ class CountlyConfig {
   String? _sdkBehaviorSettings;
   bool _backoffMechanismDisabled = false;
   bool _sdkBehaviorSettingsUpdatesDisabled = false;
+  bool _requestCompressionEnabled = false;
   int? _requestTimeoutDuration;
   bool _storingDefaultPushConsentDisabled = false;
   bool _viewRestartForManualRecordingDisabled = false;
+  bool _pushTokenSentAlways = false;
+  bool _manualSessionControlHybridMode = false;
+  Map<String, String>? _metricOverride;
+  bool? _trackOrientationChanges;
+  bool _clearStoredDeviceId = false;
+  bool _sdkLoggingInProductionDisabled = false;
+  bool _webViewDisabled = false;
+  bool _healthCheckDisabled = false;
+  List<String>? _appCrawlerNames;
+  bool _recordAllThreadsWithCrash = false;
+  bool _alertForNotificationsDisabled = false;
 
   /// instance of CountlyConfigApm
   final CountlyConfigApm _countlyConfigApmInstance = CountlyConfigApm();
 
   /// instance of CountlyConfigExperimental
   final CountlyConfigExperimental _countlyConfigExperimentalInstance = CountlyConfigExperimental();
+
+  /// instance of CountlyConfigPush
+  final CountlyConfigPush _countlyConfigPushInstance = CountlyConfigPush();
 
   /// instance of CountlyConfigLimits
   final CountlyConfigSDKInternalLimits _countlyConfigSDKInternalLimitsInstance = CountlyConfigSDKInternalLimits();
@@ -88,6 +104,8 @@ class CountlyConfig {
 
   bool? get loggingEnabled => _loggingEnabled;
 
+  LogListener? get logListener => _logListener;
+
   bool get locationDisabled => _locationDisabled;
 
   bool? get httpPostForced => _httpPostForced;
@@ -96,7 +114,6 @@ class CountlyConfig {
 
   Map<String, String>? get customNetworkRequestHeaders => _customNetworkRequestHeaders;
 
-  bool? get recordAppStartTime => _recordAppStartTime;
 
   int? get maxRequestQueueSize => _maxRequestQueueSize;
 
@@ -116,6 +133,8 @@ class CountlyConfig {
 
   String? get tamperingProtectionSalt => _tamperingProtectionSalt;
 
+  String? get webSDKUrl => _webSDKUrl;
+
   Map<String, String>? get iaAttributionValues => _iaAttributionValues;
 
   Map<String, dynamic>? get customCrashSegment => _customCrashSegment;
@@ -124,7 +143,6 @@ class CountlyConfig {
 
   Map<String, dynamic>? get providedUserProperties => _providedUserProperties;
 
-  bool? get enableRemoteConfigAutomaticDownload => _enableRemoteConfigAutomaticDownload;
 
   bool get remoteConfigAutomaticTriggers => _remoteConfigAutomaticTriggers;
 
@@ -146,11 +164,35 @@ class CountlyConfig {
 
   bool get sdkBehaviorSettingsUpdatesDisabled => _sdkBehaviorSettingsUpdatesDisabled;
 
+  bool get requestCompressionEnabled => _requestCompressionEnabled;
+
   int? get requestTimeoutDuration => _requestTimeoutDuration;
 
   bool get storingDefaultPushConsentDisabled => _storingDefaultPushConsentDisabled;
 
   bool get viewRestartForManualRecordingDisabled => _viewRestartForManualRecordingDisabled;
+
+  bool get pushTokenSentAlways => _pushTokenSentAlways;
+
+  bool get manualSessionControlHybridMode => _manualSessionControlHybridMode;
+
+  Map<String, String>? get metricOverride => _metricOverride;
+
+  bool? get trackOrientationChanges => _trackOrientationChanges;
+
+  bool get clearStoredDeviceId => _clearStoredDeviceId;
+
+  bool get sdkLoggingInProductionDisabled => _sdkLoggingInProductionDisabled;
+
+  bool get webViewDisabled => _webViewDisabled;
+
+  bool get healthCheckDisabled => _healthCheckDisabled;
+
+  List<String>? get appCrawlerNames => _appCrawlerNames;
+
+  bool get recordAllThreadsWithCrash => _recordAllThreadsWithCrash;
+
+  bool get alertForNotificationsDisabled => _alertForNotificationsDisabled;
 
   /// getter for CountlyConfigApm instance that is used to access CountlyConfigApm methods
   CountlyConfigApm get apm => _countlyConfigApmInstance;
@@ -163,6 +205,9 @@ class CountlyConfig {
 
   /// getter for CountlyConfigContent instance that is used to access CountlyConfigContent methods
   CountlyConfigContent get content => _countlyConfigContentInstance;
+
+  /// getter for CountlyConfigPush instance that is used to access CountlyConfigPush methods
+  CountlyConfigPush get push => _countlyConfigPushInstance;
 
   /// URL of the Countly server to submit data to.
   /// Mandatory field.
@@ -197,6 +242,14 @@ class CountlyConfig {
     return this;
   }
 
+  /// Sets a listener that receives every log message of the SDK and its level, also when logging is disabled.
+  /// It receives the messages of the native SDK and of the Flutter layer, on web only those of the Flutter layer.
+  /// The listener is called inside the SDK's own calls, so it should return quickly and must not call the SDK.
+  CountlyConfig setLogListener(LogListener logListener) {
+    _logListener = logListener;
+    return this;
+  }
+
   /// Call this to disable location tracking
   CountlyConfig disableLocation() {
     _locationDisabled = true;
@@ -217,10 +270,14 @@ class CountlyConfig {
   }
 
   /// Sets the interval for the automatic session update calls
-  /// min value 1 (1 second),
+  /// min value 1 (1 second), smaller values are ignored
   /// max value 600 (10 minutes)
   /// [int delay] - delay in seconds
   CountlyConfig setUpdateSessionTimerDelay(int delay) {
+    if (delay < 1) {
+      Countly.log('setUpdateSessionTimerDelay, delay must be at least 1 second, ignoring [$delay]', logLevel: LogLevel.ERROR);
+      return this;
+    }
     _sessionUpdateTimerDelay = delay;
     return this;
   }
@@ -256,6 +313,18 @@ class CountlyConfig {
     return this;
   }
 
+  /// Set the address the Countly Web SDK script is loaded from, for apps that host the script
+  /// themselves, for example because content blockers block the default CDN address (web only).
+  /// [String url]: full address of countly.min.js
+  CountlyConfig setWebSDKUrl(String url) {
+    if (url.isEmpty) {
+      Countly.log('setWebSDKUrl, url cannot be empty, ignoring it', logLevel: LogLevel.ERROR);
+      return this;
+    }
+    _webSDKUrl = url;
+    return this;
+  }
+
   /// the shown title text for the star rating dialogs.
   /// Currently implemented for Android only
   CountlyConfig setStarRatingTextTitle(String starRatingTextTitle) {
@@ -273,13 +342,6 @@ class CountlyConfig {
   /// Currently implemented for Android only
   CountlyConfig setStarRatingTextDismiss(String starRatingTextDismiss) {
     _starRatingTextDismiss = starRatingTextDismiss;
-    return this;
-  }
-
-  /// Enables the recording of the app start time.
-  /// This is now deprecated, use [CountlyConfig.apm.enableAppStartTimeTracking] instead
-  CountlyConfig setRecordAppStartTime(bool recordAppStartTime) {
-    _recordAppStartTime = recordAppStartTime;
     return this;
   }
 
@@ -314,17 +376,6 @@ class CountlyConfig {
   /// Enable manual session handling
   CountlyConfig enableManualSessionHandling() {
     _manualSessionEnabled = true;
-    return this;
-  }
-
-  @Deprecated('This function is deprecated, please use remoteConfigRegisterGlobalCallback instead')
-
-  /// If enable, will automatically download newest remote config values.
-  /// enabled set true for enabling it
-  /// callback callback called after the update was done
-  CountlyConfig setRemoteConfigAutomaticDownload(bool enabled, Function(String? error) callback) {
-    _enableRemoteConfigAutomaticDownload = enabled;
-    Countly.setRemoteConfigCallback(callback);
     return this;
   }
 
@@ -411,6 +462,14 @@ class CountlyConfig {
     return this;
   }
 
+  /// Send request bodies between 1 KB and 1 MB gzip-compressed, once the server's SDK behavior settings answer
+  /// says it reads them (Only for Android and iOS). It needs the SDK behavior settings updates, which
+  /// [disableSDKBehaviorSettingsUpdates] turns off.
+  CountlyConfig enableRequestCompression() {
+    _requestCompressionEnabled = true;
+    return this;
+  }
+
   /// Set the request timeout duration in seconds
   /// [int requestTimeoutDuration] - duration in seconds
   CountlyConfig setRequestTimeoutDuration(int requestTimeoutDuration) {
@@ -427,6 +486,87 @@ class CountlyConfig {
   /// Disable view restart for manual recording
   CountlyConfig disableViewRestartForManualRecording() {
     _viewRestartForManualRecordingDisabled = true;
+    return this;
+  }
+
+  /// Send the push token to the server even when the user has not allowed notifications (iOS only).
+  /// Such a token can receive silent notifications only, and it counts users who cannot see
+  /// notifications as reachable, which skews push interaction stats.
+  CountlyConfig sendPushTokenAlways() {
+    _pushTokenSentAlways = true;
+    return this;
+  }
+
+  /// Let the SDK update the running session automatically while manual session handling is enabled,
+  /// so only "beginSession" and "endSession" have to be called. Works together with "enableManualSessionHandling"
+  /// (Only for Android and iOS).
+  CountlyConfig enableManualSessionControlHybridMode() {
+    _manualSessionControlHybridMode = true;
+    return this;
+  }
+
+  /// Override the metrics sent when a session begins, or add custom ones (Only for Android and iOS).
+  /// An overridden "_app_version" applies to every request in Android, and only to the session metrics in iOS.
+  /// [Map<String, String> metrics]: metric names and their values, for example {"_carrier": "Custom carrier"}
+  CountlyConfig setMetricOverride(Map<String, String> metrics) {
+    if (metrics.isEmpty) {
+      Countly.log('setMetricOverride, no metrics were provided, ignoring the call', logLevel: LogLevel.WARNING);
+      return this;
+    }
+    _metricOverride = metrics;
+    return this;
+  }
+
+  /// Set if the SDK records the device orientation and its changes. It does by default (Only for Android and iOS).
+  CountlyConfig setTrackOrientationChanges(bool shouldTrack) {
+    _trackOrientationChanges = shouldTrack;
+    return this;
+  }
+
+  /// Clear the stored device ID when the SDK starts, so the device ID given with "setDeviceId" is used. Without one,
+  /// Android generates a new ID on every start while iOS keeps its generated ID. Meant for development only
+  /// (Only for Android and iOS).
+  CountlyConfig enableClearStoredDeviceId() {
+    _clearStoredDeviceId = true;
+    return this;
+  }
+
+  /// Keep the SDK logs off in release builds, even when logging is enabled (Only for Android).
+  CountlyConfig disableSDKLoggingInProduction() {
+    _sdkLoggingInProductionDisabled = true;
+    return this;
+  }
+
+  /// Turn off every feature shown in a web view: content, feedback widgets and the rating popup (Only for Android).
+  CountlyConfig disableWebView() {
+    _webViewDisabled = true;
+    return this;
+  }
+
+  /// Stop the health check request the SDK sends once per initialization (Only for Android and iOS).
+  CountlyConfig disableHealthCheck() {
+    _healthCheckDisabled = true;
+    return this;
+  }
+
+  /// Add device names to the app crawlers whose data the SDK ignores, next to the built-in "Calypso AppCrawler"
+  /// (Only for Android).
+  /// [List<String> names]: the device names
+  CountlyConfig setAppCrawlerNames(List<String> names) {
+    _appCrawlerNames = names;
+    return this;
+  }
+
+  /// Add the stack traces of all Java threads to the crashes recorded in Android, errors reported from Dart included
+  /// (Only for Android).
+  CountlyConfig enableRecordAllThreadsWithCrash() {
+    _recordAllThreadsWithCrash = true;
+    return this;
+  }
+
+  /// Do not show the Countly push notifications that arrive while the app is in the foreground (Only for iOS).
+  CountlyConfig doNotShowAlertForNotifications() {
+    _alertForNotificationsDisabled = true;
     return this;
   }
 }

@@ -36,6 +36,26 @@ void storeRequest(Map<String, dynamic> request) async {
   });
 }
 
+/// Hands the given notification payloads to the plugin's native notification entry point in one
+/// burst, the way a device receives queued pushes when it comes back online.
+Future<void> deliverTestNotifications(List<Map<String, String>> payloads) async {
+  await _channelTest.invokeMethod('testOnNotification', <String, dynamic>{
+    'data': json.encode([payloads]),
+  });
+}
+
+/// Hands the plugin a click on the given notification, on [actionIndex]: 0 for the notification, 1 and
+/// up for its buttons, and in iOS -1 for a dismissal. In Android the plugin reads the intent Countly
+/// Push opens the app with twice, the way the Activity can read the same intent again, and [start] is
+/// "fresh", "restored" (from saved state), "newIntent" (sent to the running Activity) or "history"
+/// (reopened from the recent apps). In iOS it is the response the app delegate passes on, after which
+/// the app delegate passes the notification on again while the plugin forwards it.
+Future<void> deliverTestNotificationOpened(Map<String, Object> payload, {String start = 'fresh', int actionIndex = 0}) async {
+  await _channelTest.invokeMethod('testOnNotificationOpened', <String, dynamic>{
+    'data': json.encode([payload, start, actionIndex]),
+  });
+}
+
 void addDirectRequest(Map<String, String> request) async {
   await _channelTest.invokeMethod('addDirectRequest', <String, dynamic>{
     'data': json.encode([request]),
@@ -83,13 +103,13 @@ void testCommonRequestParams(Map<String, List<String>> requestObject) {
   expect(requestObject['app_key']?[0], APP_KEY);
   expect(
     requestObject['sdk_name']?[0],
-    "dart-flutterbnp-${kIsWeb
+    "dart-flutterb-${kIsWeb
         ? 'web'
         : Platform.isIOS
         ? 'ios'
         : 'android'}",
   );
-  expect(requestObject['sdk_version']?[0], '26.1.1');
+  expect(requestObject['sdk_version']?[0], '26.8.0');
   expect(
     requestObject['av']?[0],
     kIsWeb
@@ -358,7 +378,7 @@ Future<void> createTruncableEvents() async {
 
   // Create a view with segmentation
   Map<String, Object> segments = {'Cats': 12345, 'Moons': 9.9866, 'Moose': 'Deer'};
-  await Countly.recordView('HomePage', segments); // legacy code
+  await Countly.instance.views.startAutoStoppedView('HomePage', segments);
   await Countly.instance.views.startAutoStoppedView('hawk', segments);
 
   // Create custom APM custom trace with segmentation

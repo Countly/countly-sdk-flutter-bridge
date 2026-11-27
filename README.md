@@ -38,7 +38,7 @@ In the `dependencies:` section of your `pubspec.yaml`, add the following line:
 
 ```yaml
 dependencies:
-  countly_flutter: <latest_version>
+  countly_flutter_np: <latest_version>
 ```
 
 ## Usage
@@ -151,18 +151,18 @@ await Countly.instance.views.stopAllViews(segmentation);
 
 // Change device ID with merge.
 // Here, the data associated with the previous device ID is merged with the new ID.
-await Countly.instance.deviceId.changeWithMerge('123456');
+await Countly.changeDeviceId('123456', true);
 
 // Change device ID without merge.
 // Here, the new device ID is counted as a new device.
-await Countly.instance.deviceId.changeWithoutMerge('123456');
+await Countly.changeDeviceId('123456', false);
 ```
 
 ## Get Device ID Type
 
 ```dart
 // To fetch the device ID type
-final DeviceIdType? deviceIdtype = await Countly.instance.deviceId.getIDType();
+final DeviceIdType? deviceIdtype = await Countly.getDeviceIDType();
 // DeviceIdType: DEVELOPER_SUPPLIED, SDK_GENERATED, TEMPORARY_ID
 ```
 

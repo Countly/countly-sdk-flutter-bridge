@@ -23,7 +23,7 @@ void main() {
     createServerWithConfig(requestArray, {
       'v': 1,
       't': 1750748806695,
-      'c': {'lkl': 8},
+      'c': {'lkl': 8}
     });
 
     // Initialize the SDK
@@ -45,7 +45,7 @@ void main() {
     expect(await getServerConfig(), {
       'v': 1,
       't': 1750748806691,
-      'c': {'lkl': 6, 'lsv': 4, 'lbc': 99},
+      'c': {'lkl': 6, 'lsv': 4, 'lbc': 99}
     });
   });
 }

@@ -97,7 +97,10 @@ class _ContentPageState extends State<ContentPage> {
             children: [
               TextField(
                 controller: _deviceIdController,
-                decoration: InputDecoration(labelText: 'New Device ID', hintText: 'Enter new device ID'),
+                decoration: InputDecoration(
+                  labelText: 'New Device ID',
+                  hintText: 'Enter new device ID',
+                ),
               ),
               const SizedBox(height: 8),
               MyButton(text: 'Set ID & Give All Consent', type: CountlyButtonType.filled, onPressed: changeDeviceIdAndGiveConsent),

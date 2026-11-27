@@ -23,9 +23,9 @@ void main() {
         'eb': ['blocked_event', 'another_blocked'],
         'sb': ['blocked_key', 'secret_key'],
         'esw': {
-          'filtered_event': ['allowed_key1', 'allowed_key2'],
-        },
-      },
+          'filtered_event': ['allowed_key1', 'allowed_key2']
+        }
+      }
     });
 
     // Initialize the SDK
@@ -98,9 +98,9 @@ void main() {
         'eb': ['blocked_event', 'another_blocked'],
         'sb': ['blocked_key', 'secret_key'],
         'esw': {
-          'filtered_event': ['allowed_key1', 'allowed_key2'],
-        },
-      },
+          'filtered_event': ['allowed_key1', 'allowed_key2']
+        }
+      }
     });
   });
 }

@@ -1,0 +1,31 @@
+[
+  {
+    "method": "init",
+    "args": [
+      {
+        "appKey": "parity-app-key",
+        "deviceID": "parity-device-001",
+        "httpPostForced": true,
+        "manualSessionEnabled": true,
+        "remoteConfigAutomaticTriggers": false,
+        "remoteConfigValueCaching": false,
+        "serverURL": "https://parity.example"
+      }
+    ]
+  },
+  {
+    "method": "addCrashLog",
+    "args": [
+      "breadcrumb one"
+    ]
+  },
+  {
+    "method": "logException",
+    "args": [
+      "parity crash",
+      "true",
+      "tier",
+      "gold"
+    ]
+  }
+]

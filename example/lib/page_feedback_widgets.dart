@@ -294,7 +294,7 @@ class _FeedbackWidgetsPageState extends State<FeedbackWidgetsPage> {
     FeedbackCallback widgetCB = FeedbackCallback(onClosed: () {
       showCountlyToast(context, 'Widget Closed', Colors.green);
     }, onFinished: (error) {
-      if (error != null) {
+      if (error.isNotEmpty) {
         showCountlyToast(context, 'Error: $error', Colors.red);
       } else {
         showCountlyToast(context, 'Widget Finished', Colors.green);

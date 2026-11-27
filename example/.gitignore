@@ -33,7 +33,6 @@
 # Android related
 **/android/**/gradle-wrapper.jar
 **/android/.gradle
-**/android/app/.cxx/
 **/android/captures/
 **/android/gradlew
 **/android/gradlew.bat
@@ -75,3 +74,4 @@
 !**/ios/**/default.pbxuser
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
+**/android/app/.cxx/

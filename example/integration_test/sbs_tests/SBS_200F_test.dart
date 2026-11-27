@@ -24,7 +24,7 @@ void main() {
         'upcl': 3,
         'jte': ['journey_event'],
         'ecz': true,
-      },
+      }
     });
 
     // Initialize the SDK
@@ -34,7 +34,12 @@ void main() {
     await Future.delayed(const Duration(seconds: 4));
 
     // Set user properties — some should be blocked by user property blacklist
-    await Countly.instance.userProfile.setUserProperties({'name': 'Test User', 'blocked_prop': 'should_not_appear', 'secret_prop': 'should_not_appear', 'allowed_prop': 'should_appear'});
+    await Countly.instance.userProfile.setUserProperties({
+      'name': 'Test User',
+      'blocked_prop': 'should_not_appear',
+      'secret_prop': 'should_not_appear',
+      'allowed_prop': 'should_appear',
+    });
     await Countly.instance.userProfile.save();
 
     await Countly.instance.sessions.beginSession();
@@ -93,7 +98,7 @@ void main() {
         'upcl': 3,
         'jte': ['journey_event'],
         'ecz': true,
-      },
+      }
     });
   });
 }

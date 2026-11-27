@@ -4,7 +4,6 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:pedantic/pedantic.dart';
 
 import 'content_builder.dart';
 import 'content_builder_internal.dart';
@@ -40,6 +39,9 @@ abstract class AttributionKey {
 // ignore: constant_identifier_names
 enum LogLevel { INFO, DEBUG, VERBOSE, WARNING, ERROR }
 
+/// Called with every log message of the SDK and its level, see [CountlyConfig.setLogListener].
+typedef LogListener = void Function(String message, LogLevel level);
+
 // ignore: constant_identifier_names
 enum DeviceIdType { DEVELOPER_SUPPLIED, SDK_GENERATED, TEMPORARY_ID }
 
@@ -52,6 +54,7 @@ abstract class CountlyConsent {
   static const String attribution = 'attribution';
   static const String users = 'users';
   static const String push = 'push';
+  /// On iOS, giving or removing this consent also gives or removes "feedback", which the star rating dialog needs.
   static const String starRating = 'star-rating';
   static const String apm = 'apm';
   static const String feedback = 'feedback';
@@ -111,6 +114,12 @@ class Countly {
   /// its value should be updated from [setLoggingEnabled(bool flag)].
   static bool _isDebug = false;
 
+  /// Whether "disableSDKLoggingInProduction" keeps the logs off, which it does in Android release builds.
+  static bool _productionLoggingDisabled = false;
+
+  /// Receives every log message of the SDK and its level, set from [CountlyConfig.setLogListener] by "initWithConfig".
+  static LogListener? _logListener;
+
   static const String tag = 'CountlyFlutter';
 
   /// Flag to determine if crash logging functionality should be enabled
@@ -131,10 +140,70 @@ class Countly {
   @Deprecated('This variable is deprecated, please use "Countly.instance.deviceId.enableTemporaryDeviceID()" instead')
   static Map<String, String> deviceIDType = {'TemporaryDeviceID': temporaryDeviceID};
 
+  /// How many messages logged before the first "initWithConfig" are kept for it.
+  static const int _maxEarlyLogs = 100;
+
+  /// Messages logged before the first "initWithConfig", such as warnings about config values, which
+  /// init prints when it enables logging. Null once that init has run.
+  static List<String>? _earlyLogs = [];
+
   static void log(String? message, {LogLevel logLevel = LogLevel.DEBUG}) {
-    String logLevelStr = describeEnum(logLevel);
-    if (_isDebug) {
-      print('[$tag] $logLevelStr: $message');
+    final LogListener? listener = _logListener;
+    if (listener != null) {
+      _notifyLogListener(listener, '[$tag] $message', logLevel);
+    }
+    final bool printing = _isDebug && !_productionLoggingDisabled;
+    final List<String>? earlyLogs = _earlyLogs;
+    final bool keeping = earlyLogs != null && earlyLogs.length < _maxEarlyLogs;
+    if (!printing && !keeping) {
+      return;
+    }
+    final String line = '[$tag] ${describeEnum(logLevel)}: $message';
+    if (printing) {
+      print(line);
+    } else {
+      earlyLogs!.add(line);
+    }
+  }
+
+  /// Prints the messages logged before the first "initWithConfig" when it enabled logging, and stops
+  /// keeping them either way.
+  static void _printEarlyLogs() {
+    final List<String>? earlyLogs = _earlyLogs;
+    _earlyLogs = null;
+    if (earlyLogs == null || !_isDebug || _productionLoggingDisabled) {
+      return;
+    }
+    for (final String line in earlyLogs) {
+      print(line);
+    }
+  }
+
+  /// Passes a log message to the log listener. A listener that throws does not break the SDK, and its error
+  /// is printed only while logging is enabled.
+  static void _notifyLogListener(LogListener listener, String message, LogLevel level) {
+    try {
+      listener(message, level);
+    } catch (e) {
+      if (_isDebug && !_productionLoggingDisabled) {
+        print('[$tag] ERROR: [log] the log listener threw an error: $e');
+      }
+    }
+  }
+
+  /// The log level of the given name, as the native SDKs send it, or DEBUG for a name that is not a level.
+  static LogLevel _logLevelFromName(String name) {
+    switch (name) {
+      case 'ERROR':
+        return LogLevel.ERROR;
+      case 'WARNING':
+        return LogLevel.WARNING;
+      case 'INFO':
+        return LogLevel.INFO;
+      case 'VERBOSE':
+        return LogLevel.VERBOSE;
+      default:
+        return LogLevel.DEBUG;
     }
   }
 
@@ -142,13 +211,21 @@ class Countly {
   /// [VoidCallback? _widgetClosed] Callback to be executed when feedback widget is closed
   static VoidCallback? _widgetShown;
   static VoidCallback? _widgetClosed;
-  static Function(String? error)? _remoteConfigCallback;
   static int lastUsedRCID = 0;
   static Function(String? error)? _ratingWidgetCallback;
   static Function(Map<String, dynamic> widgetData, String? error)? _feedbackWidgetDataCallback;
 
   /// Callback handler to handle function calls from native iOS/Android to Dart.
   static Future<void> _methodCallHandler(MethodCall call) async {
+    // native log lines come before the log line below, which would add one more line for each of them
+    if (call.method == 'logListener') {
+      final LogListener? listener = _logListener;
+      final dynamic arguments = call.arguments;
+      if (listener != null && arguments is Map) {
+        _notifyLogListener(listener, '${arguments['message']}', _logLevelFromName('${arguments['level']}'));
+      }
+      return;
+    }
     log('[FMethodCallH] ${call.method}', logLevel: LogLevel.VERBOSE);
     switch (call.method) {
       case 'widgetShown':
@@ -161,12 +238,6 @@ class Countly {
           _widgetClosed!();
           _widgetShown = null;
           _widgetClosed = null;
-        }
-        break;
-      case 'remoteConfigCallback':
-        if (_remoteConfigCallback != null) {
-          _remoteConfigCallback!(call.arguments);
-          _remoteConfigCallback = null;
         }
         break;
       case 'ratingWidgetCallback':
@@ -190,7 +261,7 @@ class Countly {
       case 'remoteConfigDownloadCallback':
         try {
           final Map<String, dynamic> argumentsMap = Map<String, dynamic>.from(call.arguments);
-          final int rResult = argumentsMap['requestResult'];
+          final int rResult = argumentsMap['requestResult'] as int? ?? 2;
           late final RequestResult requestResult;
           if (rResult == 0) {
             requestResult = RequestResult.success;
@@ -212,7 +283,7 @@ class Countly {
       case 'remoteConfigVariantCallback':
         try {
           final Map<String, dynamic> argumentsMap = Map<String, dynamic>.from(call.arguments);
-          final int rResult = argumentsMap['requestResult'];
+          final int rResult = argumentsMap['requestResult'] as int? ?? 2;
           late final RequestResult requestResult;
           if (rResult == 0) {
             requestResult = RequestResult.success;
@@ -236,9 +307,15 @@ class Countly {
         }
         break;
       case 'feedbackCallback_onFinished':
-        if (_instance._feedbackInternal.feedbackCallback != null) {
-          _instance._feedbackInternal.feedbackCallback!.onFinished(call.arguments);
-          _instance._feedbackInternal.feedbackCallback = null;
+        final FeedbackCallback? feedbackCallback = _instance._feedbackInternal.feedbackCallback;
+        if (feedbackCallback != null) {
+          final String? error = call.arguments as String?;
+          // After a successful finish the widget is showing and onClosed still follows.
+          if (error != null) {
+            _instance._feedbackInternal.feedbackCallback = null;
+          }
+          // The callback takes a non-null error, so a successful finish arrives as an empty string.
+          feedbackCallback.onFinished(error ?? '');
         }
         break;
       case 'contentCallback':
@@ -253,12 +330,6 @@ class Countly {
         Countly.instance._contentBuilderInternal.onContentCallback(contentStatus, contentData);
         break;
     }
-  }
-
-  /// For registering a callback that is called when a remote config download is completed
-  @Deprecated('This function is deprecated, please use rcRegisterCallback instead')
-  static void setRemoteConfigCallback(Function(String? error) callback) {
-    _remoteConfigCallback = callback;
   }
 
   /// Initialize the SDK
@@ -282,12 +353,15 @@ class Countly {
     if (config.loggingEnabled != null) {
       _isDebug = config.loggingEnabled!;
     }
+    _productionLoggingDisabled = config.sdkLoggingInProductionDisabled && kReleaseMode && !kIsWeb && Platform.isAndroid;
+    _printEarlyLogs();
     log('Calling "initWithConfig"');
     if (_instance._countlyState.isInitialized) {
       String msg = 'initWithConfig, SDK is already initialized';
       log(msg, logLevel: LogLevel.ERROR);
       return msg;
     }
+    _logListener = config.logListener;
     if (config.serverURL.isEmpty) {
       String msg = 'initWithConfig, serverURL cannot be empty';
       log(msg, logLevel: LogLevel.ERROR);
@@ -305,21 +379,7 @@ class Countly {
       }
     }
     if (config.enableUnhandledCrashReporting != null) {
-      // To catch all errors thrown within the flutter framework, we use
-      FlutterError.onError = _recordFlutterError;
-
-      // Asynchronous errors are not caught by the Flutter framework. For example
-      // ElevatedButton(
-      //   onPressed: () async {
-      //     throw Error();
-      //   }
-      // )
-      // To catch such errors, we use
-      PlatformDispatcher.instance.onError = (e, s) {
-        _internalRecordError(e, s);
-        return true;
-      };
-
+      _installErrorHandlers();
       _enableCrashReportingFlag = config.enableUnhandledCrashReporting!;
     }
     _channel.setMethodCallHandler(_methodCallHandler);
@@ -327,22 +387,36 @@ class Countly {
     List<dynamic> args = [];
     args.add(_configToJson(config));
 
-    final String? result = await _channel.invokeMethod('init', <String, dynamic>{'data': json.encode(args)});
-    _instance._countlyState.isInitialized = true;
+    final Completer<void> platformInit = Completer<void>();
+    _instance._countlyState.pendingInit = platformInit.future;
+    try {
+      final String? result = await _channel.invokeMethod('init', <String, dynamic>{'data': json.encode(args)});
+      // The web plugin answers with an error message when the Web SDK could not start, so a later call can try again.
+      if (kIsWeb && result != null) {
+        log('initWithConfig, $result', logLevel: LogLevel.ERROR);
+        return result;
+      }
+      _instance._countlyState.isInitialized = true;
 
-    if (config.remoteConfigGlobalCallbacks.isNotEmpty) {
-      log('[initWithConfig] About to register ${config.remoteConfigGlobalCallbacks.length} callbacks', logLevel: LogLevel.VERBOSE);
-    }
-    for (final callback in config.remoteConfigGlobalCallbacks) {
-      Countly.instance._remoteConfigInternal.registerDownloadCallback(callback);
-    }
+      if (config.remoteConfigGlobalCallbacks.isNotEmpty) {
+        log('[initWithConfig] About to register ${config.remoteConfigGlobalCallbacks.length} callbacks', logLevel: LogLevel.VERBOSE);
+      }
+      for (final callback in config.remoteConfigGlobalCallbacks) {
+        Countly.instance._remoteConfigInternal.registerDownloadCallback(callback);
+      }
 
-    if (config.content.contentCallback != null) {
-      log('[initWithConfig] About to register content callback', logLevel: LogLevel.VERBOSE);
-      Countly.instance._contentBuilderInternal.registerContentCallback(config.content.contentCallback!);
-    }
+      if (config.content.contentCallback != null) {
+        log('[initWithConfig] About to register content callback', logLevel: LogLevel.VERBOSE);
+        Countly.instance._contentBuilderInternal.registerContentCallback(config.content.contentCallback!);
+      }
 
-    return result;
+      return result;
+    } finally {
+      if (_instance._countlyState.pendingInit == platformInit.future) {
+        _instance._countlyState.pendingInit = null;
+      }
+      platformInit.complete();
+    }
   }
 
   /// returns if SDK is initialized
@@ -405,9 +479,9 @@ class Countly {
   @Deprecated('This function is deprecated, please use "recordEvent" of events instead')
   static Future<String?> recordEvent(Map<String, Object> options) async {
     String? key = options['key'] as String?;
-    int? count = _parseValue(options, 'count', 1);
-    double? sum = _parseValue(options, 'sum', 0);
-    int? duration = _parseValue(options, 'duration', 1);
+    int count = _parseNum(options, 'count')?.toInt() ?? 1;
+    double sum = _parseNum(options, 'sum')?.toDouble() ?? 0;
+    int duration = _parseNum(options, 'duration')?.toInt() ?? 0;
     Map<String, Object>? segmentation = options['segmentation'] as Map<String, Object>?;
 
     if (key == null) {
@@ -420,58 +494,17 @@ class Countly {
     return 'recordEvent called';
   }
 
-  static T _parseValue<T>(Map<String, Object> map, String key, T fallback) {
-    Object? value = map[key];
-
-    if (value is T) {
+  /// Reads [key] from the old event map as a number. Accepts a number or numeric text, and returns
+  /// null for anything else.
+  static num? _parseNum(Map<String, Object> map, String key) {
+    final Object? value = map[key];
+    if (value is num) {
       return value;
-    } else if (value is String) {
-      if (T == int) {
-        return (int.tryParse(value) ?? fallback) as T;
-      } else if (T == double) {
-        return (double.tryParse(value) ?? fallback) as T;
-      }
     }
-
-    return fallback;
-  }
-
-  /// Record custom view to Countly.
-  ///
-  /// [String view] - name of the view
-  /// [Map<String, Object> segmentation] - allows to add optional segmentation,
-  /// Supported data type for segmentation values are String, int, double and bool
-  /// returns the error or success message
-  @Deprecated('This function is deprecated, please use "startView" of Countly.instance.views instead')
-  static Future<String?> recordView(String view, [Map<String, Object>? segmentation]) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "recordView"';
-      log('recordView, $message', logLevel: LogLevel.ERROR);
-      return message;
+    if (value is String) {
+      return num.tryParse(value);
     }
-    int segCount = segmentation != null ? segmentation.length : 0;
-    log('Calling "recordView":[$view] with segmentation Count:[$segCount]');
-    if (view.isEmpty) {
-      String error = 'recordView, Trying to record view with empty view name, ignoring request';
-      log(error);
-      return 'Error : $error';
-    }
-    List<String> args = [];
-    args.add(view);
-    if (segmentation != null) {
-      segmentation.forEach((k, v) {
-        if (v is String || v is int || v is double || v is bool) {
-          args.add(k);
-          args.add(v.toString());
-        } else {
-          log('recordView, unsupported segmentation data type [${v.runtimeType}], View [$view]', logLevel: LogLevel.WARNING);
-        }
-      });
-    }
-
-    final String? result = await _channel.invokeMethod('recordView', <String, dynamic>{'data': json.encode(args)});
-
-    return result;
+    return null;
   }
 
   /// Sets the user data.
@@ -525,8 +558,11 @@ class Countly {
     return userData;
   }
 
-  /// This method will ask for permission, enables push notification and send push token to countly server.
-  /// Should be call after Countly init
+  /// Asks the user for the notification permission (on iOS, and on Android 13 and newer), enables push
+  /// notifications and sends the push token to the Countly server.
+  /// Should be called after Countly init
+  /// On the web platform it also registers the Countly service worker and creates the browser push subscription,
+  /// so it has to be called from a user gesture and "CountlyConfig.push.setVapidPublicKey" has to be set.
   /// returns the error or success message
   static Future<String?> askForNotificationPermission() async {
     if (BUILDING_WITH_PUSH_DISABLED) {
@@ -545,8 +581,11 @@ class Countly {
   }
 
   /// Disable push notifications feature, by default it is enabled.
-  /// Currently implemented for iOS only
-  /// Should be called before Countly init
+  /// Currently implemented for iOS and web only
+  /// On iOS it should be called before Countly init.
+  /// On the web platform it has to be called after init instead, where it drops the browser push
+  /// subscription and is remembered across page loads, so only another "askForNotificationPermission"
+  /// call subscribes again.
   /// returns the error or success message
   static Future<String?> disablePushNotifications() async {
     log('Calling "disablePushNotifications"');
@@ -554,7 +593,7 @@ class Countly {
       log('disablePushNotifications, $_pushDisabledMsg', logLevel: LogLevel.ERROR);
       return _pushDisabledMsg;
     }
-    if (kIsWeb || !Platform.isIOS) {
+    if (!kIsWeb && !Platform.isIOS) {
       return 'disablePushNotifications : To be implemented';
     }
     final String? result = await _channel.invokeMethod('disablePushNotifications');
@@ -563,6 +602,8 @@ class Countly {
   }
 
   /// Set messaging mode for push notifications
+  /// On iOS, the push token is sent only for users who allowed notifications, unless the
+  /// "sendPushTokenAlways" config option is set.
   /// Should be call before Countly init
   /// returns the error or success message
   static Future<String?> pushTokenType(String tokenType) async {
@@ -585,6 +626,8 @@ class Countly {
   }
 
   /// Set callback to receive push notifications
+  /// The callback gets each notification once, as a JSON string. In iOS it also gets a notification
+  /// the user clicks. To react to clicks the same way on every platform, use "onNotificationOpened".
   /// @param { callback listner } callback
   /// returns the error message or an empty string if there is no error
   static Future<String?> onNotification(Function(String) callback) async {
@@ -600,6 +643,50 @@ class Countly {
       callback(error.toString());
     });
     return '';
+  }
+
+  /// Set a callback that gets the push notification a user clicks, in Android, iOS and web.
+  /// It gets the notification as a JSON string, the same one "onNotification" gets, and the index of
+  /// the clicked action: 0 for the notification itself, 1 and up for its buttons. A click made before
+  /// the callback was set, for example the one that started the app, is delivered once it is set.
+  /// Setting it again replaces the previous callback.
+  /// In Android it gets the clicks that open the app; clicks made while the app runs need a
+  /// "singleTop" launcher Activity, as Flutter creates it. In iOS, pass clicks on with
+  /// "CountlyFlutterPlugin.onNotificationResponse(response)" in your AppDelegate's
+  /// "userNotificationCenter(_:didReceive:withCompletionHandler:)".
+  /// @param { callback listener } callback
+  /// returns the error message or an empty string if there is no error
+  static Future<String?> onNotificationOpened(Function(String notification, int actionIndex) callback) async {
+    if (BUILDING_WITH_PUSH_DISABLED) {
+      log('onNotificationOpened, $_pushDisabledMsg', logLevel: LogLevel.ERROR);
+      return _pushDisabledMsg;
+    }
+    log('Calling "onNotificationOpened"');
+    if (_notificationOpenedCallback == null) {
+      _waitForNotificationOpened();
+    }
+    _notificationOpenedCallback = callback;
+    return '';
+  }
+
+  /// The callback set with "onNotificationOpened", or null while no click is waited for.
+  static Function(String notification, int actionIndex)? _notificationOpenedCallback;
+
+  /// Asks for the next clicked push notification, hands it to the current "onNotificationOpened"
+  /// callback and asks again. A callback that throws is logged and does not stop the next clicks.
+  static void _waitForNotificationOpened() {
+    _channel.invokeMethod('registerForNotificationOpened').then((value) {
+      final Map<dynamic, dynamic> opened = value as Map<dynamic, dynamic>;
+      try {
+        _notificationOpenedCallback?.call(opened['notification'] as String, opened['actionIndex'] as int);
+      } catch (e) {
+        log('onNotificationOpened, the callback failed: $e', logLevel: LogLevel.ERROR);
+      }
+      _waitForNotificationOpened();
+    }).catchError((Object error) {
+      log('onNotificationOpened, $error', logLevel: LogLevel.ERROR);
+      _notificationOpenedCallback = null;
+    });
   }
 
   /// Starts session for manual session handling.
@@ -748,10 +835,8 @@ class Countly {
     return result;
   }
 
-  /// This flag limits the number of requests that can be stored in the request queue when the Countly server is unavailable or unreachable.
-  /// If the number of requests in the queue reaches the limit, the oldest requests in the queue will be dropped.
-  /// Should be called before init.
-  /// returns the error or success message
+  /// Has no effect. Use "setMaxRequestQueueSize" of CountlyConfig to limit the request queue.
+  /// returns the success message
   @Deprecated('This functions is deprecated, please use "setMaxRequestQueueSize" of CountlyConfig instead')
   static Future<String?> storedRequestsLimit() async {
     log('Calling "storedRequestsLimit"');
@@ -980,11 +1065,12 @@ class Countly {
       log('setUserLocation, $message', logLevel: LogLevel.ERROR);
       return message;
     }
-    Map<String, String?> location = {};
-    location['countryCode'] = countryCode;
-    location['city'] = city;
-    location['gpsCoordinates'] = gpsCoordinates;
-    location['ipAddress'] = ipAddress;
+    Map<String, String> location = {
+      if (countryCode != null) 'countryCode': countryCode,
+      if (city != null) 'city': city,
+      if (gpsCoordinates != null) 'gpsCoordinates': gpsCoordinates,
+      if (ipAddress != null) 'ipAddress': ipAddress,
+    };
     List<dynamic> args = [];
     args.add(location);
     final String? result = await _channel.invokeMethod('setUserLocation', <String, dynamic>{'data': json.encode(args)});
@@ -1370,119 +1456,6 @@ class Countly {
     return result;
   }
 
-  /// Set Automatic value download happens when the SDK is initiated or when the device ID is changed.
-  /// Should be call before Countly init
-  /// returns the error or success message
-  @Deprecated('This function is deprecated, please use "remoteConfigRegisterDownloadCallback" of CountlyConfig instead')
-  static Future<String?> setRemoteConfigAutomaticDownload(Function(String?) callback) async {
-    log('Calling "setRemoteConfigAutomaticDownload"');
-    log('setRemoteConfigAutomaticDownload is deprecated, use setRemoteConfigAutomaticDownload of CountlyConfig instead', logLevel: LogLevel.WARNING);
-    final String? result = await _channel.invokeMethod('setRemoteConfigAutomaticDownload');
-
-    callback(result);
-    return result;
-  }
-
-  /// Replace all stored remote config values with new ones from the server.
-  /// returns the error or success message
-  @Deprecated('This function is deprecated, please use "remoteConfigDownloadValues" instead')
-  static Future<String?> remoteConfigUpdate(Function(String?) callback) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "remoteConfigUpdate"';
-      log('remoteConfigUpdate, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "remoteConfigUpdate"');
-    final String? result = await _channel.invokeMethod('remoteConfigUpdate');
-
-    callback(result);
-    return result;
-  }
-
-  /// Replace specific remote config values with new ones from the server.
-  /// returns the error or success message
-  @Deprecated('This function is deprecated, please use "remoteConfigDownloadSpecificValue" instead')
-  static Future<String?> updateRemoteConfigForKeysOnly(List<String> keys, Function(String?) callback) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "updateRemoteConfigForKeysOnly"';
-      log('updateRemoteConfigForKeysOnly, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    String keysString = keys.toString();
-    log('Calling "updateRemoteConfigForKeysOnly":[$keysString]');
-    if (keys.isEmpty) {
-      String error = 'updateRemoteConfigForKeysOnly, keys List is empty';
-      log(error, logLevel: LogLevel.WARNING);
-    }
-    log(keys.toString());
-    final String? result = await _channel.invokeMethod('updateRemoteConfigForKeysOnly', <String, dynamic>{'data': json.encode(keys)});
-
-    callback(result);
-    return result;
-  }
-
-  /// Replace remote config values (except provided keys) with new ones from the server.
-  /// returns the error or success message
-  @Deprecated('This function is deprecated, please use "remoteConfigDownloadOmittingValues" instead')
-  static Future<String?> updateRemoteConfigExceptKeys(List<String> keys, Function(String?) callback) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "updateRemoteConfigExceptKeys"';
-      log('updateRemoteConfigExceptKeys, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    String keysString = keys.toString();
-    log('Calling "updateRemoteConfigExceptKeys":[$keysString]');
-    if (keys.isEmpty) {
-      String error = 'updateRemoteConfigExceptKeys, keys List is empty';
-      log(error, logLevel: LogLevel.WARNING);
-    }
-    log(keys.toString());
-    final String? result = await _channel.invokeMethod('updateRemoteConfigExceptKeys', <String, dynamic>{'data': json.encode(keys)});
-
-    callback(result);
-    return result;
-  }
-
-  /// Clear all remote config values.
-  /// returns the error or success message
-  @Deprecated('This function is deprecated, please use "remoteConfigClearAllValues" instead')
-  static Future<String?> remoteConfigClearValues(Function(String?) callback) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "remoteConfigClearValues"';
-      log('remoteConfigClearValues, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "remoteConfigClearValues"');
-    final String? result = await _channel.invokeMethod('remoteConfigClearValues');
-
-    callback(result);
-    return result;
-  }
-
-  /// Clear all remote config values.
-  /// returns the error message or remote config value
-  @Deprecated('This function is deprecated, please use "remoteConfigGetValue" instead')
-  static Future<String?> getRemoteConfigValueForKey(String key, Function(String?) callback) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "getRemoteConfigValueForKey"';
-      log('getRemoteConfigValueForKey, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "getRemoteConfigValueForKey" with the key:[$key]');
-    if (key.isEmpty) {
-      String error = 'getRemoteConfigValueForKey, key cannot be empty';
-      log(error);
-      return 'Error : $error';
-    }
-    List<String> args = [];
-    args.add(key);
-
-    final String? result = await _channel.invokeMethod('getRemoteConfigValueForKey', <String, dynamic>{'data': json.encode(args)});
-
-    callback(result);
-    return result;
-  }
-
   /// Set's the text's for the different fields in the star rating dialog. Set value null if for some field you want to keep the old value
   /// [String starRatingTextTitle] - dialog's title text (Only for Android)
   /// [String starRatingTextMessage] - dialog's message text
@@ -1513,26 +1486,6 @@ class Countly {
     log('Calling "askForStarRating"');
     final String? result = await _channel.invokeMethod('askForStarRating');
 
-    return result;
-  }
-
-  /// Show feedback widget associated with provided ID.
-  /// returns the error or success message
-  @Deprecated('This function is deprecated, please use "presentRatingWidgetWithID" instead')
-  static Future<String?> askForFeedback(String widgetId, String? closeButtonText) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "askForFeedback"';
-      log('askForFeedback, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling "askForFeedback":[$widgetId]');
-    if (widgetId.isEmpty) {
-      String error = 'askForFeedback, widgetId cannot be empty';
-      log(error);
-      return 'Error : $error';
-    }
-    log('askForFeedback is deprecated, use presentRatingWidgetWithID instead', logLevel: LogLevel.WARNING);
-    final String? result = await presentRatingWidgetWithID(widgetId, closeButtonText: closeButtonText);
     return result;
   }
 
@@ -1585,7 +1538,7 @@ class Countly {
 
   /// Present a chosen feedback widget
   /// [CountlyPresentableFeedback widgetInfo] - Get available list of feedback widgets by calling 'getAvailableFeedbackWidgets()' and pass the widget object as a parameter.
-  /// [String closeButtonText] - Text for cancel/close button.
+  /// [String closeButtonText] - Not used. In Android, widgets without a widget version show a close button with the text "Close".
   /// [VoidCallback? widgetShown] Callback to be executed when feedback widget is displayed
   /// [VoidCallback? widgetClosed] Callback to be executed when feedback widget is closed
   /// Note: widgetClosed is only implemented for iOS
@@ -1639,11 +1592,19 @@ class Countly {
     args.add(widgetInfo.name);
 
     try {
-      Map<dynamic, dynamic> retrievedWidgetData = await _channel.invokeMethod('getFeedbackWidgetData', <String, dynamic>{'data': json.encode(args)});
-      widgetData = Map<String, dynamic>.from(retrievedWidgetData);
+      final dynamic retrievedWidgetData = await _channel.invokeMethod('getFeedbackWidgetData', <String, dynamic>{'data': json.encode(args)});
+      if (retrievedWidgetData is Map) {
+        widgetData = Map<String, dynamic>.from(retrievedWidgetData);
+      } else {
+        error = retrievedWidgetData?.toString() ?? 'No widget data was returned';
+        log('getFeedbackWidgetData Error : $error');
+      }
     } on PlatformException catch (e) {
       error = e.message;
       log('getFeedbackWidgetData Error : $error');
+    } catch (e) {
+      error = e.toString();
+      log('getFeedbackWidgetData Error : $error', logLevel: LogLevel.ERROR);
     }
     return [widgetData, error];
   }
@@ -1693,6 +1654,55 @@ class Countly {
     await _channel.invokeMethod('attemptToSendStoredRequests');
   }
 
+  /// Sends the requests to another server from now on, for example when the app moves to another
+  /// server. The requests already in the queue go to the new server too, and the app key stays.
+  /// The URL is kept in memory only: the next init uses the one in the config.
+  /// An empty URL is ignored, and in Android also one that is not an absolute http or https URL
+  /// (Only for Android and iOS).
+  /// [String serverUrl] - the new server URL, for example "https://your.server.ly"
+  Future<void> changeServerUrl(String serverUrl) async {
+    if (!_instance._countlyState.isInitialized) {
+      log('changeServerUrl, "initWithConfig" must be called before "changeServerUrl"', logLevel: LogLevel.ERROR);
+      return;
+    }
+    log('Calling "changeServerUrl" with serverUrl: [$serverUrl]');
+    List<Object> args = [];
+    args.add(serverUrl);
+    await _channel.invokeMethod('changeServerUrl', <String, dynamic>{'data': json.encode(args)});
+  }
+
+  /// Reports to another app from now on, for example when a white label app learns at login which
+  /// customer it belongs to. The recorded events are queued with the old app key first, and the
+  /// running session ends for the old app and begins again for the new one (in iOS, only with
+  /// automatic session tracking). Requests already in the queue keep the app key they were
+  /// created with: "replaceAllAppKeysInQueueWithCurrentAppKey" moves them to the new app and
+  /// "removeDifferentAppKeysFromQueue" drops them.
+  /// The key is kept in memory only: the next init uses the one in the config.
+  /// An empty key is ignored, and in Android also "YOUR_APP_KEY" and the current key
+  /// (Only for Android and iOS).
+  /// [String appKey] - the app key of the new app
+  Future<void> changeAppKey(String appKey) async {
+    if (!_instance._countlyState.isInitialized) {
+      log('changeAppKey, "initWithConfig" must be called before "changeAppKey"', logLevel: LogLevel.ERROR);
+      return;
+    }
+    log('Calling "changeAppKey" with appKey: [$appKey]');
+    List<Object> args = [];
+    args.add(appKey);
+    await _channel.invokeMethod('changeAppKey', <String, dynamic>{'data': json.encode(args)});
+  }
+
+  /// Deletes the stored requests and the recorded events that are not in a request yet, without
+  /// sending them. Started timed events are kept (Only for Android and iOS).
+  Future<void> flushQueues() async {
+    if (!_instance._countlyState.isInitialized) {
+      log('flushQueues, "initWithConfig" must be called before "flushQueues"', logLevel: LogLevel.ERROR);
+      return;
+    }
+    log('Calling "flushQueues"');
+    await _channel.invokeMethod('flushQueues');
+  }
+
   /// Add custom headers to all network requests made by the SDK.
   Future<void> addCustomNetworkRequestHeaders(Map<String, String> customHeaderValues) async {
     if (!_instance._countlyState.isInitialized) {
@@ -1740,8 +1750,8 @@ class Countly {
   static Future<String?> endEvent(Map<String, Object> options) async {
     String? key = options['key'] as String?;
     Map<String, Object>? segmentation = options['segmentation'] as Map<String, Object>?;
-    int? count = _parseValue(options, 'count', 1);
-    double? sum = _parseValue(options, 'sum', 0);
+    int count = _parseNum(options, 'count')?.toInt() ?? 1;
+    double sum = _parseNum(options, 'sum')?.toDouble() ?? 0;
 
     if (key == null) {
       String message = 'endEvent, key cannot be null';
@@ -1758,24 +1768,6 @@ class Countly {
   static Future<String?> throwNativeException() async {
     log('Calling "throwNativeException"');
     final String? result = await _channel.invokeMethod('throwNativeException');
-
-    return result;
-  }
-
-  /// Enable crash reporting to report uncaught errors to Countly.
-  /// Should be call before Countly init
-  /// returns error or success message
-  @Deprecated('This function is deprecated, please use "enableCrashReporting" of CountlyConfig instead')
-  static Future<String?> enableCrashReporting() async {
-    log('Calling "enableCrashReporting"');
-    log('enableCrashReporting is deprecated, use enableCrashReporting of CountlyConfig instead', logLevel: LogLevel.WARNING);
-    FlutterError.onError = _recordFlutterError;
-    PlatformDispatcher.instance.onError = (e, s) {
-      _internalRecordError(e, s);
-      return true;
-    };
-    _enableCrashReportingFlag = true;
-    final String? result = await _channel.invokeMethod('enableCrashReporting');
 
     return result;
   }
@@ -1809,25 +1801,6 @@ class Countly {
       });
     }
     final String? result = await _channel.invokeMethod('logException', <String, dynamic>{'data': json.encode(args)});
-
-    return result;
-  }
-
-  /// Set optional key/value segment added for crash reports.
-  /// Should be call before Countly init
-  /// returns error or success message
-  @Deprecated('This function is deprecated, please use "setCustomCrashSegment" of CountlyConfig instead')
-  static Future<String?> setCustomCrashSegment(Map<String, Object> segments) async {
-    int segCount = segments.length;
-    log('Calling "setCustomCrashSegment" segmentation count:[$segCount]');
-    log('setCustomCrashSegment is deprecated, use setCustomCrashSegment of CountlyConfig instead', logLevel: LogLevel.WARNING);
-    List<String> args = [];
-    segments.forEach((k, v) {
-      args.add(k.toString());
-      args.add(v.toString());
-    });
-
-    final String? result = await _channel.invokeMethod('setCustomCrashSegment', <String, dynamic>{'data': json.encode(args)});
 
     return result;
   }
@@ -1926,18 +1899,6 @@ class Countly {
     return result;
   }
 
-  /// Enable APM features, which includes the recording of app start time.
-  /// Should be call before Countly init
-  /// returns error or success message
-  @Deprecated('This function is deprecated, please use "enableAppStartTimeTracking" of CountlyConfig.apm instead')
-  static Future<String?> enableApm() async {
-    log('Calling "enableApm"');
-    log('enableApm is deprecated, use enableAppStartTimeTracking of CountlyConfig.apm instead', logLevel: LogLevel.WARNING);
-    final String? result = await _channel.invokeMethod('enableApm');
-
-    return result;
-  }
-
   /// Report a handled or unhandled exception/error to Countly.
   ///
   /// The exception is provided with an [Exception] object
@@ -1971,6 +1932,40 @@ class Countly {
     stacktrace ??= StackTrace.current;
     final result = logException('$message\n$stacktrace', nonfatal, segmentation);
     return result;
+  }
+
+  /// Whether Countly's handlers for Flutter and asynchronous errors are installed.
+  static bool _errorHandlersInstalled = false;
+
+  /// Installs Countly's handlers for errors thrown inside the Flutter framework and for uncaught
+  /// asynchronous errors (for example a throw inside an `async` button callback). The handlers that
+  /// were set before, such as the console printer, Crashlytics or Sentry, still receive every error
+  /// after Countly records it.
+  static void _installErrorHandlers() {
+    if (_errorHandlersInstalled) {
+      return;
+    }
+    _errorHandlersInstalled = true;
+
+    final FlutterExceptionHandler? previousFlutterErrorHandler = FlutterError.onError;
+    FlutterError.onError = (FlutterErrorDetails details) {
+      _recordFlutterError(details);
+      if (previousFlutterErrorHandler != null) {
+        previousFlutterErrorHandler(details);
+      } else {
+        FlutterError.presentError(details);
+      }
+    };
+
+    final bool Function(Object, StackTrace)? previousPlatformErrorHandler = PlatformDispatcher.instance.onError;
+    PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+      _internalRecordError(error, stack);
+      if (previousPlatformErrorHandler != null) {
+        return previousPlatformErrorHandler(error, stack);
+      }
+      // Unhandled, so the embedder still reports the error the way it would without Countly.
+      return false;
+    };
   }
 
   /// Internal callback to record 'FlutterError.onError' errors
@@ -2012,11 +2007,11 @@ class Countly {
     }
 
     stack ??= StackTrace.fromString('');
-    try {
-      unawaited(logException('${exception.toString()}\n$stack', true));
-    } catch (e) {
+    // Caught here, as an uncaught failure would come back to this handler and repeat.
+    logException('${exception.toString()}\n$stack', true).catchError((Object e) {
       log('_internalRecordError, Sending crash report to Countly failed: $e');
-    }
+      return null;
+    });
   }
 
   /// Enable campaign attribution reporting to Countly.
@@ -2028,36 +2023,6 @@ class Countly {
     String error = 'enableAttribution is deprecated, use recordIndirectAttribution instead';
     log(error);
     return 'Error : $error';
-  }
-
-  /// set attribution Id for campaign attribution reporting.
-  /// If this is call for iOS then 'attributionID' is IDFA
-  /// If this is call for Android then 'attributionID' is ADID
-  /// returns error or success message
-  @Deprecated('This function is deprecated, please use "recordIndirectAttribution" instead')
-  static Future<String?> recordAttributionID(String attributionID) async {
-    if (!_instance._countlyState.isInitialized) {
-      String message = '"initWithConfig" must be called before "recordAttributionID"';
-      log('recordAttributionID, $message', logLevel: LogLevel.ERROR);
-      return message;
-    }
-    log('Calling recordAttributionID: [$attributionID]');
-    log('recordAttributionID is deprecated, use recordIndirectAttribution instead');
-    if (attributionID.isEmpty) {
-      String error = 'recordAttributionID, attributionID cannot be empty';
-      log(error);
-      return 'Error : $error';
-    }
-    Map<String, String> attributionValues = {};
-    if (!kIsWeb) {
-      if (Platform.isIOS) {
-        attributionValues[AttributionKey.IDFA] = attributionID;
-      } else {
-        attributionValues[AttributionKey.AdvertisingID] = attributionID;
-      }
-    }
-    final String? result = await recordIndirectAttribution(attributionValues);
-    return result;
   }
 
   /// set indirect attribution Id for campaign attribution reporting.
@@ -2127,7 +2092,7 @@ class Countly {
       }
 
       if (config.providedUserProperties != null) {
-        log('"_configToJson", value for providedUserProperties: [${config.providedUserProperties}]', logLevel: LogLevel.INFO);
+        log('"_configToJson", value provided for providedUserProperties, keys: [${config.providedUserProperties!.keys}]', logLevel: LogLevel.INFO);
         countlyConfig['providedUserProperties'] = config.providedUserProperties;
       }
 
@@ -2136,7 +2101,7 @@ class Countly {
         countlyConfig['consents'] = config.consents;
       }
       if (config.tamperingProtectionSalt != null) {
-        log('"_configToJson", value provided for tamperingProtectionSalt: [${config.tamperingProtectionSalt}]', logLevel: LogLevel.INFO);
+        log('"_configToJson", value provided for tamperingProtectionSalt', logLevel: LogLevel.INFO);
         countlyConfig['tamperingProtectionSalt'] = config.tamperingProtectionSalt;
       }
       if (config.eventQueueSizeThreshold != null) {
@@ -2163,6 +2128,10 @@ class Countly {
         log('"_configToJson", value provided for loggingEnabled: [${config.loggingEnabled}]', logLevel: LogLevel.INFO);
         countlyConfig['loggingEnabled'] = config.loggingEnabled;
       }
+      if (config.logListener != null) {
+        log('"_configToJson", a log listener is provided', logLevel: LogLevel.INFO);
+        countlyConfig['logListener'] = true;
+      }
       if (config.locationDisabled) {
         log('"_configToJson", value provided for locationDisabled: [${config.locationDisabled}]', logLevel: LogLevel.INFO);
         countlyConfig['locationDisabled'] = config.locationDisabled;
@@ -2172,8 +2141,12 @@ class Countly {
         countlyConfig['httpPostForced'] = config.httpPostForced;
       }
       if (config.customNetworkRequestHeaders != null) {
-        log('"_configToJson", value provided for customNetworkRequestHeaders: [${config.customNetworkRequestHeaders}]', logLevel: LogLevel.INFO);
+        log('"_configToJson", value provided for customNetworkRequestHeaders, names: [${config.customNetworkRequestHeaders!.keys}]', logLevel: LogLevel.INFO);
         countlyConfig['customNetworkRequestHeaders'] = config.customNetworkRequestHeaders;
+      }
+      if (config.webSDKUrl != null) {
+        log('"_configToJson", value provided for webSDKUrl: [${config.webSDKUrl}]', logLevel: LogLevel.INFO);
+        countlyConfig['webSDKUrl'] = config.webSDKUrl;
       }
       if (config.shouldRequireConsent != null) {
         log('"_configToJson", value provided for shouldRequireConsent: [${config.shouldRequireConsent}]', logLevel: LogLevel.INFO);
@@ -2214,10 +2187,6 @@ class Countly {
         countlyConfig['locationIpAddress'] = config.locationIpAddress;
       }
 
-      if (config.enableRemoteConfigAutomaticDownload != null) {
-        log('"_configToJson", value provided for enableRemoteConfigAutomaticDownload: [${config.enableRemoteConfigAutomaticDownload}]', logLevel: LogLevel.INFO);
-        countlyConfig['enableRemoteConfigAutomaticDownload'] = config.enableRemoteConfigAutomaticDownload;
-      }
 
       if (config.daCampaignType != null) {
         log('"_configToJson", value provided for campaignType: [${config.daCampaignType}]', logLevel: LogLevel.INFO);
@@ -2269,6 +2238,11 @@ class Countly {
         countlyConfig['sdkBehaviorSettingsUpdatesDisabled'] = config.sdkBehaviorSettingsUpdatesDisabled;
       }
 
+      if (config.requestCompressionEnabled) {
+        log('"_configToJson", value provided for requestCompressionEnabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['requestCompressionEnabled'] = true;
+      }
+
       if (config.storingDefaultPushConsentDisabled) {
         if (BUILDING_WITH_PUSH_DISABLED) {
           log('disableStoringDefaultPushConsent, $_pushDisabledMsg', logLevel: LogLevel.DEBUG);
@@ -2281,9 +2255,55 @@ class Countly {
         }
       }
 
+      if (config.pushTokenSentAlways) {
+        if (BUILDING_WITH_PUSH_DISABLED) {
+          log('sendPushTokenAlways, $_pushDisabledMsg', logLevel: LogLevel.DEBUG);
+        } else {
+          log('"_configToJson", value provided for sendPushTokenAlways: [${config.pushTokenSentAlways}]', logLevel: LogLevel.INFO);
+          countlyConfig['sendPushTokenAlways'] = config.pushTokenSentAlways;
+        }
+      }
+
       if (config.viewRestartForManualRecordingDisabled) {
         log('"_configToJson", value provided for disableViewRestartForManualRecording is true', logLevel: LogLevel.INFO);
         countlyConfig['disableViewRestartForManualRecording'] = config.viewRestartForManualRecordingDisabled;
+      }
+
+      if (config.manualSessionControlHybridMode) {
+        log('"_configToJson", value provided for manualSessionControlHybridMode is true', logLevel: LogLevel.INFO);
+        countlyConfig['manualSessionControlHybridMode'] = config.manualSessionControlHybridMode;
+      }
+      if (config.metricOverride != null) {
+        log('"_configToJson", value provided for metricOverride: [${config.metricOverride}]', logLevel: LogLevel.INFO);
+        countlyConfig['metricOverride'] = config.metricOverride;
+      }
+      if (config.trackOrientationChanges != null) {
+        log('"_configToJson", value provided for trackOrientationChanges: [${config.trackOrientationChanges}]', logLevel: LogLevel.INFO);
+        countlyConfig['trackOrientationChanges'] = config.trackOrientationChanges;
+      }
+      if (config.clearStoredDeviceId) {
+        log('"_configToJson", value provided for clearStoredDeviceId is true', logLevel: LogLevel.INFO);
+        countlyConfig['clearStoredDeviceId'] = config.clearStoredDeviceId;
+      }
+      if (config.sdkLoggingInProductionDisabled) {
+        log('"_configToJson", value provided for sdkLoggingInProductionDisabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['sdkLoggingInProductionDisabled'] = config.sdkLoggingInProductionDisabled;
+      }
+      if (config.webViewDisabled) {
+        log('"_configToJson", value provided for webViewDisabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['webViewDisabled'] = config.webViewDisabled;
+      }
+      if (config.healthCheckDisabled) {
+        log('"_configToJson", value provided for healthCheckDisabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['healthCheckDisabled'] = config.healthCheckDisabled;
+      }
+      if (config.appCrawlerNames != null) {
+        log('"_configToJson", value provided for appCrawlerNames: [${config.appCrawlerNames}]', logLevel: LogLevel.INFO);
+        countlyConfig['appCrawlerNames'] = config.appCrawlerNames;
+      }
+      if (config.recordAllThreadsWithCrash) {
+        log('"_configToJson", value provided for recordAllThreadsWithCrash is true', logLevel: LogLevel.INFO);
+        countlyConfig['recordAllThreadsWithCrash'] = config.recordAllThreadsWithCrash;
       }
 
       /// Experimental ---------------------------
@@ -2308,6 +2328,30 @@ class Countly {
         log('"_configToJson", value provided for webviewDisplayOption: [$optionStr]', logLevel: LogLevel.INFO);
         countlyConfig['webviewDisplayOption'] = optionStr;
       }
+      if (config.content.allowedIntentSchemes != null) {
+        log('"_configToJson", value provided for contentAllowedIntentSchemes: [${config.content.allowedIntentSchemes}]', logLevel: LogLevel.INFO);
+        countlyConfig['contentAllowedIntentSchemes'] = config.content.allowedIntentSchemes;
+      }
+      if (config.content.zoomDisabled) {
+        log('"_configToJson", value provided for contentZoomDisabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['contentZoomDisabled'] = config.content.zoomDisabled;
+      }
+      if (config.content.rotationDisabled) {
+        log('"_configToJson", value provided for contentRotationDisabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['contentRotationDisabled'] = config.content.rotationDisabled;
+      }
+      if (config.content.reloadOnStallEnabled) {
+        log('"_configToJson", value provided for contentReloadOnStallEnabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['contentReloadOnStallEnabled'] = config.content.reloadOnStallEnabled;
+      }
+      if (config.content.reloadOnStallTimeout != null) {
+        log('"_configToJson", value provided for contentReloadOnStallTimeout: [${config.content.reloadOnStallTimeout}]', logLevel: LogLevel.INFO);
+        countlyConfig['contentReloadOnStallTimeout'] = config.content.reloadOnStallTimeout;
+      }
+      if (config.content.autoContentTriggersDisabled) {
+        log('"_configToJson", value provided for autoContentTriggersDisabled is true', logLevel: LogLevel.INFO);
+        countlyConfig['autoContentTriggersDisabled'] = true;
+      }
 
       /// Content END ---------------------------
 
@@ -2329,10 +2373,6 @@ class Countly {
         countlyConfig['startTSOverride'] = config.apm.startTSOverride;
       }
       // legacy
-      if (config.recordAppStartTime != null) {
-        log('"_configToJson", value provided for recordAppStartTime: [${config.recordAppStartTime}]', logLevel: LogLevel.INFO);
-        countlyConfig['recordAppStartTime'] = config.recordAppStartTime;
-      }
 
       /// APM END ---------------------------
       /// Internal Limits ---------------------------
@@ -2361,6 +2401,10 @@ class Countly {
         log('"_configToJson", value provided for maxStackTraceLinesPerThread: [${config.sdkInternalLimits.maxStackTraceLinesPerThread}]', logLevel: LogLevel.INFO);
         countlyConfig['maxStackTraceLinesPerThread'] = config.sdkInternalLimits.maxStackTraceLinesPerThread;
       }
+      if (config.sdkInternalLimits.maxValueSizePicture > 0) {
+        log('"_configToJson", value provided for maxValueSizePicture: [${config.sdkInternalLimits.maxValueSizePicture}]', logLevel: LogLevel.INFO);
+        countlyConfig['maxValueSizePicture'] = config.sdkInternalLimits.maxValueSizePicture;
+      }
 
       /// Internal Limits END ---------------------------
       log('"_configToJson", value provided for remoteConfigAutomaticTriggers: [${config.remoteConfigAutomaticTriggers}]', logLevel: LogLevel.INFO);
@@ -2373,6 +2417,39 @@ class Countly {
         log('"_configToJson", value provided for requestTimeoutDuration: [${config.requestTimeoutDuration}]', logLevel: LogLevel.INFO);
         countlyConfig['requestTimeoutDuration'] = config.requestTimeoutDuration;
       }
+
+      /// Push ---------------------------
+      /// The no-push flavour has no push feature at all, so none of this is forwarded.
+      if (!BUILDING_WITH_PUSH_DISABLED) {
+        if (config.push.vapidPublicKey != null) {
+          log('"_configToJson", value provided for vapidPublicKey', logLevel: LogLevel.INFO);
+          countlyConfig['vapidPublicKey'] = config.push.vapidPublicKey;
+        }
+        if (config.push.serviceWorkerPath != null) {
+          log('"_configToJson", value provided for pushServiceWorkerPath: [${config.push.serviceWorkerPath}]', logLevel: LogLevel.INFO);
+          countlyConfig['pushServiceWorkerPath'] = config.push.serviceWorkerPath;
+        }
+        log('"_configToJson", value provided for pushServiceWorkerScope: [${config.push.serviceWorkerScope}]', logLevel: LogLevel.INFO);
+        countlyConfig['pushServiceWorkerScope'] = config.push.serviceWorkerScope;
+        if (config.push.automaticRegistrationDisabled) {
+          log('"_configToJson", value provided for pushAutomaticRegistrationDisabled is true', logLevel: LogLevel.INFO);
+          countlyConfig['pushAutomaticRegistrationDisabled'] = config.push.automaticRegistrationDisabled;
+        }
+        if (config.push.subscribeTimeout != null) {
+          log('"_configToJson", value provided for pushSubscribeTimeout: [${config.push.subscribeTimeout}]', logLevel: LogLevel.INFO);
+          countlyConfig['pushSubscribeTimeout'] = config.push.subscribeTimeout;
+        }
+        if (config.push.allowedIntentSchemes != null) {
+          log('"_configToJson", value provided for pushAllowedIntentSchemes: [${config.push.allowedIntentSchemes}]', logLevel: LogLevel.INFO);
+          countlyConfig['pushAllowedIntentSchemes'] = config.push.allowedIntentSchemes;
+        }
+        if (config.alertForNotificationsDisabled) {
+          log('"_configToJson", value provided for doNotShowAlertForNotifications is true', logLevel: LogLevel.INFO);
+          countlyConfig['doNotShowAlertForNotifications'] = config.alertForNotificationsDisabled;
+        }
+      }
+
+      /// Push END ---------------------------
     } catch (e) {
       log('"_configToJson", Exception occur during converting config to json: $e', logLevel: LogLevel.ERROR);
     }

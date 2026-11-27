@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:countly_flutter_np/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,6 +16,7 @@ import '../sbs_utils.dart';
 /// - The event is recorded with the key truncated to 8 #FS
 /// - Values in segmentation are truncated to 5 characters #DP
 /// - Segmentation values are truncated to 4 characters #S
+/// - In iOS the FS answer replaces S as a whole, so segmentation values fall back to 2 #DP
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('SBS_201B_DP_S_FS_test', (WidgetTester tester) async {
@@ -22,13 +24,13 @@ void main() {
     createServerWithConfig(requestArray, {
       'v': 1,
       't': 1750748806695,
-      'c': {'lkl': 8},
+      'c': {'lkl': 8}
     });
 
     setServerConfig({
       'v': 1,
       't': 1750748806695,
-      'c': {'lkl': 6, 'lsv': 4},
+      'c': {'lkl': 6, 'lsv': 4}
     });
 
     // Initialize the SDK
@@ -44,12 +46,20 @@ void main() {
     expect(rq.length, 0);
     expect(eq.length, 1);
 
-    validateEvent(event: jsonDecode(eq.first), key: 'ThisWill', segmentation: {'no1': 'value', 'no4': 'value', 'no3': 'value', 'no5': 'value'});
-
-    expect(await getServerConfig(), {
-      'v': 1,
-      't': 1750748806695,
-      'c': {'lkl': 8, 'lsv': 4},
-    });
+    if (Platform.isIOS) {
+      validateEvent(event: jsonDecode(eq.first), key: 'ThisWill', segmentation: truncatedSegmentation(2));
+      expect(await getServerConfig(), {
+        'v': 1,
+        't': 1750748806695,
+        'c': {'lkl': 8}
+      });
+    } else {
+      validateEvent(event: jsonDecode(eq.first), key: 'ThisWill', segmentation: {'no1': 'value', 'no4': 'value', 'no3': 'value', 'no5': 'value'});
+      expect(await getServerConfig(), {
+        'v': 1,
+        't': 1750748806695,
+        'c': {'lkl': 8, 'lsv': 4}
+      });
+    }
   });
 }

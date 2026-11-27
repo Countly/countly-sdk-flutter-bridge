@@ -106,6 +106,13 @@ void main(List<String> args) {
     'Web     → plugin_config.dart',
   );
 
+  replaceInFile(
+    '$rootDir/example/web/countly_sw.js',
+    RegExp(r'countly-sdk-web@[^/]+/lib/countly_sw\.js'),
+    'countly-sdk-web@$webVersion/lib/countly_sw.js',
+    'Web     → example/web/countly_sw.js',
+  );
+
   // ---- Android version ----
   replaceInFile(
     '$rootDir/android/build.gradle',
@@ -136,13 +143,16 @@ void main(List<String> args) {
 
   run('git', ['fetch', '--all', '--tags'], '$rootDir/$submodulePath');
 
-  final checkoutResult = Process.runSync('git', ['checkout', iosTag], workingDirectory: '$rootDir/$submodulePath');
+  // A released iOS SDK is checked out by tag, an unreleased one at its fetched remote branch head.
+  final isTag = Process.runSync('git', ['rev-parse', '-q', '--verify', 'refs/tags/$iosTag'], workingDirectory: '$rootDir/$submodulePath').exitCode == 0;
+  final iosRef = isTag ? iosTag : 'origin/$iosTag';
+  final checkoutResult = Process.runSync('git', ['checkout', iosRef], workingDirectory: '$rootDir/$submodulePath');
   if (checkoutResult.exitCode != 0) {
-    stderr.writeln('❌ Tag not found: $iosTag');
+    stderr.writeln('❌ Tag or branch not found: $iosTag');
     stderr.writeln(checkoutResult.stderr);
     exit(1);
   }
-  print('📥 Checked out tag $iosTag');
+  print('📥 Checked out $iosRef');
 
   if (!File(sparseFile).existsSync()) {
     stderr.writeln('❌ Missing sparse-checkout rules at: $sparseFile');
@@ -174,6 +184,7 @@ void main(List<String> args) {
         'android/src/main/java/ly/count/dart/countly_flutter/CountlyFlutterPlugin.java',
         'ios/countly_flutter_np/Sources/countly_flutter_np/CountlyFlutterPlugin.m',
         'lib/src/web/plugin_config.dart',
+        'example/web/countly_sw.js',
         'scripts/no-push-files/pubspec.yaml',
         'scripts/no-push-files/countly_flutter_np.podspec',
         'android/build.gradle',
