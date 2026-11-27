@@ -1,5 +1,6 @@
 ## 26.8.1
 * ! Minor breaking change ! Raised the minimum supported iOS version to 15 (previously 10), as the underlying iOS SDK requires it.
+* ! Minor breaking change ! The plugin now requires Flutter 3.24 and Dart 3.5 or newer, the oldest versions it is tested with. For apps on older versions, pub resolves an earlier version of the plugin.
 * ! Minor breaking change ! Push notification changes:
   * "askForNotificationPermission" now also asks for the notification permission on Android 13 and newer, and the plugin declares the "POST_NOTIFICATIONS" permission
   * "onNotification" now gets each push notification once, as a JSON string, instead of twice in two formats, in iOS
