@@ -64,6 +64,7 @@ packagePathExampleIntegrationTest_sc2 = '../example/integration_test/sc-AP-appPe
 packagePathLib = '../lib/'
 packagePathLibInternal = '../lib/src/'
 packagePathIntegrationTest = '../integration_test/'
+packagePathTest = '../test/'
 # normal and np package names
 packagePrefix = 'package:countly_flutter/'
 packagePrefixToChange = 'package:countly_flutter_np/'
@@ -320,6 +321,21 @@ def adaptToolingForNp(cwd):
             f.write(content)
         print('Adapted for countly_flutter_np:', path)
 
+    # The no-push flavour does not send the push options with init, so its request records leave them out.
+    requestsDir = os.path.join(cwd, '../api/requests')
+    if os.path.isdir(requestsDir):
+        for name in sorted(os.listdir(requestsDir)):
+            if not name.endswith('.json'):
+                continue
+            path = os.path.join(requestsDir, name)
+            with open(path, 'r', newline='') as f:
+                lines = f.readlines()
+            kept = [line for line in lines if '"pushServiceWorkerScope":' not in line]
+            if len(kept) != len(lines):
+                with open(path, 'w', newline='') as f:
+                    f.writelines(kept)
+                print('Removed the push options from:', path)
+
 def main():
     # give info about set constants
     print('Paths to erase:')
@@ -342,6 +358,7 @@ def main():
     print(packagePathLib)
     print(packagePathLibInternal)
     print(packagePathIntegrationTest)
+    print(packagePathTest)
 
     # ask for permission to run the script
     start = input('Do you want to continue? (y/n)')
@@ -364,6 +381,7 @@ def main():
         update_package(packagePathLib, packagePrefix, packagePrefixToChange)
         update_package(packagePathLibInternal, packagePrefix, packagePrefixToChange)
         update_package(packagePathIntegrationTest, packagePrefix, packagePrefixToChange)
+        update_package(packagePathTest, packagePrefix, packagePrefixToChange)
         # rename the iOS SwiftPM package to match the np package name
         renameIosForNp(cwd)
         adaptToolingForNp(cwd)

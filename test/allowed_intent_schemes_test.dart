@@ -21,7 +21,7 @@ void main() {
     expect(config.push.allowedIntentSchemes, ['market']);
     final Map<String, dynamic> sent = await initConfigSentFor(config);
     expect(sent['contentAllowedIntentSchemes'], ['https', 'myapp']);
-    expect(sent['pushAllowedIntentSchemes'], ['market']);
+    expect(sent['pushAllowedIntentSchemes'], Countly.BUILDING_WITH_PUSH_DISABLED ? isNull : ['market']);
   });
 
   test('A list without an allowed scheme keeps the schemes set before, or the default when none were', () async {
