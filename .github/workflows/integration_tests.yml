@@ -20,7 +20,8 @@ concurrency:
 # example app once per test file. Only the automatic categories run here: the light tests, and the server
 # tests, which start their own server inside the app. The remote config tests need a real Countly server and
 # the manual tests move the app to the background, so they stay local. Each platform's tests are split into
-# shards that run in parallel, and a test that does not end within 10 minutes, build included, is stopped.
+# shards that run in parallel. A test that does not end within 10 minutes, build included, is stopped and
+# runs once more, as a simulator app sometimes never connects to the test runner.
 jobs:
   android:
     name: Integration tests (Android, ${{ matrix.shard }}/4)
@@ -66,13 +67,14 @@ jobs:
           arch: x86_64
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: bash scripts/run_integration_tests.sh --light --server --fresh --kill-after 600 --shard ${{ matrix.shard }}/4
+          script: bash scripts/run_integration_tests.sh --light --server --fresh --kill-after 600 --retry-stopped 1 --shard ${{ matrix.shard }}/4
 
-      # Flutter ends a passing test's output with "All tests passed!"; any other log is a failed or stopped test.
+      # Flutter ends a passing test's output with "All tests passed!" on Android and "1 test passed." on iOS;
+      # any other log is a failed or stopped test.
       - name: Show the logs of the failed tests
         if: failure()
         run: |
-          for log in $(grep -L "All tests passed!" test_results/*/tests/*.log 2>/dev/null); do
+          for log in $(grep -L -E "All tests passed!|[0-9]+ tests? passed\." test_results/*/tests/*.log 2>/dev/null); do
             echo "::group::$log"
             tail -n 120 "$log"
             echo "::endgroup::"
@@ -134,13 +136,14 @@ jobs:
           xcrun simctl list devices booted
 
       - name: Run the tests on the iOS simulator
-        run: bash scripts/run_integration_tests.sh --light --server --fresh --kill-after 600 --shard ${{ matrix.shard }}/4
+        run: bash scripts/run_integration_tests.sh --light --server --fresh --kill-after 600 --retry-stopped 1 --shard ${{ matrix.shard }}/4
 
-      # Flutter ends a passing test's output with "All tests passed!"; any other log is a failed or stopped test.
+      # Flutter ends a passing test's output with "All tests passed!" on Android and "1 test passed." on iOS;
+      # any other log is a failed or stopped test.
       - name: Show the logs of the failed tests
         if: failure()
         run: |
-          for log in $(grep -L "All tests passed!" test_results/*/tests/*.log 2>/dev/null); do
+          for log in $(grep -L -E "All tests passed!|[0-9]+ tests? passed\." test_results/*/tests/*.log 2>/dev/null); do
             echo "::group::$log"
             tail -n 120 "$log"
             echo "::endgroup::"

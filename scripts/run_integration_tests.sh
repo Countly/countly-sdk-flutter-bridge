@@ -30,6 +30,7 @@
 #   -d, --device ID     Restrict to specific device(s), comma-separated
 #   --timeout SECS      Per-test timeout in seconds (default: 300)
 #   --kill-after SECS   Stop a test, its build and its device processes after SECS seconds (default: off)
+#   --retry-stopped N   Run a test that --kill-after stopped up to N more times (default: 0)
 #
 # Filtering:
 #   --filter PATTERN    Only run tests whose path matches PATTERN (regex)
@@ -72,6 +73,7 @@ RESTRICT_DEVICES=""
 TEST_FILTER=""
 SHARD=""
 KILL_AFTER=0
+RETRY_STOPPED=0
 
 # Colors (bold)
 RED='\033[1;31m'
@@ -418,17 +420,31 @@ run_worker() {
     echo "[W$worker_id] ▶ $test" >> "$log_file"
 
     local port=$((8080 + worker_id))
-    if run_with_limit "$KILL_AFTER" run_flutter_test "$test_path" "$device_id" "$port" "$test_log" "$log_file"; then
+    # A test that --kill-after stopped did not end, usually as the app never connected; it runs again.
+    local status attempt=0
+    while :; do
+      run_with_limit "$KILL_AFTER" run_flutter_test "$test_path" "$device_id" "$port" "$test_log" "$log_file"
+      status=$?
+      if [[ $status -eq 124 && $attempt -lt $RETRY_STOPPED ]]; then
+        attempt=$((attempt + 1))
+        echo "[W$worker_id] ↻ RETRY $attempt ($test): stopped after ${KILL_AFTER}s" >> "$log_file"
+        continue
+      fi
+      break
+    done
+    local retry_note=""
+    [[ $attempt -gt 0 ]] && retry_note=" after $attempt retry(s)"
+    if [[ $status -eq 0 ]]; then
       local elapsed=$(( SECONDS - test_start ))
-      echo "[W$worker_id] ✓ PASSED ($test) ${elapsed}s" >> "$log_file"
+      echo "[W$worker_id] ✓ PASSED ($test) ${elapsed}s${retry_note}" >> "$log_file"
       cache_mark_passed "$test" "$platform"
       ((passed++))
     else
       local elapsed=$(( SECONDS - test_start ))
-      if [[ $KILL_AFTER -gt 0 && $elapsed -ge $KILL_AFTER ]]; then
+      if [[ $status -eq 124 ]]; then
         echo "Stopped after ${KILL_AFTER}s (--kill-after)." >> "$test_log"
       fi
-      echo "[W$worker_id] ✗ FAILED ($test) ${elapsed}s" >> "$log_file"
+      echo "[W$worker_id] ✗ FAILED ($test) ${elapsed}s${retry_note}" >> "$log_file"
       cache_mark_failed "$test" "$platform"
       ((failed++))
       failed_tests+=("$test")
@@ -534,8 +550,9 @@ while [[ $# -gt 0 ]]; do
     --filter)       TEST_FILTER="$2"; shift 2 ;;
     --shard)        SHARD="$2"; shift 2 ;;
     --kill-after)   KILL_AFTER="$2"; shift 2 ;;
+    --retry-stopped) RETRY_STOPPED="$2"; shift 2 ;;
     -h|--help)
-      head -50 "$0" | tail -n +2 | sed 's/^# \?//'
+      head -51 "$0" | tail -n +2 | sed 's/^# \?//'
       exit 0 ;;
     *)
       echo "Unknown option: $1 (use --help)"; exit 1 ;;
@@ -547,6 +564,9 @@ if ! $HAS_CATEGORY; then
 fi
 if ! [[ "$KILL_AFTER" =~ ^[0-9]+$ ]]; then
   echo "--kill-after needs a whole number of seconds (got: $KILL_AFTER)"; exit 1
+fi
+if ! [[ "$RETRY_STOPPED" =~ ^[0-9]+$ ]]; then
+  echo "--retry-stopped needs a whole number (got: $RETRY_STOPPED)"; exit 1
 fi
 if [[ -n "$SHARD" ]] && ! [[ "$SHARD" =~ ^[1-9][0-9]*/[1-9][0-9]*$ && ${SHARD%/*} -le ${SHARD#*/} ]]; then
   echo "--shard needs I/N with 1 <= I <= N, for example 2/4 (got: $SHARD)"; exit 1
