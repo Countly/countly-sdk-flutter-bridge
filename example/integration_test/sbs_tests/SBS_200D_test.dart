@@ -20,6 +20,8 @@ void main() {
     // Initialize the SDK
     CountlyConfig config = CountlyConfig(TEST_SERVER_URL, APP_KEY).enableManualSessionHandling().setLoggingEnabled(true);
     await Countly.initWithConfig(config);
+    // Wait for the SDK behavior settings answer, as the other SBS tests do, so it applies before the calls below
+    await Future.delayed(const Duration(seconds: 2));
 
     await callAllFeatures();
 
