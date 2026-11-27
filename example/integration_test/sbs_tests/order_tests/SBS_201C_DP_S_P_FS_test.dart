@@ -44,7 +44,7 @@ void main() {
 
     await Countly.instance.events.recordEvent('ThisWillCLIPPED_BY_FS', {'no1': 'valueCLIPPED_BY_DP', 'no2': 'valueCLIPPED_BY_DP', 'no3': 'valueCLIPPED_BY_DP', 'no4': 'valueCLIPPED_BY_DP', 'no5': 'valueCLIPPED_BY_DP'});
     List<String> rq = await getRequestQueue();
-    List<String> eq = await getEventQueue();
+    List<String> eq = withoutStartOrientation(await getEventQueue());
     expect(rq.length, 0);
     expect(eq.length, 1);
 

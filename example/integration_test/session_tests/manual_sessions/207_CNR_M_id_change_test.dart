@@ -44,32 +44,27 @@ void main() {
     print('RQ length: ${requestList.length}');
     print('EQ length: ${eventList.length}');
 
-    // There should be:
-    // 0- device ID change
-    // 1- begin session
-    // 2- Orientation
-    // 3- end session
-    // 4- begin session
-    // 5- Orientation (android only)
-    expect(requestList.length, Platform.isAndroid ? 6 : 5); //android generates
+    // There should be the device ID change, begin session (newID), end session, begin session (newID_2) and the
+    // orientation. The orientation event: iOS SDK 26.8.1 records it once, when the SDK starts, while the SDK guide and Android record it at begin_session. So Android records it at both begin sessions, and iOS once,
+    // under the first device ID, before the device ID change.
+    final List<String> expected = Platform.isIOS ? ['orientation', 'change', 'begin newID', 'end', 'begin newID_2'] : ['change', 'begin newID', 'orientation', 'end', 'begin newID_2', 'orientation'];
+    expect(requestList.length, expected.length);
     var i = 0;
     for (var element in requestList) {
       Map<String, List<String>> queryParams = Uri.parse("?" + element).queryParametersAll;
       testCommonRequestParams(queryParams); // tests
-      if (i == 0) {
+      if (expected[i] == 'change') {
         expect(queryParams['device_id']?[0], 'newID');
         expect(queryParams['old_device_id']?[0].isNotEmpty, true);
-      } else if (i == 1 || i == 4) {
+      } else if (expected[i].startsWith('begin ')) {
         expect(queryParams['begin_session']?[0], '1');
-        expect(queryParams['device_id']?[0], i == 1 ? 'newID' : 'newID_2');
-      } else if (i == 2) {
+        expect(queryParams['device_id']?[0], expected[i].substring('begin '.length));
+      } else if (expected[i] == 'orientation') {
         expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
-      } else if (i == 3) {
+      } else if (expected[i] == 'end') {
         expect(queryParams['end_session']?[0], '1');
         expect(queryParams['session_duration']?[0], '2');
         expect(queryParams['device_id']?[0], 'newID');
-      } else if (i == 6 && Platform.isAndroid) {
-        expect(queryParams['events']?[0].contains('[CLY]_orientation'), true);
       }
 
       print('RQ.$i: $queryParams');

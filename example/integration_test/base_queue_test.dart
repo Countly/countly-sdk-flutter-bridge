@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:countly_flutter/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -37,8 +36,10 @@ void main() {
 
     // Verify some parameters of a single event
     Map<String, dynamic> event = json.decode(eventList[0]);
-    expect(Platform.isAndroid ? "[CLY]_orientation" : "[CLY]_view", event['key']);
+    // The orientation event comes first on both platforms: Android records it when the session begins,
+    // iOS when the SDK starts.
+    expect("[CLY]_orientation", event['key']);
     expect(1, event['count']);
-    expect(Platform.isAndroid ? 4 : 3, eventList.length);
+    expect(4, eventList.length);
   });
 }

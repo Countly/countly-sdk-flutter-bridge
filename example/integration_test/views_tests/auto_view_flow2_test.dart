@@ -42,13 +42,20 @@ void main() {
     validateBeginSessionRequest(requestList[3]); // validate begin session on 2nd idx
 
     int index = 0;
-    validateView("V1", false, true, viewGiven: rqEvents[index++]); // begin session not called
-    validateEvent("[CLY]_orientation", <String, dynamic>{'mode': 'portrait'}, eventGiven: rqEvents[index++]);
+    // The orientation event: iOS SDK 26.8.1 records it once, when the SDK starts, while the SDK guide and Android record it at begin_session.
+    if (Platform.isIOS) {
+      validateEvent("[CLY]_orientation", <String, dynamic>{'mode': 'portrait'}, eventGiven: rqEvents[index++]);
+      validateView("V1", false, true, viewGiven: rqEvents[index++]); // begin session not called
+    } else {
+      validateView("V1", false, true, viewGiven: rqEvents[index++]); // begin session not called
+      validateEvent("[CLY]_orientation", <String, dynamic>{'mode': 'portrait'}, eventGiven: rqEvents[index++]);
+    }
     validateView("V1", false, false, viewGiven: rqEvents[index++]); // it is because auto view
     validateView("V2", true, true, viewGiven: rqEvents[index++]); // after begin session called
     index = 0;
     validateView("V2", false, false, viewStr: eventList[index++]); // it is because auto view
     validateView("V3", false, true, viewStr: eventList[index++]); // begin session not called
+    // Only Android records the orientation again at the second begin_session.
     if (Platform.isAndroid) {
       validateEvent("[CLY]_orientation", <String, dynamic>{'mode': 'portrait'}, eventStr: eventList[index++]);
     }
