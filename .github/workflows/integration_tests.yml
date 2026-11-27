@@ -78,6 +78,10 @@ jobs:
           for log in $(grep -L -E "All tests passed!|[0-9]+ tests? passed\." test_results/*/tests/*.log 2>/dev/null); do
             echo "::group::$log"
             tail -n 120 "$log"
+            if [ -f "${log%.log}.device.txt" ]; then
+              echo "-- simulator diagnostics"
+              tail -n 120 "${log%.log}.device.txt"
+            fi
             echo "::endgroup::"
           done
 
@@ -91,7 +95,9 @@ jobs:
 
   ios:
     name: Integration tests (iOS, ${{ matrix.shard }}/4)
-    runs-on: macos-15
+    # The latest Flutter launches simulator apps more reliably with the current Xcode (26 on this image) than with
+    # macos-15's default Xcode 16.4, where test apps often never connected after their build.
+    runs-on: macos-26
     timeout-minutes: 90
     strategy:
       fail-fast: false
@@ -147,6 +153,10 @@ jobs:
           for log in $(grep -L -E "All tests passed!|[0-9]+ tests? passed\." test_results/*/tests/*.log 2>/dev/null); do
             echo "::group::$log"
             tail -n 120 "$log"
+            if [ -f "${log%.log}.device.txt" ]; then
+              echo "-- simulator diagnostics"
+              tail -n 120 "${log%.log}.device.txt"
+            fi
             echo "::endgroup::"
           done
 

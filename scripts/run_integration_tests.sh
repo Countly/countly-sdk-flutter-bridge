@@ -432,6 +432,7 @@ run_worker() {
       elif [[ $status -ne 0 ]] && grep -q "Unable to start the app" "$test_log" 2>/dev/null; then
         infra_reason="the app did not start"
       fi
+      [[ -n "$infra_reason" ]] && save_simulator_diagnostics "$platform" "$device_id" "$test_log" "$infra_reason"
       if [[ -n "$infra_reason" && $attempt -lt $RETRY_INFRA ]]; then
         attempt=$((attempt + 1))
         echo "[W$worker_id] ↻ RETRY $attempt ($test): $infra_reason" >> "$log_file"
@@ -528,6 +529,24 @@ run_with_limit() {
     return 124
   fi
   return $status
+}
+
+# Saves what an iOS simulator knows about the example app after a test did not start or end: whether launchd runs it,
+# its system log and any crash report. Written next to the test log as <name>.device.txt. Other devices are skipped.
+save_simulator_diagnostics() {
+  local platform="$1" device_id="$2" test_log="$3" reason="$4"
+  [[ "$platform" == "ios" ]] || return 0
+  local out="${test_log%.log}.device.txt"
+  {
+    echo "== $(date '+%Y-%m-%d %H:%M:%S') after: $reason"
+    echo "-- launchd entries of the app"
+    xcrun simctl spawn "$device_id" launchctl list 2>/dev/null | grep -i "com.countly.demo"
+    echo "-- crash reports of the app"
+    ls -t "$HOME/Library/Logs/DiagnosticReports" 2>/dev/null | grep -i "runner" | head -5
+    echo "-- system log of the app, last 12 minutes"
+    xcrun simctl spawn "$device_id" log show --last 12m --style compact --predicate 'process == "Runner"' 2>/dev/null | tail -n 200
+  } >> "$out" 2>&1
+  return 0
 }
 
 # Restarts an iOS simulator before a retry, as a stuck simulator also stops the next launch. Other devices stay as they are.
