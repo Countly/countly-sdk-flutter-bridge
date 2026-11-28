@@ -432,8 +432,8 @@ run_worker() {
       infra_reason=""
       if [[ $status -eq 124 ]]; then
         infra_reason="stopped after ${KILL_AFTER}s"
-      elif grep -q "the app did not connect within" "$test_log" 2>/dev/null; then
-        infra_reason="the app did not connect"
+      elif [[ -f "$test_log.no-connection" ]]; then
+        infra_reason="the app did not connect within ${CONNECT_TIMEOUT}s after its build"
         status=1
       elif [[ $status -ne 0 ]] && grep -q "Unable to start the app" "$test_log" 2>/dev/null; then
         infra_reason="the app did not start"
@@ -458,7 +458,10 @@ run_worker() {
       local elapsed=$(( SECONDS - test_start ))
       if [[ $status -eq 124 ]]; then
         echo "Stopped after ${KILL_AFTER}s (--kill-after)." >> "$test_log"
+      elif [[ -f "$test_log.no-connection" ]]; then
+        echo "Stopped: the app did not connect within ${CONNECT_TIMEOUT}s after its build (--connect-timeout)." >> "$test_log"
       fi
+      rm -f "$test_log.no-connection"
       echo "[W$worker_id] ✗ FAILED ($test) ${elapsed}s${retry_note}" >> "$log_file"
       cache_mark_failed "$test" "$platform"
       ((failed++))
@@ -567,7 +570,8 @@ restart_simulator_for_retry() {
 
 # Stops the test process $1 when its app has not connected $3 seconds after the build line appeared in the test log $2.
 # The expanded reporter prints a progress line, such as "00:05 +0: <test name>", only once the app has connected; its
-# "loading" lines come before the build. The stop is noted in the test log.
+# "loading" lines come before the build. The stop is marked with the file <test log>.no-connection, as tee still writes
+# the test log at its own position.
 watch_connection() {
   local pid="$1" test_log="$2" timeout="$3" built_at=0
   while kill -0 "$pid" 2>/dev/null; do
@@ -580,7 +584,7 @@ watch_connection() {
         return 0
       fi
       if (( SECONDS - built_at >= timeout )); then
-        echo "Stopped: the app did not connect within ${timeout}s after its build (--connect-timeout)." >> "$test_log"
+        : > "$test_log.no-connection"
         kill_tree "$pid"
         return 0
       fi
@@ -594,7 +598,7 @@ run_flutter_test() {
   local test_path="$1" device_id="$2" port="$3" test_log="$4" log_file="$5"
   local reporter=()
   [[ $CONNECT_TIMEOUT -gt 0 ]] && reporter=(-r expanded)
-  : > "$test_log"
+  rm -f "$test_log.no-connection"
   (cd "$EXAMPLE_DIR" && flutter test "$test_path" -d "$device_id" --timeout "$TIMEOUT" "--dart-define=TEST_SERVER_PORT=$port" "${reporter[@]+"${reporter[@]}"}" 2>&1 | tee "$test_log" >> "$log_file") 2>/dev/null &
   local pid=$!
   if [[ $CONNECT_TIMEOUT -gt 0 ]]; then
