@@ -99,7 +99,8 @@ jobs:
     # The latest Flutter launches simulator apps more reliably with the current Xcode (26 on this image) than with
     # macos-15's default Xcode 16.4, where test apps often never connected after their build.
     runs-on: macos-26
-    timeout-minutes: 90
+    # A test whose app does not connect costs about 6 minutes with its retry, so the limit leaves room for several.
+    timeout-minutes: 150
     strategy:
       fail-fast: false
       matrix:
