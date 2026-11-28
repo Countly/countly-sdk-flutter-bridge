@@ -1,0 +1,170 @@
+name: Integration tests
+
+# Declaring permissions replaces the default token scopes, so checkout needs `contents: read`.
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - master
+      - staging
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# The example's integration tests run through scripts/run_integration_tests.sh, which builds and starts the
+# example app once per test file. Only the automatic categories run here: the light tests, and the server
+# tests, which start their own server inside the app. The remote config tests need a real Countly server and
+# the manual tests move the app to the background, so they stay local. Each platform's tests are split into
+# shards that run in parallel. A test whose app does not connect to the test runner within 2 minutes after its
+# build, or that does not end within 10 minutes, is stopped. A stopped test, or one whose app did not start, runs
+# up to twice more after a restart of its iOS simulator: on CI, a simulator app sometimes runs and prints its VM
+# service address, but the Flutter tool never connects to it.
+jobs:
+  android:
+    name: Integration tests (Android, ${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      # Gradle in the example needs a JDK 17 toolchain.
+      - name: Set up Java
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
+        with:
+          java-version: "17"
+          distribution: temurin
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          cache: true
+
+      # The hosted Linux runners support hardware acceleration once the runner user may open /dev/kvm.
+      - name: Enable KVM for the emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Resolve the example dependencies
+        working-directory: example
+        run: flutter pub get
+
+      - name: Run the tests on an Android emulator
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash scripts/run_integration_tests.sh --light --server --fresh --kill-after 600 --connect-timeout 120 --retry-infra 2 --shard ${{ matrix.shard }}/4
+
+      # Flutter ends a passing test's output with "All tests passed!" on Android and "1 test passed." on iOS;
+      # any other log is a failed or stopped test.
+      - name: Show the logs of the failed tests
+        if: failure()
+        run: |
+          for log in $(grep -L -E "All tests passed!|[0-9]+ tests? passed\." test_results/*/tests/*.log 2>/dev/null); do
+            echo "::group::$log"
+            tail -n 120 "$log"
+            if [ -f "${log%.log}.device.txt" ]; then
+              echo "-- simulator diagnostics"
+              tail -n 120 "${log%.log}.device.txt"
+            fi
+            echo "::endgroup::"
+          done
+
+      - name: Upload the test logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: integration-test-logs-android-${{ matrix.shard }}
+          path: test_results/
+          if-no-files-found: ignore
+
+  ios:
+    name: Integration tests (iOS, ${{ matrix.shard }}/4)
+    # The latest Flutter launches simulator apps more reliably with the current Xcode (26 on this image) than with
+    # macos-15's default Xcode 16.4, where test apps often never connected after their build.
+    runs-on: macos-26
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          cache: true
+
+      # The example compiles the vendored iOS SDK, so it is checked out first.
+      - name: Prepare the vendored iOS SDK
+        run: dart run scripts/sync_sdk_versions.dart
+
+      - name: Resolve the example dependencies
+        working-directory: example
+        run: flutter pub get
+
+      # The newest iPhone of the newest iOS runtime that the active Xcode's simulator SDK supports: the image
+      # also has newer runtimes, for its newer Xcode versions.
+      - name: Boot an iOS simulator
+        run: |
+          set -euo pipefail
+          sdk="$(xcrun --sdk iphonesimulator --show-sdk-version)"
+          echo "Active Xcode: $(xcodebuild -version | head -1), simulator SDK $sdk"
+          udid="$(xcrun simctl list devices available -j | python3 -c '
+          import json, re, sys
+          sdk = [int(n) for n in sys.argv[1].split(".")]
+          devices = json.load(sys.stdin)["devices"]
+          def version(runtime):
+              return [int(n) for n in re.findall(r"\d+", runtime.split("iOS-")[-1])]
+          runtimes = sorted((r for r in devices if ".iOS-" in r and devices[r] and version(r) <= sdk), key=version)
+          phones = [d for d in devices[runtimes[-1]] if re.match(r"iPhone \d", d["name"])]
+          print(phones[-1]["udid"])
+          ' "$sdk")"
+          xcrun simctl boot "$udid"
+          xcrun simctl bootstatus "$udid" -b
+          xcrun simctl list devices booted
+
+      - name: Run the tests on the iOS simulator
+        run: bash scripts/run_integration_tests.sh --light --server --fresh --kill-after 600 --connect-timeout 120 --retry-infra 2 --shard ${{ matrix.shard }}/4
+
+      # Flutter ends a passing test's output with "All tests passed!" on Android and "1 test passed." on iOS;
+      # any other log is a failed or stopped test.
+      - name: Show the logs of the failed tests
+        if: failure()
+        run: |
+          for log in $(grep -L -E "All tests passed!|[0-9]+ tests? passed\." test_results/*/tests/*.log 2>/dev/null); do
+            echo "::group::$log"
+            tail -n 120 "$log"
+            if [ -f "${log%.log}.device.txt" ]; then
+              echo "-- simulator diagnostics"
+              tail -n 120 "${log%.log}.device.txt"
+            fi
+            echo "::endgroup::"
+          done
+
+      - name: Upload the test logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: integration-test-logs-ios-${{ matrix.shard }}
+          path: test_results/
+          if-no-files-found: ignore

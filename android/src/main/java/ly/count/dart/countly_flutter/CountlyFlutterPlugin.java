@@ -94,8 +94,30 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     private static final String NOTIFICATION_CLICK_HANDLED_EXTRA = "ly.count.dart.countly_flutter.notificationClickHandled";
     private static final String PREFERENCES_NAME = "ly.count.dart.countly_flutter";
     private static final String PUSH_ALLOWED_INTENT_SCHEMES_KEY = "pushAllowedIntentSchemes";
+    /** The user detail keys "setuserdata" reads, as text, when Dart sends them. */
+    private static final String[] USER_DETAIL_KEYS = { "name", "username", "email", "organization", "phone", "picture", "picturePath", "gender", "byear" };
     /** The URI schemes push notification links may open, from the last init, or null for the SDK default. */
     private static volatile List<String> pushAllowedIntentSchemes = null;
+
+    private Context context;
+    private Activity activity;
+    private ActivityPluginBinding activityBinding;
+    // Clicks are read from the Activity of this engine and handed to its Dart, all on the main thread.
+    /** Clicked notifications this engine's Dart did not ask for yet, oldest first. */
+    private final ArrayDeque<Map<String, Object>> pendingOpenedNotifications = new ArrayDeque<>();
+    /** The waiting "onNotificationOpened" request of this engine's Dart, answered at most once. */
+    private Result notificationOpenedListener;
+    private static Boolean isDebug = false;
+    private CountlyConfig config = new CountlyConfig();
+    private static Callback notificationListener = null;
+    private MethodChannel methodChannel;
+    // Channel of the engine that receives native SDK callbacks, chosen by bindCallbackChannel.
+    private static volatile MethodChannel sharedChannel;
+    private Lifecycle lifecycle;
+    static final int requestIDNoCallback = -1;
+    static final int requestIDGlobalCallback = -2;
+
+    List<CountlyFeedbackWidget> retrievedWidgetList = null;
 
     public void notifyPublicChannelRCDL(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues, Integer requestID) {
         Map<String, Object> data = new HashMap<>();
@@ -161,26 +183,6 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         }
         return response;
     }
-
-    private Context context;
-    private Activity activity;
-    private ActivityPluginBinding activityBinding;
-    // Clicks are read from the Activity of this engine and handed to its Dart, all on the main thread.
-    /** Clicked notifications this engine's Dart did not ask for yet, oldest first. */
-    private final ArrayDeque<Map<String, Object>> pendingOpenedNotifications = new ArrayDeque<>();
-    /** The waiting "onNotificationOpened" request of this engine's Dart, answered at most once. */
-    private Result notificationOpenedListener;
-    private static Boolean isDebug = false;
-    private CountlyConfig config = new CountlyConfig();
-    private static Callback notificationListener = null;
-    private MethodChannel methodChannel;
-    // Channel of the engine that receives native SDK callbacks, chosen by bindCallbackChannel.
-    private static volatile MethodChannel sharedChannel;
-    private Lifecycle lifecycle;
-    static final int requestIDNoCallback = -1;
-    static final int requestIDGlobalCallback = -2;
-
-    List<CountlyFeedbackWidget> retrievedWidgetList = null;
 
     //----------PLUGIN REGISTRATION (FlutterPlugin)-------------------
     
@@ -336,6 +338,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
      */
     @Override
     public void onSaveInstanceState(@NonNull Bundle bundle) {
+        // Nothing is saved: a restored Activity is recognized by its non-null bundle in onRestoreInstanceState.
     }
 
     /**
@@ -407,1159 +410,1344 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             log("Method name: " + call.method, LogLevel.INFO);
             log("Method arguments: " + argumentsForLog(call.method, argsString), LogLevel.INFO);
 
-            if ("init".equals(call.method)) {
-                if (context == null) {
-                    log("valid context is required in Countly init, but was provided 'null'", LogLevel.ERROR);
-                    result.error("init Failed", "valid context is required in Countly init, but was provided 'null'", null);
-                    return;
-                }
-
-                JSONObject config = args.getJSONObject(0);
-                this.config.setContext(context);
-                populateConfig(config);
-                Countly.sharedInstance().COUNTLY_SDK_NAME = BUILDING_WITH_PUSH_DISABLED ? COUNTLY_FLUTTER_SDK_NAME_NO_PUSH : COUNTLY_FLUTTER_SDK_NAME;
-                Countly.sharedInstance().COUNTLY_SDK_VERSION_STRING = COUNTLY_FLUTTER_SDK_VERSION_STRING;
-
-                this.config.RemoteConfigRegisterGlobalCallback(new RCDownloadCallback() {
-                    @Override
-                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
-                        notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestIDGlobalCallback);
-                    }
-                });
-
-                Context applicationContext = context.getApplicationContext();
-                if (applicationContext instanceof Application) {
-                    this.config.setApplication((Application) applicationContext);
-                } else {
-                    log("init, the application context is not an Application, automatic session tracking will not work", LogLevel.WARNING);
-                }
-                if (activity != null) {
-                    this.config.setInitialActivity(activity);
-                }
-                bindCallbackChannel();
-                Countly.sharedInstance().init(this.config);
-                if (pushAllowedIntentSchemes != null && applicationContext instanceof Application) {
-                    // Notifications that arrive before "askForNotificationPermission" is called follow the allowed schemes too.
-                    CountlyPush.init(pushConfig((Application) applicationContext));
-                }
-                result.success("initialized!");
-            } else if ("isInitialized".equals(call.method)) {
-                boolean isInitialized = Countly.sharedInstance().isInitialized();
-                if (isInitialized) {
-                    result.success("true");
-
-                } else {
-                    result.success("false");
-                }
-            } 
-
-            // START DEVICE ID METHODS
-            else if ("getID".equals(call.method)) {
-                String deviceID = Countly.sharedInstance().deviceId().getID();
-                result.success(deviceID);
-            } else if ("getIDType".equals(call.method)) {
-                DeviceIdType deviceIDType = Countly.sharedInstance().deviceId().getType();
-                String deviceIDTypeString = null;
-                switch (deviceIDType) {
-                    case DEVELOPER_SUPPLIED:
-                        deviceIDTypeString = "DS";
-                        break;
-                    case TEMPORARY_ID:
-                        deviceIDTypeString = "TID";
-                        break;
-                    default:
-                        // OPEN_UDID is also SDK_GENERATED SG
-                        deviceIDTypeString = "SG";
-                        break;
-                }
-                result.success(deviceIDTypeString);
-            } else if ("setID".equals(call.method)) {
-                String newDeviceID = args.getString(0);
-                Countly.sharedInstance().deviceId().setID(newDeviceID);
-                result.success("SetID success!");
-            } else if ("changeWithMerge".equals(call.method)) {
-                String newDeviceID = args.getString(0);
-                Countly.sharedInstance().deviceId().changeWithMerge(newDeviceID);
-                result.success("changeWithMerge success!");
-            } else if ("changeWithoutMerge".equals(call.method)) {
-                String newDeviceID = args.getString(0);
-                Countly.sharedInstance().deviceId().changeWithoutMerge(newDeviceID);
-                result.success("changeWithoutMerge success!");
-            } else if ("enableTemporaryIDMode".equals(call.method)) {
-                Countly.sharedInstance().deviceId().enableTemporaryIdMode();
-                result.success("enableTemporaryIDMode success");
-            } // END DEVICE ID METHODS
-            else if ("attemptToSendStoredRequests".equals(call.method)) {
-                Countly.sharedInstance().requestQueue().attemptToSendStoredRequests();
-                result.success("attemptToSendStoredRequests success!");
-            } else if ("changeServerUrl".equals(call.method)) {
-                Countly.sharedInstance().requestQueue().changeServerUrl(args.getString(0));
-                result.success(null);
-            } else if ("changeAppKey".equals(call.method)) {
-                Countly.sharedInstance().requestQueue().changeAppKey(args.getString(0));
-                result.success(null);
-            } else if ("flushQueues".equals(call.method)) {
-                Countly.sharedInstance().requestQueue().flushQueues();
-                result.success(null);
-            } else if ("addCustomNetworkRequestHeaders".equals(call.method)) {
-                Map<String, String> customHeaderValues = toMapString(args.getJSONObject(0));
-                Countly.sharedInstance().requestQueue().addCustomNetworkRequestHeaders(customHeaderValues);
-                result.success("addCustomNetworkRequestHeaders success!");
-            } else if ("recordMetrics".equals(call.method)) {
-                Map<String, String> metricsOverride = toMapString(args.getJSONObject(0));
-                Countly.sharedInstance().requestQueue().recordMetrics(metricsOverride);
-                result.success("recordMetrics success!");
-            } else if ("setHttpPostForced".equals(call.method)) {
-                boolean isEnabled = args.getBoolean(0);
-                this.config.setHttpPostForced(isEnabled);
-                result.success("setHttpPostForced");
-            } else if ("enableParameterTamperingProtection".equals(call.method)) {
-                String salt = args.getString(0);
-                this.config.setParameterTamperingProtectionSalt(salt);
-                result.success("enableParameterTamperingProtection success!");
-            } else if ("setLocationInit".equals(call.method)) {
-                String countryCode = args.getString(0);
-                String city = args.getString(1);
-                String location = args.getString(2);
-                String ipAddress = args.getString(3);
-                this.config.setLocation(countryCode, city, location, ipAddress);
-
-                result.success("setLocationInit success!");
-            } else if ("setLocation".equals(call.method)) {
-                String latitude = args.getString(0);
-                String longitude = args.getString(1);
-                if (!latitude.equals("null") && !longitude.equals("null")) {
-                    String latlng = latitude + "," + longitude;
-                    Countly.sharedInstance().location().setLocation(null, null, latlng, null);
-                }
-                result.success("setLocation success!");
-            } else if ("setUserLocation".equals(call.method)) {
-                JSONObject location = args.getJSONObject(0);
-                String countryCode = optNullableString(location, "countryCode");
-                String city = optNullableString(location, "city");
-                String gpsCoordinates = optNullableString(location, "gpsCoordinates");
-                String ipAddress = optNullableString(location, "ipAddress");
-
-                Countly.sharedInstance().location().setLocation(countryCode, city, gpsCoordinates, ipAddress);
-                result.success("setUserLocation success!");
-            } else if ("disableLocation".equals(call.method)) {
-                Countly.sharedInstance().location().disableLocation();
-                result.success("disableLocation success!");
-            } else if ("addCrashLog".equals(call.method)) {
-                String record = args.getString(0);
-                Countly.sharedInstance().crashes().addCrashBreadcrumb(record);
-                result.success("addCrashLog success!");
-            } else if ("logException".equals(call.method)) {
-                String exceptionString = args.getString(0);
-                boolean nonfatal = args.getBoolean(1);
-                Exception exception = new Exception(exceptionString);
-                Map<String, Object> segments = new HashMap<>();
-                for (int i = 2, il = args.length(); i < il; i += 2) {
-                    segments.put(args.getString(i), args.getString(i + 1));
-                }
-                if (nonfatal) {
-                    Countly.sharedInstance().crashes().recordHandledException(exception, segments);
-                } else {
-                    Countly.sharedInstance().crashes().recordUnhandledException(exception, segments);
-                }
-
-                result.success("logException success!");
-            } else if ("sendPushToken".equals(call.method)) {
-                String token = args.getString(0);
-                CountlyPush.onTokenRefresh(token);
-                result.success("success!");
-            } else if ("askForNotificationPermission".equals(call.method)) {
-                if (activity == null) {
-                    log("askForNotificationPermission failed : Activity is null", LogLevel.ERROR);
-                    result.error("askForNotificationPermission Failed", "Activity is null", null);
-                    return;
-                }
-                if (context == null) {
-                    log("valid context is required in askForNotificationPermission, but was provided 'null'", LogLevel.ERROR);
-                    result.error("askForNotificationPermission Failed", "valid context is required in Countly askForNotificationPermission, but was provided 'null'", null);
-                    return;
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    String channelName = "General Notifications";
-                    String channelDescription = "Receive notifications about important updates and events.";
-                    NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                    if (notificationManager != null) {
-                        NotificationChannel channel = new NotificationChannel(CountlyPush.CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_DEFAULT);
-                        channel.setDescription(channelDescription);
-                        notificationManager.createNotificationChannel(channel);
-                    }
-                }
-                requestNotificationPermission();
-                CountlyPush.init(pushConfig(activity.getApplication()));
-
-                result.success("askForNotificationPermission!");
-            } else if ("pushTokenType".equals(call.method)) {
-                log("pushTokenType has no effect on Android, where the messaging mode is no longer used", LogLevel.DEBUG);
-                result.success("pushTokenType!");
-            } else if ("registerForNotification".equals(call.method)) {
-                registerForNotification(args, new Callback() {
-                    @Override
-                    public void callback(final String resultString) {
-                        runOnMainThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                result.success(resultString);
-                            }
-                        });
-                    }
-                });
-            } else if ("registerForNotificationOpened".equals(call.method)) {
-                registerForNotificationOpened(result);
-            } else if ("beginSession".equals(call.method)) {
-                Countly.sharedInstance().sessions().beginSession();
-                result.success("beginSession!");
-
-            } else if ("updateSession".equals(call.method)) {
-                Countly.sharedInstance().sessions().updateSession();
-                result.success("updateSession!");
-
-            } else if ("endSession".equals(call.method)) {
-                Countly.sharedInstance().sessions().endSession();
-                result.success("endSession!");
-
-            } else if ("manualSessionHandling".equals(call.method)) {
-                result.success("manualSessionHandling!");
-
-            } else if ("updateSessionPeriod".equals(call.method)) {
-                result.success("updateSessionPeriod!");
-
-            } else if ("updateSessionInterval".equals(call.method)) {
-                int sessionInterval = Integer.parseInt(args.getString(0));
-                this.config.setUpdateSessionTimerDelay(sessionInterval);
-                result.success("updateSessionInterval Success!");
-
-            } else if ("eventSendThreshold".equals(call.method)) {
-                int queueSize = Integer.parseInt(args.getString(0));
-                this.config.setEventQueueSizeToSend(queueSize);
-                result.success("eventSendThreshold!");
-
-            } else if ("storedRequestsLimit".equals(call.method)) {
-                log("storedRequestsLimit is deprecated and has no effect, use 'setMaxRequestQueueSize' of CountlyConfig instead", LogLevel.WARNING);
-                result.success("storedRequestsLimit: deprecated, no effect");
-
-            } else if ("startEvent".equals(call.method)) {
-                String startEvent = args.getString(0);
-                Countly.sharedInstance().events().startEvent(startEvent);
-                result.success("startEvent for: " + startEvent);
-            } else if ("cancelEvent".equals(call.method)) {
-                String cancelEvent = args.getString(0);
-                Countly.sharedInstance().events().cancelEvent(cancelEvent);
-                result.success("cancelEvent for: " + cancelEvent);
-            } else if ("endEvent".equals(call.method)) {
-                String key = args.getString(0);
-                int count = Integer.parseInt(args.getString(1));
-                double sum = Double.parseDouble(args.getString(2));
-                Map<String, Object> segmentation;
-                if (args.length() > 3) {
-                    segmentation = toMap(args.getJSONObject(3));
-                } else {
-                    segmentation = null;
-                }
-                // Map<String, Object> segmentation = toMap(args.getJSONObject(4));
-                
-                Countly.sharedInstance().events().endEvent(key, segmentation, count, sum);
-                result.success("endEvent for: " + key);
-            } else if ("recordEvent".equals(call.method)) {
-                String key = args.getString(0);
-                int count = Integer.parseInt(args.getString(1));
-                double sum = Double.parseDouble(args.getString(2));
-                int duration = Integer.parseInt(args.getString(3));
-                Map<String, Object> segmentation;
-                if (args.length() > 4) {
-                    segmentation = toMap(args.getJSONObject(4));
-                } else {
-                    segmentation = null;
-                }
-                // Map<String, Object> segmentation = toMap(args.getJSONObject(4));
-                
-                Countly.sharedInstance().events().recordEvent(key, segmentation, count, sum, duration);
-                result.success("recordEvent for: " + key);
-            } else if ("setLoggingEnabled".equals(call.method)) {
-                String loggingEnable = args.getString(0);
-                this.config.setLoggingEnabled(loggingEnable.equals("true"));
-                result.success("setLoggingEnabled success!");
-            } else if ("setuserdata".equals(call.method)) {
-                JSONObject userData = args.getJSONObject(0);
-                Map<String, Object> bundle = new HashMap<>();
-
-                if (userData.has("name")) {
-                    bundle.put("name", userData.getString("name"));
-                }
-                if (userData.has("username")) {
-                    bundle.put("username", userData.getString("username"));
-                }
-                if (userData.has("email")) {
-                    bundle.put("email", userData.getString("email"));
-                }
-                if (userData.has("organization")) {
-                    bundle.put("organization", userData.getString("organization"));
-                }
-                if (userData.has("phone")) {
-                    bundle.put("phone", userData.getString("phone"));
-                }
-                if (userData.has("picture")) {
-                    bundle.put("picture", userData.getString("picture"));
-                }
-                if (userData.has("picturePath")) {
-                    bundle.put("picturePath", userData.getString("picturePath"));
-                }
-                if (userData.has("gender")) {
-                    bundle.put("gender", userData.getString("gender"));
-                }
-                if (userData.has("byear")) {
-                    bundle.put("byear", userData.getString("byear"));
-                }
-
-                Countly.sharedInstance().userProfile().setProperties(bundle);
-                Countly.sharedInstance().userProfile().save();
-
-                result.success("setuserdata success");
-            } else if ("userData_setProperty".equals(call.method)) {
-                String keyName = args.getString(0);
-                String keyValue = args.getString(1);
-                Countly.sharedInstance().userProfile().setProperty(keyName, keyValue);
-                Countly.sharedInstance().userProfile().save();
-                result.success("userData_setProperty success!");
-            } else if ("userData_increment".equals(call.method)) {
-                String keyName = args.getString(0);
-                Countly.sharedInstance().userProfile().increment(keyName);
-                Countly.sharedInstance().userProfile().save();
-                result.success("userData_increment success!");
-            } else if ("userData_incrementBy".equals(call.method)) {
-                String keyName = args.getString(0);
-                int keyIncrement = Integer.parseInt(args.getString(1));
-                Countly.sharedInstance().userProfile().incrementBy(keyName, keyIncrement);
-                Countly.sharedInstance().userProfile().save();
-                result.success("userData_incrementBy success!");
-            } else if ("userData_multiply".equals(call.method)) {
-                String keyName = args.getString(0);
-                int multiplyValue = Integer.parseInt(args.getString(1));
-                Countly.sharedInstance().userProfile().multiply(keyName, multiplyValue);
-                Countly.sharedInstance().userProfile().save();
-                result.success("userData_multiply success!");
-            } else if ("userData_saveMax".equals(call.method)) {
-                String keyName = args.getString(0);
-                int maxScore = Integer.parseInt(args.getString(1));
-                Countly.sharedInstance().userProfile().saveMax(keyName, maxScore);
-                Countly.sharedInstance().userProfile().save();
-                result.success("userData_saveMax success!");
-            } else if ("userData_saveMin".equals(call.method)) {
-                String keyName = args.getString(0);
-                int minScore = Integer.parseInt(args.getString(1));
-                Countly.sharedInstance().userProfile().saveMin(keyName, minScore);
-                Countly.sharedInstance().userProfile().save();
-                result.success("userData_saveMin success!");
-            } else if ("userData_setOnce".equals(call.method)) {
-                String keyName = args.getString(0);
-                String minScore = args.getString(1);
-                Countly.sharedInstance().userProfile().setOnce(keyName, minScore);
-                Countly.sharedInstance().userProfile().save();
-                result.success("userData_setOnce success!");
-            } else if ("userData_pushUniqueValue".equals(call.method)) {
-                String type = args.getString(0);
-                String pushUniqueValue = args.getString(1);
-                Countly.sharedInstance().userProfile().pushUnique(type, pushUniqueValue);
-                Countly.sharedInstance().userProfile().save();
-                result.success("userData_pushUniqueValue success!");
-            } else if ("userData_pushValue".equals(call.method)) {
-                String type = args.getString(0);
-                String pushValue = args.getString(1);
-                Countly.sharedInstance().userProfile().push(type, pushValue);
-                Countly.sharedInstance().userProfile().save();
-                result.success("userData_pushValue success!");
-            } else if ("userData_pullValue".equals(call.method)) {
-                String type = args.getString(0);
-                String pullValue = args.getString(1);
-                Countly.sharedInstance().userProfile().pull(type, pullValue);
-                Countly.sharedInstance().userProfile().save();
-                result.success("userData_pullValue success!");
-            }
-
-            else if ("userProfile_setProperties".equals(call.method)) {
-                JSONObject properties = args.getJSONObject(0);
-                Map<String, Object> propertiesMap = toMap(properties);
-                Countly.sharedInstance().userProfile().setProperties(propertiesMap);
-                result.success(null);
-            } else if ("userProfile_setProperty".equals(call.method)) {
-                String key = args.getString(0);
-                Object value = args.get(1);
-                if (!(value instanceof String || value instanceof Number || value instanceof Boolean)) {
-                    value = String.valueOf(value);
-                }
-                Countly.sharedInstance().userProfile().setProperty(key, value);
-                result.success(null);
-            } else if ("userProfile_increment".equals(call.method)) {
-                String key = args.getString(0);
-                Countly.sharedInstance().userProfile().increment(key);
-                result.success(null);
-            } else if ("userProfile_incrementBy".equals(call.method)) {
-                String key = args.getString(0);
-                int value = args.getInt(1);
-                Countly.sharedInstance().userProfile().incrementBy(key, value);
-                result.success(null);
-            } else if ("userProfile_multiply".equals(call.method)) {
-                String key = args.getString(0);
-                int value = args.getInt(1);
-                Countly.sharedInstance().userProfile().multiply(key, value);
-                result.success(null);
-            } else if ("userProfile_saveMax".equals(call.method)) {
-                String key = args.getString(0);
-                int value = args.getInt(1);
-                Countly.sharedInstance().userProfile().saveMax(key, value);
-                result.success(null);
-            } else if ("userProfile_saveMin".equals(call.method)) {
-                String key = args.getString(0);
-                int value = args.getInt(1);
-                Countly.sharedInstance().userProfile().saveMin(key, value);
-                result.success(null);
-            } else if ("userProfile_setOnce".equals(call.method)) {
-                String key = args.getString(0);
-                String value = args.getString(1);
-                Countly.sharedInstance().userProfile().setOnce(key, value);
-                result.success(null);
-            } else if ("userProfile_pushUnique".equals(call.method)) {
-                String key = args.getString(0);
-                String value = args.getString(1);
-                Countly.sharedInstance().userProfile().pushUnique(key, value);
-                result.success(null);
-            } else if ("userProfile_push".equals(call.method)) {
-                String key = args.getString(0);
-                String value = args.getString(1);
-                Countly.sharedInstance().userProfile().push(key, value);
-                result.success(null);
-            } else if ("userProfile_pull".equals(call.method)) {
-                String key = args.getString(0);
-                String value = args.getString(1);
-                Countly.sharedInstance().userProfile().pull(key, value);
-                result.success(null);
-            } else if ("userProfile_save".equals(call.method)) {
-                Countly.sharedInstance().userProfile().save();
-                result.success(null);
-            } else if ("userProfile_clear".equals(call.method)) {
-                Countly.sharedInstance().userProfile().clear();
-                result.success(null);
-            } else if ("setRequiresConsent".equals(call.method)) {
-                boolean consentFlag = args.getBoolean(0);
-                this.config.setRequiresConsent(consentFlag);
-                result.success("setRequiresConsent!");
-            } else if ("giveConsentInit".equals(call.method)) {
-                String[] features = new String[args.length()];
-                for (int i = 0; i < args.length(); i++) {
-                    features[i] = args.getString(i);
-                }
-                this.config.setConsentEnabled(features);
-                result.success("giveConsentInit!");
-
-            } else if ("giveConsent".equals(call.method)) {
-                String[] features = new String[args.length()];
-                for (int i = 0; i < args.length(); i++) {
-                    features[i] = args.getString(i);
-                }
-                Countly.sharedInstance().consent().giveConsent(features);
-                result.success("giveConsent!");
-
-            } else if ("removeConsent".equals(call.method)) {
-                String[] features = new String[args.length()];
-                for (int i = 0; i < args.length(); i++) {
-                    features[i] = args.getString(i);
-                }
-                Countly.sharedInstance().consent().removeConsent(features);
-                result.success("removeConsent!");
-
-            } else if ("giveAllConsent".equals(call.method)) {
-                Countly.sharedInstance().consent().giveConsentAll();
-                result.success("giveAllConsent!");
-            } else if ("removeAllConsent".equals(call.method)) {
-                Countly.sharedInstance().consent().removeConsentAll();
-                result.success("removeAllConsent!");
-            } else if ("sendRating".equals(call.method)) {
-                String ratingString = args.getString(0);
-                int rating = Integer.parseInt(ratingString);
-
-                Map<String, Object> segm = new HashMap<>();
-                segm.put("platform", "android");
-                segm.put("rating", "" + rating);
-                Countly.sharedInstance().events().recordEvent("[CLY]_star_rating", segm, 1);
-                result.success("sendRating: " + ratingString);
-            } else if ("setOptionalParametersForInitialization".equals(call.method)) {
-                String city = args.getString(0);
-                String country = args.getString(1);
-                String latitude = args.getString(2);
-                String longitude = args.getString(3);
-                String ipAddress = args.getString(4);
-                String latlng = null;
-                if (city.length() == 0 || city.equals("null")) {
-                    city = null;
-                }
-                if (country.equals("null")) {
-                    country = null;
-                }
-                if (!latitude.equals("null") && !longitude.equals("null")) {
-                    latlng = latitude + "," + longitude;
-                }
-                if (ipAddress.equals("null")) {
-                    ipAddress = null;
-                }
-                Countly.sharedInstance().location().setLocation(country, city, latlng, ipAddress);
-
-                result.success("setOptionalParametersForInitialization sent.");
-            } else if ("remoteConfigDownloadValues".equals(call.method)) {
-                int requestID = args.getInt(0);
-                Countly.sharedInstance().remoteConfig().downloadAllKeys(new RCDownloadCallback() {
-                    @Override
-                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
-                        if (requestID == requestIDNoCallback) {
-                            return;
-                        }
-                        notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestID);
-                    }
-                });
-
-                result.success(null);
-            } else if ("remoteConfigDownloadSpecificValue".equals(call.method)) {
-                int requestID = args.getInt(0);
-                JSONArray jArr = args.getJSONArray(1);
-
-                String[] keysOnly = new String[jArr.length()];
-                for (int i = 0, il = jArr.length(); i < il; i++) {
-                    keysOnly[i] = jArr.getString(i);
-                }
-
-                log("remoteConfigDownloadSpecificValue TEST, " + requestID + " , " + keysOnly, LogLevel.WARNING);
-
-                Countly.sharedInstance().remoteConfig().downloadSpecificKeys(keysOnly, new RCDownloadCallback() {
-                    @Override
-                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
-                        if (requestID == requestIDNoCallback) {
-                            return;
-                        }
-                        notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestID);
-                    }
-                });
-
-                result.success(null);
-            } else if ("remoteConfigDownloadOmittingValues".equals(call.method)) {
-                int requestID = args.getInt(0);
-                JSONArray jArr = args.getJSONArray(1);
-
-                String[] omitedKeys = new String[jArr.length()];
-                for (int i = 0, il = jArr.length(); i < il; i++) {
-                    omitedKeys[i] = jArr.getString(i);
-                }
-
-                log("remoteConfigDownloadOmittingValues TEST, " + requestID + " , " + omitedKeys, LogLevel.WARNING);
-
-                Countly.sharedInstance().remoteConfig().downloadOmittingKeys(omitedKeys, new RCDownloadCallback() {
-                    @Override
-                    public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
-                        if (requestID == requestIDNoCallback) {
-                            return;
-                        }
-                        notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestID);
-                    }
-                });
-
-                result.success(null);
-            } else if ("remoteConfigGetAllValues".equals(call.method)) {
-                log("remoteConfigGetAllValues", LogLevel.WARNING);
-
-                Map<String, RCData> rawDownloadedValues = Countly.sharedInstance().remoteConfig().getValues();
-
-                Map<String, Object> transformedDownloadedValues = transformMapIntoSendableForm(rawDownloadedValues);
-                result.success(transformedDownloadedValues);
-            } else if ("remoteConfigGetValue".equals(call.method)) {
-                String key = args.getString(0);
-                log("remoteConfigGetValue, " + key, LogLevel.WARNING);
-
-                RCData data = Countly.sharedInstance().remoteConfig().getValue(key);
-                Map<String, Object> transData = transformRCDataIntoSendableForm(data);
-
-                result.success(transData);
-            } else if ("remoteConfigGetValueAndEnroll".equals(call.method)) {
-                String key = args.getString(0);
-                log("remoteConfigGetValueAndEnroll, " + key, LogLevel.INFO);
-
-                RCData data = Countly.sharedInstance().remoteConfig().getValueAndEnroll(key);
-                Map<String, Object> transData = transformRCDataIntoSendableForm(data);
-
-                result.success(transData);
-            } else if ("remoteConfigGetAllValuesAndEnroll".equals(call.method)) {
-                log("remoteConfigGetAllValuesAndEnroll", LogLevel.INFO);
-
-                Map<String, RCData> rawDownloadedValues = Countly.sharedInstance().remoteConfig().getAllValuesAndEnroll();
-
-                Map<String, Object> transformedDownloadedValues = transformMapIntoSendableForm(rawDownloadedValues);
-                result.success(transformedDownloadedValues);
-            } else if ("remoteConfigClearAllValues".equals(call.method)) {
-                log("remoteConfigClearAllValues", LogLevel.WARNING);
-
-                Countly.sharedInstance().remoteConfig().clearAll();
-
-                result.success(null);
-            } else if ("remoteConfigEnrollIntoABTestsForKeys".equals(call.method)) {
-                JSONArray jArr = args.getJSONArray(0);
-
-                String[] keys = new String[jArr.length()];
-                for (int i = 0, il = jArr.length(); i < il; i++) {
-                    keys[i] = jArr.getString(i);
-                }
-
-                log("remoteConfigEnrollIntoABTestsForKeys, " + keys, LogLevel.WARNING);
-
-                Countly.sharedInstance().remoteConfig().enrollIntoABTestsForKeys(keys);
-
-                result.success(null);
-            } else if ("remoteConfigExitABTestsForKeys".equals(call.method)) {
-                JSONArray jArr = args.getJSONArray(0);
-
-                String[] keys = new String[jArr.length()];
-                for (int i = 0, il = jArr.length(); i < il; i++) {
-                    keys[i] = jArr.getString(i);
-                }
-
-                log("remoteConfigExitABTestsForKeys, " + keys, LogLevel.WARNING);
-
-                Countly.sharedInstance().remoteConfig().exitABTestsForKeys(keys);
-
-                result.success(null);
-            } else if ("remoteConfigTestingGetVariantsForKey".equals(call.method)) {
-                String key = args.getString(0);
-                log("remoteConfigTestingGetVariantsForKey", LogLevel.WARNING);
-
-                String[] variants = Countly.sharedInstance().remoteConfig().testingGetVariantsForKey(key);
-
-                List<String> convertedVariants = null;
-                if (variants != null) {
-                    convertedVariants = Arrays.asList(variants);
-                }
-
-                result.success(convertedVariants);
-            } else if ("remoteConfigTestingGetAllVariants".equals(call.method)) {
-                log("remoteConfigTestingGetAllVariants", LogLevel.WARNING);
-
-                Map<String, String[]> variants = Countly.sharedInstance().remoteConfig().testingGetAllVariants();
-
-                Map<String, List<String>> convertedVariants = new HashMap<>();
-                for (Map.Entry<String, String[]> entry : variants.entrySet()) {
-                    convertedVariants.put(entry.getKey(), Arrays.asList(entry.getValue()));
-                } // TODO: Make better
-            
-                result.success(convertedVariants);
-            } else if ("remoteConfigTestingDownloadVariantInformation".equals(call.method)) {
-                int requestID = args.getInt(0);
-
-                log("remoteConfigTestingDownloadVariantInformation", LogLevel.WARNING);
-
-                Countly.sharedInstance().remoteConfig().testingDownloadVariantInformation((rResult, error) -> {
-                    if (requestID == requestIDNoCallback) {
-                        return;
-                    }
-                    Map<String, Object> data = new HashMap<>();
-                    data.put("error", error);
-                    data.put("requestResult", resultResponder(rResult));
-                    data.put("id", requestID);
-                    safeInvokeMethod("remoteConfigVariantCallback", data);
-                });
-
-                result.success(null);
-            }
-            else if ("testingDownloadExperimentInformation".equals(call.method)) {
-                int requestID = args.getInt(0);
-
-                log("testingDownloadExperimentInformation", LogLevel.WARNING);
-
-                Countly.sharedInstance().remoteConfig().testingDownloadExperimentInformation((rResult, error) -> {
-                    if (requestID == requestIDNoCallback) {
-                        return;
-                    }
-                    Map<String, Object> data = new HashMap<>();
-                    data.put("error", error);
-                    data.put("requestResult", resultResponder(rResult));
-                    data.put("id", requestID);
-                    safeInvokeMethod("remoteConfigVariantCallback", data);
-                });
-
-                result.success(null);
-            }
-            else if ("testingGetAllExperimentInfo".equals(call.method)) {
-                Map<String, ExperimentInformation> experimentInfoMap = Countly.sharedInstance().remoteConfig().testingGetAllExperimentInfo();
-                List<Map<String, Object>> experimentInfoArray = new ArrayList<>();
-                for (Map.Entry<String, ExperimentInformation> entry : experimentInfoMap.entrySet()) {
-                    ExperimentInformation experimentInfo = entry.getValue();
-                    Map<String, Object> experimentInfoValue = new HashMap<>();
-                    experimentInfoValue.put("experimentID", experimentInfo.experimentID);
-                    experimentInfoValue.put("experimentName", experimentInfo.experimentName);
-                    experimentInfoValue.put("experimentDescription", experimentInfo.experimentDescription);
-                    experimentInfoValue.put("currentVariant", experimentInfo.currentVariant == "null" ? "" : experimentInfo.currentVariant ); // equating to iOS behavior
-                    experimentInfoValue.put("variants", experimentInfo.variants);
-                    experimentInfoArray.add(experimentInfoValue);
-                }
-                result.success(experimentInfoArray);
-            }
-            else if ("remoteConfigTestingEnrollIntoVariant".equals(call.method)) {
-                int requestID = args.getInt(0);
-                String key = args.getString(1);
-                String variant = args.getString(2);
-                log("remoteConfigTestingEnrollIntoVariant", LogLevel.WARNING);
-
-                Countly.sharedInstance().remoteConfig().testingEnrollIntoVariant(key, variant, (rResult, error) -> {
-                    if (requestID == requestIDNoCallback) {
-                        return;
-                    }
-                    Map<String, Object> data = new HashMap<>();
-                    data.put("error", error);
-                    data.put("requestResult", resultResponder(rResult));
-                    data.put("id", requestID);
-                    safeInvokeMethod("remoteConfigVariantCallback", data);
-                });
-
-                result.success(null);
-            } else if ("presentRatingWidgetWithID".equals(call.method)) {
-                if (activity == null) {
-                    log("presentRatingWidgetWithID failed : Activity is null", LogLevel.ERROR);
-                    result.error("presentRatingWidgetWithID failed", "Activity is null", null);
-                    return;
-                }
-                String widgetId = args.getString(0);
-                String closeButtonText = args.getString(1);
-                Countly.sharedInstance().ratings().presentRatingWidgetWithID(widgetId, closeButtonText, activity, new FeedbackRatingCallback() {
-                    @Override
-                    public void callback(String error) {
-                        if (error != null) {
-                            result.error("presentRatingWidgetWithID failed", "Error: Encountered error while showing feedback dialog: [" + error + "]", error);
-                        } else {
-                            result.success("presentRatingWidgetWithID success.");
-                        }
-                        safeInvokeMethod("ratingWidgetCallback", error);
-                    }
-                });
-            } else if (call.method.equals("setStarRatingDialogTexts")) {
-                this.config.setStarRatingTextTitle(args.getString(0));
-                this.config.setStarRatingTextMessage(args.getString(1));
-                this.config.setStarRatingTextDismiss(args.getString(2));
-
-                result.success("setStarRatingDialogTexts Success");
-            } else if (call.method.equals("askForStarRating")) {
-                if (activity == null) {
-                    log("askForStarRating failed : Activity is null", LogLevel.ERROR);
-                    result.error("askForStarRating Failed", "Activity is null", null);
-                    return;
-                }
-                // The SDK skips the dialog without calling back when the consent is missing.
-                if (!Countly.sharedInstance().consent().getConsent(Countly.CountlyFeatureNames.starRating)) {
-                    log("askForStarRating failed : star-rating consent is not given", LogLevel.WARNING);
-                    result.success("askForStarRating failed: star-rating consent is not given");
-                    return;
-                }
-                Countly.sharedInstance().ratings().showStarRating(activity, new StarRatingCallback() {
-                    @Override
-                    public void onRate(int rating) {
-                        result.success("Rating: " + rating);
-                    }
-
-                    @Override
-                    public void onDismiss() {
-                        result.success("Rating: Modal dismissed.");
-                    }
-                });
-            } else if ("getAvailableFeedbackWidgets".equals(call.method)) {
-                Countly.sharedInstance().feedback().getAvailableFeedbackWidgets(new RetrieveFeedbackWidgets() {
-                    @Override
-                    public void onFinished(List<CountlyFeedbackWidget> retrievedWidgets, String error) {
-                        if (error != null) {
-                            result.error("getAvailableFeedbackWidgets", error, null);
-                            return;
-                        }
-                        retrievedWidgetList = new ArrayList(retrievedWidgets);
-                        List<Map<String, String>> retrievedWidgetsArray = new ArrayList<>();
-                        for (CountlyFeedbackWidget presentableFeedback : retrievedWidgets) {
-                            Map<String, String> feedbackWidget = new HashMap<>();
-                            feedbackWidget.put("id", presentableFeedback.widgetId);
-                            feedbackWidget.put("type", presentableFeedback.type.name());
-                            feedbackWidget.put("name", presentableFeedback.name);
-                            retrievedWidgetsArray.add(feedbackWidget);
-                        }
-                        result.success(retrievedWidgetsArray);
-                    }
-                });
-            } else if ("presentFeedbackWidget".equals(call.method)) {
-                if (activity == null) {
-                    log("presentFeedbackWidget failed : Activity is null", LogLevel.ERROR);
-                    result.error("presentFeedbackWidget Failed", "Activity is null", null);
-                    return;
-                }
-                String widgetId = args.getString(0);
-
-                CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
-                if (feedbackWidget == null) {
-                    String errorMessage = "[presentFeedbackWidget], No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
-                    log(errorMessage, LogLevel.WARNING);
-                    result.error("presentFeedbackWidget", errorMessage, null);
-                } else {
-                    // Versioned widgets report only onClosed, so whichever callback comes first answers the call.
-                    final AtomicBoolean replied = new AtomicBoolean(false);
-                    Countly.sharedInstance().feedback().presentFeedbackWidget(feedbackWidget, activity, new FeedbackCallback() {
-                        @Override
-                        public void onFinished(final String error) {
-                            if (error == null) {
-                                safeInvokeMethod("widgetShown", null);
-                            }
-                            if (!replied.compareAndSet(false, true)) {
-                                return;
-                            }
-                            runOnMainThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (error != null) {
-                                        result.error("presentFeedbackWidget", error, null);
-                                    } else {
-                                        result.success("presentFeedbackWidget success");
-                                    }
-                                }
-                            });
-                        }
-
-                        @Override
-                        public void onClosed() {
-                            safeInvokeMethod("widgetClosed", null);
-                            if (!replied.compareAndSet(false, true)) {
-                                return;
-                            }
-                            runOnMainThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    result.success("presentFeedbackWidget closed");
-                                }
-                            });
-                        }
-                    });
-                }
-            } else if ("presentNPS".equals(call.method) || "presentSurvey".equals(call.method) || "presentRating".equals(call.method)) {
-                if (activity == null) {
-                    log(call.method + " failed : Activity is null", LogLevel.ERROR);
-                    safeInvokeMethod("feedbackCallback_onFinished", "Activity is null");
-                    result.success(null);
-                    return;
-                }
-                String nameIDorTag = args.optString(0, "");
-                FeedbackCallback feedbackCallback = new FeedbackCallback() {
-                    @Override
-                    public void onFinished(String error) {
-                        safeInvokeMethod("feedbackCallback_onFinished", error);
-                    }
-
-                    @Override
-                    public void onClosed() {
-                        safeInvokeMethod("feedbackCallback_onClosed", null);
-                    }
-                };
-
-                if ("presentNPS".equals(call.method)) {
-                    Countly.sharedInstance().feedback().presentNPS(activity, nameIDorTag, feedbackCallback);
-                } else if ("presentSurvey".equals(call.method)) {
-                    Countly.sharedInstance().feedback().presentSurvey(activity, nameIDorTag, feedbackCallback);
-                } else {
-                    Countly.sharedInstance().feedback().presentRating(activity, nameIDorTag, feedbackCallback);
-                }
-                result.success(null);
-            }
-            else if ("getFeedbackWidgetData".equals(call.method)) {
-                String widgetId = args.getString(0);
-                CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
-                if (feedbackWidget == null) {
-                    String errorMessage = "[getFeedbackWidgetData], No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
-                    log(errorMessage, LogLevel.WARNING);
-                    result.error("getFeedbackWidgetData", errorMessage, null);
-                    feedbackWidgetDataCallback(null, errorMessage);
-                } else {
-                    Countly.sharedInstance().feedback().getFeedbackWidgetData(feedbackWidget, new RetrieveFeedbackWidgetData() {
-                        @Override
-                        public void onFinished(JSONObject retrievedWidgetData, String error) {
-                            if (error != null) {
-                                result.error("getFeedbackWidgetData", error, null);
-                                feedbackWidgetDataCallback(null, error);
-                            } else {
-                                try {
-                                    result.success(toMap(retrievedWidgetData));
-                                    feedbackWidgetDataCallback(toMap(retrievedWidgetData), null);
-
-                                } catch (JSONException e) {
-                                    result.error("getFeedbackWidgetData", e.getMessage(), null);
-                                    feedbackWidgetDataCallback(null, e.getMessage());
-                                }
-                            }
-                        }
-                    });
-                }
-            } else if ("reportFeedbackWidgetManually".equals(call.method)) {
-                JSONArray widgetInfo = args.getJSONArray(0);
-                JSONObject widgetData = args.getJSONObject(1);
-                JSONObject widgetResult = args.getJSONObject(2);
-                Map<String, Object> widgetResultMap = null;
-                if (widgetResult != null && widgetResult.length() > 0) {
-                    widgetResultMap = toMap(widgetResult);
-                }
-
-                String widgetId = widgetInfo.getString(0);
-
-                // TODO: for testing purposes we might want to bypass this check as it prevents us from using reportFeedbackWidgetManually directly
-                CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
-                if (feedbackWidget == null) {
-                    String errorMessage = "[reportFeedbackWidgetManually], No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
-                    log(errorMessage, LogLevel.WARNING);
-                    result.error("reportFeedbackWidgetManually", errorMessage, null);
-                } else {
-                    Countly.sharedInstance().feedback().reportFeedbackWidgetManually(feedbackWidget, widgetData, widgetResultMap);
-                    result.success("reportFeedbackWidgetManually success");
-                }
-            } else if ("replaceAllAppKeysInQueueWithCurrentAppKey".equals(call.method)) {
-                Countly.sharedInstance().requestQueue().overwriteAppKeys();
-                result.success("replaceAllAppKeysInQueueWithCurrentAppKey Success");
-            } else if ("removeDifferentAppKeysFromQueue".equals(call.method)) {
-                Countly.sharedInstance().requestQueue().eraseWrongAppKeyRequests();
-                result.success("removeDifferentAppKeysFromQueue Success");
-            } else if ("startTrace".equals(call.method)) {
-                String traceKey = args.getString(0);
-                Countly.sharedInstance().apm().startTrace(traceKey);
-                result.success("startTrace: success");
-            } else if ("cancelTrace".equals(call.method)) {
-                String traceKey = args.getString(0);
-                Countly.sharedInstance().apm().cancelTrace(traceKey);
-                result.success("cancelTrace: success");
-            } else if ("clearAllTraces".equals(call.method)) {
-                Countly.sharedInstance().apm().cancelAllTraces();
-                result.success("clearAllTraces: success");
-            } else if ("endTrace".equals(call.method)) {
-                String traceKey = args.getString(0);
-                HashMap<String, Integer> customMetric = new HashMap<>();
-                for (int i = 1, il = args.length(); i < il; i += 2) {
-                    try {
-                        customMetric.put(args.getString(i), Integer.parseInt(args.getString(i + 1)));
-                    } catch (Exception exception) {
-                        log("endTrace, could not parse metric, skipping it. ", exception, LogLevel.ERROR);
-                    }
-                }
-                Countly.sharedInstance().apm().endTrace(traceKey, customMetric);
-                result.success("endTrace: success");
-            } else if ("recordNetworkTrace".equals(call.method)) {
-                try {
-                    String networkTraceKey = args.getString(0);
-                    int responseCode = Integer.parseInt(args.getString(1));
-                    int requestPayloadSize = Integer.parseInt(args.getString(2));
-                    int responsePayloadSize = Integer.parseInt(args.getString(3));
-                    long startTime = Long.parseLong(args.getString(4));
-                    long endTime = Long.parseLong(args.getString(5));
-                    Countly.sharedInstance().apm().recordNetworkTrace(networkTraceKey, responseCode, requestPayloadSize, responsePayloadSize, startTime, endTime);
-                } catch (Exception exception) {
-                    log("Exception occurred at recordNetworkTrace method: ", exception, LogLevel.ERROR);
-                }
-                result.success("recordNetworkTrace: success");
-            } else if ("throwNativeException".equals(call.method)) {
-                triggerOverflow();
-            } else if ("recordIndirectAttribution".equals(call.method)) {
-                JSONObject attributionValues = args.getJSONObject(0);
-                if (attributionValues != null && attributionValues.length() > 0) {
-                    Map<String, String> attributionMap = toMapString(attributionValues);
-                    Countly.sharedInstance().attribution().recordIndirectAttribution(attributionMap);
-                    result.success("recordIndirectAttribution: success");
-                } else {
-                    result.error("recordIndirectAttribution Failed", "No attribution values provided", null);
-                }
-            } else if ("recordDirectAttribution".equals(call.method)) {
-                String campaignType = args.getString(0);
-                String campaignData = args.getString(1);
-
-                Countly.sharedInstance().attribution().recordDirectAttribution(campaignType, campaignData);
-                result.success("recordDirectAttribution: success");
-            } else if ("stopViewWithID".equals(call.method)) {
-                String viewId = args.getString(0);
-                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
-
-                Countly.sharedInstance().views().stopViewWithID(viewId, segmentation);
-                result.success(null);
-            } else if ("stopViewWithName".equals(call.method)) {
-                String viewName = args.getString(0);
-                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
-
-                Countly.sharedInstance().views().stopViewWithName(viewName, segmentation);
-                result.success(null);
-            } else if ("pauseViewWithID".equals(call.method)) {
-                String viewId = args.getString(0);
-                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
-
-                Countly.sharedInstance().views().pauseViewWithID(viewId);
-                result.success(null);
-            } else if ("resumeViewWithID".equals(call.method)) {
-                String viewId = args.getString(0);
-                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
-
-                Countly.sharedInstance().views().resumeViewWithID(viewId);
-                result.success(null);
-            } else if ("startView".equals(call.method)) {
-                String viewName = args.getString(0);
-                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
-
-                String viewId = Countly.sharedInstance().views().startView(viewName, segmentation);
-                result.success(viewId);
-            } else if ("setGlobalViewSegmentation".equals(call.method)) {
-                Map<String, Object> segmentation = toMap(args.getJSONObject(0));
-
-                Countly.sharedInstance().views().setGlobalViewSegmentation(segmentation);
-                result.success(null);
-            } else if ("updateGlobalViewSegmentation".equals(call.method)) {
-                Map<String, Object> segmentation = toMap(args.getJSONObject(0));
-
-                Countly.sharedInstance().views().updateGlobalViewSegmentation(segmentation);
-                result.success(null);
-            } else if ("stopAllViews".equals(call.method)) {
-                Map<String, Object> segmentation = toMap(args.getJSONObject(0));
-
-                Countly.sharedInstance().views().stopAllViews(segmentation);
-                result.success(null);
-            } else if ("addSegmentationToViewWithID".equals(call.method)) {
-                String viewId = args.getString(0);
-                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
-
-                Countly.sharedInstance().views().addSegmentationToViewWithID(viewId, segmentation);
-                result.success(null);
-            } else if ("addSegmentationToViewWithName".equals(call.method)) {
-                String viewName = args.getString(0);
-                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
-
-                Countly.sharedInstance().views().addSegmentationToViewWithName(viewName, segmentation);
-                result.success(null);
-            } else if ("startAutoStoppedView".equals(call.method)) {
-                String viewName = args.getString(0);
-                Map<String, Object> segmentation = toMap(args.getJSONObject(1));
-
-                String viewId = Countly.sharedInstance().views().startAutoStoppedView(viewName, segmentation);
-                result.success(viewId);
-            } else if ("appLoadingFinished".equals(call.method)) {
-                Countly.sharedInstance().apm().setAppIsLoaded();
-                result.success("appLoadingFinished: success");
-            } 
-            
-            //--------------Test Methods-------------------------------
-            else if ("getRequestQueue".equals(call.method)) {
-                CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
-                result.success(Arrays.asList(countlyStore.getRequests()));
-            } else if ("getEventQueue".equals(call.method)) {
-                CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
-                result.success(Arrays.asList(countlyStore.getEvents()));
-            } else if ("storeRequest".equals(call.method)) {
-                CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
-                countlyStore.addRequest(args.getString(0), true);
-                result.success("storeRequest: success");
-            } else if ("setServerConfig".equals(call.method)) {
-                CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
-                JSONObject jsonObject = args.getJSONObject(0);
-                countlyStore.setServerConfig(jsonObject.toString());
-                // Why this added here, it is that because when it is set something in storage
-                // sdk assumes that it is an older version so it start migrations that needs to be done
-                // but in this case we only want to use setting server config and do not want migrations
-                // to mess up our process flow. So in here we are setting it to latest known to get away with it.
-                // Normally in a fresh install migrations are first to run and they run once.
-                countlyStore.setDataSchemaVersion(DATA_SCHEMA_VERSIONS);
-                result.success("setServerConfig: success");
-            } else if ("getServerConfig".equals(call.method)) {
-                CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
-                String sc = countlyStore.getServerConfig();
-                Map<String, Object> serverConfigMap = new HashMap<>();
-                try {
-                    serverConfigMap = toMap(new JSONObject(sc));
-                } catch (JSONException ignored) {
-                }
-                result.success(serverConfigMap);
-            } else if ("addDirectRequest".equals(call.method)) {
-                JSONObject jsonObject = args.getJSONObject(0);
-                Map<String, String> requestMap = new HashMap<>();
-                for (Iterator<String> it = jsonObject.keys(); it.hasNext(); ) {
-                    String key = it.next();
-                    requestMap.put(key, jsonObject.get(key).toString());
-                }
-                Countly.sharedInstance().requestQueue().addDirectRequest(requestMap);
-                result.success("addDirectRequest: success");
-            } else if ("halt".equals(call.method)) {
-                Countly.sharedInstance().halt();
-                // Init keeps the request queue of the halted SDK in the config it was given, so the next init needs a new one.
-                this.config = new CountlyConfig();
-                result.success("halt: success");
-            } else if ("testOnNotification".equals(call.method)) {
-                JSONArray payloads = args.getJSONArray(0);
-                for (int i = 0; i < payloads.length(); i++) {
-                    JSONObject payload = payloads.getJSONObject(i);
-                    Map<String, String> notification = new HashMap<>();
-                    Iterator<String> keys = payload.keys();
-                    while (keys.hasNext()) {
-                        String key = keys.next();
-                        notification.put(key, payload.optString(key));
-                    }
-                    onNotification(notification);
-                }
-                result.success(null);
-            } else if ("testOnNotificationOpened".equals(call.method)) {
-                Map<String, String> notification = toMapString(args.getJSONObject(0));
-                String start = args.optString(1, "fresh");
-                Bundle messageBundle = new Bundle();
-                messageBundle.putParcelable(CountlyPush.EXTRA_MESSAGE, CountlyPush.decodeMessage(notification));
-                Intent clickIntent = new Intent();
-                clickIntent.putExtra(CountlyPush.EXTRA_MESSAGE, messageBundle);
-                clickIntent.putExtra(CountlyPush.EXTRA_ACTION_INDEX, args.optInt(2));
-                // The Activity gets the intent from another process, so it arrives parcelled.
-                Parcel parcel = Parcel.obtain();
-                try {
-                    clickIntent.writeToParcel(parcel, 0);
-                    parcel.setDataPosition(0);
-                    clickIntent = Intent.CREATOR.createFromParcel(parcel);
-                } finally {
-                    parcel.recycle();
-                }
-                if ("history".equals(start)) {
-                    clickIntent.addFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY);
-                }
-                if ("newIntent".equals(start)) {
-                    new Instrumentation().callActivityOnNewIntent(activity, clickIntent);
-                    new Instrumentation().callActivityOnNewIntent(activity, clickIntent);
-                } else {
-                    Bundle savedState = "restored".equals(start) ? new Bundle() : null;
-                    activity.setIntent(clickIntent);
-                    onRestoreInstanceState(savedState);
-                    onRestoreInstanceState(savedState);
-                }
-                result.success(null);
-            }
-            //------------------End------------------------------------
-
-            else if ("enterContentZone".equals(call.method)) {
-                Countly.sharedInstance().contents().enterContentZone();
-                result.success(null);
-            } else if ("exitContentZone".equals(call.method)) {
-                Countly.sharedInstance().contents().exitContentZone();
-                result.success(null);
-            } else if ("refreshContentZone".equals(call.method)) {
-                Countly.sharedInstance().contents().refreshContentZone();
-                result.success(null);
-            } else if ("previewContent".equals(call.method)) {
-                String contentId = call.argument("contentId");
-                Countly.sharedInstance().contents().previewContent(contentId);
-                result.success(null);
-            } else if ("setGlobalContentSegmentation".equals(call.method)) {
-                Countly.sharedInstance().contents().setGlobalContentSegmentation(toMap(args.getJSONObject(0)));
-                result.success(null);
-            }
-
-            else {
+            boolean handled = handleSetupCall(call, args, result)
+                || handleLocationAndCrashCall(call, args, result)
+                || handlePushCall(call, args, result)
+                || handleSessionAndEventCall(call, args, result)
+                || handleUserDataCall(call, args, result)
+                || handleUserProfileCall(call, args, result)
+                || handleConsentCall(call, args, result)
+                || handleRemoteConfigCall(call, args, result)
+                || handleRemoteConfigTestingCall(call, args, result)
+                || handleFeedbackCall(call, args, result)
+                || handleQueueApmAndAttributionCall(call, args, result)
+                || handleViewCall(call, args, result)
+                || handleInternalCall(call, args, result)
+                || handleContentCall(call, args, result);
+            if (!handled) {
                 result.notImplemented();
             }
 
         } catch (JSONException jsonException) {
             result.success(jsonException.toString());
         }
+    }
+
+    /**
+     * Handles init and the device ID, server, app key, queue and request settings calls.
+     *
+     * @param call the method call from Dart
+     * @param args the arguments of the call
+     * @param result the result to answer the call with
+     * @return true when the call was handled here
+     * @throws JSONException when the arguments cannot be read
+     */
+    private boolean handleSetupCall(MethodCall call, JSONArray args, final Result result) throws JSONException {
+        if ("init".equals(call.method)) {
+            if (context == null) {
+                log("valid context is required in Countly init, but was provided 'null'", LogLevel.ERROR);
+                result.error("init Failed", "valid context is required in Countly init, but was provided 'null'", null);
+                return true;
+            }
+
+            JSONObject config = args.getJSONObject(0);
+            this.config.setContext(context);
+            populateConfig(config);
+            Countly.sharedInstance().COUNTLY_SDK_NAME = BUILDING_WITH_PUSH_DISABLED ? COUNTLY_FLUTTER_SDK_NAME_NO_PUSH : COUNTLY_FLUTTER_SDK_NAME;
+            Countly.sharedInstance().COUNTLY_SDK_VERSION_STRING = COUNTLY_FLUTTER_SDK_VERSION_STRING;
+
+            this.config.RemoteConfigRegisterGlobalCallback(new RCDownloadCallback() {
+                @Override
+                public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
+                    notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestIDGlobalCallback);
+                }
+            });
+
+            Context applicationContext = context.getApplicationContext();
+            if (applicationContext instanceof Application) {
+                this.config.setApplication((Application) applicationContext);
+            } else {
+                log("init, the application context is not an Application, automatic session tracking will not work", LogLevel.WARNING);
+            }
+            if (activity != null) {
+                this.config.setInitialActivity(activity);
+            }
+            bindCallbackChannel();
+            Countly.sharedInstance().init(this.config);
+            if (pushAllowedIntentSchemes != null && applicationContext instanceof Application) {
+                // Notifications that arrive before "askForNotificationPermission" is called follow the allowed schemes too.
+                CountlyPush.init(pushConfig((Application) applicationContext));
+            }
+            result.success("initialized!");
+        } else if ("isInitialized".equals(call.method)) {
+            boolean isInitialized = Countly.sharedInstance().isInitialized();
+            if (isInitialized) {
+                result.success("true");
+
+            } else {
+                result.success("false");
+            }
+        } else if ("getID".equals(call.method)) {
+            String deviceID = Countly.sharedInstance().deviceId().getID();
+            result.success(deviceID);
+        } else if ("getIDType".equals(call.method)) {
+            DeviceIdType deviceIDType = Countly.sharedInstance().deviceId().getType();
+            String deviceIDTypeString = null;
+            switch (deviceIDType) {
+                case DEVELOPER_SUPPLIED:
+                    deviceIDTypeString = "DS";
+                    break;
+                case TEMPORARY_ID:
+                    deviceIDTypeString = "TID";
+                    break;
+                default:
+                    // OPEN_UDID is also SDK_GENERATED SG
+                    deviceIDTypeString = "SG";
+                    break;
+            }
+            result.success(deviceIDTypeString);
+        } else if ("setID".equals(call.method)) {
+            String newDeviceID = args.getString(0);
+            Countly.sharedInstance().deviceId().setID(newDeviceID);
+            result.success("SetID success!");
+        } else if ("changeWithMerge".equals(call.method)) {
+            String newDeviceID = args.getString(0);
+            Countly.sharedInstance().deviceId().changeWithMerge(newDeviceID);
+            result.success("changeWithMerge success!");
+        } else if ("changeWithoutMerge".equals(call.method)) {
+            String newDeviceID = args.getString(0);
+            Countly.sharedInstance().deviceId().changeWithoutMerge(newDeviceID);
+            result.success("changeWithoutMerge success!");
+        } else if ("enableTemporaryIDMode".equals(call.method)) {
+            Countly.sharedInstance().deviceId().enableTemporaryIdMode();
+            result.success("enableTemporaryIDMode success");
+        } else if ("attemptToSendStoredRequests".equals(call.method)) {
+            Countly.sharedInstance().requestQueue().attemptToSendStoredRequests();
+            result.success("attemptToSendStoredRequests success!");
+        } else if ("changeServerUrl".equals(call.method)) {
+            Countly.sharedInstance().requestQueue().changeServerUrl(args.getString(0));
+            result.success(null);
+        } else if ("changeAppKey".equals(call.method)) {
+            Countly.sharedInstance().requestQueue().changeAppKey(args.getString(0));
+            result.success(null);
+        } else if ("flushQueues".equals(call.method)) {
+            Countly.sharedInstance().requestQueue().flushQueues();
+            result.success(null);
+        } else if ("addCustomNetworkRequestHeaders".equals(call.method)) {
+            Map<String, String> customHeaderValues = toMapString(args.getJSONObject(0));
+            Countly.sharedInstance().requestQueue().addCustomNetworkRequestHeaders(customHeaderValues);
+            result.success("addCustomNetworkRequestHeaders success!");
+        } else if ("recordMetrics".equals(call.method)) {
+            Map<String, String> metricsOverride = toMapString(args.getJSONObject(0));
+            Countly.sharedInstance().requestQueue().recordMetrics(metricsOverride);
+            result.success("recordMetrics success!");
+        } else if ("setHttpPostForced".equals(call.method)) {
+            boolean isEnabled = args.getBoolean(0);
+            this.config.setHttpPostForced(isEnabled);
+            result.success("setHttpPostForced");
+        } else if ("enableParameterTamperingProtection".equals(call.method)) {
+            String salt = args.getString(0);
+            this.config.setParameterTamperingProtectionSalt(salt);
+            result.success("enableParameterTamperingProtection success!");
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Handles the location and crash reporting calls.
+     *
+     * @param call the method call from Dart
+     * @param args the arguments of the call
+     * @param result the result to answer the call with
+     * @return true when the call was handled here
+     * @throws JSONException when the arguments cannot be read
+     */
+    private boolean handleLocationAndCrashCall(MethodCall call, JSONArray args, final Result result) throws JSONException {
+        if ("setLocationInit".equals(call.method)) {
+            String countryCode = args.getString(0);
+            String city = args.getString(1);
+            String location = args.getString(2);
+            String ipAddress = args.getString(3);
+            this.config.setLocation(countryCode, city, location, ipAddress);
+
+            result.success("setLocationInit success!");
+        } else if ("setLocation".equals(call.method)) {
+            String latitude = args.getString(0);
+            String longitude = args.getString(1);
+            if (!latitude.equals("null") && !longitude.equals("null")) {
+                String latlng = latitude + "," + longitude;
+                Countly.sharedInstance().location().setLocation(null, null, latlng, null);
+            }
+            result.success("setLocation success!");
+        } else if ("setUserLocation".equals(call.method)) {
+            JSONObject location = args.getJSONObject(0);
+            String countryCode = optNullableString(location, "countryCode");
+            String city = optNullableString(location, "city");
+            String gpsCoordinates = optNullableString(location, "gpsCoordinates");
+            String ipAddress = optNullableString(location, "ipAddress");
+
+            Countly.sharedInstance().location().setLocation(countryCode, city, gpsCoordinates, ipAddress);
+            result.success("setUserLocation success!");
+        } else if ("disableLocation".equals(call.method)) {
+            Countly.sharedInstance().location().disableLocation();
+            result.success("disableLocation success!");
+        } else if ("addCrashLog".equals(call.method)) {
+            String record = args.getString(0);
+            Countly.sharedInstance().crashes().addCrashBreadcrumb(record);
+            result.success("addCrashLog success!");
+        } else if ("logException".equals(call.method)) {
+            String exceptionString = args.getString(0);
+            boolean nonfatal = args.getBoolean(1);
+            Exception exception = new Exception(exceptionString);
+            Map<String, Object> segments = new HashMap<>();
+            for (int i = 2, il = args.length(); i < il; i += 2) {
+                segments.put(args.getString(i), args.getString(i + 1));
+            }
+            if (nonfatal) {
+                Countly.sharedInstance().crashes().recordHandledException(exception, segments);
+            } else {
+                Countly.sharedInstance().crashes().recordUnhandledException(exception, segments);
+            }
+
+            result.success("logException success!");
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Handles the push notification calls.
+     *
+     * @param call the method call from Dart
+     * @param args the arguments of the call
+     * @param result the result to answer the call with
+     * @return true when the call was handled here
+     * @throws JSONException when the arguments cannot be read
+     */
+    private boolean handlePushCall(MethodCall call, JSONArray args, final Result result) throws JSONException {
+        if ("sendPushToken".equals(call.method)) {
+            String token = args.getString(0);
+            CountlyPush.onTokenRefresh(token);
+            result.success("success!");
+        } else if ("askForNotificationPermission".equals(call.method)) {
+            if (activity == null) {
+                log("askForNotificationPermission failed : Activity is null", LogLevel.ERROR);
+                result.error("askForNotificationPermission Failed", "Activity is null", null);
+                return true;
+            }
+            if (context == null) {
+                log("valid context is required in askForNotificationPermission, but was provided 'null'", LogLevel.ERROR);
+                result.error("askForNotificationPermission Failed", "valid context is required in Countly askForNotificationPermission, but was provided 'null'", null);
+                return true;
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                String channelName = "General Notifications";
+                String channelDescription = "Receive notifications about important updates and events.";
+                NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                if (notificationManager != null) {
+                    NotificationChannel channel = new NotificationChannel(CountlyPush.CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_DEFAULT);
+                    channel.setDescription(channelDescription);
+                    notificationManager.createNotificationChannel(channel);
+                }
+            }
+            requestNotificationPermission();
+            CountlyPush.init(pushConfig(activity.getApplication()));
+
+            result.success("askForNotificationPermission!");
+        } else if ("pushTokenType".equals(call.method)) {
+            log("pushTokenType has no effect on Android, where the messaging mode is no longer used", LogLevel.DEBUG);
+            result.success("pushTokenType!");
+        } else if ("registerForNotification".equals(call.method)) {
+            registerForNotification(args, new Callback() {
+                @Override
+                public void callback(final String resultString) {
+                    runOnMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            result.success(resultString);
+                        }
+                    });
+                }
+            });
+        } else if ("registerForNotificationOpened".equals(call.method)) {
+            registerForNotificationOpened(result);
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Handles the session, event and logging calls.
+     *
+     * @param call the method call from Dart
+     * @param args the arguments of the call
+     * @param result the result to answer the call with
+     * @return true when the call was handled here
+     * @throws JSONException when the arguments cannot be read
+     */
+    private boolean handleSessionAndEventCall(MethodCall call, JSONArray args, final Result result) throws JSONException {
+        if ("beginSession".equals(call.method)) {
+            Countly.sharedInstance().sessions().beginSession();
+            result.success("beginSession!");
+        } else if ("updateSession".equals(call.method)) {
+            Countly.sharedInstance().sessions().updateSession();
+            result.success("updateSession!");
+        } else if ("endSession".equals(call.method)) {
+            Countly.sharedInstance().sessions().endSession();
+            result.success("endSession!");
+        } else if ("manualSessionHandling".equals(call.method)) {
+            result.success("manualSessionHandling!");
+        } else if ("updateSessionPeriod".equals(call.method)) {
+            result.success("updateSessionPeriod!");
+        } else if ("updateSessionInterval".equals(call.method)) {
+            int sessionInterval = Integer.parseInt(args.getString(0));
+            this.config.setUpdateSessionTimerDelay(sessionInterval);
+            result.success("updateSessionInterval Success!");
+        } else if ("eventSendThreshold".equals(call.method)) {
+            int queueSize = Integer.parseInt(args.getString(0));
+            this.config.setEventQueueSizeToSend(queueSize);
+            result.success("eventSendThreshold!");
+        } else if ("storedRequestsLimit".equals(call.method)) {
+            log("storedRequestsLimit is deprecated and has no effect, use 'setMaxRequestQueueSize' of CountlyConfig instead", LogLevel.WARNING);
+            result.success("storedRequestsLimit: deprecated, no effect");
+        } else if ("startEvent".equals(call.method)) {
+            String startEvent = args.getString(0);
+            Countly.sharedInstance().events().startEvent(startEvent);
+            result.success("startEvent for: " + startEvent);
+        } else if ("cancelEvent".equals(call.method)) {
+            String cancelEvent = args.getString(0);
+            Countly.sharedInstance().events().cancelEvent(cancelEvent);
+            result.success("cancelEvent for: " + cancelEvent);
+        } else if ("endEvent".equals(call.method)) {
+            String key = args.getString(0);
+            int count = Integer.parseInt(args.getString(1));
+            double sum = Double.parseDouble(args.getString(2));
+            Map<String, Object> segmentation;
+            if (args.length() > 3) {
+                segmentation = toMap(args.getJSONObject(3));
+            } else {
+                segmentation = null;
+            }
+            // Map<String, Object> segmentation = toMap(args.getJSONObject(4));
+            
+            Countly.sharedInstance().events().endEvent(key, segmentation, count, sum);
+            result.success("endEvent for: " + key);
+        } else if ("recordEvent".equals(call.method)) {
+            String key = args.getString(0);
+            int count = Integer.parseInt(args.getString(1));
+            double sum = Double.parseDouble(args.getString(2));
+            int duration = Integer.parseInt(args.getString(3));
+            Map<String, Object> segmentation;
+            if (args.length() > 4) {
+                segmentation = toMap(args.getJSONObject(4));
+            } else {
+                segmentation = null;
+            }
+            // Map<String, Object> segmentation = toMap(args.getJSONObject(4));
+            
+            Countly.sharedInstance().events().recordEvent(key, segmentation, count, sum, duration);
+            result.success("recordEvent for: " + key);
+        } else if ("setLoggingEnabled".equals(call.method)) {
+            String loggingEnable = args.getString(0);
+            this.config.setLoggingEnabled(loggingEnable.equals("true"));
+            result.success("setLoggingEnabled success!");
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Handles the deprecated user data calls.
+     *
+     * @param call the method call from Dart
+     * @param args the arguments of the call
+     * @param result the result to answer the call with
+     * @return true when the call was handled here
+     * @throws JSONException when the arguments cannot be read
+     */
+    private boolean handleUserDataCall(MethodCall call, JSONArray args, final Result result) throws JSONException {
+        if ("setuserdata".equals(call.method)) {
+            JSONObject userData = args.getJSONObject(0);
+            Map<String, Object> bundle = new HashMap<>();
+
+            for (String key : USER_DETAIL_KEYS) {
+                if (userData.has(key)) {
+                    bundle.put(key, userData.getString(key));
+                }
+            }
+
+            Countly.sharedInstance().userProfile().setProperties(bundle);
+            Countly.sharedInstance().userProfile().save();
+
+            result.success("setuserdata success");
+        } else if ("userData_setProperty".equals(call.method)) {
+            String keyName = args.getString(0);
+            String keyValue = args.getString(1);
+            Countly.sharedInstance().userProfile().setProperty(keyName, keyValue);
+            Countly.sharedInstance().userProfile().save();
+            result.success("userData_setProperty success!");
+        } else if ("userData_increment".equals(call.method)) {
+            String keyName = args.getString(0);
+            Countly.sharedInstance().userProfile().increment(keyName);
+            Countly.sharedInstance().userProfile().save();
+            result.success("userData_increment success!");
+        } else if ("userData_incrementBy".equals(call.method)) {
+            String keyName = args.getString(0);
+            int keyIncrement = Integer.parseInt(args.getString(1));
+            Countly.sharedInstance().userProfile().incrementBy(keyName, keyIncrement);
+            Countly.sharedInstance().userProfile().save();
+            result.success("userData_incrementBy success!");
+        } else if ("userData_multiply".equals(call.method)) {
+            String keyName = args.getString(0);
+            int multiplyValue = Integer.parseInt(args.getString(1));
+            Countly.sharedInstance().userProfile().multiply(keyName, multiplyValue);
+            Countly.sharedInstance().userProfile().save();
+            result.success("userData_multiply success!");
+        } else if ("userData_saveMax".equals(call.method)) {
+            String keyName = args.getString(0);
+            int maxScore = Integer.parseInt(args.getString(1));
+            Countly.sharedInstance().userProfile().saveMax(keyName, maxScore);
+            Countly.sharedInstance().userProfile().save();
+            result.success("userData_saveMax success!");
+        } else if ("userData_saveMin".equals(call.method)) {
+            String keyName = args.getString(0);
+            int minScore = Integer.parseInt(args.getString(1));
+            Countly.sharedInstance().userProfile().saveMin(keyName, minScore);
+            Countly.sharedInstance().userProfile().save();
+            result.success("userData_saveMin success!");
+        } else if ("userData_setOnce".equals(call.method)) {
+            String keyName = args.getString(0);
+            String minScore = args.getString(1);
+            Countly.sharedInstance().userProfile().setOnce(keyName, minScore);
+            Countly.sharedInstance().userProfile().save();
+            result.success("userData_setOnce success!");
+        } else if ("userData_pushUniqueValue".equals(call.method)) {
+            String type = args.getString(0);
+            String pushUniqueValue = args.getString(1);
+            Countly.sharedInstance().userProfile().pushUnique(type, pushUniqueValue);
+            Countly.sharedInstance().userProfile().save();
+            result.success("userData_pushUniqueValue success!");
+        } else if ("userData_pushValue".equals(call.method)) {
+            String type = args.getString(0);
+            String pushValue = args.getString(1);
+            Countly.sharedInstance().userProfile().push(type, pushValue);
+            Countly.sharedInstance().userProfile().save();
+            result.success("userData_pushValue success!");
+        } else if ("userData_pullValue".equals(call.method)) {
+            String type = args.getString(0);
+            String pullValue = args.getString(1);
+            Countly.sharedInstance().userProfile().pull(type, pullValue);
+            Countly.sharedInstance().userProfile().save();
+            result.success("userData_pullValue success!");
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Handles the user profile calls.
+     *
+     * @param call the method call from Dart
+     * @param args the arguments of the call
+     * @param result the result to answer the call with
+     * @return true when the call was handled here
+     * @throws JSONException when the arguments cannot be read
+     */
+    private boolean handleUserProfileCall(MethodCall call, JSONArray args, final Result result) throws JSONException {
+        if ("userProfile_setProperties".equals(call.method)) {
+            JSONObject properties = args.getJSONObject(0);
+            Map<String, Object> propertiesMap = toMap(properties);
+            Countly.sharedInstance().userProfile().setProperties(propertiesMap);
+            result.success(null);
+        } else if ("userProfile_setProperty".equals(call.method)) {
+            String key = args.getString(0);
+            Object value = args.get(1);
+            if (!(value instanceof String || value instanceof Number || value instanceof Boolean)) {
+                value = String.valueOf(value);
+            }
+            Countly.sharedInstance().userProfile().setProperty(key, value);
+            result.success(null);
+        } else if ("userProfile_increment".equals(call.method)) {
+            String key = args.getString(0);
+            Countly.sharedInstance().userProfile().increment(key);
+            result.success(null);
+        } else if ("userProfile_incrementBy".equals(call.method)) {
+            String key = args.getString(0);
+            int value = args.getInt(1);
+            Countly.sharedInstance().userProfile().incrementBy(key, value);
+            result.success(null);
+        } else if ("userProfile_multiply".equals(call.method)) {
+            String key = args.getString(0);
+            int value = args.getInt(1);
+            Countly.sharedInstance().userProfile().multiply(key, value);
+            result.success(null);
+        } else if ("userProfile_saveMax".equals(call.method)) {
+            String key = args.getString(0);
+            int value = args.getInt(1);
+            Countly.sharedInstance().userProfile().saveMax(key, value);
+            result.success(null);
+        } else if ("userProfile_saveMin".equals(call.method)) {
+            String key = args.getString(0);
+            int value = args.getInt(1);
+            Countly.sharedInstance().userProfile().saveMin(key, value);
+            result.success(null);
+        } else if ("userProfile_setOnce".equals(call.method)) {
+            String key = args.getString(0);
+            String value = args.getString(1);
+            Countly.sharedInstance().userProfile().setOnce(key, value);
+            result.success(null);
+        } else if ("userProfile_pushUnique".equals(call.method)) {
+            String key = args.getString(0);
+            String value = args.getString(1);
+            Countly.sharedInstance().userProfile().pushUnique(key, value);
+            result.success(null);
+        } else if ("userProfile_push".equals(call.method)) {
+            String key = args.getString(0);
+            String value = args.getString(1);
+            Countly.sharedInstance().userProfile().push(key, value);
+            result.success(null);
+        } else if ("userProfile_pull".equals(call.method)) {
+            String key = args.getString(0);
+            String value = args.getString(1);
+            Countly.sharedInstance().userProfile().pull(key, value);
+            result.success(null);
+        } else if ("userProfile_save".equals(call.method)) {
+            Countly.sharedInstance().userProfile().save();
+            result.success(null);
+        } else if ("userProfile_clear".equals(call.method)) {
+            Countly.sharedInstance().userProfile().clear();
+            result.success(null);
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Handles the consent, rating and optional init parameter calls.
+     *
+     * @param call the method call from Dart
+     * @param args the arguments of the call
+     * @param result the result to answer the call with
+     * @return true when the call was handled here
+     * @throws JSONException when the arguments cannot be read
+     */
+    private boolean handleConsentCall(MethodCall call, JSONArray args, final Result result) throws JSONException {
+        if ("setRequiresConsent".equals(call.method)) {
+            boolean consentFlag = args.getBoolean(0);
+            this.config.setRequiresConsent(consentFlag);
+            result.success("setRequiresConsent!");
+        } else if ("giveConsentInit".equals(call.method)) {
+            String[] features = new String[args.length()];
+            for (int i = 0; i < args.length(); i++) {
+                features[i] = args.getString(i);
+            }
+            this.config.setConsentEnabled(features);
+            result.success("giveConsentInit!");
+        } else if ("giveConsent".equals(call.method)) {
+            String[] features = new String[args.length()];
+            for (int i = 0; i < args.length(); i++) {
+                features[i] = args.getString(i);
+            }
+            Countly.sharedInstance().consent().giveConsent(features);
+            result.success("giveConsent!");
+        } else if ("removeConsent".equals(call.method)) {
+            String[] features = new String[args.length()];
+            for (int i = 0; i < args.length(); i++) {
+                features[i] = args.getString(i);
+            }
+            Countly.sharedInstance().consent().removeConsent(features);
+            result.success("removeConsent!");
+        } else if ("giveAllConsent".equals(call.method)) {
+            Countly.sharedInstance().consent().giveConsentAll();
+            result.success("giveAllConsent!");
+        } else if ("removeAllConsent".equals(call.method)) {
+            Countly.sharedInstance().consent().removeConsentAll();
+            result.success("removeAllConsent!");
+        } else if ("sendRating".equals(call.method)) {
+            String ratingString = args.getString(0);
+            int rating = Integer.parseInt(ratingString);
+
+            Map<String, Object> segm = new HashMap<>();
+            segm.put("platform", "android");
+            segm.put("rating", "" + rating);
+            Countly.sharedInstance().events().recordEvent("[CLY]_star_rating", segm, 1);
+            result.success("sendRating: " + ratingString);
+        } else if ("setOptionalParametersForInitialization".equals(call.method)) {
+            String city = args.getString(0);
+            String country = args.getString(1);
+            String latitude = args.getString(2);
+            String longitude = args.getString(3);
+            String ipAddress = args.getString(4);
+            String latlng = null;
+            if (city.length() == 0 || city.equals("null")) {
+                city = null;
+            }
+            if (country.equals("null")) {
+                country = null;
+            }
+            if (!latitude.equals("null") && !longitude.equals("null")) {
+                latlng = latitude + "," + longitude;
+            }
+            if (ipAddress.equals("null")) {
+                ipAddress = null;
+            }
+            Countly.sharedInstance().location().setLocation(country, city, latlng, ipAddress);
+
+            result.success("setOptionalParametersForInitialization sent.");
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Handles the remote config download, value and A/B test calls.
+     *
+     * @param call the method call from Dart
+     * @param args the arguments of the call
+     * @param result the result to answer the call with
+     * @return true when the call was handled here
+     * @throws JSONException when the arguments cannot be read
+     */
+    private boolean handleRemoteConfigCall(MethodCall call, JSONArray args, final Result result) throws JSONException {
+        if ("remoteConfigDownloadValues".equals(call.method)) {
+            int requestID = args.getInt(0);
+            Countly.sharedInstance().remoteConfig().downloadAllKeys(new RCDownloadCallback() {
+                @Override
+                public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
+                    if (requestID == requestIDNoCallback) {
+                        return;
+                    }
+                    notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestID);
+                }
+            });
+
+            result.success(null);
+        } else if ("remoteConfigDownloadSpecificValue".equals(call.method)) {
+            int requestID = args.getInt(0);
+            JSONArray jArr = args.getJSONArray(1);
+
+            String[] keysOnly = new String[jArr.length()];
+            for (int i = 0, il = jArr.length(); i < il; i++) {
+                keysOnly[i] = jArr.getString(i);
+            }
+
+            log("remoteConfigDownloadSpecificValue TEST, " + requestID + " , " + keysOnly, LogLevel.WARNING);
+
+            Countly.sharedInstance().remoteConfig().downloadSpecificKeys(keysOnly, new RCDownloadCallback() {
+                @Override
+                public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
+                    if (requestID == requestIDNoCallback) {
+                        return;
+                    }
+                    notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestID);
+                }
+            });
+
+            result.success(null);
+        } else if ("remoteConfigDownloadOmittingValues".equals(call.method)) {
+            int requestID = args.getInt(0);
+            JSONArray jArr = args.getJSONArray(1);
+
+            String[] omitedKeys = new String[jArr.length()];
+            for (int i = 0, il = jArr.length(); i < il; i++) {
+                omitedKeys[i] = jArr.getString(i);
+            }
+
+            log("remoteConfigDownloadOmittingValues TEST, " + requestID + " , " + omitedKeys, LogLevel.WARNING);
+
+            Countly.sharedInstance().remoteConfig().downloadOmittingKeys(omitedKeys, new RCDownloadCallback() {
+                @Override
+                public void callback(RequestResult downloadResult, String error, boolean fullValueUpdate, Map<String, RCData> downloadedValues) {
+                    if (requestID == requestIDNoCallback) {
+                        return;
+                    }
+                    notifyPublicChannelRCDL(downloadResult, error, fullValueUpdate, downloadedValues, requestID);
+                }
+            });
+
+            result.success(null);
+        } else if ("remoteConfigGetAllValues".equals(call.method)) {
+            log("remoteConfigGetAllValues", LogLevel.WARNING);
+
+            Map<String, RCData> rawDownloadedValues = Countly.sharedInstance().remoteConfig().getValues();
+
+            Map<String, Object> transformedDownloadedValues = transformMapIntoSendableForm(rawDownloadedValues);
+            result.success(transformedDownloadedValues);
+        } else if ("remoteConfigGetValue".equals(call.method)) {
+            String key = args.getString(0);
+            log("remoteConfigGetValue, " + key, LogLevel.WARNING);
+
+            RCData data = Countly.sharedInstance().remoteConfig().getValue(key);
+            Map<String, Object> transData = transformRCDataIntoSendableForm(data);
+
+            result.success(transData);
+        } else if ("remoteConfigGetValueAndEnroll".equals(call.method)) {
+            String key = args.getString(0);
+            log("remoteConfigGetValueAndEnroll, " + key, LogLevel.INFO);
+
+            RCData data = Countly.sharedInstance().remoteConfig().getValueAndEnroll(key);
+            Map<String, Object> transData = transformRCDataIntoSendableForm(data);
+
+            result.success(transData);
+        } else if ("remoteConfigGetAllValuesAndEnroll".equals(call.method)) {
+            log("remoteConfigGetAllValuesAndEnroll", LogLevel.INFO);
+
+            Map<String, RCData> rawDownloadedValues = Countly.sharedInstance().remoteConfig().getAllValuesAndEnroll();
+
+            Map<String, Object> transformedDownloadedValues = transformMapIntoSendableForm(rawDownloadedValues);
+            result.success(transformedDownloadedValues);
+        } else if ("remoteConfigClearAllValues".equals(call.method)) {
+            log("remoteConfigClearAllValues", LogLevel.WARNING);
+
+            Countly.sharedInstance().remoteConfig().clearAll();
+
+            result.success(null);
+        } else if ("remoteConfigEnrollIntoABTestsForKeys".equals(call.method)) {
+            JSONArray jArr = args.getJSONArray(0);
+
+            String[] keys = new String[jArr.length()];
+            for (int i = 0, il = jArr.length(); i < il; i++) {
+                keys[i] = jArr.getString(i);
+            }
+
+            log("remoteConfigEnrollIntoABTestsForKeys, " + keys, LogLevel.WARNING);
+
+            Countly.sharedInstance().remoteConfig().enrollIntoABTestsForKeys(keys);
+
+            result.success(null);
+        } else if ("remoteConfigExitABTestsForKeys".equals(call.method)) {
+            JSONArray jArr = args.getJSONArray(0);
+
+            String[] keys = new String[jArr.length()];
+            for (int i = 0, il = jArr.length(); i < il; i++) {
+                keys[i] = jArr.getString(i);
+            }
+
+            log("remoteConfigExitABTestsForKeys, " + keys, LogLevel.WARNING);
+
+            Countly.sharedInstance().remoteConfig().exitABTestsForKeys(keys);
+
+            result.success(null);
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Handles the remote config variant and experiment calls.
+     *
+     * @param call the method call from Dart
+     * @param args the arguments of the call
+     * @param result the result to answer the call with
+     * @return true when the call was handled here
+     * @throws JSONException when the arguments cannot be read
+     */
+    private boolean handleRemoteConfigTestingCall(MethodCall call, JSONArray args, final Result result) throws JSONException {
+        if ("remoteConfigTestingGetVariantsForKey".equals(call.method)) {
+            String key = args.getString(0);
+            log("remoteConfigTestingGetVariantsForKey", LogLevel.WARNING);
+
+            String[] variants = Countly.sharedInstance().remoteConfig().testingGetVariantsForKey(key);
+
+            List<String> convertedVariants = null;
+            if (variants != null) {
+                convertedVariants = Arrays.asList(variants);
+            }
+
+            result.success(convertedVariants);
+        } else if ("remoteConfigTestingGetAllVariants".equals(call.method)) {
+            log("remoteConfigTestingGetAllVariants", LogLevel.WARNING);
+
+            Map<String, String[]> variants = Countly.sharedInstance().remoteConfig().testingGetAllVariants();
+
+            Map<String, List<String>> convertedVariants = new HashMap<>();
+            for (Map.Entry<String, String[]> entry : variants.entrySet()) {
+                convertedVariants.put(entry.getKey(), Arrays.asList(entry.getValue()));
+            } // TODO: Make better
+        
+            result.success(convertedVariants);
+        } else if ("remoteConfigTestingDownloadVariantInformation".equals(call.method)) {
+            int requestID = args.getInt(0);
+
+            log("remoteConfigTestingDownloadVariantInformation", LogLevel.WARNING);
+
+            Countly.sharedInstance().remoteConfig().testingDownloadVariantInformation((rResult, error) -> {
+                if (requestID == requestIDNoCallback) {
+                    return;
+                }
+                Map<String, Object> data = new HashMap<>();
+                data.put("error", error);
+                data.put("requestResult", resultResponder(rResult));
+                data.put("id", requestID);
+                safeInvokeMethod("remoteConfigVariantCallback", data);
+            });
+
+            result.success(null);
+        } else if ("testingDownloadExperimentInformation".equals(call.method)) {
+            int requestID = args.getInt(0);
+
+            log("testingDownloadExperimentInformation", LogLevel.WARNING);
+
+            Countly.sharedInstance().remoteConfig().testingDownloadExperimentInformation((rResult, error) -> {
+                if (requestID == requestIDNoCallback) {
+                    return;
+                }
+                Map<String, Object> data = new HashMap<>();
+                data.put("error", error);
+                data.put("requestResult", resultResponder(rResult));
+                data.put("id", requestID);
+                safeInvokeMethod("remoteConfigVariantCallback", data);
+            });
+
+            result.success(null);
+        } else if ("testingGetAllExperimentInfo".equals(call.method)) {
+            Map<String, ExperimentInformation> experimentInfoMap = Countly.sharedInstance().remoteConfig().testingGetAllExperimentInfo();
+            List<Map<String, Object>> experimentInfoArray = new ArrayList<>();
+            for (Map.Entry<String, ExperimentInformation> entry : experimentInfoMap.entrySet()) {
+                ExperimentInformation experimentInfo = entry.getValue();
+                Map<String, Object> experimentInfoValue = new HashMap<>();
+                experimentInfoValue.put("experimentID", experimentInfo.experimentID);
+                experimentInfoValue.put("experimentName", experimentInfo.experimentName);
+                experimentInfoValue.put("experimentDescription", experimentInfo.experimentDescription);
+                experimentInfoValue.put("currentVariant", experimentInfo.currentVariant == "null" ? "" : experimentInfo.currentVariant ); // equating to iOS behavior
+                experimentInfoValue.put("variants", experimentInfo.variants);
+                experimentInfoArray.add(experimentInfoValue);
+            }
+            result.success(experimentInfoArray);
+        } else if ("remoteConfigTestingEnrollIntoVariant".equals(call.method)) {
+            int requestID = args.getInt(0);
+            String key = args.getString(1);
+            String variant = args.getString(2);
+            log("remoteConfigTestingEnrollIntoVariant", LogLevel.WARNING);
+
+            Countly.sharedInstance().remoteConfig().testingEnrollIntoVariant(key, variant, (rResult, error) -> {
+                if (requestID == requestIDNoCallback) {
+                    return;
+                }
+                Map<String, Object> data = new HashMap<>();
+                data.put("error", error);
+                data.put("requestResult", resultResponder(rResult));
+                data.put("id", requestID);
+                safeInvokeMethod("remoteConfigVariantCallback", data);
+            });
+
+            result.success(null);
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Handles the rating and feedback widget calls.
+     *
+     * @param call the method call from Dart
+     * @param args the arguments of the call
+     * @param result the result to answer the call with
+     * @return true when the call was handled here
+     * @throws JSONException when the arguments cannot be read
+     */
+    private boolean handleFeedbackCall(MethodCall call, JSONArray args, final Result result) throws JSONException {
+        if ("presentRatingWidgetWithID".equals(call.method)) {
+            if (activity == null) {
+                log("presentRatingWidgetWithID failed : Activity is null", LogLevel.ERROR);
+                result.error("presentRatingWidgetWithID failed", "Activity is null", null);
+                return true;
+            }
+            String widgetId = args.getString(0);
+            String closeButtonText = args.getString(1);
+            Countly.sharedInstance().ratings().presentRatingWidgetWithID(widgetId, closeButtonText, activity, new FeedbackRatingCallback() {
+                @Override
+                public void callback(String error) {
+                    if (error != null) {
+                        result.error("presentRatingWidgetWithID failed", "Error: Encountered error while showing feedback dialog: [" + error + "]", error);
+                    } else {
+                        result.success("presentRatingWidgetWithID success.");
+                    }
+                    safeInvokeMethod("ratingWidgetCallback", error);
+                }
+            });
+        } else if (call.method.equals("setStarRatingDialogTexts")) {
+            this.config.setStarRatingTextTitle(args.getString(0));
+            this.config.setStarRatingTextMessage(args.getString(1));
+            this.config.setStarRatingTextDismiss(args.getString(2));
+
+            result.success("setStarRatingDialogTexts Success");
+        } else if (call.method.equals("askForStarRating")) {
+            if (activity == null) {
+                log("askForStarRating failed : Activity is null", LogLevel.ERROR);
+                result.error("askForStarRating Failed", "Activity is null", null);
+                return true;
+            }
+            // The SDK skips the dialog without calling back when the consent is missing.
+            if (!Countly.sharedInstance().consent().getConsent(Countly.CountlyFeatureNames.starRating)) {
+                log("askForStarRating failed : star-rating consent is not given", LogLevel.WARNING);
+                result.success("askForStarRating failed: star-rating consent is not given");
+                return true;
+            }
+            Countly.sharedInstance().ratings().showStarRating(activity, new StarRatingCallback() {
+                @Override
+                public void onRate(int rating) {
+                    result.success("Rating: " + rating);
+                }
+
+                @Override
+                public void onDismiss() {
+                    result.success("Rating: Modal dismissed.");
+                }
+            });
+        } else if ("getAvailableFeedbackWidgets".equals(call.method)) {
+            Countly.sharedInstance().feedback().getAvailableFeedbackWidgets(new RetrieveFeedbackWidgets() {
+                @Override
+                public void onFinished(List<CountlyFeedbackWidget> retrievedWidgets, String error) {
+                    if (error != null) {
+                        result.error("getAvailableFeedbackWidgets", error, null);
+                        return;
+                    }
+                    retrievedWidgetList = new ArrayList(retrievedWidgets);
+                    List<Map<String, String>> retrievedWidgetsArray = new ArrayList<>();
+                    for (CountlyFeedbackWidget presentableFeedback : retrievedWidgets) {
+                        Map<String, String> feedbackWidget = new HashMap<>();
+                        feedbackWidget.put("id", presentableFeedback.widgetId);
+                        feedbackWidget.put("type", presentableFeedback.type.name());
+                        feedbackWidget.put("name", presentableFeedback.name);
+                        retrievedWidgetsArray.add(feedbackWidget);
+                    }
+                    result.success(retrievedWidgetsArray);
+                }
+            });
+        } else if ("presentFeedbackWidget".equals(call.method)) {
+            if (activity == null) {
+                log("presentFeedbackWidget failed : Activity is null", LogLevel.ERROR);
+                result.error("presentFeedbackWidget Failed", "Activity is null", null);
+                return true;
+            }
+            String widgetId = args.getString(0);
+
+            CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
+            if (feedbackWidget == null) {
+                String errorMessage = "[presentFeedbackWidget], No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
+                log(errorMessage, LogLevel.WARNING);
+                result.error("presentFeedbackWidget", errorMessage, null);
+            } else {
+                // Versioned widgets report only onClosed, so whichever callback comes first answers the call.
+                final AtomicBoolean replied = new AtomicBoolean(false);
+                Countly.sharedInstance().feedback().presentFeedbackWidget(feedbackWidget, activity, new FeedbackCallback() {
+                    @Override
+                    public void onFinished(final String error) {
+                        if (error == null) {
+                            safeInvokeMethod("widgetShown", null);
+                        }
+                        if (!replied.compareAndSet(false, true)) {
+                            return;
+                        }
+                        runOnMainThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (error != null) {
+                                    result.error("presentFeedbackWidget", error, null);
+                                } else {
+                                    result.success("presentFeedbackWidget success");
+                                }
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onClosed() {
+                        safeInvokeMethod("widgetClosed", null);
+                        if (!replied.compareAndSet(false, true)) {
+                            return;
+                        }
+                        runOnMainThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                result.success("presentFeedbackWidget closed");
+                            }
+                        });
+                    }
+                });
+            }
+        } else if ("presentNPS".equals(call.method) || "presentSurvey".equals(call.method) || "presentRating".equals(call.method)) {
+            if (activity == null) {
+                log(call.method + " failed : Activity is null", LogLevel.ERROR);
+                safeInvokeMethod("feedbackCallback_onFinished", "Activity is null");
+                result.success(null);
+                return true;
+            }
+            String nameIDorTag = args.optString(0, "");
+            FeedbackCallback feedbackCallback = new FeedbackCallback() {
+                @Override
+                public void onFinished(String error) {
+                    safeInvokeMethod("feedbackCallback_onFinished", error);
+                }
+
+                @Override
+                public void onClosed() {
+                    safeInvokeMethod("feedbackCallback_onClosed", null);
+                }
+            };
+
+            if ("presentNPS".equals(call.method)) {
+                Countly.sharedInstance().feedback().presentNPS(activity, nameIDorTag, feedbackCallback);
+            } else if ("presentSurvey".equals(call.method)) {
+                Countly.sharedInstance().feedback().presentSurvey(activity, nameIDorTag, feedbackCallback);
+            } else {
+                Countly.sharedInstance().feedback().presentRating(activity, nameIDorTag, feedbackCallback);
+            }
+            result.success(null);
+        } else if ("getFeedbackWidgetData".equals(call.method)) {
+            String widgetId = args.getString(0);
+            CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
+            if (feedbackWidget == null) {
+                String errorMessage = "[getFeedbackWidgetData], No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
+                log(errorMessage, LogLevel.WARNING);
+                result.error("getFeedbackWidgetData", errorMessage, null);
+                feedbackWidgetDataCallback(null, errorMessage);
+            } else {
+                Countly.sharedInstance().feedback().getFeedbackWidgetData(feedbackWidget, new RetrieveFeedbackWidgetData() {
+                    @Override
+                    public void onFinished(JSONObject retrievedWidgetData, String error) {
+                        if (error != null) {
+                            result.error("getFeedbackWidgetData", error, null);
+                            feedbackWidgetDataCallback(null, error);
+                        } else {
+                            try {
+                                result.success(toMap(retrievedWidgetData));
+                                feedbackWidgetDataCallback(toMap(retrievedWidgetData), null);
+
+                            } catch (JSONException e) {
+                                result.error("getFeedbackWidgetData", e.getMessage(), null);
+                                feedbackWidgetDataCallback(null, e.getMessage());
+                            }
+                        }
+                    }
+                });
+            }
+        } else if ("reportFeedbackWidgetManually".equals(call.method)) {
+            JSONArray widgetInfo = args.getJSONArray(0);
+            JSONObject widgetData = args.getJSONObject(1);
+            JSONObject widgetResult = args.getJSONObject(2);
+            Map<String, Object> widgetResultMap = null;
+            if (widgetResult != null && widgetResult.length() > 0) {
+                widgetResultMap = toMap(widgetResult);
+            }
+
+            String widgetId = widgetInfo.getString(0);
+
+            // TODO: for testing purposes we might want to bypass this check as it prevents us from using reportFeedbackWidgetManually directly
+            CountlyFeedbackWidget feedbackWidget = getFeedbackWidget(widgetId);
+            if (feedbackWidget == null) {
+                String errorMessage = "[reportFeedbackWidgetManually], No feedbackWidget is found against widget id : '" + widgetId + "' , always call 'getFeedbackWidgets' to get updated list of feedback widgets.";
+                log(errorMessage, LogLevel.WARNING);
+                result.error("reportFeedbackWidgetManually", errorMessage, null);
+            } else {
+                Countly.sharedInstance().feedback().reportFeedbackWidgetManually(feedbackWidget, widgetData, widgetResultMap);
+                result.success("reportFeedbackWidgetManually success");
+            }
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Handles the queue, performance monitoring and attribution calls.
+     *
+     * @param call the method call from Dart
+     * @param args the arguments of the call
+     * @param result the result to answer the call with
+     * @return true when the call was handled here
+     * @throws JSONException when the arguments cannot be read
+     */
+    private boolean handleQueueApmAndAttributionCall(MethodCall call, JSONArray args, final Result result) throws JSONException {
+        if ("replaceAllAppKeysInQueueWithCurrentAppKey".equals(call.method)) {
+            Countly.sharedInstance().requestQueue().overwriteAppKeys();
+            result.success("replaceAllAppKeysInQueueWithCurrentAppKey Success");
+        } else if ("removeDifferentAppKeysFromQueue".equals(call.method)) {
+            Countly.sharedInstance().requestQueue().eraseWrongAppKeyRequests();
+            result.success("removeDifferentAppKeysFromQueue Success");
+        } else if ("startTrace".equals(call.method)) {
+            String traceKey = args.getString(0);
+            Countly.sharedInstance().apm().startTrace(traceKey);
+            result.success("startTrace: success");
+        } else if ("cancelTrace".equals(call.method)) {
+            String traceKey = args.getString(0);
+            Countly.sharedInstance().apm().cancelTrace(traceKey);
+            result.success("cancelTrace: success");
+        } else if ("clearAllTraces".equals(call.method)) {
+            Countly.sharedInstance().apm().cancelAllTraces();
+            result.success("clearAllTraces: success");
+        } else if ("endTrace".equals(call.method)) {
+            String traceKey = args.getString(0);
+            HashMap<String, Integer> customMetric = new HashMap<>();
+            for (int i = 1, il = args.length(); i < il; i += 2) {
+                try {
+                    customMetric.put(args.getString(i), Integer.parseInt(args.getString(i + 1)));
+                } catch (Exception exception) {
+                    log("endTrace, could not parse metric, skipping it. ", exception, LogLevel.ERROR);
+                }
+            }
+            Countly.sharedInstance().apm().endTrace(traceKey, customMetric);
+            result.success("endTrace: success");
+        } else if ("recordNetworkTrace".equals(call.method)) {
+            try {
+                String networkTraceKey = args.getString(0);
+                int responseCode = Integer.parseInt(args.getString(1));
+                int requestPayloadSize = Integer.parseInt(args.getString(2));
+                int responsePayloadSize = Integer.parseInt(args.getString(3));
+                long startTime = Long.parseLong(args.getString(4));
+                long endTime = Long.parseLong(args.getString(5));
+                Countly.sharedInstance().apm().recordNetworkTrace(networkTraceKey, responseCode, requestPayloadSize, responsePayloadSize, startTime, endTime);
+            } catch (Exception exception) {
+                log("Exception occurred at recordNetworkTrace method: ", exception, LogLevel.ERROR);
+            }
+            result.success("recordNetworkTrace: success");
+        } else if ("throwNativeException".equals(call.method)) {
+            triggerOverflow();
+        } else if ("recordIndirectAttribution".equals(call.method)) {
+            JSONObject attributionValues = args.getJSONObject(0);
+            if (attributionValues != null && attributionValues.length() > 0) {
+                Map<String, String> attributionMap = toMapString(attributionValues);
+                Countly.sharedInstance().attribution().recordIndirectAttribution(attributionMap);
+                result.success("recordIndirectAttribution: success");
+            } else {
+                result.error("recordIndirectAttribution Failed", "No attribution values provided", null);
+            }
+        } else if ("recordDirectAttribution".equals(call.method)) {
+            String campaignType = args.getString(0);
+            String campaignData = args.getString(1);
+
+            Countly.sharedInstance().attribution().recordDirectAttribution(campaignType, campaignData);
+            result.success("recordDirectAttribution: success");
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Handles the view tracking calls.
+     *
+     * @param call the method call from Dart
+     * @param args the arguments of the call
+     * @param result the result to answer the call with
+     * @return true when the call was handled here
+     * @throws JSONException when the arguments cannot be read
+     */
+    private boolean handleViewCall(MethodCall call, JSONArray args, final Result result) throws JSONException {
+        if ("stopViewWithID".equals(call.method)) {
+            String viewId = args.getString(0);
+            Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+            Countly.sharedInstance().views().stopViewWithID(viewId, segmentation);
+            result.success(null);
+        } else if ("stopViewWithName".equals(call.method)) {
+            String viewName = args.getString(0);
+            Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+            Countly.sharedInstance().views().stopViewWithName(viewName, segmentation);
+            result.success(null);
+        } else if ("pauseViewWithID".equals(call.method)) {
+            String viewId = args.getString(0);
+
+            Countly.sharedInstance().views().pauseViewWithID(viewId);
+            result.success(null);
+        } else if ("resumeViewWithID".equals(call.method)) {
+            String viewId = args.getString(0);
+
+            Countly.sharedInstance().views().resumeViewWithID(viewId);
+            result.success(null);
+        } else if ("startView".equals(call.method)) {
+            String viewName = args.getString(0);
+            Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+            String viewId = Countly.sharedInstance().views().startView(viewName, segmentation);
+            result.success(viewId);
+        } else if ("setGlobalViewSegmentation".equals(call.method)) {
+            Map<String, Object> segmentation = toMap(args.getJSONObject(0));
+
+            Countly.sharedInstance().views().setGlobalViewSegmentation(segmentation);
+            result.success(null);
+        } else if ("updateGlobalViewSegmentation".equals(call.method)) {
+            Map<String, Object> segmentation = toMap(args.getJSONObject(0));
+
+            Countly.sharedInstance().views().updateGlobalViewSegmentation(segmentation);
+            result.success(null);
+        } else if ("stopAllViews".equals(call.method)) {
+            Map<String, Object> segmentation = toMap(args.getJSONObject(0));
+
+            Countly.sharedInstance().views().stopAllViews(segmentation);
+            result.success(null);
+        } else if ("addSegmentationToViewWithID".equals(call.method)) {
+            String viewId = args.getString(0);
+            Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+            Countly.sharedInstance().views().addSegmentationToViewWithID(viewId, segmentation);
+            result.success(null);
+        } else if ("addSegmentationToViewWithName".equals(call.method)) {
+            String viewName = args.getString(0);
+            Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+            Countly.sharedInstance().views().addSegmentationToViewWithName(viewName, segmentation);
+            result.success(null);
+        } else if ("startAutoStoppedView".equals(call.method)) {
+            String viewName = args.getString(0);
+            Map<String, Object> segmentation = toMap(args.getJSONObject(1));
+
+            String viewId = Countly.sharedInstance().views().startAutoStoppedView(viewName, segmentation);
+            result.success(viewId);
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Handles the app loaded, internal and testing calls.
+     *
+     * @param call the method call from Dart
+     * @param args the arguments of the call
+     * @param result the result to answer the call with
+     * @return true when the call was handled here
+     * @throws JSONException when the arguments cannot be read
+     */
+    private boolean handleInternalCall(MethodCall call, JSONArray args, final Result result) throws JSONException {
+        if ("appLoadingFinished".equals(call.method)) {
+            Countly.sharedInstance().apm().setAppIsLoaded();
+            result.success("appLoadingFinished: success");
+        } else if ("getRequestQueue".equals(call.method)) {
+            CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
+            result.success(Arrays.asList(countlyStore.getRequests()));
+        } else if ("getEventQueue".equals(call.method)) {
+            CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
+            result.success(Arrays.asList(countlyStore.getEvents()));
+        } else if ("storeRequest".equals(call.method)) {
+            CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
+            countlyStore.addRequest(args.getString(0), true);
+            result.success("storeRequest: success");
+        } else if ("setServerConfig".equals(call.method)) {
+            CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
+            JSONObject jsonObject = args.getJSONObject(0);
+            countlyStore.setServerConfig(jsonObject.toString());
+            // Why this added here, it is that because when it is set something in storage
+            // sdk assumes that it is an older version so it start migrations that needs to be done
+            // but in this case we only want to use setting server config and do not want migrations
+            // to mess up our process flow. So in here we are setting it to latest known to get away with it.
+            // Normally in a fresh install migrations are first to run and they run once.
+            countlyStore.setDataSchemaVersion(DATA_SCHEMA_VERSIONS);
+            result.success("setServerConfig: success");
+        } else if ("getServerConfig".equals(call.method)) {
+            CountlyStore countlyStore = new CountlyStore(context, new ModuleLog());
+            String sc = countlyStore.getServerConfig();
+            Map<String, Object> serverConfigMap = new HashMap<>();
+            try {
+                serverConfigMap = toMap(new JSONObject(sc));
+            } catch (JSONException ignored) {
+            }
+            result.success(serverConfigMap);
+        } else if ("addDirectRequest".equals(call.method)) {
+            JSONObject jsonObject = args.getJSONObject(0);
+            Map<String, String> requestMap = new HashMap<>();
+            for (Iterator<String> it = jsonObject.keys(); it.hasNext(); ) {
+                String key = it.next();
+                requestMap.put(key, jsonObject.get(key).toString());
+            }
+            Countly.sharedInstance().requestQueue().addDirectRequest(requestMap);
+            result.success("addDirectRequest: success");
+        } else if ("halt".equals(call.method)) {
+            Countly.sharedInstance().halt();
+            // Init keeps the request queue of the halted SDK in the config it was given, so the next init needs a new one.
+            this.config = new CountlyConfig();
+            result.success("halt: success");
+        } else if ("testOnNotification".equals(call.method)) {
+            JSONArray payloads = args.getJSONArray(0);
+            for (int i = 0; i < payloads.length(); i++) {
+                JSONObject payload = payloads.getJSONObject(i);
+                Map<String, String> notification = new HashMap<>();
+                Iterator<String> keys = payload.keys();
+                while (keys.hasNext()) {
+                    String key = keys.next();
+                    notification.put(key, payload.optString(key));
+                }
+                onNotification(notification);
+            }
+            result.success(null);
+        } else if ("testOnNotificationOpened".equals(call.method)) {
+            Map<String, String> notification = toMapString(args.getJSONObject(0));
+            String start = args.optString(1, "fresh");
+            Bundle messageBundle = new Bundle();
+            messageBundle.putParcelable(CountlyPush.EXTRA_MESSAGE, CountlyPush.decodeMessage(notification));
+            Intent clickIntent = new Intent();
+            clickIntent.putExtra(CountlyPush.EXTRA_MESSAGE, messageBundle);
+            clickIntent.putExtra(CountlyPush.EXTRA_ACTION_INDEX, args.optInt(2));
+            // The Activity gets the intent from another process, so it arrives parcelled.
+            Parcel parcel = Parcel.obtain();
+            try {
+                clickIntent.writeToParcel(parcel, 0);
+                parcel.setDataPosition(0);
+                clickIntent = Intent.CREATOR.createFromParcel(parcel);
+            } finally {
+                parcel.recycle();
+            }
+            if ("history".equals(start)) {
+                clickIntent.addFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY);
+            }
+            if ("newIntent".equals(start)) {
+                new Instrumentation().callActivityOnNewIntent(activity, clickIntent);
+                new Instrumentation().callActivityOnNewIntent(activity, clickIntent);
+            } else {
+                Bundle savedState = "restored".equals(start) ? new Bundle() : null;
+                activity.setIntent(clickIntent);
+                onRestoreInstanceState(savedState);
+                onRestoreInstanceState(savedState);
+            }
+            result.success(null);
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Handles the content calls.
+     *
+     * @param call the method call from Dart
+     * @param args the arguments of the call
+     * @param result the result to answer the call with
+     * @return true when the call was handled here
+     * @throws JSONException when the arguments cannot be read
+     */
+    private boolean handleContentCall(MethodCall call, JSONArray args, final Result result) throws JSONException {
+        if ("enterContentZone".equals(call.method)) {
+            Countly.sharedInstance().contents().enterContentZone();
+            result.success(null);
+        } else if ("exitContentZone".equals(call.method)) {
+            Countly.sharedInstance().contents().exitContentZone();
+            result.success(null);
+        } else if ("refreshContentZone".equals(call.method)) {
+            Countly.sharedInstance().contents().refreshContentZone();
+            result.success(null);
+        } else if ("previewContent".equals(call.method)) {
+            String contentId = call.argument("contentId");
+            Countly.sharedInstance().contents().previewContent(contentId);
+            result.success(null);
+        } else if ("setGlobalContentSegmentation".equals(call.method)) {
+            Countly.sharedInstance().contents().setGlobalContentSegmentation(toMap(args.getJSONObject(0)));
+            result.success(null);
+        } else {
+            return false;
+        }
+        return true;
     }
 
     void triggerOverflow() {
@@ -1885,6 +2073,7 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 Log.e(TAG, message, tr);
                 break;
             case VERBOSE:
+            default:
                 Log.v(TAG, message, tr);
                 break;
         }
@@ -1954,6 +2143,29 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
     }
 
     private void populateConfig(JSONObject _config) throws JSONException {
+        populateServerAndDeviceConfig(_config);
+        populateRequestConfig(_config);
+        populateUserAndRatingConfig(_config);
+        populateBehaviorConfig(_config);
+        populateApmConfig(_config);
+        populateInternalLimitsConfig(_config);
+        populateCrashAndQueueConfig(_config);
+        populateSessionConfig(_config);
+        populateLocationConfig(_config);
+        populateAttributionConfig(_config);
+        populateRemoteConfigAndViewConfig(_config);
+        populateDeviceOptionsConfig(_config);
+        populateConsentAndExperimentalConfig(_config);
+        populateContentAndPushConfig(_config);
+    }
+
+    /**
+     * Applies the server, app key, device ID and logging options to the config.
+     *
+     * @param _config the config Dart sent to init
+     * @throws JSONException when an option cannot be read
+     */
+    private void populateServerAndDeviceConfig(JSONObject _config) throws JSONException {
         if (_config.has("serverURL")) {
             this.config.setServerURL(_config.getString("serverURL"));
         }
@@ -1980,6 +2192,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
                 new Handler(Looper.getMainLooper()).post(() -> safeInvokeMethod("logListener", data));
             });
         }
+    }
+
+    /**
+     * Applies the location switch, request and consent requirement options to the config.
+     *
+     * @param _config the config Dart sent to init
+     * @throws JSONException when an option cannot be read
+     */
+    private void populateRequestConfig(JSONObject _config) throws JSONException {
         if (_config.has("locationDisabled") && _config.getBoolean("locationDisabled")) {
             this.config.setDisableLocation();
         }
@@ -2000,6 +2221,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if (_config.has("eventQueueSizeThreshold")) {
             this.config.setEventQueueSizeToSend(_config.getInt("eventQueueSizeThreshold"));
         }
+    }
+
+    /**
+     * Applies the session timer, crash segment, user property, consent and star rating options to the config.
+     *
+     * @param _config the config Dart sent to init
+     * @throws JSONException when an option cannot be read
+     */
+    private void populateUserAndRatingConfig(JSONObject _config) throws JSONException {
         if (_config.has("sessionUpdateTimerDelay")) {
             this.config.setUpdateSessionTimerDelay(_config.getInt("sessionUpdateTimerDelay"));
         }
@@ -2026,7 +2256,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if (_config.has("starRatingTextDismiss")) {
             this.config.setStarRatingTextDismiss(_config.getString("starRatingTextDismiss"));
         }
-        
+    }
+
+    /**
+     * Applies the SDK behavior settings, backoff, compression and push consent options to the config.
+     *
+     * @param _config the config Dart sent to init
+     * @throws JSONException when an option cannot be read
+     */
+    private void populateBehaviorConfig(JSONObject _config) throws JSONException {
         if (_config.has("sdkBehaviorSettings")) {
             this.config.setSDKBehaviorSettings(_config.getString("sdkBehaviorSettings"));
         }
@@ -2046,7 +2284,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if (_config.has("disableStoringDefaultPushConsent")) {
             this.config.disableStoringDefaultPushConsent();
         }
+    }
 
+    /**
+     * Applies the performance monitoring options to the config.
+     *
+     * @param _config the config Dart sent to init
+     * @throws JSONException when an option cannot be read
+     */
+    private void populateApmConfig(JSONObject _config) throws JSONException {
         // APM ------------------------------------------------
         if (_config.has("trackAppStartTime")) {
             this.config.apm.enableAppStartTimeTracking();
@@ -2061,6 +2307,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.apm.setAppStartTimestampOverride(_config.getLong("startTSOverride"));
         }
         // APM END --------------------------------------------
+    }
+
+    /**
+     * Applies the SDK internal limits to the config.
+     *
+     * @param _config the config Dart sent to init
+     * @throws JSONException when an option cannot be read
+     */
+    private void populateInternalLimitsConfig(JSONObject _config) throws JSONException {
         // Internal Limits ------------------------------------
         if (_config.has("maxKeyLength")) {
             this.config.sdkInternalLimits.setMaxKeyLength(_config.getInt("maxKeyLength"));
@@ -2084,7 +2339,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             this.config.sdkInternalLimits.setMaxValueSizePicture(_config.getInt("maxValueSizePicture"));
         }
         // Internal Limits END --------------------------------
+    }
 
+    /**
+     * Applies the crash reporting and request queue options to the config.
+     *
+     * @param _config the config Dart sent to init
+     * @throws JSONException when an option cannot be read
+     */
+    private void populateCrashAndQueueConfig(JSONObject _config) throws JSONException {
         if (_config.has("enableUnhandledCrashReporting") && _config.getBoolean("enableUnhandledCrashReporting")) {
             this.config.crashes.enableCrashReporting();
         }
@@ -2104,7 +2367,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if (_config.has("requestTimeoutDuration")) {
             this.config.setRequestTimeoutDuration(_config.getInt("requestTimeoutDuration"));
         }
+    }
 
+    /**
+     * Applies the manual session options to the config.
+     *
+     * @param _config the config Dart sent to init
+     * @throws JSONException when an option cannot be read
+     */
+    private void populateSessionConfig(JSONObject _config) throws JSONException {
         if (_config.has("manualSessionEnabled") && _config.getBoolean("manualSessionEnabled")) {
             enableManualSessionControl();
         }
@@ -2112,7 +2383,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if (_config.optBoolean("manualSessionControlHybridMode", false)) {
             this.config.enableManualSessionControlHybridMode();
         }
+    }
 
+    /**
+     * Applies the location given at init to the config.
+     *
+     * @param _config the config Dart sent to init
+     * @throws JSONException when an option cannot be read
+     */
+    private void populateLocationConfig(JSONObject _config) throws JSONException {
         String countryCode = null;
         String city = null;
         String gpsCoordinates = null;
@@ -2133,7 +2412,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if (city != null || countryCode != null || gpsCoordinates != null || ipAddress != null) {
             this.config.setLocation(countryCode, city, gpsCoordinates, ipAddress);
         }
+    }
 
+    /**
+     * Applies the direct and indirect attribution given at init to the config.
+     *
+     * @param _config the config Dart sent to init
+     * @throws JSONException when an option cannot be read
+     */
+    private void populateAttributionConfig(JSONObject _config) throws JSONException {
         if (_config.has("campaignType")) {
             String campaignType = _config.getString("campaignType");
             String campaignData = _config.getString("campaignData");
@@ -2144,7 +2431,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
             JSONObject attributionValues = _config.getJSONObject("attributionValues");
             this.config.setIndirectAttribution(toMapString(attributionValues));
         }
+    }
 
+    /**
+     * Applies the remote config and view options to the config.
+     *
+     * @param _config the config Dart sent to init
+     * @throws JSONException when an option cannot be read
+     */
+    private void populateRemoteConfigAndViewConfig(JSONObject _config) throws JSONException {
         if (_config.has("remoteConfigAutomaticTriggers")) {
             boolean remoteConfigAutomaticTriggers = _config.getBoolean("remoteConfigAutomaticTriggers");
             if (remoteConfigAutomaticTriggers) {
@@ -2167,7 +2462,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if (_config.has("disableViewRestartForManualRecording") && _config.getBoolean("disableViewRestartForManualRecording")) {
             this.config.disableViewRestartForManualRecording();
         }
+    }
 
+    /**
+     * Applies the metric, orientation, stored device ID, logging, web view, health check and app crawler options to the config.
+     *
+     * @param _config the config Dart sent to init
+     * @throws JSONException when an option cannot be read
+     */
+    private void populateDeviceOptionsConfig(JSONObject _config) throws JSONException {
         if (_config.has("metricOverride")) {
             this.config.setMetricOverride(toMapString(_config.getJSONObject("metricOverride")));
         }
@@ -2189,7 +2492,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if (_config.has("appCrawlerNames")) {
             this.config.setAppCrawlerNames(toStringArray(_config.getJSONArray("appCrawlerNames")));
         }
+    }
 
+    /**
+     * Applies the all consents, A/B enrollment and experimental options to the config.
+     *
+     * @param _config the config Dart sent to init
+     * @throws JSONException when an option cannot be read
+     */
+    private void populateConsentAndExperimentalConfig(JSONObject _config) throws JSONException {
         if (_config.has("enableAllConsents") && _config.getBoolean("enableAllConsents")) {
              this.config.giveAllConsents();
         }
@@ -2205,7 +2516,15 @@ public class CountlyFlutterPlugin implements MethodCallHandler, FlutterPlugin, A
         if (_config.has("previousNameRecording")) {
             this.config.experimental.enablePreviousNameRecording();
         }
+    }
 
+    /**
+     * Applies the content options, the push link schemes and the global content callback to the config.
+     *
+     * @param _config the config Dart sent to init
+     * @throws JSONException when an option cannot be read
+     */
+    private void populateContentAndPushConfig(JSONObject _config) throws JSONException {
         if (_config.has("zoneTimerInterval")) {
             this.config.content.setZoneTimerInterval(_config.getInt("zoneTimerInterval"));
         }

@@ -103,7 +103,8 @@ void testCommonRequestParams(Map<String, List<String>> requestObject) {
   expect(requestObject['app_key']?[0], APP_KEY);
   expect(
     requestObject['sdk_name']?[0],
-    "dart-flutterb-${kIsWeb
+    // The no-push flavour reports "dart-flutterbnp-<platform>".
+    "dart-flutterb${Countly.BUILDING_WITH_PUSH_DISABLED ? 'np' : ''}-${kIsWeb
         ? 'web'
         : Platform.isIOS
         ? 'ios'

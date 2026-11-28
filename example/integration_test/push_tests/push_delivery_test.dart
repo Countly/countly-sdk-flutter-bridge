@@ -38,5 +38,5 @@ void main() {
     await Future<void>.delayed(const Duration(seconds: 2));
     expect(received.length, 3);
     expect(json.decode(received[2])['title'], 'third');
-  });
+  }, skip: Countly.BUILDING_WITH_PUSH_DISABLED); // the no-push flavour has no push notifications
 }

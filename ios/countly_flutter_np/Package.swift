@@ -13,6 +13,8 @@ let package = Package(
         // The library name replaces "_" with "-" per SwiftPM convention.
         .library(name: "countly-flutter-np", targets: ["countly_flutter_np"])
     ],
+    // Flutter asks plugins to depend on the framework package it generates, which needs Flutter 3.41 or later.
+    // It is added together with a Flutter 3.41 minimum in pubspec.yaml; the plugin supports Flutter 3.24 and later.
     dependencies: [],
     targets: [
         .target(

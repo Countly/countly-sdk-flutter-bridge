@@ -10,6 +10,7 @@
   * "askForFeedback", use "presentRatingWidgetWithID" instead
   * "recordAttributionID", use "recordIndirectAttribution" instead
 * ! Minor breaking change ! Raised the minimum supported iOS version to 15 (previously 10), as the underlying iOS SDK requires it.
+* ! Minor breaking change ! The plugin now requires Flutter 3.24 and Dart 3.5 or newer, the oldest versions it is tested with. For apps on older versions, pub resolves an earlier version of the plugin.
 * ! Minor breaking change ! Changes to user properties:
   * "setProperty" and "setUserProperties" of "Countly.instance.userProfile", and the deprecated "setUserData" and "Countly.setProperty", now send the recorded events before the user properties
   * "setProperty" now keeps number and boolean values in Android. In iOS, it and the deprecated "Countly.setProperty" now set predefined properties such as "email" instead of custom ones
@@ -75,7 +76,9 @@
 * Added "changeServerUrl" to "Countly.instance" for changing the server URL after init, in Android and iOS.
 * Added "changeAppKey" to "Countly.instance" for changing the app key after init, in Android and iOS.
 * Added "flushQueues" to "Countly.instance" for discarding the stored requests and events, in Android and iOS.
-* Added content triggers in Android and iOS. While the content zone is entered, an event, view, session, user property, recorded exception or consent change that starts a journey or campaign with content now requests that content immediately. Turn them off with "disableAutoContentTriggers" of "CountlyConfig.content".
+* Added content triggers in Android and iOS:
+  * while the content zone is entered, an event, view, session, user property, recorded exception or consent change that starts a journey or campaign with content now requests that content immediately
+  * turn them off with "disableAutoContentTriggers" of "CountlyConfig.content"
 * Added "enableRequestCompression" to "CountlyConfig" for sending requests gzip-compressed to servers that support it, in Android and iOS.
 * Changed "exitContentZone" to also close the content on screen in iOS and Web, instead of only stopping content retrieval.
 * Improved crash reporting in iOS. Its handlers now pass crashes on to the crash handlers they replaced, and leave crash tools installed later, signals the app ignores and a SIGPIPE the app handles itself alone.

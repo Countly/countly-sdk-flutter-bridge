@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:countly_flutter_np/countly_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -25,23 +26,29 @@ void main() {
     // Get request queue from native side
     List<Map<String, List<String>>> requestList = (await getRequestQueue()).map((e) => Uri.parse("?" + e).queryParametersAll).toList();
 
+    print('RQ: $requestList');
+
     // Currently
-    // 0- user properties: beforeBeginSession
-    // 1- begin_session
-    // 2- orientation
+    // 0- user properties: beforeBeginSession (iOS: orientation)
+    // 1- begin_session (iOS: user properties: beforeBeginSession)
+    // 2- orientation (iOS: begin_session)
     // 3- user properties: beforeUpdateSession
     // 4- session_duration
     // 5- user properties: beforeEndSession
     // 6- end_session
+    // The orientation event: iOS SDK 26.8.1 records it once, when the SDK starts, while the SDK guide and Android record it at begin_session. iOS sends it with the recorded events before the first user properties.
+    final int beforeBeginSession = Platform.isIOS ? 1 : 0;
+    final int beginSession = Platform.isIOS ? 2 : 1;
+    final int orientation = Platform.isIOS ? 0 : 2;
     expect(requestList.length, 7);
 
-    testCommonRequestParams(requestList[0]);
-    expect(requestList[0]['user_details']?[0], '{"custom":{"beforeBeginSession":true}}');
+    testCommonRequestParams(requestList[beforeBeginSession]);
+    expect(requestList[beforeBeginSession]['user_details']?[0], '{"custom":{"beforeBeginSession":true}}');
 
-    testCommonRequestParams(requestList[1]); // tests
-    checkBeginSession(requestList[1]);
+    testCommonRequestParams(requestList[beginSession]); // tests
+    checkBeginSession(requestList[beginSession]);
 
-    expect(requestList[2]['events']?[0].contains('[CLY]_orientation'), true);
+    expect(requestList[orientation]['events']?[0].contains('[CLY]_orientation'), true);
 
     testCommonRequestParams(requestList[3]);
     expect(requestList[3]['user_details']?[0], '{"custom":{"beforeUpdateSession":true}}');
