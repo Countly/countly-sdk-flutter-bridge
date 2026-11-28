@@ -8,13 +8,11 @@ class ViewsPage extends StatelessWidget {
 
   Future<void> recordViewHome() async {
     Map<String, Object> segments = {'Cats': 123, 'Moons': 9.98, 'Moose': 'Deer'};
-    // ignore: deprecated_member_use
-    await Countly.recordView('HomePage', segments);
+    await Countly.instance.views.startAutoStoppedView('HomePage', segments);
   }
 
   Future<void> recordViewDashboard() async {
-    // ignore: deprecated_member_use
-    await Countly.recordView('Dashboard');
+    await Countly.instance.views.startAutoStoppedView('Dashboard');
   }
 
   Future<void> stopViewWithID() async {

@@ -67,26 +67,26 @@ void main() {
       } else if (a == 5) {
         // 0) Custom Event
         var eventRaw = json.decode(queryParams['events']![0]);
-        var number = Platform.isIOS ? 0 : 1; // orientation in android
+        var number = 1; // 0 is the orientation event on both platforms
         Map<String, dynamic> event = eventRaw[number];
         expect(event['key'], 'Event With Sum And Segment'.substring(0, MAX_KEY_LENGTH));
         expect(event['segmentation']['Country'.substring(0, MAX_KEY_LENGTH)], 'Turkey');
         expect(event['segmentation']['Age'.substring(0, MAX_KEY_LENGTH)], '28884');
-        // 1) View Start (legacy)
+        // 1) View Start
         number++;
         Map<String, dynamic> view = eventRaw[number];
         expect(view['key'], '[CLY]_view');
-        expect(view['segmentation']['Cats'.substring(0, MAX_KEY_LENGTH)], '12345');
+        expect(view['segmentation']['Cats'.substring(0, MAX_KEY_LENGTH)], 12345);
         // merges with moose if limit is small
         // expect(view['segmentation']['Moons'.substring(0, MAX_KEY_LENGTH)], '9.9866');
         expect(view['segmentation']['segment'], Platform.isIOS ? 'iOS' : 'Android');
         expect(view['segmentation']['start'], Platform.isIOS ? 1 : '1');
         expect(view['segmentation']['name'], 'HomePage'.substring(0, MAX_KEY_LENGTH));
-        expect(view['segmentation']['Camel'.substring(0, MAX_KEY_LENGTH)], '12345'); // merges with cat
+        expect(view['segmentation']['Camel'.substring(0, MAX_KEY_LENGTH)], 12345); // merges with cat
         expect(view['segmentation']['visit'], Platform.isIOS ? 1 : '1');
         expect(view['segmentation']['NotCamel'.substring(0, MAX_KEY_LENGTH)], 'Deerz');
         expect(view['segmentation']['Moose'.substring(0, MAX_KEY_LENGTH)], 'Deer');
-        // 2) View End (legacy)
+        // 2) View End
         number++;
         view = eventRaw[number];
         expect(view['key'], '[CLY]_view');

@@ -3,39 +3,52 @@ import Flutter
 import countly_flutter_np
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    GeneratedPluginRegistrant.register(with: self)
-	  // For push notification received and action callbacks
-//	  CountlyFlutterPlugin.startObservingNotifications();
+    // For push notification received and action callbacks
+    CountlyFlutterPlugin.startObservingNotifications()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
-     func application(application: UIApplication,  didReceiveRemoteNotification userInfo: [NSObject : AnyObject],  fetchCompletionHandler completionHandler: (UIBackgroundFetchResult) -> Void) {
 
-        // print("Recived: \(userInfo)")
-        CountlyFlutterPlugin.onNotification(userInfo);
-        completionHandler(.newData);
+  /// Registers the plugins with the Flutter engine of the scene's storyboard, which exists only
+  /// once the scene connects under the UIScene lifecycle.
+  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+  }
 
-    }
-    @available(iOS 10.0, *)
-    override func userNotificationCenter(_ center: UNUserNotificationCenter,  willPresent notification: UNNotification, withCompletionHandler   completionHandler: @escaping (_ options:   UNNotificationPresentationOptions) -> Void) {
+  func application(
+    application: UIApplication,
+    didReceiveRemoteNotification userInfo: [NSObject: AnyObject],
+    fetchCompletionHandler completionHandler: (UIBackgroundFetchResult) -> Void
+  ) {
+    // print("Recived: \(userInfo)")
+    CountlyFlutterPlugin.onNotification(userInfo)
+    completionHandler(.newData)
+  }
 
-        //Called when a notification is delivered to a foreground app.
+  @available(iOS 10.0, *)
+  override func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification,
+    withCompletionHandler completionHandler: @escaping (_ options: UNNotificationPresentationOptions) -> Void
+  ) {
+    // Called when a notification is delivered to a foreground app.
+    let userInfo: NSDictionary = notification.request.content.userInfo as NSDictionary
+    // print("\(userInfo)")
+    CountlyFlutterPlugin.onNotification(userInfo as? [AnyHashable: Any])
+  }
 
-        let userInfo: NSDictionary = notification.request.content.userInfo as NSDictionary
-        // print("\(userInfo)")
-        CountlyFlutterPlugin.onNotification(userInfo as? [AnyHashable : Any])
-     }
-
-    @available(iOS 10.0, *)
-    override func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-
-        // Called to let your app know which action was selected by the user for a given notification.
-        let userInfo: NSDictionary = response.notification.request.content.userInfo as NSDictionary
-        // print("\(userInfo)")
-        CountlyFlutterPlugin.onNotification(userInfo as? [AnyHashable : Any])
-    }
+  @available(iOS 10.0, *)
+  override func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse,
+    withCompletionHandler completionHandler: @escaping () -> Void
+  ) {
+    // Called to let your app know which action was selected by the user for a given notification.
+    CountlyFlutterPlugin.onNotificationResponse(response)
+    completionHandler()
+  }
 }

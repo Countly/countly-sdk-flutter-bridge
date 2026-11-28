@@ -15,7 +15,7 @@ void main() {
     createServerWithConfig(requestArray, {
       'v': 1,
       't': 1750748806695,
-      'c': {'lkl': 5, 'lvs': 5, 'lsv': 5, 'lbc': 5, 'ltlpt': 5, 'ltl': 5, 'rcz': false, 'ecz': true, 'czi': 16, 'bom': false, 'dort': 1},
+      'c': {'lkl': 5, 'lvs': 5, 'lsv': 5, 'lbc': 5, 'ltlpt': 5, 'ltl': 5, 'rcz': false, 'ecz': true, 'czi': 16, 'bom': false, 'dort': 1}
     });
 
     // Initialize the SDK
@@ -112,7 +112,7 @@ void main() {
     expect(await getServerConfig(), {
       'v': 1,
       't': 1750748806695,
-      'c': {'lkl': 5, 'lvs': 5, 'lsv': 5, 'lbc': 5, 'ltlpt': 5, 'ltl': 5, 'rcz': false, 'ecz': true, 'czi': 16, 'bom': false, 'dort': 1},
+      'c': {'lkl': 5, 'lvs': 5, 'lsv': 5, 'lbc': 5, 'ltlpt': 5, 'ltl': 5, 'rcz': false, 'ecz': true, 'czi': 16, 'bom': false, 'dort': 1}
     });
   });
 }

@@ -7,6 +7,13 @@ import '../event_tests/event_utils.dart';
 import '../utils.dart';
 
 /// Deduplicates a request array by removing entries with identical timestamps and payloads.
+/// Returns [eventQueue] without the orientation event of the SDK start on iOS: iOS SDK 26.8.1 records it once, when the SDK starts, while the SDK guide and Android record it at begin_session, which these
+/// tests do not call. On Android the queue is returned as it is.
+List<String> withoutStartOrientation(List<String> eventQueue) {
+  if (!Platform.isIOS) return eventQueue;
+  return eventQueue.where((String event) => jsonDecode(event)['key'] != '[CLY]_orientation').toList();
+}
+
 /// iOS has a known race condition with fast mock server responses where proceedOnQueue
 /// can send the same request twice (see notes.md). This helper filters those duplicates.
 void deduplicateRequestArray(List<Map<String, List<String>>> requestArray) {
@@ -125,7 +132,7 @@ Future<void> callAllFeatures({bool disableEnterContent = false, bool disableSend
     'timestamp': 1234567890,
     'clicked': false,
     'languages': ['en', 'de', 'fr'],
-    'sub_names': ['John', 'Doe', 'Jane'],
+    'sub_names': ['John', 'Doe', 'Jane']
   };
   await Countly.instance.views.startView('Dashboard', segmentation);
 
@@ -191,35 +198,32 @@ int sbsServerDelay = 0;
 /// Creates a server with a custom handler that responds to requests based on the provided configuration.
 /// The server will respond with a JSON object containing the result of the request.
 void createServerWithConfig(List<Map<String, List<String>>> requestArray, Map<String, Object> serverConfig) {
-  createServer(
-    requestArray,
-    customHandler: (request, queryParams, response) async {
-      Map<String, Object> responseJson = {'result': 'Success'};
-      if (queryParams.containsKey('method')) {
-        if (queryParams['method']!.first == 'sc') {
-          responseJson = serverConfig;
-        } else if (queryParams['method']!.first == 'feedback') {
-          responseJson = {
-            'result': [
-              {'_id': 'npsID', 'type': 'nps', 'name': 'NPS Feedback'},
-              {'_id': 'surveyID', 'type': 'survey', 'name': 'Survey Feedback'},
-              {'_id': 'starID', 'type': 'rating', 'name': 'Star Rating Feedback'},
-            ],
-          };
-        }
+  createServer(requestArray, customHandler: (request, queryParams, response) async {
+    Map<String, Object> responseJson = {'result': 'Success'};
+    if (queryParams.containsKey('method')) {
+      if (queryParams['method']!.first == 'sc') {
+        responseJson = serverConfig;
+      } else if (queryParams['method']!.first == 'feedback') {
+        responseJson = {
+          'result': [
+            {'_id': 'npsID', 'type': 'nps', 'name': 'NPS Feedback'},
+            {'_id': 'surveyID', 'type': 'survey', 'name': 'Survey Feedback'},
+            {'_id': 'starID', 'type': 'rating', 'name': 'Star Rating Feedback'},
+          ]
+        };
       }
+    }
 
-      if (sbsServerDelay > 0 && !queryParams.containsKey('events')) {
-        await Future.delayed(Duration(seconds: sbsServerDelay));
-      }
+    if (sbsServerDelay > 0 && !queryParams.containsKey('events')) {
+      await Future.delayed(Duration(seconds: sbsServerDelay));
+    }
 
-      response
-        ..statusCode = HttpStatus.ok
-        ..headers.contentType = ContentType.json
-        ..headers.set('Access-Control-Allow-Origin', '*')
-        ..write(jsonEncode(responseJson));
-    },
-  );
+    response
+      ..statusCode = HttpStatus.ok
+      ..headers.contentType = ContentType.json
+      ..headers.set('Access-Control-Allow-Origin', '*')
+      ..write(jsonEncode(responseJson));
+  });
 }
 
 /// Validates the internal limits for events based on the provided event data.
@@ -249,6 +253,12 @@ void validateInternalLimitsForEvents(Map<String, dynamic> event, int maxKeyLengt
       }
     }
   }
+}
+
+/// Matches a segmentation that kept [count] of the recorded keys, each with its value truncated to
+/// "value". Which keys the segmentation limit keeps is not defined, so only the count is checked.
+Matcher truncatedSegmentation(int count) {
+  return predicate((Map<String, dynamic> segmentation) => segmentation.length == count && segmentation.values.every((dynamic value) => value == 'value'), 'a segmentation of $count entries, each with the value "value"');
 }
 
 /// Retrieves the request queue from the server.

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'content_builder.dart';
 import 'countly_flutter.dart';
 import 'countly_state.dart';
@@ -50,6 +52,18 @@ class ContentBuilderInternal implements ContentBuilder {
     }
     Countly.log('Calling "previewContent" with contentId: [$contentId]');
     await _countlyState.channel.invokeMethod('previewContent', {'contentId': contentId});
+  }
+
+  @override
+  Future<void> setGlobalContentSegmentation(Map<String, Object> segmentation) async {
+    if (!_countlyState.isInitialized) {
+      Countly.log('setGlobalContentSegmentation, "initWithConfig" must be called before "setGlobalContentSegmentation"', logLevel: LogLevel.ERROR);
+      return;
+    }
+    Countly.log('Calling "setGlobalContentSegmentation"');
+    final List<Object> args = [];
+    args.add(segmentation);
+    await _countlyState.channel.invokeMethod('setGlobalContentSegmentation', <String, dynamic>{'data': json.encode(args)});
   }
 
   void registerContentCallback(ContentCallback callback) {

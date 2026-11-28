@@ -16,6 +16,11 @@ rootProject.allprojects {
     repositories {
         mavenCentral()
         google()
+        // The Countly Android SDK is published here from 26.8.0 on.
+        maven {
+            url = 'https://maven.countly.com'
+            content { includeGroupByRegex 'ly\\.count\\..*' }
+        }
     }
 }
 
@@ -26,7 +31,8 @@ android {
     if (project.android.hasProperty("namespace")) {
         namespace 'ly.count.dart.countly_flutter'
     }
-    compileSdk 35
+    // Compile against the API level the host's Flutter SDK vends to plugins (Flutter 3.27+); older hosts get the fallback.
+    compileSdk project.hasProperty('flutter') ? flutter.compileSdkVersion : 35
 
     defaultConfig {
         minSdkVersion 21
@@ -38,5 +44,5 @@ android {
 }
 
 dependencies {
-    implementation 'ly.count.android:sdk:26.1.2'
+    implementation 'ly.count.android:sdk:26.8.1'
 }

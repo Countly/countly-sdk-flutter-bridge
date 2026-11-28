@@ -55,6 +55,7 @@ modPathAndroid = '../android/src/main/java/ly/count/dart/countly_flutter/Countly
 modPathIos = '../ios/countly_flutter/Sources/countly_flutter/CountlyFlutterPlugin.m'
 modPathCountly = '../lib/src/countly_flutter.dart'
 modPathExampleYaml = '../example/pubspec.yaml'
+modPathWebConfig = '../lib/src/web/plugin_config.dart'
 # paths to change packages
 packagePathExample = '../example/lib/'
 packagePathExampleIntegrationTest = '../example/integration_test/'
@@ -63,14 +64,14 @@ packagePathExampleIntegrationTest_sc2 = '../example/integration_test/sc-AP-appPe
 packagePathLib = '../lib/'
 packagePathLibInternal = '../lib/src/'
 packagePathIntegrationTest = '../integration_test/'
+packagePathTest = '../test/'
 # normal and np package names
 packagePrefix = 'package:countly_flutter/'
 packagePrefixToChange = 'package:countly_flutter_np/'
 objectOfComModification = {
     modPathAndroid: {
         'modifications': {
-            'import com.google.firebase.iid.FirebaseInstanceId;': 'remove',
-            'import com.google.firebase.iid.InstanceIdResult;': 'remove',
+            'import com.google.firebase.messaging.FirebaseMessaging;': 'remove',
             'import com.google.android.gms.tasks.Task;': 'remove',
             'import com.google.android.gms.tasks.OnCompleteListener;': 'remove',
             'import com.google.firebase.FirebaseApp;': 'remove',
@@ -78,15 +79,15 @@ objectOfComModification = {
         },
         'consecutiveOmits': [
             'FirebaseApp.initializeApp(context);',
-            'FirebaseInstanceId.getInstance().getInstanceId()',
-            '.addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {',
+            'FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {',
             '@Override',
-            'public void onComplete(@NonNull Task<InstanceIdResult> task) {',
+            'public void onComplete(@NonNull Task<String> task) {',
             'if (!task.isSuccessful()) {',
-            'log("getInstanceId failed", task.getException(), LogLevel.WARNING);',
+            'log("[askForNotificationPermission], Fetching FCM registration token failed", task.getException(), LogLevel.WARNING);',
             'return;',
             '}',
-            'String token = task.getResult().getToken();',
+            'String token = task.getResult();',
+            'log("FCM Token: " + token, LogLevel.INFO);',
             'CountlyPush.onTokenRefresh(token);',
             '}',
             '});'
@@ -94,8 +95,7 @@ objectOfComModification = {
     },
     modPathIos: {
         'modifications': {
-            'BOOL BUILDING_WITH_PUSH_DISABLED = false;': 'BOOL BUILDING_WITH_PUSH_DISABLED = true;',
-            '// #define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS': '#define COUNTLY_EXCLUDE_PUSHNOTIFICATIONS'
+            'BOOL BUILDING_WITH_PUSH_DISABLED = false;': 'BOOL BUILDING_WITH_PUSH_DISABLED = true;'
         },
         'consecutiveOmits': []
     },
@@ -107,7 +107,13 @@ objectOfComModification = {
     },
     modPathExampleYaml: {
         'modifications': {
-            '  countly_flutter:': '  countly_flutter_np:',
+            'countly_flutter:': 'countly_flutter_np:',
+        },
+        'consecutiveOmits': []
+    },
+    modPathWebConfig: {
+        'modifications': {
+            "static const String SDK_NAME = 'dart-flutterb-web';": "static const String SDK_NAME = 'dart-flutterbnp-web';"
         },
         'consecutiveOmits': []
     }
@@ -159,14 +165,16 @@ def modifyFile(filePath, modificationInfo, modificationType):
     fileLines = []
     for line in content:
         if modificationType == 'mod':
-            if line.strip('\n') in modificationInfo[filePath]['modifications']:
-                if modificationInfo[filePath]['modifications'][line.strip('\n')] == 'remove':
+            # Lines are matched without their indentation, which the replacement keeps.
+            strippedLine = line.strip()
+            if strippedLine in modificationInfo[filePath]['modifications']:
+                replacement = modificationInfo[filePath]['modifications'][strippedLine]
+                if replacement == 'remove':
                     print('Removing line: ', line)
                 else:
-                    fileLines.append(
-                        modificationInfo[filePath]['modifications'][line.strip('\n')] + '\n')
-                    print('Replacing: ['+line+'] with: ['+modificationInfo[filePath]
-                          ['modifications'][line.strip('\n')]+']')
+                    indentation = line[:len(line) - len(line.lstrip())]
+                    fileLines.append(indentation + replacement + '\n')
+                    print('Replacing: ['+line+'] with: ['+replacement+']')
             else:
                 fileLines.append(line)
         elif modificationType == 'bloc':
@@ -241,6 +249,8 @@ def renameIosForNp(cwd):
         content = content.replace('["countly_flutter"]', '["countly_flutter_np"]')
         content = content.replace('name: "countly-flutter"', 'name: "countly-flutter-np"')
         content = content.replace('include/countly_flutter"', 'include/countly_flutter_np"')
+        # The push code of the bridge and the bundled iOS SDK is compiled out, as the podspec does.
+        content = content.replace('.headerSearchPath(".")', '.headerSearchPath("."),\n                .define("COUNTLY_EXCLUDE_PUSHNOTIFICATIONS")')
         with open(pkgSwift, 'w') as f:
             f.write(content)
         print('Rewrote Package.swift names for countly_flutter_np')
@@ -272,6 +282,60 @@ def renameIosForNp(cwd):
     os.rename(oldPkg, newPkg)
     print('Renamed iOS SwiftPM package directory to countly_flutter_np')
 
+# Points the submodule, the version tooling, the public API record and CI at the np paths and package name
+# (String) cwd - the scripts directory the script runs from
+
+
+def adaptToolingForNp(cwd):
+    pushSources = 'ios/countly_flutter/Sources/countly_flutter/'
+    npSources = 'ios/countly_flutter_np/Sources/countly_flutter_np/'
+    replacements = {
+        '../.gitmodules': [(pushSources, npSources)],
+        'sync_sdk_versions.dart': [(pushSources, npSources), ('ios/countly_flutter.podspec', 'ios/countly_flutter_np.podspec')],
+        '../.github/scripts/check_version_consistency.py': [(pushSources, npSources), ('ios/countly_flutter.podspec', 'ios/countly_flutter_np.podspec')],
+        '../api/countly_flutter.json': [('"packageName": "countly_flutter"', '"packageName": "countly_flutter_np"')],
+        # SwiftPM accepts the example's local plugin only from a folder named after the package.
+        '../.github/workflows/build.yml': [
+            ('path: countly_flutter\n', 'path: countly_flutter_np\n'),
+            ('working-directory: countly_flutter\n', 'working-directory: countly_flutter_np\n'),
+            ('working-directory: countly_flutter/example\n', 'working-directory: countly_flutter_np/example\n'),
+            ('plugin root is named countly_flutter.', 'plugin root is named countly_flutter_np.'),
+        ],
+    }
+    for relativePath, pairs in replacements.items():
+        path = os.path.join(cwd, relativePath)
+        if not os.path.exists(path):
+            print('Not found, skipping:', path)
+            continue
+        with open(path, 'r', newline='') as f:
+            content = f.read()
+        for old, new in pairs:
+            content = content.replace(old, new)
+        if relativePath.endswith('build.yml'):
+            # The flavour job generates np from the push sources, which the np tree no longer has.
+            start = content.find('  # Regenerates the no-push flavour')
+            end = content.find('  # Versions come from')
+            if start != -1 and end > start:
+                content = content[:start] + content[end:]
+        with open(path, 'w', newline='') as f:
+            f.write(content)
+        print('Adapted for countly_flutter_np:', path)
+
+    # The no-push flavour does not send the push options with init, so its request records leave them out.
+    requestsDir = os.path.join(cwd, '../api/requests')
+    if os.path.isdir(requestsDir):
+        for name in sorted(os.listdir(requestsDir)):
+            if not name.endswith('.json'):
+                continue
+            path = os.path.join(requestsDir, name)
+            with open(path, 'r', newline='') as f:
+                lines = f.readlines()
+            kept = [line for line in lines if '"pushServiceWorkerScope":' not in line]
+            if len(kept) != len(lines):
+                with open(path, 'w', newline='') as f:
+                    f.writelines(kept)
+                print('Removed the push options from:', path)
+
 def main():
     # give info about set constants
     print('Paths to erase:')
@@ -285,6 +349,7 @@ def main():
     print(modPathIos)
     print(modPathCountly)
     print(modPathExampleYaml)
+    print(modPathWebConfig)
     print('Paths to change packages:')
     print(packagePathExample)
     print(packagePathExampleIntegrationTest)
@@ -293,6 +358,7 @@ def main():
     print(packagePathLib)
     print(packagePathLibInternal)
     print(packagePathIntegrationTest)
+    print(packagePathTest)
 
     # ask for permission to run the script
     start = input('Do you want to continue? (y/n)')
@@ -306,6 +372,7 @@ def main():
         modifyFile(modPathIos, objectOfComModification, 'mod')
         modifyFile(modPathCountly, objectOfComModification, 'mod')
         modifyFile(modPathExampleYaml, objectOfComModification, 'mod')
+        modifyFile(modPathWebConfig, objectOfComModification, 'mod')
         # np package update
         update_package(packagePathExample, packagePrefix, packagePrefixToChange)
         update_package(packagePathExampleIntegrationTest, packagePrefix, packagePrefixToChange)
@@ -314,8 +381,10 @@ def main():
         update_package(packagePathLib, packagePrefix, packagePrefixToChange)
         update_package(packagePathLibInternal, packagePrefix, packagePrefixToChange)
         update_package(packagePathIntegrationTest, packagePrefix, packagePrefixToChange)
+        update_package(packagePathTest, packagePrefix, packagePrefixToChange)
         # rename the iOS SwiftPM package to match the np package name
         renameIosForNp(cwd)
+        adaptToolingForNp(cwd)
         print('Done')
     else:
         print('Aborted')

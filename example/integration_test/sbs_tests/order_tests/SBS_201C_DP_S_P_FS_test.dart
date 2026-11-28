@@ -17,6 +17,7 @@ import '../sbs_utils.dart';
 /// - Values in segmentation are truncated to 5 characters #DP
 /// - Segmentation values are truncated to 4 characters #S
 /// - Provided SBS is omitted because already stored SBS
+/// - The FS answer replaces S as a whole, so segmentation values fall back to 2 #DP
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('SBS_201C_DP_S_P_FS_test', (WidgetTester tester) async {
@@ -24,13 +25,13 @@ void main() {
     createServerWithConfig(requestArray, {
       'v': 1,
       't': 1750748806695,
-      'c': {'lkl': 8},
+      'c': {'lkl': 8}
     });
 
     setServerConfig({
       'v': 1,
       't': 1750748806695,
-      'c': {'lkl': 6, 'lsv': 4},
+      'c': {'lkl': 6, 'lsv': 4}
     });
 
     // Initialize the SDK
@@ -43,16 +44,15 @@ void main() {
 
     await Countly.instance.events.recordEvent('ThisWillCLIPPED_BY_FS', {'no1': 'valueCLIPPED_BY_DP', 'no2': 'valueCLIPPED_BY_DP', 'no3': 'valueCLIPPED_BY_DP', 'no4': 'valueCLIPPED_BY_DP', 'no5': 'valueCLIPPED_BY_DP'});
     List<String> rq = await getRequestQueue();
-    List<String> eq = await getEventQueue();
+    List<String> eq = withoutStartOrientation(await getEventQueue());
     expect(rq.length, 0);
     expect(eq.length, 1);
 
-    validateEvent(event: jsonDecode(eq.first), key: 'ThisWill', segmentation: {'no1': 'value', 'no4': 'value', 'no3': 'value', 'no5': 'value'});
-
+    validateEvent(event: jsonDecode(eq.first), key: 'ThisWill', segmentation: truncatedSegmentation(2));
     expect(await getServerConfig(), {
       'v': 1,
       't': 1750748806695,
-      'c': {'lkl': 8, 'lsv': 4},
+      'c': {'lkl': 8}
     });
   });
 }

@@ -24,10 +24,10 @@ void main() {
         'ew': ['allowed_event', 'special_event'],
         'sw': ['country', 'platform'],
         'esb': {
-          'special_event': ['platform'],
+          'special_event': ['platform']
         },
         'upw': ['allowed_custom'],
-      },
+      }
     });
 
     // Initialize the SDK
@@ -102,10 +102,10 @@ void main() {
         'ew': ['allowed_event', 'special_event'],
         'sw': ['country', 'platform'],
         'esb': {
-          'special_event': ['platform'],
+          'special_event': ['platform']
         },
         'upw': ['allowed_custom'],
-      },
+      }
     });
   });
 }
