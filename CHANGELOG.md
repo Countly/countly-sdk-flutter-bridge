@@ -81,7 +81,9 @@
 * Added "changeServerUrl" to "Countly.instance" for changing the server URL after init, in Android and iOS.
 * Added "changeAppKey" to "Countly.instance" for changing the app key after init, in Android and iOS.
 * Added "flushQueues" to "Countly.instance" for discarding the stored requests and events, in Android and iOS.
-* Added content triggers in Android and iOS. While the content zone is entered, an event, view, session, user property, recorded exception or consent change that starts a journey or campaign with content now requests that content immediately. Turn them off with "disableAutoContentTriggers" of "CountlyConfig.content".
+* Added content triggers in Android and iOS:
+  * while the content zone is entered, an event, view, session, user property, recorded exception or consent change that starts a journey or campaign with content now requests that content immediately
+  * turn them off with "disableAutoContentTriggers" of "CountlyConfig.content"
 * Added "enableRequestCompression" to "CountlyConfig" for sending requests gzip-compressed to servers that support it, in Android and iOS.
 * Changed "exitContentZone" to also close the content on screen in iOS and Web, instead of only stopping content retrieval.
 * Improved crash reporting in iOS. Its handlers now pass crashes on to the crash handlers they replaced, and leave crash tools installed later, signals the app ignores and a SIGPIPE the app handles itself alone.
@@ -177,7 +179,8 @@
 * Underlying Web SDK version is 26.8.0
 
 ## 26.1.1
-* ! Minor breaking change ! The iOS plugin sources were reorganized to support Swift Package Manager. If you use a Notification Service Extension for rich push notifications, update the reference to "CountlyNotificationService.h" and "CountlyNotificationService.m" in your extension target to the new path "ios/countly_flutter/Sources/countly_flutter/countly-sdk-ios/".
+* ! Minor breaking change ! The iOS plugin sources were reorganized to support Swift Package Manager:
+  * if you use a Notification Service Extension for rich push notifications, update the reference to "CountlyNotificationService.h" and "CountlyNotificationService.m" in your extension target to the new path "ios/countly_flutter/Sources/countly_flutter/countly-sdk-ios/"
 
 * Added Swift Package Manager (SwiftPM) support for iOS. CocoaPods integration is still supported.
 

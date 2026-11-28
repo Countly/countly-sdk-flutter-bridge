@@ -22,7 +22,7 @@ For information about how to add the SDK to your project, please check [this sec
 
 You can find minimal SDK integration information for your project in [this section of the documentation](https://support.count.ly/hc/en-us/articles/360037944212-Flutter#h_01H930GAQ5RGKSA3CTNVTBTDZF).
 
-For an example integration of this SDK, you can have a look [here](https://github.com/Countly/countly-sdk-flutter-bridge/tree/master/example).
+For an example integration of this SDK, you can have a look at the [example app](https://github.com/Countly/countly-sdk-flutter-bridge/tree/master/example).
 
 This SDK supports the following features:
 * [Analytics](https://support.count.ly/hc/en-us/articles/4431589003545-Analytics)

@@ -121,6 +121,7 @@ tests are:
 
 202X tests value validation where:
 Provide SBS from server:
+
 ```json
 {
       'v': 1,
@@ -131,6 +132,7 @@ Provide SBS from server:
 
 - A
 Store SBS:
+
 ```json
 {
       'v': 1,
@@ -138,11 +140,13 @@ Store SBS:
       'c': {'st': 'yes', 'cet': 'no', 'vt': 0, 'eqs': 0, 'unkown1': 'very_unkown1', 'lt': 1, 'crt': 'value', 'bom_at': -1, 'bom_d': -1, 'bom_rqp': 50, 'bom_ra': -1, 'lkl': 'test'}
     }
 ```
+
 Validate that:
 - Stored SBS at the end does not have any config values, only version and timestamp there.
 
 - B
 Provide SBS through configuration:
+
 ```json
 {
       'v': 1,
@@ -150,6 +154,7 @@ Provide SBS through configuration:
       'c': {'st': 'yes', 'cet': 'no', 'vt': 0, 'eqs': 0, 'unkown1': 'very_unkown1', 'lt': 1, 'crt': 'value', 'bom_at': -1, 'bom_d': -1, 'bom_rqp': 50, 'bom_ra': -1, 'lkl': 'test'}
     }
 ```
+
 Validate that:
 - Stored SBS at the end does not have any config values, only version and timestamp there.
 
