@@ -46,7 +46,7 @@ void main() {
     expect(early, contains(contains('setWebSDKUrl, url cannot be empty')));
     expect(early, contains(contains('setMetricOverride, no metrics were provided')));
     expect(early, contains(contains('"initWithConfig" must be called before "[Views] startView"')));
-    expect(sent!['pushAllowedIntentSchemes'], ['market']);
+    expect(sent!['pushAllowedIntentSchemes'], Countly.BUILDING_WITH_PUSH_DISABLED ? isNull : ['market']);
     expect(sent!.containsKey('contentAllowedIntentSchemes'), isFalse);
   });
 }

@@ -64,6 +64,7 @@ packagePathExampleIntegrationTest_sc2 = '../example/integration_test/sc-AP-appPe
 packagePathLib = '../lib/'
 packagePathLibInternal = '../lib/src/'
 packagePathIntegrationTest = '../integration_test/'
+packagePathTest = '../test/'
 # normal and np package names
 packagePrefix = 'package:countly_flutter/'
 packagePrefixToChange = 'package:countly_flutter_np/'
@@ -281,6 +282,60 @@ def renameIosForNp(cwd):
     os.rename(oldPkg, newPkg)
     print('Renamed iOS SwiftPM package directory to countly_flutter_np')
 
+# Points the submodule, the version tooling, the public API record and CI at the np paths and package name
+# (String) cwd - the scripts directory the script runs from
+
+
+def adaptToolingForNp(cwd):
+    pushSources = 'ios/countly_flutter/Sources/countly_flutter/'
+    npSources = 'ios/countly_flutter_np/Sources/countly_flutter_np/'
+    replacements = {
+        '../.gitmodules': [(pushSources, npSources)],
+        'sync_sdk_versions.dart': [(pushSources, npSources), ('ios/countly_flutter.podspec', 'ios/countly_flutter_np.podspec')],
+        '../.github/scripts/check_version_consistency.py': [(pushSources, npSources), ('ios/countly_flutter.podspec', 'ios/countly_flutter_np.podspec')],
+        '../api/countly_flutter.json': [('"packageName": "countly_flutter"', '"packageName": "countly_flutter_np"')],
+        # SwiftPM accepts the example's local plugin only from a folder named after the package.
+        '../.github/workflows/build.yml': [
+            ('path: countly_flutter\n', 'path: countly_flutter_np\n'),
+            ('working-directory: countly_flutter\n', 'working-directory: countly_flutter_np\n'),
+            ('working-directory: countly_flutter/example\n', 'working-directory: countly_flutter_np/example\n'),
+            ('plugin root is named countly_flutter.', 'plugin root is named countly_flutter_np.'),
+        ],
+    }
+    for relativePath, pairs in replacements.items():
+        path = os.path.join(cwd, relativePath)
+        if not os.path.exists(path):
+            print('Not found, skipping:', path)
+            continue
+        with open(path, 'r', newline='') as f:
+            content = f.read()
+        for old, new in pairs:
+            content = content.replace(old, new)
+        if relativePath.endswith('build.yml'):
+            # The flavour job generates np from the push sources, which the np tree no longer has.
+            start = content.find('  # Regenerates the no-push flavour')
+            end = content.find('  # Versions come from')
+            if start != -1 and end > start:
+                content = content[:start] + content[end:]
+        with open(path, 'w', newline='') as f:
+            f.write(content)
+        print('Adapted for countly_flutter_np:', path)
+
+    # The no-push flavour does not send the push options with init, so its request records leave them out.
+    requestsDir = os.path.join(cwd, '../api/requests')
+    if os.path.isdir(requestsDir):
+        for name in sorted(os.listdir(requestsDir)):
+            if not name.endswith('.json'):
+                continue
+            path = os.path.join(requestsDir, name)
+            with open(path, 'r', newline='') as f:
+                lines = f.readlines()
+            kept = [line for line in lines if '"pushServiceWorkerScope":' not in line]
+            if len(kept) != len(lines):
+                with open(path, 'w', newline='') as f:
+                    f.writelines(kept)
+                print('Removed the push options from:', path)
+
 def main():
     # give info about set constants
     print('Paths to erase:')
@@ -303,6 +358,7 @@ def main():
     print(packagePathLib)
     print(packagePathLibInternal)
     print(packagePathIntegrationTest)
+    print(packagePathTest)
 
     # ask for permission to run the script
     start = input('Do you want to continue? (y/n)')
@@ -325,8 +381,10 @@ def main():
         update_package(packagePathLib, packagePrefix, packagePrefixToChange)
         update_package(packagePathLibInternal, packagePrefix, packagePrefixToChange)
         update_package(packagePathIntegrationTest, packagePrefix, packagePrefixToChange)
+        update_package(packagePathTest, packagePrefix, packagePrefixToChange)
         # rename the iOS SwiftPM package to match the np package name
         renameIosForNp(cwd)
+        adaptToolingForNp(cwd)
         print('Done')
     else:
         print('Aborted')
