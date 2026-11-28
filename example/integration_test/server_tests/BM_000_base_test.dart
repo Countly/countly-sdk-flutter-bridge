@@ -8,7 +8,6 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('BM_000_base', (WidgetTester tester) async {
     List<Map<String, List<String>>> requestArray = <Map<String, List<String>>>[];
-    createServer(requestArray);
     // Initialize the SDK
     CountlyConfig config = CountlyConfig(TEST_SERVER_URL, APP_KEY).enableManualSessionHandling().setLoggingEnabled(true);
     await Countly.initWithConfig(config);
@@ -23,6 +22,9 @@ void main() {
     printQueues(requestList, eventList);
     expect(requestList.isNotEmpty, true);
     expect(eventList.isNotEmpty, true);
+
+    // start the server only now, so the requests stay in the queue for the checks above
+    await createServer(requestArray);
     Countly.instance.attemptToSendStoredRequests();
 
     // check queues are empty

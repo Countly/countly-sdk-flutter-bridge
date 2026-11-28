@@ -196,7 +196,8 @@ HttpServer? _activeServer;
 /// Use http://0.0.0.0:8080 as the server url.
 /// You can specify a delay in seconds for the server response.
 /// You can also provide a custom handler for the server response. It takes the HttpRequest, query parameters, and HttpResponse as arguments.
-void createServer(List<Map<String, List<String>>> requestArray, {int delay = 0, Future<void> Function(HttpRequest, Map<String, List<String>>, HttpResponse)? customHandler}) async {
+/// The returned Future completes once the server listens, so await it before the SDK sends requests to it.
+Future<void> createServer(List<Map<String, List<String>>> requestArray, {int delay = 0, Future<void> Function(HttpRequest, Map<String, List<String>>, HttpResponse)? customHandler}) async {
   if (_activeServer != null) {
     await _activeServer!.close(force: true);
     _activeServer = null;

@@ -15,7 +15,7 @@ void main() {
   testWidgets('BM_203_backoffDisabled', (WidgetTester tester) async {
     List<Map<String, List<String>>> requestArray = <Map<String, List<String>>>[];
     // The SDKs apply the developer's backoff choice once the server has sent behavior settings, so those answer at once.
-    createServer(requestArray, customHandler: (HttpRequest request, Map<String, List<String>> params, HttpResponse response) async {
+    await createServer(requestArray, customHandler: (HttpRequest request, Map<String, List<String>> params, HttpResponse response) async {
       response.headers.contentType = ContentType.json;
       if (params['method']?.contains('sc') ?? false) {
         response.write(jsonEncode({

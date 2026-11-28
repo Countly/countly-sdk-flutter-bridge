@@ -13,7 +13,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('SBS_200C_test', (WidgetTester tester) async {
     List<Map<String, List<String>>> requestArray = <Map<String, List<String>>>[];
-    createServerWithConfig(requestArray, {
+    await createServerWithConfig(requestArray, {
       'v': 1,
       't': 1750748806695,
       'c': {'networking': false, 'cr': true, 'rqs': 5, 'sui': 10},

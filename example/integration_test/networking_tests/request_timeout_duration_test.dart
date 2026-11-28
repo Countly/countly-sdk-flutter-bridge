@@ -14,7 +14,7 @@ void main() {
     // Create a server that delays response by 3 seconds
     // This is longer than the timeout we will set (1 second)
     List<Map<String, List<String>>> requestArray = <Map<String, List<String>>>[];
-    createServer(requestArray, delay: 3);
+    await createServer(requestArray, delay: 3);
 
     // Initialize SDK with a short request timeout
     CountlyConfig config = CountlyConfig(TEST_SERVER_URL, APP_KEY).enableManualSessionHandling().setLoggingEnabled(true).setRequestTimeoutDuration(1); // Set timeout to 1 second

@@ -12,7 +12,7 @@ void main() {
   testWidgets('requestTimeoutDuration_default_test', (WidgetTester tester) async {
     // Create a server that delays response by 3 seconds
     List<Map<String, List<String>>> requestArray = <Map<String, List<String>>>[];
-    createServer(requestArray, delay: 3);
+    await createServer(requestArray, delay: 3);
 
     // Initialize SDK with default request timeout
     CountlyConfig config = CountlyConfig(TEST_SERVER_URL, APP_KEY).enableManualSessionHandling().setLoggingEnabled(true); // Use default timeout
