@@ -1,0 +1,134 @@
+name: Customer app
+
+# Declaring permissions replaces the default token scopes, so checkout needs `contents: read`.
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - master
+      - staging
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # A new app from `flutter create`, as a customer starts one, that depends on this checkout and calls init.
+  # Each Flutter version brings its own app template (Gradle, Android Gradle Plugin, Kotlin, Xcode project),
+  # so the oldest version pubspec.yaml allows and the latest stable are both built, with the template defaults
+  # plus the one documented change: iOS 15 as the deployment target.
+  build:
+    name: Customer app (Flutter ${{ matrix.flutter.label }}, ${{ matrix.target.name }})
+    runs-on: ${{ matrix.target.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        flutter:
+          # The last patch of 3.24, the oldest minor version pubspec.yaml allows.
+          - { version: "3.24.5", label: "3.24" }
+          # An empty version means the newest release of the channel.
+          - { version: "", label: "latest stable" }
+        target:
+          - { name: "Android", platform: "android", os: "ubuntu-latest" }
+          - { name: "iOS", platform: "ios", os: "macos-15" }
+          - { name: "Web", platform: "web", os: "ubuntu-latest" }
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          path: sdk
+
+      # Gradle in the app needs a JDK 17 toolchain.
+      - name: Set up Java
+        if: matrix.target.name == 'Android'
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
+        with:
+          java-version: "17"
+          distribution: temurin
+
+      # The iOS build compiles the vendored iOS SDK, so it is checked out first. The sync script ends with
+      # `flutter pub get`, which also resolves the example and so needs the latest Flutter; the app is then
+      # built with the Flutter version of the matrix, set up after it.
+      - name: Set up the latest Flutter for the vendored iOS SDK
+        if: matrix.target.name == 'iOS'
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          cache: true
+
+      - name: Prepare the vendored iOS SDK
+        if: matrix.target.name == 'iOS'
+        working-directory: sdk
+        run: dart scripts/sync_sdk_versions.dart
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: ${{ matrix.flutter.version }}
+          channel: stable
+          cache: true
+
+      - name: Report the toolchain
+        run: |
+          flutter --version
+          if command -v xcodebuild >/dev/null; then xcodebuild -version; fi
+
+      # A local plugin is found under its package name, which is countly_flutter_np in the no-push flavour.
+      - name: Copy the SDK under its package name
+        run: |
+          set -euo pipefail
+          package="$(sed -n 's/^name: *//p' sdk/pubspec.yaml)"
+          cp -R sdk "$RUNNER_TEMP/$package"
+          echo "PACKAGE=$package" >> "$GITHUB_ENV"
+          echo "PLUGIN_DIR=$RUNNER_TEMP/$package" >> "$GITHUB_ENV"
+
+      - name: Create the app
+        working-directory: ${{ runner.temp }}
+        run: flutter create --org com.countly.ci --project-name customer_app --platforms ${{ matrix.target.platform }} customer_app
+
+      - name: Add the SDK and call init
+        working-directory: ${{ runner.temp }}/customer_app
+        run: |
+          set -euo pipefail
+          python3 - "$PACKAGE" "$PLUGIN_DIR" <<'PY'
+          import sys
+          package, path = sys.argv[1], sys.argv[2]
+          text = open('pubspec.yaml').read()
+          assert '\ndependencies:\n' in text
+          text = text.replace('\ndependencies:\n', f'\ndependencies:\n  {package}:\n    path: {path}\n', 1)
+          open('pubspec.yaml', 'w').write(text)
+          PY
+          cat > lib/main.dart <<DART
+          import 'package:flutter/material.dart';
+          import 'package:${PACKAGE}/countly_flutter.dart';
+
+          Future<void> main() async {
+            WidgetsFlutterBinding.ensureInitialized();
+            await Countly.initWithConfig(CountlyConfig('https://countly.invalid', 'customer_app_key'));
+            runApp(const MaterialApp(home: Text('Countly')));
+          }
+          DART
+          # The template's widget test refers to the template's app class.
+          rm -rf test
+          flutter pub get
+
+      # The bundled iOS SDK needs iOS 15, as the CHANGELOG tells customers.
+      - name: Raise the iOS deployment target to 15
+        if: matrix.target.name == 'iOS'
+        working-directory: ${{ runner.temp }}/customer_app
+        run: |
+          sed -i '' -E 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]+;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/' ios/Runner.xcodeproj/project.pbxproj
+          if [ -f ios/Podfile ]; then sed -i '' -E "s/^#? *platform :ios, '[0-9.]+'/platform :ios, '15.0'/" ios/Podfile; fi
+
+      - name: Build the app
+        working-directory: ${{ runner.temp }}/customer_app
+        run: |
+          case "${{ matrix.target.name }}" in
+            Android) flutter build apk --debug ;;
+            iOS)     flutter build ios --simulator --no-codesign ;;
+            Web)     flutter build web ;;
+          esac
