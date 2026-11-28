@@ -34,7 +34,7 @@ void main() {
     expect(requestList.length, Platform.isAndroid ? 9 : 10);
     expect(eventList.length, 0);
 
-    createServer(requestArray, delay: 11);
+    await createServer(requestArray, delay: 11);
     Countly.instance.attemptToSendStoredRequests();
 
     await Future.delayed(const Duration(seconds: 50));

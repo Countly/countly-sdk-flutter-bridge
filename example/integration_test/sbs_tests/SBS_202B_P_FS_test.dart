@@ -9,7 +9,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('SBS_202B_P_FS_test', (WidgetTester tester) async {
     List<Map<String, List<String>>> requestArray = <Map<String, List<String>>>[];
-    createServerWithConfig(requestArray, {
+    await createServerWithConfig(requestArray, {
       'v': -1,
       't': -1750748806695,
       'c': {'lvs': 'hoho', 'lsv': 'hehe', 'lbc': -5, 'ltlpt': 0, 'unkown': 'very_unkown', 'ltl': 0, 'rcz': 'no', 'ecz': 'no', 'czi': -16, 'bom': 'test', 'dort': false, 'tracking': 'no', 'scui': 0.1, 'networking': 'yes', 'cr': '', 'rqs': -5, 'sui': -10}

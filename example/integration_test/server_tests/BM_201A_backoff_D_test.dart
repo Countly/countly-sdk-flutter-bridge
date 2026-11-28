@@ -28,7 +28,7 @@ void main() {
 
   testWidgets('BM_201A_backoffDelay', (WidgetTester tester) async {
     List<Map<String, List<String>>> requestArray = <Map<String, List<String>>>[];
-    createServer(requestArray, delay: 11);
+    await createServer(requestArray, delay: 11);
 
     // Initialize the SDK
     CountlyConfig config = CountlyConfig(TEST_SERVER_URL, APP_KEY).enableManualSessionHandling().setLoggingEnabled(true);

@@ -13,7 +13,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('Global content segmentation is recorded with feedback widget events', (WidgetTester tester) async {
     List<Map<String, List<String>>> requestArray = <Map<String, List<String>>>[];
-    createServer(requestArray, customHandler: (HttpRequest request, Map<String, List<String>> queryParams, HttpResponse response) async {
+    await createServer(requestArray, customHandler: (HttpRequest request, Map<String, List<String>> queryParams, HttpResponse response) async {
       Object answer = {'result': 'Success'};
       if (queryParams['method']?.first == 'feedback') {
         answer = {

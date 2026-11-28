@@ -20,7 +20,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('SBS_201B_DP_S_FS_test', (WidgetTester tester) async {
     List<Map<String, List<String>>> requestArray = <Map<String, List<String>>>[];
-    createServerWithConfig(requestArray, {
+    await createServerWithConfig(requestArray, {
       'v': 1,
       't': 1750748806695,
       'c': {'lkl': 8}

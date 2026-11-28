@@ -28,7 +28,7 @@ void main() {
     expect(requestList.length, Platform.isAndroid ? 6 : 7);
     expect(eventList.length, 0);
 
-    createServer(requestArray, delay: 1);
+    await createServer(requestArray, delay: 1);
     Countly.instance.attemptToSendStoredRequests();
     await Future.delayed(const Duration(seconds: 20));
     requestList = await getRequestQueue(); // List of strings

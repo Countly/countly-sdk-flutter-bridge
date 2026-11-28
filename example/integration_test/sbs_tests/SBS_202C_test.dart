@@ -18,7 +18,7 @@ void main() {
     List<Map<String, List<String>>> requestArray = <Map<String, List<String>>>[];
 
     // Server provides whitelists — these should override stored blacklists
-    createServerWithConfig(requestArray, {
+    await createServerWithConfig(requestArray, {
       'v': 1,
       't': 1750748806695,
       'c': {

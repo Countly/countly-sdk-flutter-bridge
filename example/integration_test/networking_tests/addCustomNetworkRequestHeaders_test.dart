@@ -17,7 +17,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('addCustomNetworkRequestHeaders_test', (WidgetTester tester) async {
     List<HttpHeaders> headersArray = <HttpHeaders>[];
-    createServer(
+    await createServer(
       <Map<String, List<String>>>[],
       customHandler: (req, queryParams, res) async {
         // Print request headers for debugging
