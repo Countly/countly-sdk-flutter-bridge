@@ -14,7 +14,7 @@ let package = Package(
         .library(name: "countly-flutter", targets: ["countly_flutter"])
     ],
     // Flutter asks plugins to depend on the framework package it generates, which needs Flutter 3.41 or later.
-    // The dependency comes with a Flutter 3.41 minimum in pubspec.yaml, which allows Flutter 3.24 and later today.
+    // It is added together with a Flutter 3.41 minimum in pubspec.yaml; the plugin supports Flutter 3.24 and later today.
     dependencies: [],
     targets: [
         .target(
