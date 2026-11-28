@@ -22,14 +22,17 @@ jobs:
   analyze:
     name: Analyze (Flutter ${{ matrix.flutter.label }})
     runs-on: ubuntu-latest
+    # The beta channel warns early about the next stable release, so its failures do not fail the workflow.
+    continue-on-error: ${{ matrix.flutter.channel == 'beta' }}
     strategy:
       fail-fast: false
       matrix:
         flutter:
           # 3.24's `flutter pub get --no-example` still loads the example's package config and fails.
-          - { version: "3.24.0", label: "3.24.0, the oldest checked", targets: "lib", pubGet: "dart pub get --no-example" }
+          - { version: "3.24.0", channel: "stable", label: "3.24.0, the oldest checked", targets: "lib", pubGet: "dart pub get --no-example" }
           # An empty version means the newest release of the channel.
-          - { version: "", label: "latest stable", targets: "lib example", pubGet: "flutter pub get" }
+          - { version: "", channel: "stable", label: "latest stable", targets: "lib example", pubGet: "flutter pub get" }
+          - { version: "", channel: "beta", label: "beta", targets: "lib example", pubGet: "flutter pub get" }
     steps:
       - name: Checkout SDK code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -38,7 +41,7 @@ jobs:
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: ${{ matrix.flutter.version }}
-          channel: stable
+          channel: ${{ matrix.flutter.channel }}
           cache: true
 
       - name: Report the toolchain
@@ -51,11 +54,20 @@ jobs:
       - name: Analyze
         run: flutter analyze --no-pub --no-fatal-infos ${{ matrix.flutter.targets }}
 
-  # The Dart suites under test/: the VM tests, then the web tests in the runner's Chrome.
+  # The Dart suites under test/: the VM tests, then the web tests in the runner's Chrome, compiled to
+  # JavaScript and to WebAssembly. Coverage and the CI report come from the latest stable only.
   test:
-    name: Unit tests
+    name: Unit tests (Flutter ${{ matrix.flutter.label }})
     runs-on: ubuntu-latest
     needs: analyze
+    continue-on-error: ${{ matrix.flutter.channel == 'beta' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        flutter:
+          - { version: "3.24.0", channel: "stable", label: "3.24.0, the oldest checked", pubGet: "dart pub get --no-example", latest: false }
+          - { version: "", channel: "stable", label: "latest stable", pubGet: "flutter pub get", latest: true }
+          - { version: "", channel: "beta", label: "beta", pubGet: "flutter pub get", latest: false }
     steps:
       - name: Checkout SDK code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -63,16 +75,18 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
-          channel: stable
+          flutter-version: ${{ matrix.flutter.version }}
+          channel: ${{ matrix.flutter.channel }}
           cache: true
 
       - name: Resolve the dependencies
-        run: flutter pub get
+        run: ${{ matrix.flutter.pubGet }}
 
       - name: Run the VM tests
         run: flutter test --no-pub --coverage
 
       - name: Write the coverage summary
+        if: matrix.flutter.latest
         run: |
           awk -F: '/^LF:/ { found += $2 } /^LH:/ { hit += $2 }
             END { printf "### Unit test coverage\n\n| Metric | Covered | Count |\n|---|---|---|\n| lines | %.2f%% | %d/%d |\n", (found ? 100 * hit / found : 0), hit, found }' \
@@ -80,7 +94,7 @@ jobs:
           cat "$RUNNER_TEMP/coverage.md" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Write the CI report fragment (coverage)
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.flutter.latest }}
         run: |
           [ -s "$RUNNER_TEMP/coverage.md" ] || exit 0
           summary=$(awk '$2 == "lines" { print "Line coverage " $4 }' "$RUNNER_TEMP/coverage.md")
@@ -91,7 +105,7 @@ jobs:
           } > "$RUNNER_TEMP/ci-report-coverage/report.md"
 
       - name: Upload the CI report fragment (coverage)
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.flutter.latest }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ci-report-coverage
@@ -100,6 +114,11 @@ jobs:
 
       - name: Run the web tests
         run: flutter test --no-pub --platform chrome
+
+      # The plugin supports `flutter build web --wasm`, so its web code is also tested compiled to WebAssembly.
+      - name: Run the web tests compiled to WebAssembly
+        if: matrix.flutter.latest
+        run: flutter test --no-pub --platform chrome --wasm
 
   # What pub.dev will see: a missing LICENSE, an oversized archive or a dependency that cannot resolve.
   package:
@@ -139,6 +158,8 @@ jobs:
     name: Build the example (${{ matrix.target.name }})
     needs: analyze
     runs-on: ${{ matrix.target.os }}
+    # A preview toolchain warns early, so its failures do not fail the workflow.
+    continue-on-error: ${{ matrix.target.preview == true }}
     # SwiftPM rejects the example's local plugin override unless the plugin root is named countly_flutter.
     defaults:
       run:
@@ -151,7 +172,11 @@ jobs:
           # Flutter uses SwiftPM by default from 3.44 and CocoaPods before or on opt-out, so both are built.
           - { name: "iOS (Swift Package Manager)", os: "macos-15" }
           - { name: "iOS (CocoaPods)", os: "macos-15" }
+          # macos-15 builds with its default Xcode 16.4; these build with the newer Xcode versions apps move to.
+          - { name: "iOS (Xcode 26)", os: "macos-26" }
+          - { name: "iOS (Xcode 27 preview)", os: "xcode-27", preview: true }
           - { name: "Web", os: "ubuntu-latest" }
+          - { name: "Web (WebAssembly)", os: "ubuntu-latest" }
     steps:
       - name: Checkout SDK code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -189,23 +214,44 @@ jobs:
       - name: Resolve the plugin dependencies
         run: flutter pub get
 
+      - name: Report the toolchain
+        run: |
+          flutter --version
+          if command -v xcodebuild >/dev/null; then xcodebuild -version; fi
+
       - name: Build the example
         working-directory: countly_flutter/example
         run: |
           case "${{ matrix.target.name }}" in
-            Android) flutter build apk --debug ;;
-            iOS*)    flutter build ios --simulator --no-codesign ;;
-            Web)     flutter build web ;;
+            Android)              flutter build apk --debug ;;
+            iOS*)                 flutter build ios --simulator --no-codesign ;;
+            "Web (WebAssembly)")  flutter build web --wasm ;;
+            Web)                  flutter build web ;;
           esac
 
-  # Regenerates the no-push flavour, released from staging-np, with scripts/script.py and checks it.
+  # Regenerates the no-push flavour, released from staging-np, with scripts/script.py, checks it and builds
+  # its example, so a no-push build problem shows here before the flavour goes to staging-np.
+  # The copy is named countly_flutter_np, as SwiftPM accepts a local plugin only from a folder named after it.
   no-push-flavour:
-    name: Generate the no-push flavour
+    name: Generate the no-push flavour (${{ matrix.target.name }})
     needs: analyze
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.target.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { name: "Android", os: "ubuntu-latest" }
+          - { name: "iOS", os: "macos-15" }
     steps:
       - name: Checkout SDK code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Set up Java
+        if: matrix.target.name == 'Android'
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
+        with:
+          java-version: "17"
+          distribution: temurin
 
       - name: Set up Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
@@ -213,18 +259,25 @@ jobs:
           channel: stable
           cache: true
 
+      # The iOS build compiles the vendored iOS SDK, so it is checked out before the copy.
+      - name: Prepare the vendored iOS SDK
+        if: matrix.target.name == 'iOS'
+        run: dart run scripts/sync_sdk_versions.dart
+
       # Generated in a copy so a half-finished run cannot touch the checkout; the script asks to confirm.
       - name: Generate the flavour
         run: |
           set -euo pipefail
-          cp -R "$GITHUB_WORKSPACE" /tmp/np
-          cd /tmp/np/scripts
+          np="$RUNNER_TEMP/countly_flutter_np"
+          echo "NP_DIR=$np" >> "$GITHUB_ENV"
+          cp -R "$GITHUB_WORKSPACE" "$np"
+          cd "$np/scripts"
           echo y | python3 script.py
 
       - name: Check the generated flavour
-        working-directory: /tmp/np
         run: |
           set -euo pipefail
+          cd "$NP_DIR"
           grep -q "^name: countly_flutter_np" pubspec.yaml
           grep -q "BUILDING_WITH_PUSH_DISABLED = true;" android/src/main/java/ly/count/dart/countly_flutter/CountlyFlutterPlugin.java
           grep -q "BUILDING_WITH_PUSH_DISABLED = true;" lib/src/countly_flutter.dart
@@ -238,11 +291,22 @@ jobs:
           fi
 
       - name: Analyze the generated flavour
-        working-directory: /tmp/np
+        if: matrix.target.name == 'Android'
         run: |
           set -euo pipefail
+          cd "$NP_DIR"
           flutter pub get --no-example
           flutter analyze --no-fatal-infos lib
+
+      - name: Build the example of the generated flavour
+        run: |
+          set -euo pipefail
+          cd "$NP_DIR/example"
+          flutter pub get
+          case "${{ matrix.target.name }}" in
+            Android) flutter build apk --debug ;;
+            iOS)     flutter build ios --simulator --no-codesign ;;
+          esac
 
   # Versions come from scripts/config/sdk_versions.txt; this catches a hand edit to any file holding one.
   version-consistency:
