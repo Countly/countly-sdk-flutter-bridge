@@ -29,9 +29,15 @@
 # Devices:
 #   -d, --device ID     Restrict to specific device(s), comma-separated
 #   --timeout SECS      Per-test timeout in seconds (default: 300)
+#   --kill-after SECS   Stop a test, its build and its device processes after SECS seconds (default: off)
+#   --connect-timeout SECS  Stop a test whose app does not connect to the test runner within SECS seconds after
+#                       its build, and report it with live progress lines (default: off)
+#   --retry-infra N     Run a test up to N more times when its app did not start or connect, or --kill-after
+#                       stopped it, after a restart of its iOS simulator (default: 0)
 #
 # Filtering:
 #   --filter PATTERN    Only run tests whose path matches PATTERN (regex)
+#   --shard I/N         Run only shard I of N (1-based): every Nth automatic test, for parallel CI jobs
 #
 # Output:
 #   Logs saved to test_results/<timestamp>/ in the project root:
@@ -68,6 +74,10 @@ FRESH=false
 CLEAR_CACHE=false
 RESTRICT_DEVICES=""
 TEST_FILTER=""
+SHARD=""
+KILL_AFTER=0
+RETRY_INFRA=0
+CONNECT_TIMEOUT=0
 
 # Colors (bold)
 RED='\033[1;31m'
@@ -414,14 +424,45 @@ run_worker() {
     echo "[W$worker_id] ▶ $test" >> "$log_file"
 
     local port=$((8080 + worker_id))
-    if (cd "$EXAMPLE_DIR" && flutter test "$test_path" -d "$device_id" --timeout "$TIMEOUT" --dart-define=TEST_SERVER_PORT=$port 2>&1 | tee "$test_log" >> "$log_file"); then
+    # A test whose app did not start, or that --kill-after stopped as its app never connected, runs again.
+    local status attempt=0 infra_reason
+    while :; do
+      run_with_limit "$KILL_AFTER" run_flutter_test "$test_path" "$device_id" "$port" "$test_log" "$log_file"
+      status=$?
+      infra_reason=""
+      if [[ $status -eq 124 ]]; then
+        infra_reason="stopped after ${KILL_AFTER}s"
+      elif [[ -f "$test_log.no-connection" ]]; then
+        infra_reason="the app did not connect within ${CONNECT_TIMEOUT}s after its build"
+        status=1
+      elif [[ $status -ne 0 ]] && grep -q "Unable to start the app" "$test_log" 2>/dev/null; then
+        infra_reason="the app did not start"
+      fi
+      [[ -n "$infra_reason" ]] && save_simulator_diagnostics "$platform" "$device_id" "$test_log" "$infra_reason"
+      if [[ -n "$infra_reason" && $attempt -lt $RETRY_INFRA ]]; then
+        attempt=$((attempt + 1))
+        echo "[W$worker_id] ↻ RETRY $attempt ($test): $infra_reason" >> "$log_file"
+        restart_simulator_for_retry "$platform" "$device_id"
+        continue
+      fi
+      break
+    done
+    local retry_note=""
+    [[ $attempt -gt 0 ]] && retry_note=" after $attempt retry(s)"
+    if [[ $status -eq 0 ]]; then
       local elapsed=$(( SECONDS - test_start ))
-      echo "[W$worker_id] ✓ PASSED ($test) ${elapsed}s" >> "$log_file"
+      echo "[W$worker_id] ✓ PASSED ($test) ${elapsed}s${retry_note}" >> "$log_file"
       cache_mark_passed "$test" "$platform"
       ((passed++))
     else
       local elapsed=$(( SECONDS - test_start ))
-      echo "[W$worker_id] ✗ FAILED ($test) ${elapsed}s" >> "$log_file"
+      if [[ $status -eq 124 ]]; then
+        echo "Stopped after ${KILL_AFTER}s (--kill-after)." >> "$test_log"
+      elif [[ -f "$test_log.no-connection" ]]; then
+        echo "Stopped: the app did not connect within ${CONNECT_TIMEOUT}s after its build (--connect-timeout)." >> "$test_log"
+      fi
+      rm -f "$test_log.no-connection"
+      echo "[W$worker_id] ✗ FAILED ($test) ${elapsed}s${retry_note}" >> "$log_file"
       cache_mark_failed "$test" "$platform"
       ((failed++))
       failed_tests+=("$test")
@@ -466,6 +507,106 @@ show_live_progress() {
   done
 }
 
+# Ends a process and every process it started, children first.
+kill_tree() {
+  local child
+  for child in $(pgrep -P "$1" 2>/dev/null); do
+    kill_tree "$child"
+  done
+  kill -TERM "$1" 2>/dev/null
+}
+
+# Runs a command and stops it with all its child processes after $1 seconds; 0 means no limit.
+# Returns the command's exit status, or 124 when the limit stopped it.
+run_with_limit() {
+  local limit="$1"
+  shift
+  if [[ "$limit" -le 0 ]]; then
+    "$@"
+    return $?
+  fi
+  local start=$SECONDS
+  "$@" &
+  local pid=$!
+  ( sleep "$limit"; kill_tree "$pid" ) 2>/dev/null &
+  local watcher=$!
+  wait "$pid"
+  local status=$?
+  kill_tree "$watcher"
+  wait "$watcher" 2>/dev/null
+  if (( SECONDS - start >= limit )); then
+    return 124
+  fi
+  return $status
+}
+
+# Saves what an iOS simulator knows about the example app after a test did not start or end: whether launchd runs it,
+# its system log and any crash report. Written next to the test log as <name>.device.txt. Other devices are skipped.
+save_simulator_diagnostics() {
+  local platform="$1" device_id="$2" test_log="$3" reason="$4"
+  [[ "$platform" == "ios" ]] || return 0
+  local out="${test_log%.log}.device.txt"
+  {
+    echo "== $(date '+%Y-%m-%d %H:%M:%S') after: $reason"
+    echo "-- launchd entries of the app"
+    xcrun simctl spawn "$device_id" launchctl list 2>/dev/null | grep -i "com.countly.demo"
+    echo "-- crash reports of the app"
+    ls -t "$HOME/Library/Logs/DiagnosticReports" 2>/dev/null | grep -i "runner" | head -5
+    echo "-- system log of the app, last 12 minutes"
+    xcrun simctl spawn "$device_id" log show --last 12m --style compact --predicate 'process == "Runner"' 2>/dev/null | tail -n 200
+  } >> "$out" 2>&1
+  return 0
+}
+
+# Restarts an iOS simulator before a retry, as a stuck simulator also stops the next launch. Other devices stay as they are.
+restart_simulator_for_retry() {
+  local platform="$1" device_id="$2"
+  [[ "$platform" == "ios" ]] || return 0
+  xcrun simctl shutdown "$device_id" >/dev/null 2>&1
+  xcrun simctl boot "$device_id" >/dev/null 2>&1
+  xcrun simctl bootstatus "$device_id" -b >/dev/null 2>&1
+  return 0
+}
+
+# Stops the test process $1 when its app has not connected $3 seconds after the build line appeared in the test log $2.
+# The expanded reporter prints a progress line, such as "00:05 +0: <test name>", only once the app has connected; its
+# "loading" lines come before the build. The stop is marked with the file <test log>.no-connection, as tee still writes
+# the test log at its own position.
+watch_connection() {
+  local pid="$1" test_log="$2" timeout="$3" built_at=0
+  while kill -0 "$pid" 2>/dev/null; do
+    sleep 5
+    if [[ $built_at -eq 0 ]] && grep -q -E "Xcode build done|Built build/app/outputs" "$test_log" 2>/dev/null; then
+      built_at=$SECONDS
+    fi
+    if [[ $built_at -gt 0 ]]; then
+      if grep -E "^[0-9]{2}:[0-9]{2} \+[0-9]+" "$test_log" 2>/dev/null | grep -v -q ": loading "; then
+        return 0
+      fi
+      if (( SECONDS - built_at >= timeout )); then
+        : > "$test_log.no-connection"
+        kill_tree "$pid"
+        return 0
+      fi
+    fi
+  done
+}
+
+# Runs one integration test file on one device, writing its output to the test log and the worker log.
+# With --connect-timeout, the expanded reporter prints the progress lines the connection watcher needs.
+run_flutter_test() {
+  local test_path="$1" device_id="$2" port="$3" test_log="$4" log_file="$5"
+  local reporter=()
+  [[ $CONNECT_TIMEOUT -gt 0 ]] && reporter=(-r expanded)
+  rm -f "$test_log.no-connection"
+  (cd "$EXAMPLE_DIR" && flutter test "$test_path" -d "$device_id" --timeout "$TIMEOUT" "--dart-define=TEST_SERVER_PORT=$port" "${reporter[@]+"${reporter[@]}"}" 2>&1 | tee "$test_log" >> "$log_file") 2>/dev/null &
+  local pid=$!
+  if [[ $CONNECT_TIMEOUT -gt 0 ]]; then
+    watch_connection "$pid" "$test_log" "$CONNECT_TIMEOUT" &
+  fi
+  wait "$pid" 2>/dev/null
+}
+
 # ── Parse Arguments ──────────────────────────────────────────────────
 
 HAS_CATEGORY=false
@@ -486,8 +627,12 @@ while [[ $# -gt 0 ]]; do
     -d|--device)    RESTRICT_DEVICES="$2"; shift 2 ;;
     --timeout)      TIMEOUT="$2"; shift 2 ;;
     --filter)       TEST_FILTER="$2"; shift 2 ;;
+    --shard)        SHARD="$2"; shift 2 ;;
+    --kill-after)   KILL_AFTER="$2"; shift 2 ;;
+    --retry-infra)  RETRY_INFRA="$2"; shift 2 ;;
+    --connect-timeout) CONNECT_TIMEOUT="$2"; shift 2 ;;
     -h|--help)
-      head -48 "$0" | tail -n +2 | sed 's/^# \?//'
+      head -54 "$0" | tail -n +2 | sed 's/^# \?//'
       exit 0 ;;
     *)
       echo "Unknown option: $1 (use --help)"; exit 1 ;;
@@ -496,6 +641,18 @@ done
 
 if ! $HAS_CATEGORY; then
   RUN_AUTO=true
+fi
+if ! [[ "$KILL_AFTER" =~ ^[0-9]+$ ]]; then
+  echo "--kill-after needs a whole number of seconds (got: $KILL_AFTER)"; exit 1
+fi
+if ! [[ "$RETRY_INFRA" =~ ^[0-9]+$ ]]; then
+  echo "--retry-infra needs a whole number (got: $RETRY_INFRA)"; exit 1
+fi
+if ! [[ "$CONNECT_TIMEOUT" =~ ^[0-9]+$ ]]; then
+  echo "--connect-timeout needs a whole number of seconds (got: $CONNECT_TIMEOUT)"; exit 1
+fi
+if [[ -n "$SHARD" ]] && ! [[ "$SHARD" =~ ^[1-9][0-9]*/[1-9][0-9]*$ && ${SHARD%/*} -le ${SHARD#*/} ]]; then
+  echo "--shard needs I/N with 1 <= I <= N, for example 2/4 (got: $SHARD)"; exit 1
 fi
 if $RUN_AUTO; then
   RUN_SERVER=true; RUN_RC=true; RUN_LIGHT=true
@@ -652,6 +809,18 @@ for category in light server rc; do
     while IFS= read -r t; do [[ -n "$t" ]] && ALL_AUTO_TESTS+=("$t"); done < "$WORK_DIR/tests_${category}.txt"
   fi
 done
+
+# A shard keeps every Nth test, so parallel jobs get similar mixes of light and server tests.
+if [[ -n "$SHARD" ]]; then
+  local shard_index=${SHARD%/*} shard_count=${SHARD#*/} shard_tests=() i
+  for i in "${!ALL_AUTO_TESTS[@]}"; do
+    if (( i % shard_count == shard_index - 1 )); then
+      shard_tests+=("${ALL_AUTO_TESTS[$i]}")
+    fi
+  done
+  ALL_AUTO_TESTS=("${shard_tests[@]+"${shard_tests[@]}"}")
+  echo -e "  ${DIM}Shard $SHARD: ${#ALL_AUTO_TESTS[@]} automatic test(s)${NC}"
+fi
 
 local ALL_MANUAL_TESTS=()
 if $RUN_MANUAL; then

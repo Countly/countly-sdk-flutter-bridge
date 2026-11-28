@@ -7,6 +7,13 @@ import '../event_tests/event_utils.dart';
 import '../utils.dart';
 
 /// Deduplicates a request array by removing entries with identical timestamps and payloads.
+/// Returns [eventQueue] without the orientation event of the SDK start on iOS: iOS SDK 26.8.1 records it once, when the SDK starts, while the SDK guide and Android record it at begin_session, which these
+/// tests do not call. On Android the queue is returned as it is.
+List<String> withoutStartOrientation(List<String> eventQueue) {
+  if (!Platform.isIOS) return eventQueue;
+  return eventQueue.where((String event) => jsonDecode(event)['key'] != '[CLY]_orientation').toList();
+}
+
 /// iOS has a known race condition with fast mock server responses where proceedOnQueue
 /// can send the same request twice (see notes.md). This helper filters those duplicates.
 void deduplicateRequestArray(List<Map<String, List<String>>> requestArray) {
